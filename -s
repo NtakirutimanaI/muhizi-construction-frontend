@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="MUHIZI CONSTRUCTION - Leading construction and real estate company in Rwanda. Specializing in residential & commercial building, road infrastructure, and property development." />
+    <meta name="keywords" content="Construction, Real Estate, Building, Infrastructure, Rwanda, MUHIZI CONSTRUCTION" />
+    <meta name="author" content="MUHIZI CONSTRUCTION" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="MUHIZI CONSTRUCTION - Real Estate & Construction Company" />
+    <meta property="og:description" content="Discover our portfolio of quality construction projects, real estate developments, and infrastructure solutions." />
+    <meta property="og:type" content="website" />
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#8b5cf6" />
+    
+    <title>MUHIZI CONSTRUCTION - Real Estate & Construction Company</title>
+    <script type="module" crossorigin src="/assets/index-B-hBUOUj.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-4zBk66VG.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+
