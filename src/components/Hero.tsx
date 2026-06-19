@@ -7,27 +7,11 @@ interface SlideContent {
     color: string;
 }
 
-const slides: SlideContent[] = [
-    {
-        color: '#7BC043',
-        title: 'PROFESSIONAL CONSTRUCTION',
-        body: 'Building, road, and infrastructure development.',
-    },
-    {
-        color: '#ff5252',
-        title: 'PROFESSIONAL REAL ESTATE',
-        body: 'Development and property management.',
-    },
-    {
-        color: '#4ecdc4',
-        title: 'PROFESSIONAL DESIGN',
-        body: 'Innovative and functional architecture.',
-    },
-    {
-        color: '#2d2d2d',
-        title: 'PROFESSIONAL MANAGEMENT',
-        body: 'On time, on budget, quality assured.',
-    },
+const defaultSlides: SlideContent[] = [
+    { color: '#7BC043', title: 'PROFESSIONAL CONSTRUCTION', body: 'Building, road, and infrastructure development.' },
+    { color: '#ff5252', title: 'PROFESSIONAL REAL ESTATE', body: 'Development and property management.' },
+    { color: '#4ecdc4', title: 'PROFESSIONAL DESIGN', body: 'Innovative and functional architecture.' },
+    { color: '#2d2d2d', title: 'PROFESSIONAL MANAGEMENT', body: 'On time, on budget, quality assured.' },
 ];
 
 const SlideText: React.FC<{ data: SlideContent }> = ({ data }) => (
@@ -37,7 +21,13 @@ const SlideText: React.FC<{ data: SlideContent }> = ({ data }) => (
     </div>
 );
 
-const Hero: React.FC = () => {
+interface HeroProps {
+    slides?: SlideContent[];
+    videoUrl?: string;
+}
+
+const Hero: React.FC<HeroProps> = ({ slides: propSlides, videoUrl }) => {
+    const slides = propSlides || defaultSlides;
     const [current, setCurrent] = useState(0);
     const autoTimer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
@@ -61,7 +51,7 @@ const Hero: React.FC = () => {
                     playsInline
                     poster="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80"
                 >
-                    <source src="/hero-video.mp4" type="video/mp4" />
+                    <source src={videoUrl || '/hero-video.mp4'} type="video/mp4" />
                 </video>
                 <div className="hero-overlay" />
                 <div className="container hero-content">

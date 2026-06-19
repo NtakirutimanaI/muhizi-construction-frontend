@@ -17,7 +17,7 @@ const Projects: React.FC<ProjectsProps> = ({ profile }) => {
                 <h2 className="ark-section__heading">Projects</h2>
                 <motion.p
                     style={{
-                        maxWidth: '600px', margin: '0 auto 3rem', color: 'var(--text-muted)',
+                        maxWidth: '600px', margin: '0 auto 3rem', color: '#ffffff',
                         fontSize: '1.05rem', lineHeight: '1.7'
                     }}
                     initial={{ opacity: 0, y: 30 }}

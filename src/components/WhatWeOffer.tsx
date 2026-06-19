@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FaLaptopCode, FaMobileAlt, FaCloud, FaPaintBrush, FaHeadset, FaRocket, FaShieldAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaLaptopCode, FaMobileAlt, FaCloud, FaPaintBrush, FaRocket, FaShieldAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
-const offerings = [
+const defaultOfferings = [
     {
         icon: FaLaptopCode,
         title: 'Building Construction',
@@ -45,14 +45,9 @@ const offerings = [
         color: '#fdcb6e',
         tags: ['Painting', 'Flooring', 'Tiling', 'Ceiling', 'Façade Cladding', 'Landscaping', 'Joinery'],
     },
-    {
-        icon: FaHeadset,
-        title: 'Renovation & Remodeling',
-        description: 'Complete renovation and remodeling solutions for homes, offices, and commercial spaces — transforming outdated structures into modern, functional environments.',
-        color: '#74b9ff',
-        tags: ['Home Renovation', 'Office Remodeling', 'Commercial Renovation', 'Space Planning', 'Structural Repairs', 'Kitchen & Bathroom', 'Extension'],
-    },
 ];
+
+const offerIcons = [FaLaptopCode, FaMobileAlt, FaCloud, FaPaintBrush, FaShieldAlt, FaRocket];
 
 const slides = [
     'https://picsum.photos/seed/web1/600/400',
@@ -110,13 +105,29 @@ const ImageSlider = ({ color, seed }: { color: string; seed: number }) => {
     );
 };
 
-const WhatWeOffer = () => {
+interface WhatWeOfferProps {
+    heading?: string;
+    subtitle?: string;
+    items?: Array<{
+        title: string;
+        description: string;
+        tags: string[];
+        color: string;
+    }>;
+}
+
+const WhatWeOffer: React.FC<WhatWeOfferProps> = ({ heading: propHeading, subtitle: propSubtitle, items: propItems }) => {
+    const heading = propHeading || 'Core Services';
+    const subtitle = propSubtitle || 'We deliver end-to-end construction and real estate solutions tailored to your needs — from planning and design to execution and project handover.';
+    const offerings = propItems
+        ? propItems.map((item, i) => ({ ...item, icon: offerIcons[i % offerIcons.length] }))
+        : defaultOfferings;
     return (
         <section className="section section-indicator section-offer-dark" id="offerings">
             <div className="container">
                     <motion.div
                         style={{ marginBottom: '3rem' }}
-                        initial={{ opacity: 0, y: 40 }}
+                        initial={{ opacity: 0, y: 70 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -125,11 +136,11 @@ const WhatWeOffer = () => {
                             What We Offer
                         </span>
                         <h2 className="ark-section__heading">
-                            Core Services
+                            {heading}
                         </h2>
                         <motion.p
                             style={{
-                                maxWidth: '600px', margin: '0 auto', color: 'var(--text-muted)',
+                                maxWidth: '600px', margin: '0 auto', color: '#ffffff',
                                 fontSize: '1.05rem', lineHeight: '1.7'
                             }}
                             initial={{ opacity: 0, y: 30 }}
@@ -137,8 +148,7 @@ const WhatWeOffer = () => {
                             viewport={{ once: true }}
                             transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
                         >
-                            We deliver end-to-end construction and real estate solutions tailored to your needs —
-                            from planning and design to execution and project handover.
+                            {subtitle}
                         </motion.p>
                     </motion.div>
 
@@ -148,8 +158,8 @@ const WhatWeOffer = () => {
                                 <motion.div
                                 key={item.title}
                                 className={`offer-card offer-card--wide ${index >= 4 ? 'offer-card--centered' : ''} ${index === 1 || index === 2 || index === 5 || index === 6 ? 'offer-card--reverse' : ''}`}
-                                initial={{ opacity: 0, scale: 0.7, y: 40 }}
-                                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                initial={{ opacity: 0, x: index % 2 === 0 ? -300 : 300 }}
+                                whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ margin: '-80px' }}
                                 transition={{ delay: index * 0.12, duration: 0.7, ease: 'easeOut' }}
                                 whileHover={{ y: -5, scale: 1.01 }}

@@ -42,30 +42,10 @@ const Register = () => {
             justifyContent: 'center',
             paddingTop: '80px',
             paddingBottom: '3rem',
-            background: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 50%, #0d0d0d 100%)',
+            background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(/login.png) center/cover fixed`,
             position: 'relative',
             overflow: 'hidden',
         }}>
-            <div style={{
-                position: 'absolute',
-                top: '-50%',
-                right: '-30%',
-                width: '600px',
-                height: '600px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(123,192,67,0.08) 0%, transparent 70%)',
-                pointerEvents: 'none',
-            }} />
-            <div style={{
-                position: 'absolute',
-                bottom: '-40%',
-                left: '-20%',
-                width: '500px',
-                height: '500px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(123,192,67,0.05) 0%, transparent 70%)',
-                pointerEvents: 'none',
-            }} />
 
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -84,11 +64,11 @@ const Register = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.4, delay: 0.1 }}
                     style={{
-                        background: '#1a1a1a',
+                        background: 'rgba(0,0,0,0.15)',
                         padding: '2.5rem',
                         borderRadius: '0',
-                        border: '1px solid rgba(123,192,67,0.15)',
                         boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+                        backdropFilter: 'blur(8px)',
                     }}
                 >
                     <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -245,7 +225,7 @@ const Register = () => {
                             whileTap={{ scale: 0.98 }}
                             style={{
                                 marginTop: '0.5rem', padding: '0.9rem', fontSize: '1rem', fontWeight: 700,
-                                background: 'var(--primary)', color: '#0d0d0d', border: 'none', borderRadius: '10px',
+                                background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '10px',
                                 cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.7 : 1,
                                 transition: 'opacity 0.2s', letterSpacing: '0.5px',
                             }}>

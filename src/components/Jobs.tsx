@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { FaLinkedin, FaTwitter, FaFacebookF, FaInstagram, FaGlobe } from 'react-icons/fa';
 import ProfileFormModal from './ProfileFormModal';
+import type { Profile } from '../services/profileService';
 
 const jobs = [
     {
@@ -24,6 +26,18 @@ const jobs = [
     },
 ];
 
+interface JobsProps {
+    profile: Profile;
+}
+
+const socialIconMap: Record<string, React.ReactNode> = {
+    linkedin: <FaLinkedin />,
+    twitter: <FaTwitter />,
+    facebook: <FaFacebookF />,
+    instagram: <FaInstagram />,
+    website: <FaGlobe />,
+};
+
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -37,7 +51,8 @@ const cardVariants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
 };
 
-const Jobs: React.FC = () => {
+const Jobs: React.FC<JobsProps> = ({ profile }) => {
+    const members = profile.teamMembers || [];
     const [modalOpen, setModalOpen] = useState(false);
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -90,6 +105,58 @@ const Jobs: React.FC = () => {
                         </motion.article>
                     ))}
                 </motion.div>
+
+                {members.length > 0 && (
+                    <>
+                        <h3 className="jobs__team-heading">Our Team</h3>
+                        <motion.div
+                            className="team-cards-grid"
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true }}
+                            variants={{
+                                hidden: { opacity: 0 },
+                                visible: { transition: { staggerChildren: 0.1 } },
+                            }}
+                        >
+                            {members.map((member, i) => {
+                                const imgUrl = member.imageUrl ||
+                                    `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=8B4513&color=fff&size=300`;
+                                return (
+                                    <motion.div
+                                        key={i}
+                                        className="team-card"
+                                        variants={{
+                                            hidden: { opacity: 0, y: 30 },
+                                            visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+                                        }}
+                                    >
+                                        <div className="team-card__img-wrap">
+                                            <img src={imgUrl} alt={member.name} className="team-card__img" />
+                                        </div>
+                                        <h3 className="team-card__name">{member.name}</h3>
+                                        <p className="team-card__role">{member.role}</p>
+                                        <div className="team-card__socials">
+                                            {Object.entries(profile.socialLinks || {}).map(([key, url]) =>
+                                                url ? (
+                                                    <a
+                                                        key={key}
+                                                        href={url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="team-card__social-link"
+                                                    >
+                                                        {socialIconMap[key] || <FaGlobe />}
+                                                    </a>
+                                                ) : null
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </motion.div>
+                    </>
+                )}
             </div>
 
             <ProfileFormModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />

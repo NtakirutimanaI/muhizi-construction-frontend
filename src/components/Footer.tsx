@@ -41,6 +41,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                     <div className="ark-footer__grid">
                         {/* Brand / About */}
                         <div className="ark-footer__col">
+                            <a href="/"><img src="/logo.png" alt="MUHIZI CONSTRUCTION" style={{ height: 70, marginBottom: '0.75rem', borderRadius: '50%', background: '#fff', padding: '8px', marginLeft: '40px' }} /></a>
                             <h4 className="ark-footer__col-title">MUHIZI CONSTRUCTION</h4>
                             <p style={{ fontSize: '0.9rem', color: 'rgba(243,241,241,0.6)', lineHeight: '1.6', margin: '0 0 0.75rem', maxWidth: '22ch' }}>
                                 {profile.about?.split('.')[0] || 'Construction & Real Estate'}
@@ -117,7 +118,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                     {/* Bottom bar */}
                     <div className="ark-footer__bottom">
                         <p className="ark-footer__copy">© {new Date().getFullYear()}. By {profile.firstName} {profile.lastName}</p>
-                        <p className="ark-footer__copy" style={{ color: 'rgba(243,241,241,0.35)' }}>{profile.poweredBy || 'Powered by MUHIZI CONSTRUCTION'}</p>
+                        <p className="ark-footer__copy" style={{ color: 'rgba(243,241,241,0.35)' }}>Powered by <a href="https://mis-frontend-eta.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>MAKE IT SOLUTIONS (MIS)</a></p>
                     </div>
                 </div>
             </div>

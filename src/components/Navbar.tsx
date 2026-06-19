@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { FaSignInAlt } from 'react-icons/fa';
 
 const splitChars = (text: string) =>
     text.split('').map((ch, i) => (
@@ -10,6 +11,8 @@ const Navbar: React.FC = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [phase, setPhase] = useState(0);
     const navRef = useRef<HTMLElement>(null);
+
+    const closeMenu = useCallback(() => setMenuOpen(false), []);
 
     const thinkChars = useMemo(() => splitChars('Think, Design'), []);
     const buildChars = useMemo(() => splitChars('We Build'), []);
@@ -39,6 +42,12 @@ const Navbar: React.FC = () => {
     }, []);
 
     useEffect(() => {
+        if (menuOpen) {
+            document.body.style.overflow = '';
+        }
+    }, [menuOpen]);
+
+    useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (menuOpen && navRef.current && !navRef.current.contains(e.target as Node)) {
                 setMenuOpen(false);
@@ -48,16 +57,10 @@ const Navbar: React.FC = () => {
         return () => document.removeEventListener('click', handleClickOutside);
     }, [menuOpen]);
 
-    useEffect(() => {
-        if (menuOpen) {
-            document.body.style.overflow = '';
-        }
-    }, [menuOpen]);
-
-    const closeMenu = () => setMenuOpen(false);
-
     return (
-        <nav ref={navRef} className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+        <nav ref={navRef} className={`navbar ${scrolled ? 'scrolled' : ''}`}
+            onMouseLeave={() => setMenuOpen(false)}
+        >
             <div className="container">
                 <div className="navbar-content">
                     <a href="/" className="nav-brand-tag">
@@ -69,7 +72,10 @@ const Navbar: React.FC = () => {
                     </span>
                     <div className="nav-actions">
                         <a href="/#contact" className="nav-get-in-touch" onClick={closeMenu}>Get in Touch &rarr;</a>
-                        <button className="nav-mobile-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
+                        <a href="/login" className="nav-login-icon" aria-label="Login">
+                            <FaSignInAlt size={20} />
+                        </a>
+                        <button className="nav-mobile-toggle" onClick={() => setMenuOpen(true)} aria-label="Toggle menu">
                             {menuOpen ? (
                                 <span className="hamburger-close">&times;</span>
                             ) : (
@@ -82,7 +88,11 @@ const Navbar: React.FC = () => {
                     </div>
                 </div>
                 {menuOpen && (
-                    <div className="nav-mobile-menu">
+                    <div
+                        className="nav-mobile-menu"
+                        onMouseEnter={() => setMenuOpen(true)}
+                        onMouseLeave={() => setMenuOpen(false)}
+                    >
                         <a href="/#home" className="nav-mobile-link" onClick={closeMenu}>Home</a>
                         <a href="/#about" className="nav-mobile-link" onClick={closeMenu}>About Us</a>
                         <a href="/#projects" className="nav-mobile-link" onClick={closeMenu}>Projects</a>

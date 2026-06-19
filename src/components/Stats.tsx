@@ -4,6 +4,7 @@ import type { Profile } from '../services/profileService';
 
 interface StatsProps {
     profile: Profile;
+    customStats?: Array<{ value: number; suffix: string; label: string }>;
 }
 
 function CountUp({ value, suffix, duration = 2000 }: { value: number; suffix: string; duration?: number }) {
@@ -35,13 +36,14 @@ function CountUp({ value, suffix, duration = 2000 }: { value: number; suffix: st
     return <span ref={ref}>{display}{suffix}</span>;
 }
 
-const Stats: React.FC<StatsProps> = ({ profile }) => {
-    const items = [
+const Stats: React.FC<StatsProps> = ({ profile, customStats }) => {
+    const derived = [
         { value: profile.projects?.length || 0, suffix: '+', label: 'Projects Completed' },
         { value: profile.yearsOfExperience || 0, suffix: '+', label: 'Years Experience' },
         { value: profile.teamMembers?.length || 0, suffix: '+', label: 'Team Members' },
-        { value: 98, suffix: '%', label: 'Satisfaction Rate' },
+        ...(customStats || [{ value: 98, suffix: '%', label: 'Satisfaction Rate' }]),
     ];
+    const items = derived;
 
     return (
         <div className="stats-grid">

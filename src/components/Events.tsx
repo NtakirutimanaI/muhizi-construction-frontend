@@ -1,28 +1,18 @@
 import { motion } from 'framer-motion';
 import { FaCalendarAlt, FaMapMarkerAlt, FaArrowRight } from 'react-icons/fa';
 
-const events = [
-    {
-        title: 'Rwanda Construction Expo 2026',
-        date: '15 Aug 2026',
-        location: 'Kigali Convention Centre',
-        description: 'Showcasing our latest projects and innovations in sustainable construction.',
-    },
-    {
-        title: 'Open House - New Development',
-        date: '10 Sep 2026',
-        location: 'KG 123 Ave, Kigali',
-        description: 'Tour our newest residential development and meet the design team.',
-    },
-    {
-        title: 'Industry Workshop',
-        date: '05 Oct 2026',
-        location: 'MUHIZI CONSTRUCTION HQ',
-        description: 'Free workshop on modern construction techniques and project management.',
-    },
+const defaultEvents = [
+    { title: 'Rwanda Construction Expo 2026', date: '15 Aug 2026', location: 'Kigali Convention Centre', description: 'Showcasing our latest projects and innovations in sustainable construction.' },
+    { title: 'Open House - New Development', date: '10 Sep 2026', location: 'KG 123 Ave, Kigali', description: 'Tour our newest residential development and meet the design team.' },
+    { title: 'Industry Workshop', date: '05 Oct 2026', location: 'MUHIZI CONSTRUCTION HQ', description: 'Free workshop on modern construction techniques and project management.' },
 ];
 
-const Events: React.FC = () => {
+interface EventsProps {
+    events?: Array<{ title: string; date: string; location: string; description: string }>;
+}
+
+const Events: React.FC<EventsProps> = ({ events: propEvents }) => {
+    const events = propEvents || defaultEvents;
     return (
         <section className="section section-indicator" id="events">
             <div className="container">

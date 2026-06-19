@@ -3,9 +3,7 @@ import About from '../../components/About';
 import WhatWeOffer from '../../components/WhatWeOffer';
 import Experience from '../../components/Experience';
 import Projects from '../../components/Projects';
-import LatestUpdates from '../../components/LatestUpdates';
 import Events from '../../components/Events';
-import Jobs from '../../components/Jobs';
 import TeamMembers from '../../components/TeamMembers';
 import Certifications from '../../components/Certifications';
 import Contact from '../../components/Contact';
@@ -14,6 +12,7 @@ import type { Profile } from '../../services/profileService';
 
 const Home = () => {
     const { profile } = useOutletContext<{ profile: Profile | null }>();
+    const pc = profile?.pageContent;
 
     if (!profile) {
         return (
@@ -28,21 +27,17 @@ const Home = () => {
 
     return (
         <>
-            <Hero />
+            <Hero slides={pc?.heroSlides} videoUrl={pc?.heroVideoUrl} />
             <div className="section-divider" />
             <About profile={profile} />
             <div className="section-divider" />
-            <WhatWeOffer />
+            <WhatWeOffer heading={pc?.services?.heading} subtitle={pc?.services?.subtitle} items={pc?.services?.items} />
             <div className="section-divider" />
-            <Experience profile={profile} />
+            <Experience />
             <div className="section-divider" />
             <Projects profile={profile} />
             <div className="section-divider" />
-            <LatestUpdates />
-            <div className="section-divider" />
-            <Events />
-            <div className="section-divider" />
-            <Jobs />
+            <Events events={pc?.events} />
             <div className="section-divider" />
             <TeamMembers profile={profile} />
             <div className="section-divider" />

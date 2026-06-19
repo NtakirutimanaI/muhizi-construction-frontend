@@ -28,7 +28,15 @@ const Login = () => {
         try {
             const data = await authService.login({ email, password });
             login(data.accessToken, data.user);
-            const target = redirect === '/' ? '/?createProfile=true' : redirect;
+            const role = data.user?.role;
+            const dashboardMap: Record<string, string> = {
+                admin: '/admin',
+                site_manager: '/admin/site-dashboard',
+                employee: '/admin/employee-dashboard',
+                client: '/admin/client-dashboard',
+                manager: '/admin/manager-dashboard',
+            };
+            const target = dashboardMap[role] || (redirect === '/' ? '/?createProfile=true' : redirect);
             navigate(target);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
@@ -45,30 +53,10 @@ const Login = () => {
             justifyContent: 'center',
             paddingTop: '80px',
             paddingBottom: '3rem',
-            background: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 50%, #0d0d0d 100%)',
+            background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(/login.png) center/cover fixed`,
             position: 'relative',
             overflow: 'hidden',
         }}>
-            <div style={{
-                position: 'absolute',
-                top: '-50%',
-                right: '-30%',
-                width: '600px',
-                height: '600px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(123,192,67,0.08) 0%, transparent 70%)',
-                pointerEvents: 'none',
-            }} />
-            <div style={{
-                position: 'absolute',
-                bottom: '-40%',
-                left: '-20%',
-                width: '500px',
-                height: '500px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(123,192,67,0.05) 0%, transparent 70%)',
-                pointerEvents: 'none',
-            }} />
 
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -87,11 +75,11 @@ const Login = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.4, delay: 0.1 }}
                     style={{
-                        background: '#1a1a1a',
+                        background: 'rgba(0,0,0,0.15)',
                         padding: '2.5rem',
                         borderRadius: '0',
-                        border: '1px solid rgba(123,192,67,0.15)',
                         boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+                        backdropFilter: 'blur(8px)',
                     }}
                 >
                     <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -224,7 +212,7 @@ const Login = () => {
                                 fontSize: '1rem',
                                 fontWeight: 700,
                                 background: 'var(--primary)',
-                                color: '#0d0d0d',
+                                color: '#fff',
                                 border: 'none',
                                 borderRadius: '10px',
                                 cursor: isLoading ? 'not-allowed' : 'pointer',
@@ -239,7 +227,7 @@ const Login = () => {
 
                     <div style={{ marginTop: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         <Link to="/register" style={{
-                            color: 'var(--primary)',
+                            color: '#fff',
                             fontWeight: 600,
                             fontSize: '0.85rem',
                             textDecoration: 'none',
@@ -248,7 +236,7 @@ const Login = () => {
                             onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
                             onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                         >
-                            Don't have an account? Register
+                            Don't have an account? <span style={{ color: 'var(--primary)' }}>Register</span>
                         </Link>
                         <Link to="/" style={{
                             color: 'rgba(255,255,255,0.4)',

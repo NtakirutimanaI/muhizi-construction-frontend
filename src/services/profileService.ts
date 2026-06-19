@@ -102,6 +102,83 @@ export interface Profile {
         instagram?: string;
         [key: string]: string | undefined;
     };
+    pageContent?: {
+        heroSlides?: Array<{
+            title: string;
+            body: string;
+            color: string;
+        }>;
+        services?: {
+            heading?: string;
+            subtitle?: string;
+            items?: Array<{
+                title: string;
+                description: string;
+                tags: string[];
+                color: string;
+            }>;
+        };
+        events?: Array<{
+            title: string;
+            date: string;
+            location: string;
+            description: string;
+        }>;
+        aboutStats?: Array<{
+            value: number;
+            suffix: string;
+            label: string;
+        }>;
+        mission?: { title: string; text: string; icon: string };
+        vision?: { title: string; text: string; icon: string };
+        philosophy?: { title: string; text: string; icon: string };
+        coreValues?: Array<{
+            title: string;
+            text: string;
+            icon: string;
+        }>;
+        whyChooseUs?: Array<{
+            title: string;
+            text: string;
+            icon: string;
+        }>;
+        cta?: {
+            title: string;
+            subtitle: string;
+            buttonText: string;
+            buttonLink: string;
+            secondaryButtonText: string;
+            secondaryButtonLink: string;
+        };
+        followUs?: {
+            heading?: string;
+            subtitle?: string;
+            youtubeUrl?: string;
+            videos?: Array<{
+                url: string;
+                title: string;
+                description?: string;
+            }>;
+        };
+        faq?: {
+            heading?: string;
+            items?: Array<{
+                question: string;
+                answer: string;
+            }>;
+        };
+        contactSection?: {
+            heading?: string;
+            subtitle?: string;
+        };
+        footer?: {
+            companyDescription?: string;
+            copyrightText?: string;
+            quickLinks?: Array<{ label: string; url: string }>;
+            showSocialLinks?: boolean;
+            showContactInfo?: boolean;
+        };
+    };
     services: string[];
     createdAt: string;
     updatedAt: string;
