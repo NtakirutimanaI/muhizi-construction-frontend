@@ -1,10 +1,18 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { useState, useEffect, useRef, useMemo } from 'react';
+
+const splitChars = (text: string) =>
+    text.split('').map((ch, i) => (
+        <span key={i} className="nav-char" style={{ animationDelay: `${i * 0.06}s` }}>{ch}</span>
+    ));
 
 const Navbar: React.FC = () => {
     const [scrolled, setScrolled] = useState(false);
-    const [mobileOpen, setMobileOpen] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [phase, setPhase] = useState(0);
+    const navRef = useRef<HTMLElement>(null);
+
+    const thinkChars = useMemo(() => splitChars('Think, Design'), []);
+    const buildChars = useMemo(() => splitChars('We Build'), []);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -15,58 +23,73 @@ const Navbar: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (mobileOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
+        const timers: ReturnType<typeof setTimeout>[] = [];
+        const cycle = () => {
+            timers.push(setTimeout(() => setPhase(1), 7000));
+            timers.push(setTimeout(() => setPhase(2), 9000));
+            timers.push(setTimeout(() => setPhase(1), 16000));
+            timers.push(setTimeout(() => setPhase(0), 18000));
+        };
+        cycle();
+        const repeat = setInterval(cycle, 18000);
+        return () => {
+            timers.forEach(clearTimeout);
+            clearInterval(repeat);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (menuOpen && navRef.current && !navRef.current.contains(e.target as Node)) {
+                setMenuOpen(false);
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, [menuOpen]);
+
+    useEffect(() => {
+        if (menuOpen) {
             document.body.style.overflow = '';
         }
-        return () => { document.body.style.overflow = ''; };
-    }, [mobileOpen]);
+    }, [menuOpen]);
 
-    const closeMobile = () => setMobileOpen(false);
+    const closeMenu = () => setMenuOpen(false);
 
     return (
-        <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+        <nav ref={navRef} className={`navbar ${scrolled ? 'scrolled' : ''}`}>
             <div className="container">
                 <div className="navbar-content">
-                    {/* Left: Brand Tag */}
-                    <span className="nav-brand-tag">
-                        <span style={{
-                            width: '10px', height: '10px', background: 'var(--primary)',
-                            borderRadius: '50%', display: 'inline-block', flexShrink: 0,
-                        }} />
-                        <span style={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: '0.05em', color: 'var(--primary)' }}>
-                            Build. Design. Construct.
-                        </span>
+                    <a href="/" className="nav-brand-tag">
+                        <img src="/logo.png" alt="MUHIZI CONSTRUCTION" className="nav-logo" />
+                    </a>
+                    <span className="nav-center-title">
+                        <span className={`nav-title-text ${phase === 0 ? 'fade-in' : 'fade-out'}`}>{thinkChars}</span>
+                        <span className={`nav-title-text ${phase === 2 ? 'fade-in' : 'fade-out'}`}>{buildChars}</span>
                     </span>
-                    {/* Desktop Navigation Links */}
-                    <div className="navbar-links">
-                        <a href="/#resume" className="nav-link" onClick={closeMobile}>Company</a>
-                        <span className="nav-separator">|</span>
-                        <a href="/#offerings" className="nav-link" onClick={closeMobile}>Services</a>
-                        <span className="nav-separator">|</span>
-                        <a href="/#projects" className="nav-link" onClick={closeMobile}>Projects</a>
-                        <span className="nav-separator">|</span>
-                        <a href="/#jobs" className="nav-link" onClick={closeMobile}>Careers</a>
-                        <span className="nav-separator">|</span>
-                        <a href="/#contact" className="nav-btn" onClick={closeMobile}>Get in touch</a>
-                        <span className="nav-separator">|</span>
-                        <Link to="/login" className="nav-link" onClick={closeMobile} style={{ color: '#7BC043', fontWeight: 600 }}>Login</Link>
+                    <div className="nav-actions">
+                        <a href="/#contact" className="nav-get-in-touch" onClick={closeMenu}>Get in Touch &rarr;</a>
+                        <button className="nav-mobile-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
+                            {menuOpen ? (
+                                <span className="hamburger-close">&times;</span>
+                            ) : (
+                                <span className="hamburger-lines">
+                                    <span></span>
+                                    <span></span>
+                                </span>
+                            )}
+                        </button>
                     </div>
-                    {/* Mobile Menu Toggle */}
-                    <button className="nav-mobile-toggle" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-                        {mobileOpen ? <FaTimes /> : <FaBars />}
-                    </button>
                 </div>
-                {/* Mobile Navigation Drawer */}
-                {mobileOpen && (
+                {menuOpen && (
                     <div className="nav-mobile-menu">
-                        <a href="/#resume" className="nav-mobile-link" onClick={closeMobile}>Company</a>
-                        <a href="/#offerings" className="nav-mobile-link" onClick={closeMobile}>Services</a>
-                        <a href="/#projects" className="nav-mobile-link" onClick={closeMobile}>Projects</a>
-                        <a href="/#jobs" className="nav-mobile-link" onClick={closeMobile}>Careers</a>
-                        <a href="/#contact" className="nav-mobile-link nav-mobile-link--btn" onClick={closeMobile}>Get in touch</a>
-                        <Link to="/login" className="nav-mobile-link" onClick={closeMobile} style={{ color: '#7BC043', fontWeight: 600 }}>Login</Link>
+                        <a href="/#home" className="nav-mobile-link" onClick={closeMenu}>Home</a>
+                        <a href="/#about" className="nav-mobile-link" onClick={closeMenu}>About Us</a>
+                        <a href="/#projects" className="nav-mobile-link" onClick={closeMenu}>Projects</a>
+                        <a href="/#updates" className="nav-mobile-link" onClick={closeMenu}>News</a>
+                        <a href="/#events" className="nav-mobile-link" onClick={closeMenu}>Events</a>
+                        <a href="/#team" className="nav-mobile-link" onClick={closeMenu}>Our Team</a>
+                        <a href="/#contact" className="nav-mobile-link nav-mobile-link--btn" onClick={closeMenu}>Contact Us</a>
                     </div>
                 )}
             </div>
