@@ -1,7 +1,6 @@
 import Hero from '../../components/Hero';
 import About from '../../components/About';
 import WhatWeOffer from '../../components/WhatWeOffer';
-import Stats from '../../components/Stats';
 import Experience from '../../components/Experience';
 import Projects from '../../components/Projects';
 import LatestUpdates from '../../components/LatestUpdates';
@@ -34,7 +33,6 @@ const Home = () => {
             <About profile={profile} />
             <div className="section-divider" />
             <WhatWeOffer />
-            <Stats profile={profile} />
             <div className="section-divider" />
             <Experience profile={profile} />
             <div className="section-divider" />

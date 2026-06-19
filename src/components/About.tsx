@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { FaBuilding, FaHardHat, FaHandshake, FaCheckCircle } from 'react-icons/fa';
+import { FaBuilding, FaRoad, FaHome, FaIndustry, FaTools, FaHardHat } from 'react-icons/fa';
+import Stats from './Stats';
 import type { Profile } from '../services/profileService';
 
 interface AboutProps {
@@ -7,13 +8,6 @@ interface AboutProps {
 }
 
 const About: React.FC<AboutProps> = ({ profile }) => {
-    const stats = [
-        { icon: FaBuilding, value: '50+', label: 'Projects Completed' },
-        { icon: FaHardHat, value: `${profile.yearsOfExperience || 6}+`, label: 'Years Experience' },
-        { icon: FaHandshake, value: '100+', label: 'Happy Clients' },
-        { icon: FaCheckCircle, value: '98%', label: 'Satisfaction Rate' },
-    ];
-
     return (
         <section className="section section-indicator" id="about">
             <div className="container">
@@ -23,54 +17,50 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
                 >
-                    <span className="ark-section__sub" style={{ display: 'inline-block', marginLeft: '30px' }}>
-                        About Us
+                    <span className="ark-section__sub" style={{ color: '#000', fontSize: '1.625rem', fontWeight: '700', textTransform: 'none' }}>
+                        Our Products Are Beautiful, Good Quality And Professional
                     </span>
-                    <h2 className="ark-section__heading">
-                        {profile.firstName} {profile.lastName}
-                    </h2>
                 </motion.div>
 
-                <div className="about-grid">
-                    <motion.div
-                        className="about-content"
-                        initial={{ opacity: 0, x: -30 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                    >
-                        <p className="about-bio">{profile.bio}</p>
-                        <div className="about-details">
-                            {profile.location && (
-                                <div className="about-detail-item">
-                                    <span className="about-detail-label">Location</span>
-                                    <span className="about-detail-value">{profile.location}</span>
-                                </div>
-                            )}
-                            {profile.yearsOfExperience > 0 && (
-                                <div className="about-detail-item">
-                                    <span className="about-detail-label">Experience</span>
-                                    <span className="about-detail-value">{profile.yearsOfExperience} Years</span>
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
+                <div className="service-cards">
+                    <div className="service-card">
+                        <FaBuilding className="service-card-icon" />
+                        <h3 className="service-card-title">Building Construction</h3>
+                        <p className="service-card-desc">Residential and commercial buildings</p>
+                    </div>
+                    <div className="service-card">
+                        <FaRoad className="service-card-icon" />
+                        <h3 className="service-card-title">Road Construction</h3>
+                        <p className="service-card-desc">Highways, roads and pavement</p>
+                    </div>
+                    <div className="service-card">
+                        <FaIndustry className="service-card-icon" />
+                        <h3 className="service-card-title">Infrastructure</h3>
+                        <p className="service-card-desc">Water, drainage and utilities</p>
+                    </div>
+                    <div className="service-card">
+                        <FaHome className="service-card-icon" />
+                        <h3 className="service-card-title">Renovation</h3>
+                        <p className="service-card-desc">Remodeling and restoration</p>
+                    </div>
+                    <div className="service-card">
+                        <FaHardHat className="service-card-icon" />
+                        <h3 className="service-card-title">Project Management</h3>
+                        <p className="service-card-desc">Planning and supervision</p>
+                    </div>
+                    <div className="service-card">
+                        <FaTools className="service-card-icon" />
+                        <h3 className="service-card-title">Maintenance</h3>
+                        <p className="service-card-desc">Ongoing property care</p>
+                    </div>
+                </div>
 
-                    <motion.div
-                        className="about-stats-grid"
-                        initial={{ opacity: 0, x: 30 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5, delay: 0.4 }}
-                    >
-                        {stats.map((stat, i) => (
-                            <div key={i} className="about-stat-card">
-                                <stat.icon className="about-stat-icon" />
-                                <span className="about-stat-value">{stat.value}</span>
-                                <span className="about-stat-label">{stat.label}</span>
-                            </div>
-                        ))}
-                    </motion.div>
+                <Stats profile={profile} />
+
+                <div style={{ textAlign: 'left', marginTop: '-60px' }}>
+                    <a href="#about" className="about-btn" style={{ display: 'inline-block', background: 'transparent', color: '#000', padding: '0.75rem 2rem', textDecoration: 'none', fontSize: '1.1rem', fontWeight: 600, border: '1px solid #000', borderRadius: '6px', transition: 'all 0.3s' }}>
+                        About Us &rarr;
+                    </a>
                 </div>
             </div>
         </section>

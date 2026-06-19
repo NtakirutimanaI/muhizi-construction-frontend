@@ -1126,7 +1126,7 @@ img {
   right: 0;
   z-index: 1000;
   background-color: #d3d3d3;
-  padding: 0.5rem 0;
+  padding: 0;
   transition: all 0.3s ease;
 }
 
@@ -1202,7 +1202,7 @@ img {
 }
 
 .nav-logo {
-  height: 90px;
+  height: 70px;
   width: auto;
   display: block;
 }
@@ -1215,7 +1215,7 @@ img {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  font-size: 2.5rem;
+  font-size: 3.2rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   white-space: nowrap;
@@ -1294,6 +1294,11 @@ img {
   opacity: 0.8;
 }
 
+.navbar.scrolled .nav-get-in-touch {
+  color: #000;
+  border-color: #000;
+}
+
 .nav-mobile-toggle {
   display: flex;
   align-items: center;
@@ -1364,7 +1369,7 @@ img {
 }
 
 .nav-mobile-link--btn {
-  background: var(--primary);
+  background: #000;
   color: #fff !important;
   font-weight: 700;
   text-align: center;
@@ -1372,13 +1377,24 @@ img {
 }
 
 .nav-mobile-link--btn:hover {
-  opacity: 0.9;
+  background: transparent;
+  color: #000 !important;
 }
 
 /* Mobile Responsive */
+@media (max-width: 1024px) {
+  .nav-center-title {
+    font-size: 2.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .navbar .container {
     padding: 0 0.25rem;
+  }
+
+  .nav-center-title {
+    font-size: 1.8rem;
   }
 
   .brand-name {
@@ -1394,7 +1410,22 @@ img {
   }
 }
 
+@media (max-width: 576px) {
+  .nav-center-title {
+    font-size: 1.4rem;
+  }
+}
+
 @media (max-width: 400px) {
+  .nav-center-title {
+    font-size: 1.1rem;
+  }
+
+  .nav-get-in-touch {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
   .nav-mobile-menu {
     padding: 1.5rem 1rem;
   }
@@ -1430,7 +1461,7 @@ img {
   transform: translateX(-50%);
   width: 60px;
   height: 2px;
-  background: #fff;
+  background: #d3d3d3;
 }
 .hero-slide-body {
   font-size: 1.15rem;
@@ -1495,6 +1526,10 @@ img {
     height: 480px;
   }
 
+  .hero-content {
+    padding-top: 300px;
+  }
+
   .hero-slide-title {
     font-size: 1.5rem;
   }
@@ -1507,6 +1542,10 @@ img {
 @media (max-width: 576px) {
   .hero-video-wrap {
     height: 440px;
+  }
+
+  .hero-content {
+    padding-top: 200px;
   }
 
   .hero-slide-title {
@@ -1523,8 +1562,17 @@ img {
     height: 350px;
   }
 
+  .hero-content {
+    padding-top: 100px;
+  }
+
+  .hero-slide-text {
+    padding: 0.5rem;
+  }
+
   .hero-slide-title {
     font-size: 1.1rem;
+    white-space: normal;
   }
 
   .hero-slide-body {
@@ -1575,6 +1623,7 @@ img {
 /* Active Section Indicator */
 .section-indicator {
   position: relative;
+  border-bottom: none !important;
 }
 .section-indicator::before {
   content: '';
@@ -3672,13 +3721,15 @@ img {
 /* ===== STATS SECTION ===== */
 .stats-section {
   padding: 3rem 0;
-  background: var(--bg-card);
+  background: transparent !important;
 }
 
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin-left: 550px;
+  margin-top: 90px;
 }
 
 .stat-card {
@@ -3686,8 +3737,12 @@ img {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 0.4rem;
-  padding: 1.5rem 1rem;
+  padding: 0 0.5rem;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  flex: 0 0 auto;
 }
 
 .stat-card-icon {
@@ -3697,26 +3752,88 @@ img {
 }
 
 .stat-card-value {
-  font-size: 2.2rem;
+  font-size: 2.8rem;
   font-weight: 800;
   color: var(--text-main);
   line-height: 1;
 }
 
 .stat-card-label {
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   color: var(--text-muted);
   font-weight: 500;
 }
 
+/* ===== SERVICE CARDS ===== */
+.service-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin: 2rem 0;
+}
+
+.service-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.service-card:hover {
+  background: #000;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.service-card:hover .service-card-icon,
+.service-card:hover .service-card-title,
+.service-card:hover .service-card-desc {
+  color: #fff;
+}
+
+.service-card-icon {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 0.75rem;
+}
+
+.service-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 0.35rem;
+}
+
+.service-card-desc {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.about-btn:hover {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #000 !important;
+}
+
 @media (max-width: 768px) {
-  .stats-grid {
+  .service-cards {
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+  }
+
+  .stats-grid {
+    flex-wrap: wrap;
+    gap: 0;
+  }
+
+  .stat-card {
+    flex: 0 0 50%;
   }
 
   .stat-card-value {
-    font-size: 1.8rem;
+    font-size: 2.2rem;
   }
 
   .about-grid {
