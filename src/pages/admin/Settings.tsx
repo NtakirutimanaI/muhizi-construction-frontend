@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-    FaCog, FaPaintBrush, FaLock, FaEye, FaEyeSlash, FaBell, FaDatabase,
+    FaCog, FaPaintBrush, FaLock, FaEye, FaEyeSlash, FaBell,
     FaUser, FaGlobe, FaShieldAlt, FaTrash, FaDownload, FaSync, FaCheckCircle,
     FaServer, FaEnvelope, FaKey
 } from 'react-icons/fa';
@@ -32,7 +32,8 @@ const Settings = () => {
         isPublic: true,
         allowMessages: true,
         showViews: true,
-        maintenanceMode: false
+        maintenanceMode: false,
+        availableForHire: true
     });
 
     useEffect(() => {
@@ -49,6 +50,7 @@ const Settings = () => {
                 allowMessages: data.allowMessages !== false,
                 showViews: data.showViews !== false,
                 maintenanceMode: data.maintenanceMode || false,
+                availableForHire: data.availableForHire !== false,
                 enableAnimations: data.preferences?.enableAnimations !== false,
                 enableNotifications: data.preferences?.enableNotifications !== false,
             }));
@@ -99,7 +101,7 @@ const Settings = () => {
             const updateData: any = {};
 
             // Map simple boolean fields
-            if (['isPublic', 'allowMessages', 'showViews', 'maintenanceMode'].includes(key)) {
+            if (['isPublic', 'allowMessages', 'showViews', 'maintenanceMode', 'availableForHire'].includes(key)) {
                 updateData[key] = value;
             }
             // Map preferences fields
@@ -145,44 +147,31 @@ const Settings = () => {
     ];
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            {/* Header */}
-            <div style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>Settings</h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                    Manage your portfolio settings, security, and preferences.
-                </p>
+        <div className="admin-page">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+                <div>
+                    <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }}>Settings</h1>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '0.25rem' }}>
+                        Manage your portfolio settings, security, and preferences.
+                    </p>
+                </div>
             </div>
 
-            {/* Tabs */}
-            <div style={{
-                display: 'flex',
-                gap: '0.5rem',
-                marginBottom: '2rem',
-                borderBottom: '2px solid var(--border-color)',
-                overflowX: 'auto'
-            }}>
+            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '1.5rem' }}>
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         style={{
-                            padding: '0.8rem 1.5rem',
-                            background: activeTab === tab.id ? 'var(--bg-white)' : 'transparent',
-                            border: 'none',
-                            borderBottom: activeTab === tab.id ? '3px solid var(--primary-teal)' : '3px solid transparent',
-                            color: activeTab === tab.id ? 'var(--text-main)' : 'var(--text-muted)',
-                            fontWeight: activeTab === tab.id ? 700 : 500,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            fontSize: '0.95rem',
-                            transition: 'all 0.2s',
-                            whiteSpace: 'nowrap'
+                            padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600,
+                            whiteSpace: 'nowrap', border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                            background: activeTab === tab.id ? 'var(--text-main)' : 'transparent',
+                            color: activeTab === tab.id ? 'var(--bg-body)' : 'var(--text-muted)',
+                            display: 'flex', alignItems: 'center', gap: '6px',
                         }}
                     >
-                        {tab.icon} {tab.label}
+                        <span style={{ fontSize: '0.8rem' }}>{tab.icon}</span>
+                        {tab.label}
                     </button>
                 ))}
             </div>
@@ -408,6 +397,14 @@ const Settings = () => {
                         </h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <SettingToggle
+                                icon={<FaUser />}
+                                label="Available for Hire"
+                                description="Show 'Available for hire' badge on your portfolio"
+                                checked={settings.availableForHire}
+                                onChange={(val) => handleSettingToggle('availableForHire', val)}
+                                color="var(--primary-teal)"
+                            />
+                            <SettingToggle
                                 icon={<FaCog />}
                                 label="Maintenance Mode"
                                 description="Hide portfolio from public (shows maintenance page)"
@@ -424,14 +421,7 @@ const Settings = () => {
                                         style={{ background: 'var(--primary-teal)', width: '100%' }}
                                         onClick={clearCache}
                                     >
-                                        <FaSync /> Clear Cache
-                                    </button>
-                                    <button
-                                        className="btn-primary"
-                                        style={{ background: 'var(--primary)', width: '100%' }}
-                                        onClick={() => showToast('Database optimized', 'success')}
-                                    >
-                                        <FaDatabase /> Optimize Database
+                                        <FaSync /> Clear Local Cache
                                     </button>
                                 </div>
                             </div>
