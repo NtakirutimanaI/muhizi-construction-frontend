@@ -186,7 +186,7 @@ const Settings = () => {
                     {/* Account Information */}
                     <div className="content-card" style={{ padding: '1.5rem' }}>
                         <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <FaUser style={{ color: 'var(--primary-teal)' }} /> Account Information
+                            <FaUser style={{ color: 'var(--primary)' }} /> Account Information
                         </h3>
                         <div style={{ display: 'grid', gap: '1rem' }}>
                             <div className="form-group">
@@ -204,7 +204,7 @@ const Settings = () => {
                                     background: 'var(--bg-body)',
                                     borderRadius: '8px',
                                     fontWeight: 600,
-                                    color: 'var(--primary-teal)'
+                                    color: 'var(--primary)'
                                 }}>
                                     {user?.role?.toUpperCase()}
                                 </div>
@@ -257,10 +257,10 @@ const Settings = () => {
                     {/* Change Password */}
                     <div className="content-card" style={{ padding: '1.5rem' }}>
                         <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <FaLock style={{ color: 'var(--primary-red)' }} /> Change Password
+                            <FaLock style={{ color: 'var(--primary)' }} /> Change Password
                         </h3>
                         <form onSubmit={submitPasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div className="form-group">
+                            <div className="form-group" style={{ maxWidth: '400px' }}>
                                 <label className="form-label">Current Password</label>
                                 <input
                                     type="password"
@@ -269,9 +269,10 @@ const Settings = () => {
                                     value={passwordData.currentPassword}
                                     onChange={handlePasswordChange}
                                     required
+                                    placeholder="Enter your current password"
                                 />
                             </div>
-                            <div className="form-group">
+                            <div className="form-group" style={{ maxWidth: '400px' }}>
                                 <label className="form-label">New Password</label>
                                 <input
                                     type="password"
@@ -283,7 +284,7 @@ const Settings = () => {
                                     placeholder="Minimum 6 characters"
                                 />
                             </div>
-                            <div className="form-group">
+                            <div className="form-group" style={{ maxWidth: '400px' }}>
                                 <label className="form-label">Confirm New Password</label>
                                 <input
                                     type="password"
@@ -292,6 +293,7 @@ const Settings = () => {
                                     value={passwordData.confirmPassword}
                                     onChange={handlePasswordChange}
                                     required
+                                    placeholder="Re-enter your new password"
                                 />
                             </div>
                             <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', marginTop: '0.5rem' }}>
@@ -326,7 +328,7 @@ const Settings = () => {
                 >
                     <div className="content-card" style={{ padding: '1.5rem' }}>
                         <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <FaShieldAlt style={{ color: 'var(--primary-teal)' }} /> Privacy Controls
+                            <FaShieldAlt style={{ color: 'var(--primary)' }} /> Privacy Controls
                         </h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <SettingToggle
@@ -338,7 +340,7 @@ const Settings = () => {
                                 color="var(--primary)"
                             />
                             <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid var(--primary-red)', borderRadius: '8px', marginTop: '1rem' }}>
-                                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--primary-red)' }}>
+                                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--primary)' }}>
                                     Data Management
                                 </h4>
                                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
@@ -347,7 +349,7 @@ const Settings = () => {
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button
                                         className="btn-primary"
-                                        style={{ background: 'var(--primary-teal)', flex: 1 }}
+                                        style={{ background: 'var(--primary)', flex: 1 }}
                                         onClick={() => showToast('Export functionality coming soon', 'info')}
                                     >
                                         <FaDownload /> Export Data
@@ -393,7 +395,7 @@ const Settings = () => {
                 >
                     <div className="content-card" style={{ padding: '1.5rem' }}>
                         <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <FaServer style={{ color: 'var(--primary-teal)' }} /> System Configuration
+                            <FaServer style={{ color: 'var(--primary)' }} /> System Configuration
                         </h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <SettingToggle
@@ -402,7 +404,7 @@ const Settings = () => {
                                 description="Show 'Available for hire' badge on your portfolio"
                                 checked={settings.availableForHire}
                                 onChange={(val) => handleSettingToggle('availableForHire', val)}
-                                color="var(--primary-teal)"
+                                color="var(--primary)"
                             />
                             <SettingToggle
                                 icon={<FaCog />}
@@ -418,7 +420,7 @@ const Settings = () => {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                                     <button
                                         className="btn-primary"
-                                        style={{ background: 'var(--primary-teal)', width: '100%' }}
+                                        style={{ background: 'var(--primary)', width: '100%' }}
                                         onClick={clearCache}
                                     >
                                         <FaSync /> Clear Local Cache

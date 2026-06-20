@@ -1,6 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaBrain, FaChartLine, FaProjectDiagram, FaStar, FaLightbulb, FaRobot, FaFileExcel, FaFilePdf, FaGlobeAfrica } from 'react-icons/fa';
+import { FaBrain, FaChartLine, FaProjectDiagram, FaStar, FaLightbulb, FaRobot, FaFileExcel, FaFilePdf, FaGlobeAfrica, FaTag, FaSpinner } from 'react-icons/fa';
 import { profileService } from '../../services/profileService';
+import { constructionService } from '../../services/constructionService';
+import { mlService } from '../../services/mlService';
+import type { ProjectEffectivenessResult } from '../../services/mlService';
+import { useToast } from '../../context/ToastContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -12,17 +16,75 @@ interface ProjectInsight {
     name: string; effectiveness: number; status: string; type: string;
 }
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+interface MLStatus {
+    projectEffectiveness: 'idle' | 'loading' | 'loaded' | 'error';
+    messageClassify: 'idle' | 'loading' | 'done' | 'error';
+}
 
 const MlInsights = () => {
+    const { showToast } = useToast();
     const [visitorStats, setVisitorStats] = useState<any>(null);
+    const [projectEffectiveness, setProjectEffectiveness] = useState<ProjectInsight[]>([]);
+    const [mlStatus, setMlStatus] = useState<MLStatus>({ projectEffectiveness: 'idle', messageClassify: 'idle' });
+    const [forecast, setForecast] = useState<{ trend: string; growth_rate: number; forecast: number[]; confidence: string } | null>(null);
+    const [classifyInput, setClassifyInput] = useState('');
+    const [classification, setClassification] = useState<{ category: string; confidence: number; label: string } | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetch = async () => {
             try {
-                const vs = await profileService.getVisitorStats();
+                const [vs, projRes] = await Promise.all([
+                    profileService.getVisitorStats(),
+                    constructionService.getProjects().catch(() => ({ data: [] })),
+                ]);
                 setVisitorStats(vs);
+
+                const projects = projRes.data || [];
+                if (projects.length > 0) {
+                    setMlStatus(prev => ({ ...prev, projectEffectiveness: 'loading' }));
+                    const results = await Promise.all(
+                        projects.slice(0, 10).map(async (p: any) => {
+                            try {
+                                const result: ProjectEffectivenessResult = await mlService.predictProjectEffectiveness({
+                                    name: p.name,
+                                    description: p.description,
+                                    category: p.type,
+                                    hasUrl: !!p.images?.length,
+                                    isFeatured: p.status === 'completed',
+                                });
+                                return {
+                                    name: p.name,
+                                    effectiveness: result.effectiveness_score,
+                                    status: p.status || 'planning',
+                                    type: p.type || 'construction',
+                                };
+                            } catch {
+                                return {
+                                    name: p.name,
+                                    effectiveness: 50,
+                                    status: p.status || 'planning',
+                                    type: p.type || 'construction',
+                                };
+                            }
+                        })
+                    );
+                    setProjectEffectiveness(results);
+                    setMlStatus(prev => ({ ...prev, projectEffectiveness: 'loaded' }));
+                } else {
+                    setProjectEffectiveness([
+                        { name: 'Commercial Buildings', effectiveness: 92, status: 'completed', type: 'construction' },
+                        { name: 'Residential Complex', effectiveness: 78, status: 'in_progress', type: 'construction' },
+                        { name: 'Office Renovation', effectiveness: 88, status: 'completed', type: 'renovation' },
+                        { name: 'Highway Bridge', effectiveness: 65, status: 'in_progress', type: 'construction' },
+                    ]);
+                    setMlStatus(prev => ({ ...prev, projectEffectiveness: 'loaded' }));
+                }
+
+                if (vs?.last7Days != null && vs?.last30Days != null) {
+                    const trendResult = await mlService.forecastVisitorTrend([vs.today || 0, vs.last7Days || 0, vs.last30Days || 0]);
+                    setForecast(trendResult);
+                }
             } catch (e) { console.error(e); }
             finally { setLoading(false); }
         };
@@ -47,13 +109,6 @@ const MlInsights = () => {
             visits: c.count,
         })).sort((a: any, b: any) => b.score - a.score);
     }, [visitorStats]);
-
-    const projectEffectiveness: ProjectInsight[] = [
-        { name: 'Commercial Buildings', effectiveness: 92, status: 'completed', type: 'construction' },
-        { name: 'Residential Complex', effectiveness: 78, status: 'in_progress', type: 'construction' },
-        { name: 'Office Renovation', effectiveness: 88, status: 'completed', type: 'renovation' },
-        { name: 'Highway Bridge', effectiveness: 65, status: 'in_progress', type: 'construction' },
-    ];
 
     const visitorTrend = visitorStats ? [
         { label: 'Today', value: visitorStats.today },
@@ -80,7 +135,7 @@ const MlInsights = () => {
 
     const projectTableData = useMemo(() => projectEffectiveness.map((p, i) => [
         String(i + 1), p.name, p.type, p.status, `${p.effectiveness}%`,
-    ]), []);
+    ]), [projectEffectiveness]);
 
     const downloadLeadPDF = () => {
         const doc = new jsPDF();
@@ -291,7 +346,7 @@ const MlInsights = () => {
                 <div className="admin-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <FaProjectDiagram style={{ color: 'var(--primary-teal)' }} />
+                            <FaProjectDiagram style={{ color: 'var(--primary)' }} />
                             <h3 style={{ margin: 0 }}>Project Effectiveness</h3>
                         </div>
                         <div style={{ display: 'flex', gap: '0.4rem' }}>
@@ -341,7 +396,7 @@ const MlInsights = () => {
 
             <div className="admin-card">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                    <FaChartLine style={{ color: '#3b82f6' }} />
+                    <FaChartLine style={{ color: 'var(--primary)' }} />
                     <h3 style={{ margin: 0 }}>Visitor Trends</h3>
                 </div>
                 {visitorTrend.length > 0 ? (
@@ -354,6 +409,16 @@ const MlInsights = () => {
                                 </div>
                             ))}
                         </div>
+                        {forecast && (
+                            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(139,69,19,0.06)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                <FaChartLine style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                    <strong>ML Forecast:</strong> Trend is <strong style={{ color: forecast.trend === 'up' ? '#22c55e' : forecast.trend === 'down' ? '#ef4444' : '#f59e0b' }}>{forecast.trend}</strong>
+                                    {forecast.growth_rate !== 0 && <> ({forecast.growth_rate > 0 ? '+' : ''}{forecast.growth_rate.toFixed(1)}% growth rate)</>}
+                                    {' '}(confidence: {forecast.confidence})
+                                </span>
+                            </div>
+                        )}
                         {visitorStats?.locations && visitorStats.locations.length > 0 && (
                             <div style={{ marginTop: '1rem' }}>
                                 <h4 style={{ marginBottom: '0.75rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -374,6 +439,68 @@ const MlInsights = () => {
                     <div style={{ padding: '2rem', textAlign: 'center' }}>
                         <FaRobot size={48} style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', opacity: 0.5 }} />
                         <p style={{ color: 'var(--text-muted)' }}>Visitor trend data will appear once tracking is active.</p>
+                    </div>
+                )}
+            </div>
+
+            <div className="admin-card" style={{ marginTop: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <FaTag style={{ color: 'var(--primary)' }} />
+                    <h3 style={{ margin: 0 }}>Message Classification (ML)</h3>
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+                    Paste a contact message below to classify it using the Python ML service.
+                </p>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <textarea
+                        value={classifyInput}
+                        onChange={e => setClassifyInput(e.target.value)}
+                        placeholder="Paste a message to classify..."
+                        rows={3}
+                        style={{
+                            flex: 1, minWidth: 200, padding: '0.6rem', borderRadius: 6,
+                            border: '1px solid var(--border-color)', background: 'var(--bg-body)',
+                            color: 'var(--text-main)', fontSize: '0.85rem', resize: 'vertical',
+                        }}
+                    />
+                    <button
+                        className="btn-primary"
+                        style={{ background: '#8B4513', alignSelf: 'flex-end', padding: '0.6rem 1.2rem', whiteSpace: 'nowrap' }}
+                        disabled={mlStatus.messageClassify === 'loading' || !classifyInput.trim()}
+                        onClick={async () => {
+                            if (!classifyInput.trim()) return;
+                            setMlStatus(prev => ({ ...prev, messageClassify: 'loading' }));
+                            try {
+                                const result = await mlService.classifyMessage(classifyInput.trim());
+                                setClassification(result);
+                                setMlStatus(prev => ({ ...prev, messageClassify: 'done' }));
+                            } catch {
+                                setMlStatus(prev => ({ ...prev, messageClassify: 'error' }));
+                                showToast('Failed to classify message', 'error');
+                            }
+                        }}
+                    >
+                        {mlStatus.messageClassify === 'loading' ? <><FaSpinner className="fa-spin" /> Classifying...</> : 'Classify'}
+                    </button>
+                </div>
+                {classification && (
+                    <div style={{ marginTop: '1rem', padding: '1rem', borderRadius: 8, background: 'rgba(139,69,19,0.06)', border: '1px solid rgba(139,69,19,0.2)' }}>
+                        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <div>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Category</span>
+                                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary)' }}>{classification.category}</div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Confidence</span>
+                                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: classification.confidence > 0.7 ? '#22c55e' : classification.confidence > 0.4 ? '#f59e0b' : '#ef4444' }}>
+                                    {(classification.confidence * 100).toFixed(0)}%
+                                </div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Label</span>
+                                <div style={{ fontSize: '1rem', fontWeight: 600 }}>{classification.label}</div>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
