@@ -189,15 +189,15 @@ const Settings = () => {
                             <FaUser style={{ color: 'var(--primary)' }} /> Account Information
                         </h3>
                         <div style={{ display: 'grid', gap: '1rem' }}>
-                            <div className="form-group" style={{ maxWidth: '200px' }}>
+                            <div className="form-group">
                                 <label className="form-label">Username</label>
                                 <input className="form-input" value={user?.username || ''} disabled style={{ opacity: 0.7 }} />
                             </div>
-                            <div className="form-group" style={{ maxWidth: '200px' }}>
+                            <div className="form-group">
                                 <label className="form-label">Email</label>
                                 <input className="form-input" value={user?.email || ''} disabled style={{ opacity: 0.7 }} />
                             </div>
-                            <div className="form-group" style={{ maxWidth: '200px' }}>
+                            <div className="form-group">
                                 <label className="form-label">Role</label>
                                 <div style={{
                                     padding: '0.8rem',
@@ -260,7 +260,7 @@ const Settings = () => {
                             <FaLock style={{ color: 'var(--primary)' }} /> Change Password
                         </h3>
                         <form onSubmit={submitPasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div className="form-group" style={{ maxWidth: '200px' }}>
+                            <div className="form-group" style={{ maxWidth: '400px' }}>
                                 <label className="form-label">Current Password</label>
                                 <input
                                     type="password"
@@ -272,7 +272,7 @@ const Settings = () => {
                                     placeholder="Enter your current password"
                                 />
                             </div>
-                            <div className="form-group" style={{ maxWidth: '200px' }}>
+                            <div className="form-group" style={{ maxWidth: '400px' }}>
                                 <label className="form-label">New Password</label>
                                 <input
                                     type="password"
@@ -284,7 +284,7 @@ const Settings = () => {
                                     placeholder="Minimum 6 characters"
                                 />
                             </div>
-                            <div className="form-group" style={{ maxWidth: '200px' }}>
+                            <div className="form-group" style={{ maxWidth: '400px' }}>
                                 <label className="form-label">Confirm New Password</label>
                                 <input
                                     type="password"
