@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Loading from '../components/Loading';
-import { canAccess } from '../config/roles';
+import { canAccess, getRolePath } from '../config/roles';
 
 const ProtectedRoute = () => {
     const { isAuthenticated, loading, user } = useAuth();
@@ -16,8 +16,9 @@ const ProtectedRoute = () => {
     }
 
     const role = user?.role || '';
-    if (location.pathname.startsWith('/admin') && !canAccess(location.pathname, role)) {
-        return <Navigate to="/admin" replace />;
+    const rolePath = getRolePath(role);
+    if (location.pathname.startsWith(rolePath) && !canAccess(location.pathname, role)) {
+        return <Navigate to={rolePath} replace />;
     }
 
     return <Outlet />;

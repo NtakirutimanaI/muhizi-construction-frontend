@@ -8,6 +8,7 @@ export interface ProjectEvidence {
     url: string;
     date: string;
     notes: string;
+    approvedForClient?: boolean;
 }
 
 const baseUrl = '/project-evidence';
@@ -18,4 +19,5 @@ export const projectEvidenceService = {
     create: (data: Partial<ProjectEvidence>) => api.post(`${baseUrl}`, data),
     update: (id: string, data: Partial<ProjectEvidence>) => api.put(`${baseUrl}/${id}`, data),
     delete: (id: string) => api.delete(`${baseUrl}/${id}`),
+    getClientVisible: () => api.get(`${baseUrl}?clientVisible=true`),
 };

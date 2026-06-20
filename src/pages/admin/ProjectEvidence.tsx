@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaPlus, FaTrash, FaTimes, FaSave, FaVideo, FaImage, FaSpinner, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaTimes, FaSave, FaVideo, FaImage, FaSpinner, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { projectEvidenceService } from '../../services/projectEvidenceService';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
@@ -73,6 +73,12 @@ const ProjectEvidencePage = () => {
             .catch(() => {});
     };
 
+    const toggleClientVisible = (e: ProjectEvidence) => {
+        projectEvidenceService.update(e.id, { approvedForClient: !e.approvedForClient } as any)
+            .then(res => setEvidences(prev => prev.map(item => item.id === e.id ? res.data : item)))
+            .catch(() => {});
+    };
+
     if (loading) {
         return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '0.75rem', color: 'var(--text-muted)' }}>
@@ -115,8 +121,14 @@ const ProjectEvidencePage = () => {
                             </div>
                         </div>
                         <div style={{ padding: '0.75rem' }}>
-                            <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.2rem' }}>{e.title}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{e.title}</div>
+                                <button onClick={() => toggleClientVisible(e)} title={e.approvedForClient ? 'Visible to clients' : 'Hidden from clients'} style={{ background: 'none', border: 'none', cursor: 'pointer', color: e.approvedForClient ? '#22c55e' : 'var(--text-muted)', fontSize: '0.95rem', padding: '2px' }}>
+                                    {e.approvedForClient ? <FaEye /> : <FaEyeSlash />}
+                                </button>
+                            </div>
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{e.project} &middot; {e.date}</div>
+                            {e.approvedForClient && <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: '#22c55e', color: '#fff', fontWeight: 700, display: 'inline-block', marginTop: '0.25rem' }}>CLIENT VISIBLE</span>}
                             <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
                                 <button onClick={() => openEdit(e)} className="admin-icon-btn" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}><FaImage size={11} /> Edit</button>
                                 <button onClick={() => remove(e.id)} className="admin-icon-btn" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', color: 'var(--primary-red)' }}><FaTrash size={11} /></button>

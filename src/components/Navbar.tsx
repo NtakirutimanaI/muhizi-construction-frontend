@@ -19,7 +19,7 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
 
     const closeMenu = useCallback(() => setMenuOpen(false), []);
 
-    const companyName = profile?.company || profile?.firstName ? `${profile.firstName} ${profile.lastName}` : 'MUHIZI CONSTRUCTION';
+    const companyName = profile?.company || (profile?.firstName ? `${profile.firstName} ${profile.lastName}` : 'MUHIZI CONSTRUCTION');
     const thinkChars = useMemo(() => splitChars('Think, Design'), []);
     const buildChars = useMemo(() => splitChars('We Build'), []);
 
@@ -70,7 +70,7 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
             <div className="container">
                 <div className="navbar-content">
                     <a href="/" className="nav-brand-tag">
-                        <img src={profile?.avatar || '/logo.png'} alt={profile?.firstName ? `${profile.firstName} ${profile.lastName}` : 'MUHIZI CONSTRUCTION'} className="nav-logo" />
+                        <img src={profile?.companyLogo || profile?.avatar || '/logo.png'} alt={profile?.company || (profile?.firstName ? `${profile.firstName} ${profile.lastName}` : 'MUHIZI CONSTRUCTION')} className="nav-logo" />
                     </a>
                     <span className="nav-center-title">
                         <span className={`nav-title-text ${phase === 0 ? 'fade-in' : 'fade-out'}`}>{thinkChars}</span>

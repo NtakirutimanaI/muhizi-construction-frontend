@@ -21,7 +21,6 @@ import MessagesInbox from './pages/admin/MessagesInbox';
 import MessagesSent from './pages/admin/MessagesSent';
 import MessagesTrash from './pages/admin/MessagesTrash';
 import Resources from './pages/admin/Resources';
-import FooterSettings from './pages/admin/FooterSettings';
 import Users from './pages/admin/Users';
 import Permissions from './pages/admin/Permissions';
 import Settings from './pages/admin/Settings';
@@ -44,6 +43,7 @@ import SiteRules from './pages/admin/SiteRules';
 import Approvals from './pages/admin/Approvals';
 import Contracts from './pages/admin/Contracts';
 import ProjectDetail from './pages/admin/ProjectDetail';
+import ProjectProgress from './pages/client/ProjectProgress';
 
 import Loading from './components/Loading';
 import { profileService } from './services/profileService';
@@ -112,41 +112,46 @@ function App() {
                 <Route path="/register" element={<Register />} />
               </Route>
 
-              {/* Admin Routes */}
+              {/* Admin Routes — shared across all roles under their respective base paths */}
               <Route element={<ProtectedRoute />}>
-                <Route element={<AdminLayout />}>
-                  <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin/profile" element={<ProfileManagement />} />
-                  <Route path="/admin/api-docs" element={<ApiDocs />} />
-                  <Route path="/admin/messages" element={<Navigate to="/admin/messages/inbox" replace />} />
-                  <Route path="/admin/messages/inbox" element={<MessagesInbox />} />
-                  <Route path="/admin/messages/sent" element={<MessagesSent />} />
-                  <Route path="/admin/messages/trash" element={<MessagesTrash />} />
-                  <Route path="/admin/resources" element={<Resources />} />
-                  <Route path="/admin/footer-settings" element={<FooterSettings />} />
-                  <Route path="/admin/users" element={<Users />} />
-                  <Route path="/admin/permissions" element={<Permissions />} />
-                  <Route path="/admin/settings" element={<Settings />} />
-                  <Route path="/admin/projects" element={<Projects />} />
-                  <Route path="/admin/designs" element={<Designs />} />
-                  <Route path="/admin/partnerships" element={<Partnerships />} />
-                  <Route path="/admin/employees" element={<Employees />} />
-                  <Route path="/admin/attendance" element={<Attendance />} />
-                  <Route path="/admin/payroll" element={<Payroll />} />
-                  <Route path="/admin/incomes" element={<Incomes />} />
-                  <Route path="/admin/expenses" element={<Expenses />} />
-                  <Route path="/admin/reports" element={<Reports />} />
-                  <Route path="/admin/audit-logs" element={<AuditLogs />} />
-                  <Route path="/admin/ml-insights" element={<MlInsights />} />
-                  <Route path="/admin/salary-history" element={<SalaryHistory />} />
-                  <Route path="/admin/site-activities" element={<SiteActivities />} />
-                  <Route path="/admin/material-requests" element={<MaterialRequests />} />
-                  <Route path="/admin/project-evidence" element={<ProjectEvidence />} />
-                  <Route path="/admin/site-rules" element={<SiteRules />} />
-                  <Route path="/admin/approvals" element={<Approvals />} />
-                  <Route path="/admin/contracts" element={<Contracts />} />
-                  <Route path="/admin/projects/:id" element={<ProjectDetail />} />
-                </Route>
+                {['admin', 'manager', 'site-manager', 'employee', 'client'].map(base => {
+                  const b = `/${base}`;
+                  return (
+                    <Route key={base} path={b} element={<AdminLayout basePath={b} />}>
+                      <Route index element={<AdminDashboard />} />
+                      <Route path="profile" element={<ProfileManagement />} />
+                      <Route path="api-docs" element={<ApiDocs />} />
+                      <Route path="messages" element={<Navigate to={`${b}/messages/inbox`} replace />} />
+                      <Route path="messages/inbox" element={<MessagesInbox />} />
+                      <Route path="messages/sent" element={<MessagesSent />} />
+                      <Route path="messages/trash" element={<MessagesTrash />} />
+                      <Route path="resources" element={<Resources />} />
+                      <Route path="users" element={<Users />} />
+                      <Route path="permissions" element={<Permissions />} />
+                      <Route path="settings" element={<Settings />} />
+                      <Route path="projects" element={<Projects />} />
+                      <Route path="designs" element={<Designs />} />
+                      <Route path="partnerships" element={<Partnerships />} />
+                      <Route path="employees" element={<Employees />} />
+                      <Route path="attendance" element={<Attendance />} />
+                      <Route path="payroll" element={<Payroll />} />
+                      <Route path="incomes" element={<Incomes />} />
+                      <Route path="expenses" element={<Expenses />} />
+                      <Route path="reports" element={<Reports />} />
+                      <Route path="audit-logs" element={<AuditLogs />} />
+                      <Route path="ml-insights" element={<MlInsights />} />
+                      <Route path="salary-history" element={<SalaryHistory />} />
+                      <Route path="site-activities" element={<SiteActivities />} />
+                      <Route path="material-requests" element={<MaterialRequests />} />
+                      <Route path="project-evidence" element={<ProjectEvidence />} />
+                      <Route path="site-rules" element={<SiteRules />} />
+                      <Route path="approvals" element={<Approvals />} />
+                      <Route path="contracts" element={<Contracts />} />
+                      <Route path="project-progress" element={<ProjectProgress />} />
+                      <Route path="projects/:id" element={<ProjectDetail />} />
+                    </Route>
+                  );
+                })}
               </Route>
 
               {/* Fallback */}

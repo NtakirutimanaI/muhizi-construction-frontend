@@ -81,12 +81,31 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/settings', icon: 'FaCog', label: 'Settings', roles: [ROLES.ADMIN] },
         ],
     },
+    {
+        label: 'Client',
+        items: [
+            { path: '/admin/project-progress', icon: 'FaImage', label: 'Project Progress', roles: [ROLES.CLIENT] },
+        ],
+    },
 ];
 
+export const ROLE_PATH_MAP: Record<string, string> = {
+  [ROLES.ADMIN]: '/admin',
+  [ROLES.MANAGER]: '/manager',
+  [ROLES.SITE_MANAGER]: '/site-manager',
+  [ROLES.EMPLOYEE]: '/employee',
+  [ROLES.CLIENT]: '/client',
+};
+
+export function getRolePath(role: string): string {
+  return ROLE_PATH_MAP[role] || '/admin';
+}
+
 export function canAccess(path: string, role: string): boolean {
+    const normalizedPath = path.replace(/^\/(admin|manager|site-manager|employee|client)/, '/admin').split('?')[0];
     for (const section of SIDEBAR_SECTIONS) {
         for (const item of section.items) {
-            if (item.path === path) {
+            if (item.path.split('?')[0] === normalizedPath) {
                 return item.roles.includes(role as Role);
             }
         }

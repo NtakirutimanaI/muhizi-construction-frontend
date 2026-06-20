@@ -36,6 +36,8 @@ export interface Profile {
     location: string;
     phone: string;
     website: string;
+    company?: string;
+    companyLogo?: string;
     avatar: string;
     cvUrl: string;
     yearsOfExperience: number;

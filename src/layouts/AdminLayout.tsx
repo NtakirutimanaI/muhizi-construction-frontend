@@ -8,14 +8,14 @@ import {
     FaDraftingCompass, FaHandshake, FaUserTie, FaClipboardList,
     FaMoneyBillWave, FaArrowUp, FaArrowDown, FaChartPie, FaHistory, FaBrain,
     FaInbox, FaPaperPlane, FaArchive, FaLock, FaHardHat, FaTruck, FaCamera, FaGavel,
-    FaCheckDouble, FaFileAlt
+    FaCheckDouble, FaFileAlt, FaImage, FaHome, FaInfoCircle, FaTag
 } from 'react-icons/fa';
 import { useNotification } from '../context/NotificationContext';
 import { profileService, type Profile, type ContactMessage } from '../services/profileService';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SIDEBAR_SECTIONS, type Role } from '../config/roles';
 
-const AdminLayout = () => {
+const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
     const { logout, user } = useAuth();
     const location = useLocation();
 
@@ -38,7 +38,8 @@ const AdminLayout = () => {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    const isOnMessages = location.pathname.startsWith('/admin/messages');
+    const isOnMessages = location.pathname.startsWith(`${basePath}/messages`);
+    const isOnCms = location.pathname.startsWith(`${basePath}/resources`);
     const notifRef = useRef<HTMLDivElement>(null);
     const addMenuRef = useRef<HTMLDivElement>(null);
     const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -137,7 +138,8 @@ const AdminLayout = () => {
         FaUsers: <FaUsers />, FaLock: <FaLock />,
         FaBook: <FaBook />, FaCog: <FaCog />,
         FaHardHat: <FaHardHat />, FaTruck: <FaTruck />, FaCamera: <FaCamera />, FaGavel: <FaGavel />,
-        FaCheckDouble: <FaCheckDouble />, FaFileAlt: <FaFileAlt />,
+        FaCheckDouble: <FaCheckDouble />, FaFileAlt: <FaFileAlt />, FaImage: <FaImage />,
+        FaHome: <FaHome />, FaInfoCircle: <FaInfoCircle />, FaGlobe: <FaGlobe />,
     };
 
     const sections = SIDEBAR_SECTIONS
@@ -149,7 +151,7 @@ const AdminLayout = () => {
         .map(s => ({
             ...s,
             items: s.items.map(item => ({
-                path: item.path,
+                path: item.path.replace('/admin', basePath),
                 icon: iconMap[item.icon] || <FaChartBar />,
                 label: item.label,
             })),
@@ -234,15 +236,15 @@ const AdminLayout = () => {
                                     <div style={{ padding: '8px 12px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                                         Quick Add
                                     </div>
-                                    <Link to="/admin/profile" onClick={() => setShowAddMenu(false)} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-main)', textDecoration: 'none', fontSize: '0.9rem' }}>
+                                    <Link to={`${basePath}/profile`} onClick={() => setShowAddMenu(false)} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-main)', textDecoration: 'none', fontSize: '0.9rem' }}>
                                         <div style={{ width: '24px', height: '24px', background: '#dcfce7', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e' }}><FaProjectDiagram size={12} /></div>
                                         New Project
                                     </Link>
-                                    <Link to="/admin/profile" onClick={() => setShowAddMenu(false)} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-main)', textDecoration: 'none', fontSize: '0.9rem' }}>
+                                    <Link to={`${basePath}/profile`} onClick={() => setShowAddMenu(false)} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-main)', textDecoration: 'none', fontSize: '0.9rem' }}>
                                         <div style={{ width: '24px', height: '24px', background: '#f3e8ff', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a855f7' }}><FaBook size={12} /></div>
                                         New Skill
                                     </Link>
-                                    <Link to="/admin/resources" onClick={() => setShowAddMenu(false)} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-main)', textDecoration: 'none', fontSize: '0.9rem' }}>
+                                    <Link to={`${basePath}/resources`} onClick={() => setShowAddMenu(false)} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-main)', textDecoration: 'none', fontSize: '0.9rem' }}>
                                         <div style={{ width: '24px', height: '24px', background: '#d4edda', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7BC043' }}><FaDatabase size={12} /></div>
                                         Add Resource
                                     </Link>
@@ -298,8 +300,8 @@ const AdminLayout = () => {
                                             messages.map(msg => (
                                                 <Link
                                                     key={msg.id}
-                                                    to="/admin/messages"
-                                                    onClick={() => setShowMessages(false)}
+                                                        to={`${basePath}/messages`}
+                                                        onClick={() => setShowMessages(false)}
                                                     style={{
                                                         display: 'block',
                                                         padding: '12px 15px',
@@ -338,7 +340,7 @@ const AdminLayout = () => {
                                     </div>
 
                                     <Link
-                                        to="/admin/messages"
+                                        to={`${basePath}/messages`}
                                         onClick={() => setShowMessages(false)}
                                         style={{
                                             padding: '10px 15px',
@@ -496,7 +498,7 @@ const AdminLayout = () => {
                                     }}
                                 >
                                     <Link
-                                        to="/admin/profile"
+                                        to={`${basePath}/profile`}
                                         onClick={() => setShowProfileMenu(false)}
                                         className="dropdown-item"
                                         style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-main)', textDecoration: 'none', fontSize: '0.9rem' }}
@@ -567,20 +569,20 @@ const AdminLayout = () => {
                     <div style={{ padding: '1.2rem 1rem 0.6rem', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
                         Messages
                     </div>
-                    <Link to="/admin/messages/inbox"
-                        className={`admin-nav-item ${location.pathname === '/admin/messages/inbox' ? 'active' : ''}`}
+                    <Link to={`${basePath}/messages/inbox`}
+                        className={`admin-nav-item ${location.pathname === `${basePath}/messages/inbox` ? 'active' : ''}`}
                         onClick={() => setMobileMenuOpen(false)}
                         style={{ margin: '0 0.5rem' }}>
                         <FaInbox /> <span>Inbox</span>
                     </Link>
-                    <Link to="/admin/messages/sent"
-                        className={`admin-nav-item ${location.pathname === '/admin/messages/sent' ? 'active' : ''}`}
+                    <Link to={`${basePath}/messages/sent`}
+                        className={`admin-nav-item ${location.pathname === `${basePath}/messages/sent` ? 'active' : ''}`}
                         onClick={() => setMobileMenuOpen(false)}
                         style={{ margin: '0 0.5rem' }}>
                         <FaPaperPlane /> <span>Sent</span>
                     </Link>
-                    <Link to="/admin/messages/trash"
-                        className={`admin-nav-item ${location.pathname === '/admin/messages/trash' ? 'active' : ''}`}
+                    <Link to={`${basePath}/messages/trash`}
+                        className={`admin-nav-item ${location.pathname === `${basePath}/messages/trash` ? 'active' : ''}`}
                         onClick={() => setMobileMenuOpen(false)}
                         style={{ margin: '0 0.5rem' }}>
                         <FaArchive /> <span>Trash</span>
@@ -588,8 +590,41 @@ const AdminLayout = () => {
                 </aside>
             )}
 
+            {/* CMS Sub-Sidebar */}
+            {isOnCms && (
+                <aside className="admin-subsidebar">
+                    <div style={{ padding: '1.2rem 1rem 0.6rem', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
+                        CMS
+                    </div>
+                    <Link to={`${basePath}/resources?tab=home-sections`}
+                        className={`admin-nav-item ${location.pathname.startsWith(`${basePath}/resources`) && new URLSearchParams(location.search).get('tab') === 'home-sections' ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaHome /> <span>Home-Sections</span>
+                    </Link>
+                    <Link to={`${basePath}/resources?tab=about-sections`}
+                        className={`admin-nav-item ${location.pathname.startsWith(`${basePath}/resources`) && new URLSearchParams(location.search).get('tab') === 'about-sections' ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaInfoCircle /> <span>About-Sections</span>
+                    </Link>
+                    <Link to={`${basePath}/resources?tab=footer`}
+                        className={`admin-nav-item ${location.pathname.startsWith(`${basePath}/resources`) && new URLSearchParams(location.search).get('tab') === 'footer' ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaGlobe /> <span>Footer</span>
+                    </Link>
+                    <Link to={`${basePath}/resources?tab=brand`}
+                        className={`admin-nav-item ${location.pathname.startsWith(`${basePath}/resources`) && new URLSearchParams(location.search).get('tab') === 'brand' ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaTag /> <span>Brand</span>
+                    </Link>
+                </aside>
+            )}
+
             {/* Content Wrapper */}
-            <div className={`admin-content ${isOnMessages ? 'admin-content--with-subsidebar' : ''}`}>
+            <div className={`admin-content ${isOnMessages || isOnCms ? 'admin-content--with-subsidebar' : ''}`}>
                 <main className="admin-main">
                     <Outlet context={{ searchQuery }} />
                 </main>

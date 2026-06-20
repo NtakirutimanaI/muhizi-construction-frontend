@@ -1,38 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import {
     FaCog, FaHome, FaInfoCircle, FaSave, FaCopyright,
-    FaPlus, FaEdit, FaTrash, FaCode, FaCertificate,
-    FaLanguage, FaBriefcase, FaProjectDiagram, FaUsers, FaUser
+    FaPlus, FaEdit, FaTrash, FaCode,
+    FaProjectDiagram, FaUsers, FaUser, FaPhone, FaEnvelope, FaLink, FaUpload,
+    FaTag
 } from 'react-icons/fa';
 import { profileService } from '../../services/profileService';
 import type { Profile } from '../../services/profileService';
 import { useToast } from '../../context/ToastContext';
+import { uploadService } from '../../services/uploadService';
 import HomeSectionsTab from './profile-sections/HomeSectionsTab';
 import AboutSectionsTab from './profile-sections/AboutSectionsTab';
-import SkillsTab from './profile-sections/SkillsTab';
 import ProjectsTab from './profile-sections/ProjectsTab';
-import ExperienceTab from './profile-sections/ExperienceTab';
-import CertificationsTab from './profile-sections/CertificationsTab';
-import LanguagesTab from './profile-sections/LanguagesTab';
 import TeamTab from './profile-sections/TeamTab';
 import GeneralTab from './profile-sections/GeneralTab';
 
-type SectionId = 'home-sections' | 'about-sections' | 'footer' | 'settings' | 'skills' | 'projects' | 'experience' | 'certifications' | 'languages' | 'team' | 'general';
+type SectionId = 'home-sections' | 'about-sections' | 'footer' | 'brand' | 'settings' | 'projects' | 'team' | 'general';
 
 const SECTION_ICONS: Record<string, React.ReactNode> = {
     'home-sections': <FaHome />, 'about-sections': <FaInfoCircle />,
-    footer: <FaCopyright />, settings: <FaCog />,
-    skills: <FaCode />, projects: <FaProjectDiagram />, experience: <FaBriefcase />,
-    certifications: <FaCertificate />, languages: <FaLanguage />, team: <FaUsers />, general: <FaUser />,
+    footer: <FaCopyright />, brand: <FaTag />, settings: <FaCog />, projects: <FaProjectDiagram />,
+    team: <FaUsers />, general: <FaUser />,
 };
 
-const SECTIONS: SectionId[] = ['home-sections', 'about-sections', 'skills', 'experience', 'certifications', 'languages', 'projects', 'team', 'footer', 'settings', 'general'];
+const SECTIONS: SectionId[] = ['home-sections', 'about-sections', 'projects', 'team', 'footer', 'brand', 'settings', 'general'];
 
 const emptyP: Profile = {
     id: '', firstName: '', lastName: '', username: '', email: '', bio: '', greeting: '', aboutMeTitle: '', title: '',
-    location: '', phone: '', website: '', avatar: '', cvUrl: '', yearsOfExperience: 0,
+    location: '', phone: '', website: '', avatar: '', cvUrl: '', company: '', yearsOfExperience: 0,
     availableForHire: false, isPublic: false, about: '', education: [], experience: [],
     skills: { backend: [], frontend: [], databases: [], tools: [] }, projects: [], certifications: [], languages: [], teamMembers: [], socialLinks: {}, services: [],
     createdAt: '', updatedAt: '', role: '', type: '',
@@ -41,12 +38,15 @@ const emptyP: Profile = {
 const Resources = () => {
     const { searchQuery } = useOutletContext<{ searchQuery: string }>();
     const { showToast } = useToast();
+    const [searchParams] = useSearchParams();
     const [profile, setProfile] = useState<Profile>(emptyP);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [filter, setFilter] = useState<SectionId>('home-sections');
+    const tabParam = searchParams.get('tab') as SectionId | null;
+    const [filter, setFilter] = useState<SectionId>(tabParam || 'home-sections');
 
     useEffect(() => { loadProfile(); }, []);
+    useEffect(() => { if (tabParam && SECTIONS.includes(tabParam)) setFilter(tabParam); }, [tabParam]);
 
     const loadProfile = async () => {
         try { setProfile(await profileService.getMyProfile()); }
@@ -70,13 +70,10 @@ const Resources = () => {
         switch (filter) {
             case 'settings': return <SettingsEditor profile={profile} onSave={saveProfile} saving={saving} />;
             case 'home-sections': return <HomeSectionsTab profile={profile} onSave={saveProfile} saving={saving} />;
-            case 'footer': return <FooterEditor profile={profile} onSave={saveProfile} saving={saving} />;
             case 'about-sections': return <AboutSectionsTab profile={profile} onSave={saveProfile} saving={saving} />;
-            case 'skills': return <SkillsTab profile={profile} onUpdate={setProfile} searchQuery={searchQuery} />;
+            case 'footer': return <FooterEditor profile={profile} onSave={saveProfile} saving={saving} />;
+            case 'brand': return <BrandEditor profile={profile} onSave={saveProfile} saving={saving} />;
             case 'projects': return <ProjectsTab profile={profile} onUpdate={setProfile} searchQuery={searchQuery} />;
-            case 'experience': return <ExperienceTab profile={profile} onUpdate={setProfile} searchQuery={searchQuery} />;
-            case 'certifications': return <CertificationsTab profile={profile} onUpdate={setProfile} searchQuery={searchQuery} />;
-            case 'languages': return <LanguagesTab profile={profile} onUpdate={setProfile} searchQuery={searchQuery} />;
             case 'team': return <TeamTab profile={profile} onUpdate={setProfile} />;
             case 'general': return <GeneralTab profile={profile} onUpdate={setProfile} />;
         }
@@ -91,226 +88,17 @@ const Resources = () => {
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                {SECTIONS.map(t => (
-                    <button key={t} onClick={() => setFilter(t)}
-                        style={{
-                            padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600,
-                            whiteSpace: 'nowrap', border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                            background: filter === t ? 'var(--text-main)' : 'transparent',
-                            color: filter === t ? 'var(--bg-body)' : 'var(--text-muted)',
-                            display: 'flex', alignItems: 'center', gap: '6px',
-                            textTransform: 'capitalize',
-                        }}
-                    >
-                        <span style={{ fontSize: '0.8rem' }}>{SECTION_ICONS[t]}</span>
-                        {t}
-                    </button>
-                ))}
-            </div>
-
             {loading ? (
                 <div className="inline-spinner">Loading content...</div>
             ) : (
                 <AnimatePresence mode="wait">
                     <motion.div key={filter} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }} style={{ display: 'flex', justifyContent: 'center' }}>
-                        <div style={{ width: '50%', minWidth: '300px', maxWidth: '100%' }}>
+                        <div style={{ width: 'calc(50% + 300px)', minWidth: '300px', maxWidth: '100%' }}>
                             {renderSection()}
                         </div>
                     </motion.div>
                 </AnimatePresence>
             )}
-        </div>
-    );
-};
-
-/* ───── Footer Editor ───── */
-const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (u: Partial<Profile>) => Promise<void>; saving: boolean }) => {
-    const footer = profile.pageContent?.footer;
-    const [companyDescription, setCompanyDescription] = useState(footer?.companyDescription || 'MUHIZI CONSTRUCTION is a leading construction and real estate company in Rwanda.');
-    const [copyrightText, setCopyrightText] = useState(footer?.copyrightText || `© ${new Date().getFullYear()} MUHIZI CONSTRUCTION. All rights reserved.`);
-    const [showSocialLinks, setShowSocialLinks] = useState(footer?.showSocialLinks ?? true);
-    const [showContactInfo, setShowContactInfo] = useState(footer?.showContactInfo ?? true);
-    const [quickLinks, setQuickLinks] = useState(footer?.quickLinks || [
-        { label: 'Home', url: '/' },
-        { label: 'About', url: '/about' },
-        { label: 'Services', url: '/#offerings' },
-        { label: 'Contact', url: '/#contact' },
-    ]);
-    const [editingIndex, setEditingIndex] = useState<number | null>(null);
-    const [form, setForm] = useState<any>(null);
-    const [localSaving, setLocalSaving] = useState(false);
-    const [phone, setPhone] = useState(profile.phone || '');
-    const [contactEmail, setContactEmail] = useState(profile.email || '');
-    const [linkedinUrl, setLinkedinUrl] = useState(profile.socialLinks?.linkedin || '');
-    const [twitterUrl, setTwitterUrl] = useState(profile.socialLinks?.twitter || '');
-    const [githubUrl, setGithubUrl] = useState(profile.socialLinks?.github || '');
-    const [poweredByText, setPoweredByText] = useState(profile.poweredBy || 'Powered and secured by MIS');
-
-    useEffect(() => {
-        const d = profile.pageContent?.footer;
-        setCompanyDescription(d?.companyDescription || 'MUHIZI CONSTRUCTION is a leading construction and real estate company in Rwanda.');
-        setCopyrightText(d?.copyrightText || `© ${new Date().getFullYear()} MUHIZI CONSTRUCTION. All rights reserved.`);
-        setShowSocialLinks(d?.showSocialLinks ?? true);
-        setShowContactInfo(d?.showContactInfo ?? true);
-        setQuickLinks(d?.quickLinks || [
-            { label: 'Home', url: '/' },
-            { label: 'About', url: '/about' },
-            { label: 'Services', url: '/#offerings' },
-            { label: 'Contact', url: '/#contact' },
-        ]);
-        setPhone(profile.phone || '');
-        setContactEmail(profile.email || '');
-        setLinkedinUrl(profile.socialLinks?.linkedin || '');
-        setTwitterUrl(profile.socialLinks?.twitter || '');
-        setGithubUrl(profile.socialLinks?.github || '');
-        setPoweredByText(profile.poweredBy || 'Powered and secured by MIS');
-    }, [profile]);
-
-    const save = async () => {
-        setLocalSaving(true);
-        const pc = { ...profile.pageContent, footer: { companyDescription, copyrightText, showSocialLinks, showContactInfo, quickLinks } };
-        await onSave({
-            pageContent: pc,
-            phone,
-            email: contactEmail,
-            socialLinks: { linkedin: linkedinUrl, twitter: twitterUrl, github: githubUrl },
-            poweredBy: poweredByText,
-        });
-        setLocalSaving(false);
-    };
-
-    const openNew = () => { setEditingIndex(-1); setForm({ label: '', url: '' }); };
-    const openEdit = (i: number) => { setEditingIndex(i); setForm({ ...quickLinks[i] }); };
-    const cancel = () => { setEditingIndex(null); };
-
-    const handleSaveLink = () => {
-        if (!form) return;
-        const updated = [...quickLinks];
-        if (editingIndex === -1) updated.push(form);
-        else if (editingIndex !== null) updated[editingIndex] = form;
-        setQuickLinks(updated);
-        cancel();
-    };
-
-    const handleDeleteLink = (i: number) => {
-        if (!window.confirm('Delete this link?')) return;
-        setQuickLinks(quickLinks.filter((_, idx) => idx !== i));
-    };
-
-    const isSaving = saving || localSaving;
-
-    return (
-        <div>
-            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Footer Content</h3>
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                    <label className="form-label">Company Description</label>
-                    <textarea value={companyDescription} onChange={e => setCompanyDescription(e.target.value)} className="form-textarea" rows={3} placeholder="Describe your company, mission, and values..." />
-                </div>
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                    <label className="form-label">Copyright Text</label>
-                    <input value={copyrightText} onChange={e => setCopyrightText(e.target.value)} className="form-input" placeholder="© 2026 MUHIZI CONSTRUCTION. All rights reserved." />
-                </div>
-                <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer' }}>
-                        <input type="checkbox" checked={showSocialLinks} onChange={e => setShowSocialLinks(e.target.checked)} />
-                        Show Social Links
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer' }}>
-                        <input type="checkbox" checked={showContactInfo} onChange={e => setShowContactInfo(e.target.checked)} />
-                        Show Contact Info
-                    </label>
-                </div>
-            </div>
-
-            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Contact Information</h3>
-                <div style={{ display: 'grid', gap: '1rem' }}>
-                    <div className="form-group">
-                        <label className="form-label">Phone Number</label>
-                        <input value={phone} onChange={e => setPhone(e.target.value)} className="form-input" placeholder="+250 788 000 000" />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">Email Address</label>
-                        <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} className="form-input" placeholder="info@example.com" />
-                    </div>
-                </div>
-            </div>
-
-            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Social Media Links</h3>
-                <div style={{ display: 'grid', gap: '1rem' }}>
-                    <div className="form-group">
-                        <label className="form-label">LinkedIn URL</label>
-                        <input value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} className="form-input" placeholder="https://linkedin.com/in/..." />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">Twitter URL</label>
-                        <input value={twitterUrl} onChange={e => setTwitterUrl(e.target.value)} className="form-input" placeholder="https://twitter.com/..." />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">GitHub URL</label>
-                        <input value={githubUrl} onChange={e => setGithubUrl(e.target.value)} className="form-input" placeholder="https://github.com/..." />
-                    </div>
-                </div>
-            </div>
-
-            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Copyright & Branding</h3>
-                <div className="form-group">
-                    <label className="form-label">Powered By Text</label>
-                    <input value={poweredByText} onChange={e => setPoweredByText(e.target.value)} className="form-input" placeholder="Powered and secured by..." />
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Optional branding text shown below copyright</p>
-                </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Quick Links ({quickLinks.length})</h3>
-                <button onClick={openNew} disabled={editingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add Link</button>
-            </div>
-
-            {editingIndex !== null && form && (
-                <div className="content-card" style={{ padding: '1rem', marginBottom: '1rem', border: '2px solid var(--primary)' }}>
-                    <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>{editingIndex === -1 ? 'New Link' : 'Edit Link'}</h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                        <div className="form-group">
-                            <label className="form-label">Label</label>
-                            <input value={form.label} onChange={e => setForm((p: any) => ({ ...p, label: e.target.value }))} className="form-input" placeholder="e.g. Home" />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">URL</label>
-                            <input value={form.url} onChange={e => setForm((p: any) => ({ ...p, url: e.target.value }))} className="form-input" placeholder="e.g. /" />
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                        <button onClick={cancel} className="admin-icon-btn" style={{ fontSize: '0.85rem', width: 'auto', padding: '0.4rem 0.8rem' }}>Cancel</button>
-                        <button onClick={handleSaveLink} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}><FaSave /> Save</button>
-                    </div>
-                </div>
-            )}
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
-                {quickLinks.map((link, i) => (
-                    <div key={i} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.8rem' }}>
-                        <div>
-                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{link.label}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{link.url}</div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                            <button onClick={() => openEdit(i)} className="admin-icon-btn"><FaEdit /></button>
-                            <button onClick={() => handleDeleteLink(i)} className="admin-icon-btn" style={{ color: 'var(--primary-red)' }}><FaTrash /></button>
-                        </div>
-                    </div>
-                ))}
-                {quickLinks.length === 0 && (
-                    <div style={{ padding: '2rem', textAlign: 'center', border: '2px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-muted)' }}>No quick links yet.</div>
-                )}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Footer</>}</button>
-            </div>
         </div>
     );
 };
@@ -360,6 +148,273 @@ const SettingsEditor = ({ profile, onSave, saving }: { profile: Profile; onSave:
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <button onClick={handleSave} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Settings</>}</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/* ───── Footer Editor ───── */
+const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (u: Partial<Profile>) => Promise<void>; saving: boolean }) => {
+    const [form, setForm] = useState({
+        phone: profile.phone || '',
+        email: profile.email || '',
+        linkedinUrl: profile.socialLinks?.linkedin || '',
+        twitterUrl: profile.socialLinks?.twitter || '',
+        githubUrl: profile.socialLinks?.github || '',
+        poweredByText: profile.poweredBy || 'Powered and secured by MIS'
+    });
+    const [localSaving, setLocalSaving] = useState(false);
+    const { showToast } = useToast();
+
+    useEffect(() => {
+        setForm({
+            phone: profile.phone || '',
+            email: profile.email || '',
+            linkedinUrl: profile.socialLinks?.linkedin || '',
+            twitterUrl: profile.socialLinks?.twitter || '',
+            githubUrl: profile.socialLinks?.github || '',
+            poweredByText: profile.poweredBy || 'Powered and secured by MIS'
+        });
+    }, [profile]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+    };
+
+    const handleSave = async () => {
+        setLocalSaving(true);
+        await onSave({
+            phone: form.phone,
+            email: form.email,
+            socialLinks: {
+                linkedin: form.linkedinUrl,
+                twitter: form.twitterUrl,
+                github: form.githubUrl
+            },
+            poweredBy: form.poweredByText
+        });
+        setLocalSaving(false);
+        showToast('Footer settings saved successfully!', 'success');
+    };
+    const isSaving = saving || localSaving;
+
+    const copyrightText = `© ${new Date().getFullYear()} By ${profile.firstName} ${profile.lastName}`;
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* Contact */}
+            <div className="content-card" style={{ padding: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FaPhone style={{ color: 'var(--primary)' }} /> Contact Information
+                </h3>
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                    <div className="form-group">
+                        <label className="form-label">Phone Number</label>
+                        <input type="text" name="phone" className="form-input" value={form.phone} onChange={handleChange} placeholder="+250 788 000 000" />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Email Address</label>
+                        <input type="email" name="email" className="form-input" value={form.email} onChange={handleChange} placeholder="your@email.com" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Social Links */}
+            <div className="content-card" style={{ padding: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FaLink style={{ color: 'var(--primary)' }} /> Social Media Links
+                </h3>
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                    {(['linkedinUrl', 'twitterUrl', 'githubUrl'] as const).map(k => (
+                        <div className="form-group" key={k}>
+                            <label className="form-label" style={{ textTransform: 'capitalize' }}>{k.replace('Url', '')}</label>
+                            <input type="url" name={k} className="form-input" value={form[k]} onChange={handleChange} placeholder={`https://${k.replace('Url', '')}.com/...`} />
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Branding */}
+            <div className="content-card" style={{ padding: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FaCopyright style={{ color: 'var(--primary)' }} /> Copyright & Branding
+                </h3>
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                    <div className="form-group">
+                        <label className="form-label">Copyright Text</label>
+                        <input type="text" className="form-input" value={copyrightText} disabled style={{ opacity: 0.7 }} />
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Auto-generated from your profile name and current year</p>
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Powered By Text</label>
+                        <input type="text" name="poweredByText" className="form-input" value={form.poweredByText} onChange={handleChange} placeholder="Powered and secured by..." />
+                    </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                    <button onClick={handleSave} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Footer</>}</button>
+                </div>
+            </div>
+
+            {/* Preview */}
+            <div className="content-card" style={{ padding: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Preview</h3>
+                <div style={{ padding: '1rem', background: 'var(--bg-body)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+                        <div>
+                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>Phone</h4>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{form.phone || 'Not set'}</p>
+                        </div>
+                        <div>
+                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>Email</h4>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{form.email || 'Not set'}</p>
+                        </div>
+                        <div>
+                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>Follow Us</h4>
+                            <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                {form.linkedinUrl && <span>LinkedIn</span>}
+                                {form.twitterUrl && <span>Twitter</span>}
+                                {form.githubUrl && <span>GitHub</span>}
+                                {!form.linkedinUrl && !form.twitterUrl && !form.githubUrl && <span>No social links</span>}
+                            </div>
+                        </div>
+                        <div>
+                            <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>{copyrightText}</p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{form.poweredByText}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/* ───── Brand Editor (Logo + Company Name) ───── */
+const BrandEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (u: Partial<Profile>) => Promise<void>; saving: boolean }) => {
+    const [companyLogoUrl, setCompanyLogoUrl] = useState(profile.companyLogo || '');
+    const [companyName, setCompanyName] = useState(profile.company || '');
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [localSaving, setLocalSaving] = useState(false);
+    const logoInputRef = useRef<HTMLInputElement>(null);
+    const { showToast } = useToast();
+
+    useEffect(() => {
+        setCompanyLogoUrl(profile.companyLogo || '');
+        setCompanyName(profile.company || '');
+    }, [profile]);
+
+    const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        setUploadProgress(0);
+        try {
+            const result = await uploadService.uploadFile(file, setUploadProgress);
+            const url = result.secureUrl || result.url;
+            setCompanyLogoUrl(url);
+            await onSave({ companyLogo: url, company: companyName });
+            showToast('Logo saved successfully!', 'success');
+        } catch {
+            showToast('Failed to upload logo', 'error');
+        } finally {
+            setUploading(false);
+            setUploadProgress(0);
+            if (logoInputRef.current) logoInputRef.current.value = '';
+        }
+    };
+
+    const handleSave = async () => {
+        setLocalSaving(true);
+        await onSave({ companyLogo: companyLogoUrl, company: companyName });
+        setLocalSaving(false);
+        showToast('Brand settings saved successfully!', 'success');
+    };
+    const isSaving = saving || localSaving;
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* Company Logo */}
+            <div className="content-card" style={{ padding: '1rem' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FaUpload style={{ color: 'var(--primary)' }} /> Company Logo
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+                    Upload your company logo. It will appear in the header navigation bar and footer of the website.
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+                    <div style={{ width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', border: '2px dashed var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-body)', flexShrink: 0 }}>
+                        {companyLogoUrl ? (
+                            <img src={companyLogoUrl} alt="Company Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                            <FaUpload style={{ fontSize: '2rem', color: 'var(--text-muted)', opacity: 0.4 }} />
+                        )}
+                    </div>
+                    <div>
+                        <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} hidden />
+                        <button onClick={() => logoInputRef.current?.click()} disabled={uploading} className="btn-primary" style={{ fontSize: '0.8rem' }}>
+                            {uploading ? `Uploading ${uploadProgress}%` : <><FaUpload /> {companyLogoUrl ? 'Change Logo' : 'Upload Logo'}</>}
+                        </button>
+                        {companyLogoUrl && (
+                            <button onClick={() => setCompanyLogoUrl('')} className="btn-secondary" style={{ marginLeft: '0.5rem', fontSize: '0.8rem' }}>
+                                Remove
+                            </button>
+                        )}
+                        {uploading && (
+                            <div style={{ width: 200, height: 6, background: 'var(--border-color)', borderRadius: 3, marginTop: '0.5rem', overflow: 'hidden' }}>
+                                <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'var(--primary)', borderRadius: 3, transition: 'width 0.2s' }} />
+                            </div>
+                        )}
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+                            Recommended: square image, min 200x200px. Supports JPG, PNG, WebP.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Company Name */}
+            <div className="content-card" style={{ padding: '1rem' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FaTag style={{ color: 'var(--primary)' }} /> Company Name
+                </h3>
+                <div className="form-group">
+                    <label className="form-label">Company Name</label>
+                    <input type="text" className="form-input" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="e.g. Muhizi Construction Ltd" />
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+                        This name appears next to the logo in the header and footer.
+                    </p>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.6rem' }}>
+                    <button onClick={handleSave} disabled={isSaving} className="btn-primary" style={{ fontSize: '0.8rem' }}>{isSaving ? 'Saving...' : <><FaSave /> Save Brand</>}</button>
+                </div>
+            </div>
+
+            {/* Preview */}
+            <div className="content-card" style={{ padding: '1rem' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.4rem' }}>Preview</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    <div style={{ padding: '0.6rem', background: 'var(--bg-body)', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                        <p style={{ fontSize: '0.7rem', fontWeight: 700, marginBottom: '0.3rem', color: 'var(--text-muted)' }}>Header</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            {companyLogoUrl ? (
+                                <img src={companyLogoUrl} alt="Logo" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                            ) : (
+                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--border-color)' }} />
+                            )}
+                            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>{companyName || 'Company Name'}</span>
+                        </div>
+                    </div>
+                    <div style={{ padding: '0.6rem', background: '#1a1a2e', borderRadius: '6px' }}>
+                        <p style={{ fontSize: '0.7rem', fontWeight: 700, marginBottom: '0.3rem', color: 'rgba(255,255,255,0.5)' }}>Footer</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            {companyLogoUrl ? (
+                                <img src={companyLogoUrl} alt="Logo" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', background: '#fff', padding: '3px' }} />
+                            ) : (
+                                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />
+                            )}
+                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{companyName || 'Company Name'}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
 import { motion } from 'framer-motion';
 import { FaLock, FaEnvelope, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
+import { getRolePath } from '../../config/roles';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -28,7 +29,7 @@ const Login = () => {
         try {
             const data = await authService.login({ email, password });
             login(data.accessToken, data.user);
-            const target = data.user?.role === 'admin' ? '/admin' : '/admin';
+            const target = getRolePath(data.user?.role || '');
             navigate(target);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
