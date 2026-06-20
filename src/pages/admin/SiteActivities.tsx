@@ -1,90 +1,152 @@
-import { useState } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaHardHat } from 'react-icons/fa';
+import { useState, useEffect, useMemo } from 'react';
+import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaHardHat, FaSpinner, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { constructionService } from '../../services/constructionService';
+import { siteActivitiesService } from '../../services/siteActivitiesService';
+import type { SiteActivity } from '../../services/siteActivitiesService';
 
-interface SiteActivity {
-    id: number;
-    project: string;
-    date: string;
-    description: string;
-    status: 'planned' | 'in_progress' | 'completed';
-    workers: number;
-    notes: string;
-}
+const PAGE_SIZES = [5, 10, 15, 20];
 
-const emptyForm: Omit<SiteActivity, 'id'> = { project: '', date: new Date().toISOString().split('T')[0], description: '', status: 'planned', workers: 0, notes: '' };
+const emptyForm: Omit<SiteActivity, 'id' | 'isActive' | 'createdAt'> = { project: '', date: new Date().toISOString().split('T')[0], description: '', status: 'planned', workers: 0, notes: '' };
 
 const SiteActivities = () => {
-    const [activities, setActivities] = useState<SiteActivity[]>([
-        { id: 1, project: 'Kigali Heights', date: '2026-06-20', description: 'Foundation pouring', status: 'in_progress', workers: 12, notes: 'Using grade 30 concrete' },
-        { id: 2, project: 'Kimironko Villa', date: '2026-06-19', description: 'Wall framing', status: 'completed', workers: 8, notes: '' },
-    ]);
+    const [activities, setActivities] = useState<SiteActivity[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+    const [selectedProject, setSelectedProject] = useState('all');
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<SiteActivity | null>(null);
     const [form, setForm] = useState(emptyForm);
     const [search, setSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
 
-    const filtered = activities.filter(a =>
-        !search.trim() || a.project.toLowerCase().includes(search.toLowerCase()) || a.description.toLowerCase().includes(search.toLowerCase())
+    useEffect(() => {
+        constructionService.getProjects().then(res => setProjects(res.data || [])).catch(() => {});
+        siteActivitiesService.getAllAdmin()
+            .then(res => setActivities(res.data || []))
+            .catch(() => setActivities([]))
+            .finally(() => setLoading(false));
+    }, []);
+
+    const filtered = useMemo(() =>
+        activities.filter(a => {
+            if (selectedProject !== 'all' && a.project !== selectedProject) return false;
+            return !search.trim() || a.project.toLowerCase().includes(search.toLowerCase()) || a.description.toLowerCase().includes(search.toLowerCase());
+        }),
+        [activities, selectedProject, search],
     );
 
+    const totalPages = pageSize === 0 ? 1 : Math.ceil(filtered.length / pageSize);
+    const paginated = useMemo(() => {
+        if (pageSize === 0) return filtered;
+        const start = (page - 1) * pageSize;
+        return filtered.slice(start, start + pageSize);
+    }, [filtered, page, pageSize]);
+
+    useEffect(() => {
+        if (page > totalPages) setPage(totalPages || 1);
+    }, [totalPages, page]);
+
     const openNew = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
-    const openEdit = (a: SiteActivity) => { setEditing(a); setForm({ ...a }); setShowModal(true); };
+    const openEdit = (a: SiteActivity) => { setEditing(a); setForm({ project: a.project, date: a.date, description: a.description, status: a.status, workers: a.workers, notes: a.notes || '' }); setShowModal(true); };
     const close = () => { setShowModal(false); setEditing(null); };
 
     const save = () => {
         if (!form.project || !form.date) return;
         if (editing) {
-            setActivities(prev => prev.map(a => a.id === editing.id ? { ...form, id: editing.id } : a));
+            siteActivitiesService.update(editing.id, form as any)
+                .then(res => setActivities(prev => prev.map(a => a.id === editing.id ? res.data : a)))
+                .catch(() => {});
         } else {
-            setActivities(prev => [...prev, { ...form, id: Date.now() }]);
+            siteActivitiesService.create(form as any)
+                .then(res => setActivities(prev => [res.data, ...prev]))
+                .catch(() => {});
         }
         close();
     };
 
-    const remove = (id: number) => {
+    const remove = (id: string) => {
         if (!window.confirm('Delete this activity?')) return;
-        setActivities(prev => prev.filter(a => a.id !== id));
+        siteActivitiesService.delete(id)
+            .then(() => setActivities(prev => prev.filter(a => a.id !== id)))
+            .catch(() => {});
     };
 
     const statusColor = (s: string) => s === 'completed' ? '#22c55e' : s === 'in_progress' ? '#3b82f6' : '#f59e0b';
 
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '0.75rem', color: 'var(--text-muted)' }}>
+                <FaSpinner className="spin" /> Loading site activities...
+            </div>
+        );
+    }
+
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                <div>
-                    <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem' }}>Site Activities</h1>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Track daily construction site activities</p>
+            <div style={{ marginBottom: '1.5rem' }}>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <FaHardHat style={{ color: '#8B4513' }} /> Site Activities
+                </h1>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Track daily construction site activities</p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Project:</span>
+                    <select value={selectedProject} onChange={e => { setPage(1); setSelectedProject(e.target.value); }}
+                        style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.85rem', minWidth: '160px' }}>
+                        <option value="all">All Projects</option>
+                        {projects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                    </select>
                 </div>
-                <button onClick={openNew} className="btn-primary" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}><FaPlus /> New Activity</button>
+                <input value={search} onChange={e => { setPage(1); setSearch(e.target.value); }} placeholder="Search by project or description..." style={{ flex: 1, minWidth: '200px', padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.85rem' }} />
+                <button onClick={openNew} style={{ padding: '0.4rem 1rem', borderRadius: '8px', border: 'none', background: '#8B4513', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
+                    <FaPlus size={12} /> New Activity
+                </button>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-                <input value={search} onChange={e => setSearch(e.target.value)} className="form-input" placeholder="Search by project or description..." style={{ maxWidth: 400 }} />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {filtered.map(a => (
-                    <div key={a.id} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', padding: '1rem', flexWrap: 'wrap' }}>
-                        <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.3rem' }}>
-                                <FaHardHat style={{ color: '#8B4513' }} />
-                                <span style={{ fontWeight: 700, fontSize: '1rem' }}>{a.project}</span>
-                                <span style={{
-                                    fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '12px',
-                                    background: `${statusColor(a.status)}20`, color: statusColor(a.status)
-                                }}>{a.status.replace('_', ' ')}</span>
-                            </div>
-                            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                {a.date} — {a.description} {a.workers > 0 && `(${a.workers} workers)`}
-                            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {paginated.map(a => (
+                    <div key={a.id} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.85rem', flexWrap: 'wrap' }}>
+                        <div style={{ flex: 1, minWidth: '160px', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <FaHardHat style={{ color: '#8B4513' }} />
+                            <span style={{ fontWeight: 700, fontSize: '0.82rem', whiteSpace: 'nowrap' }}>{a.project}</span>
+                            <span style={{ fontSize: '0.6rem', fontWeight: 600, padding: '0.05rem 0.35rem', borderRadius: '4px', background: `${statusColor(a.status)}20`, color: statusColor(a.status), textTransform: 'capitalize' }}>{a.status.replace('_', ' ')}</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{a.date} &mdash; {a.description} {a.workers > 0 && `(${a.workers} workers)`}</span>
                         </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '0.35rem' }}>
                             <button onClick={() => openEdit(a)} className="admin-icon-btn"><FaEdit /></button>
                             <button onClick={() => remove(a.id)} className="admin-icon-btn" style={{ color: 'var(--primary-red)' }}><FaTrash /></button>
                         </div>
                     </div>
                 ))}
-                {filtered.length === 0 && <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem' }}>No activities found.</p>}
+                {paginated.length === 0 && <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '1.5rem', fontSize: '0.85rem' }}>No activities found.</p>}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', padding: '0.25rem 0', flexWrap: 'wrap', gap: 8 }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
+                        <select className="form-select" style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }}
+                            value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
+                            {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                            <option value={0}>All</option>
+                        </select>
+                    </div>
+                    {pageSize > 0 && totalPages > 1 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
+                            ))}
+                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {showModal && (
@@ -97,7 +159,10 @@ const SiteActivities = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             <div className="form-group">
                                 <label className="form-label">Project</label>
-                                <input value={form.project} onChange={e => setForm(p => ({ ...p, project: e.target.value }))} className="form-input" placeholder="Project name" />
+                                <select value={form.project} onChange={e => setForm(p => ({ ...p, project: e.target.value }))} className="form-select">
+                                    <option value="">Select project</option>
+                                    {projects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                                </select>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                                 <div className="form-group">
@@ -117,11 +182,9 @@ const SiteActivities = () => {
                                 <label className="form-label">Description</label>
                                 <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} className="form-textarea" rows={2} placeholder="What was done?" />
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                                <div className="form-group">
-                                    <label className="form-label">Workers On Site</label>
-                                    <input type="number" value={form.workers} onChange={e => setForm(p => ({ ...p, workers: parseInt(e.target.value) || 0 }))} className="form-input" />
-                                </div>
+                            <div className="form-group">
+                                <label className="form-label">Workers On Site</label>
+                                <input type="number" value={form.workers} onChange={e => setForm(p => ({ ...p, workers: parseInt(e.target.value) || 0 }))} className="form-input" />
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Notes</label>

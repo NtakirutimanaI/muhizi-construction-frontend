@@ -7,7 +7,8 @@ import {
     FaCheck, FaTrash, FaTimes, FaProjectDiagram, FaBars, FaGlobe, FaUsers,
     FaDraftingCompass, FaHandshake, FaUserTie, FaClipboardList,
     FaMoneyBillWave, FaArrowUp, FaArrowDown, FaChartPie, FaHistory, FaBrain,
-    FaInbox, FaPaperPlane, FaArchive, FaLock, FaHardHat, FaTruck, FaCamera
+    FaInbox, FaPaperPlane, FaArchive, FaLock, FaHardHat, FaTruck, FaCamera, FaGavel,
+    FaCheckDouble, FaFileAlt
 } from 'react-icons/fa';
 import { useNotification } from '../context/NotificationContext';
 import { profileService, type Profile, type ContactMessage } from '../services/profileService';
@@ -135,7 +136,8 @@ const AdminLayout = () => {
         FaBrain: <FaBrain />, FaEnvelope: <FaEnvelope />,
         FaUsers: <FaUsers />, FaLock: <FaLock />,
         FaBook: <FaBook />, FaCog: <FaCog />,
-        FaHardHat: <FaHardHat />, FaTruck: <FaTruck />, FaCamera: <FaCamera />,
+        FaHardHat: <FaHardHat />, FaTruck: <FaTruck />, FaCamera: <FaCamera />, FaGavel: <FaGavel />,
+        FaCheckDouble: <FaCheckDouble />, FaFileAlt: <FaFileAlt />,
     };
 
     const sections = SIDEBAR_SECTIONS

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaProjectDiagram, FaDollarSign, FaCheckCircle, FaSpinner, FaClock, FaSearch, FaCalendarAlt, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaProjectDiagram, FaDollarSign, FaCheckCircle, FaSpinner, FaClock, FaSearch, FaCalendarAlt, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import type { Project } from '../../services/constructionService';
 import jsPDF from 'jspdf';
@@ -20,6 +21,7 @@ const emptyForm: FormData = {
 const PAGE_SIZES = [5, 10, 15, 20];
 
 const Projects = () => {
+    const navigate = useNavigate();
     const [data, setData] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -319,6 +321,7 @@ const Projects = () => {
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', gap: 6 }}>
+                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => navigate(`/admin/projects/${item.id}`)} title="View Details"><FaEye /></button>
                                             <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)}><FaEdit /></button>
                                             <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)}><FaTrash /></button>
                                         </div>

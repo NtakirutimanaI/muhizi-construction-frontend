@@ -36,9 +36,14 @@ import Expenses from './pages/admin/Expenses';
 import Reports from './pages/admin/Reports';
 import AuditLogs from './pages/admin/AuditLogs';
 import MlInsights from './pages/admin/MlInsights';
+import SalaryHistory from './pages/admin/SalaryHistory';
 import SiteActivities from './pages/admin/SiteActivities';
 import MaterialRequests from './pages/admin/MaterialRequests';
 import ProjectEvidence from './pages/admin/ProjectEvidence';
+import SiteRules from './pages/admin/SiteRules';
+import Approvals from './pages/admin/Approvals';
+import Contracts from './pages/admin/Contracts';
+import ProjectDetail from './pages/admin/ProjectDetail';
 
 import Loading from './components/Loading';
 import { profileService } from './services/profileService';
@@ -133,9 +138,14 @@ function App() {
                   <Route path="/admin/reports" element={<Reports />} />
                   <Route path="/admin/audit-logs" element={<AuditLogs />} />
                   <Route path="/admin/ml-insights" element={<MlInsights />} />
+                  <Route path="/admin/salary-history" element={<SalaryHistory />} />
                   <Route path="/admin/site-activities" element={<SiteActivities />} />
                   <Route path="/admin/material-requests" element={<MaterialRequests />} />
                   <Route path="/admin/project-evidence" element={<ProjectEvidence />} />
+                  <Route path="/admin/site-rules" element={<SiteRules />} />
+                  <Route path="/admin/approvals" element={<Approvals />} />
+                  <Route path="/admin/contracts" element={<Contracts />} />
+                  <Route path="/admin/projects/:id" element={<ProjectDetail />} />
                 </Route>
               </Route>
 
