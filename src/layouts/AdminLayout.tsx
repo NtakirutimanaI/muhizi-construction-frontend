@@ -7,11 +7,12 @@ import {
     FaCheck, FaTrash, FaTimes, FaProjectDiagram, FaBars, FaGlobe, FaUsers,
     FaDraftingCompass, FaHandshake, FaUserTie, FaClipboardList,
     FaMoneyBillWave, FaArrowUp, FaArrowDown, FaChartPie, FaHistory, FaBrain,
-    FaInbox, FaPaperPlane, FaArchive
+    FaInbox, FaPaperPlane, FaArchive, FaLock, FaHardHat, FaTruck, FaCamera
 } from 'react-icons/fa';
 import { useNotification } from '../context/NotificationContext';
 import { profileService, type Profile, type ContactMessage } from '../services/profileService';
 import { AnimatePresence, motion } from 'framer-motion';
+import { SIDEBAR_SECTIONS, type Role } from '../config/roles';
 
 const AdminLayout = () => {
     const { logout, user } = useAuth();
@@ -122,62 +123,35 @@ const AdminLayout = () => {
         setShowNotifications(!showNotifications);
     };
 
-    const role = user?.role || '';
+    const role = (user?.role || '') as Role;
 
-    const sections = [
-        {
-            label: 'Main',
-            items: [
-                { path: '/admin', icon: <FaChartBar />, label: 'Dashboard' },
-            ],
-        },
-        {
-            label: 'Content',
-            items: [
-                { path: '/admin/resources', icon: <FaDatabase />, label: 'CMS' },
-            ],
-        },
-        {
-            label: 'Operations',
-            items: [
-                { path: '/admin/projects', icon: <FaProjectDiagram />, label: 'Projects' },
-                { path: '/admin/designs', icon: <FaDraftingCompass />, label: 'Designs' },
-                { path: '/admin/partnerships', icon: <FaHandshake />, label: 'Partnerships' },
-            ],
-        },
-        {
-            label: 'HR',
-            items: [
-                { path: '/admin/employees', icon: <FaUserTie />, label: 'Employees' },
-                { path: '/admin/attendance', icon: <FaClipboardList />, label: 'Attendance' },
-                { path: '/admin/payroll', icon: <FaMoneyBillWave />, label: 'Payroll' },
-            ],
-        },
-        {
-            label: 'Finance',
-            items: [
-                { path: '/admin/incomes', icon: <FaArrowUp />, label: 'Incomes' },
-                { path: '/admin/expenses', icon: <FaArrowDown />, label: 'Expenses' },
-                { path: '/admin/reports', icon: <FaChartPie />, label: 'Reports' },
-            ],
-        },
-        {
-            label: 'Insights',
-            items: [
-                { path: '/admin/audit-logs', icon: <FaHistory />, label: 'Audit Logs' },
-                { path: '/admin/ml-insights', icon: <FaBrain />, label: 'ML Insights' },
-            ],
-        },
-        {
-            label: 'Admin',
-            items: [
-                { path: '/admin/messages', icon: <FaEnvelope />, label: 'Messages' },
-                { path: '/admin/users', icon: <FaUsers />, label: 'Users' },
-                { path: '/admin/api-docs', icon: <FaBook />, label: 'API Docs' },
-                { path: '/admin/settings', icon: <FaCog />, label: 'Settings' },
-            ],
-        },
-    ];
+    const iconMap: Record<string, React.ReactNode> = {
+        FaChartBar: <FaChartBar />, FaDatabase: <FaDatabase />,
+        FaProjectDiagram: <FaProjectDiagram />, FaDraftingCompass: <FaDraftingCompass />,
+        FaHandshake: <FaHandshake />, FaUserTie: <FaUserTie />,
+        FaClipboardList: <FaClipboardList />, FaMoneyBillWave: <FaMoneyBillWave />,
+        FaArrowUp: <FaArrowUp />, FaArrowDown: <FaArrowDown />,
+        FaChartPie: <FaChartPie />, FaHistory: <FaHistory />,
+        FaBrain: <FaBrain />, FaEnvelope: <FaEnvelope />,
+        FaUsers: <FaUsers />, FaLock: <FaLock />,
+        FaBook: <FaBook />, FaCog: <FaCog />,
+        FaHardHat: <FaHardHat />, FaTruck: <FaTruck />, FaCamera: <FaCamera />,
+    };
+
+    const sections = SIDEBAR_SECTIONS
+        .map(s => ({
+            ...s,
+            items: s.items.filter(item => item.roles.includes(role)),
+        }))
+        .filter(s => s.items.length > 0)
+        .map(s => ({
+            ...s,
+            items: s.items.map(item => ({
+                path: item.path,
+                icon: iconMap[item.icon] || <FaChartBar />,
+                label: item.label,
+            })),
+        }));
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;

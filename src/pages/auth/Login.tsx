@@ -28,15 +28,7 @@ const Login = () => {
         try {
             const data = await authService.login({ email, password });
             login(data.accessToken, data.user);
-            const role = data.user?.role;
-            const dashboardMap: Record<string, string> = {
-                admin: '/admin',
-                site_manager: '/admin/site-dashboard',
-                employee: '/admin/employee-dashboard',
-                client: '/admin/client-dashboard',
-                manager: '/admin/manager-dashboard',
-            };
-            const target = dashboardMap[role] || (redirect === '/' ? '/?createProfile=true' : redirect);
+            const target = data.user?.role === 'admin' ? '/admin' : '/admin';
             navigate(target);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');

@@ -14,6 +14,7 @@ const Settings = () => {
     const { user } = useAuth();
     const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [profile, setProfile] = useState<any>(null);
     const [activeTab, setActiveTab] = useState('general');
 
@@ -56,6 +57,7 @@ const Settings = () => {
             }));
         } catch (error) {
             console.error('Failed to load profile', error);
+            showToast('Failed to load profile settings', 'error');
         }
     };
 
@@ -67,8 +69,20 @@ const Settings = () => {
         e.preventDefault();
         setLoading(true);
 
+        if (!passwordData.currentPassword) {
+            showToast('Current password is required', 'error');
+            setLoading(false);
+            return;
+        }
+
         if (passwordData.newPassword.length < 6) {
             showToast('New password must be at least 6 characters', 'error');
+            setLoading(false);
+            return;
+        }
+
+        if (passwordData.currentPassword === passwordData.newPassword) {
+            showToast('New password must differ from current password', 'error');
             setLoading(false);
             return;
         }
@@ -127,15 +141,15 @@ const Settings = () => {
 
     const clearCache = () => {
         const token = localStorage.getItem('accessToken');
-        const user = localStorage.getItem('user');
+        const userData = localStorage.getItem('user');
 
         localStorage.clear();
         sessionStorage.clear();
 
         if (token) localStorage.setItem('accessToken', token);
-        if (user) localStorage.setItem('user', user);
+        if (userData) localStorage.setItem('user', userData);
 
-        showToast('Cache cleared successfully', 'success');
+        showToast('Local cache cleared successfully', 'success');
     };
 
     const tabs = [
@@ -181,29 +195,30 @@ const Settings = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', maxWidth: '830px', margin: '0 auto' }}
                 >
                     {/* Account Information */}
-                    <div className="content-card" style={{ padding: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="content-card" style={{ padding: '0.6rem' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                             <FaUser style={{ color: 'var(--primary)' }} /> Account Information
                         </h3>
-                        <div style={{ display: 'grid', gap: '1rem' }}>
-                            <div className="form-group">
-                                <label className="form-label">Username</label>
+                        <div style={{ display: 'grid', gap: '0.4rem' }}>
+                            <div className="form-group" style={{ width: '100%' }}>
+                                <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>Username</label>
                                 <input className="form-input" value={user?.username || ''} disabled style={{ opacity: 0.7 }} />
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Email</label>
+                            <div className="form-group" style={{ width: '100%' }}>
+                                <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>Email</label>
                                 <input className="form-input" value={user?.email || ''} disabled style={{ opacity: 0.7 }} />
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Role</label>
+                            <div className="form-group" style={{ width: '100%' }}>
+                                <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>Role</label>
                                 <div style={{
-                                    padding: '0.8rem',
+                                    padding: '0.4rem 0.6rem',
                                     background: 'var(--bg-body)',
-                                    borderRadius: '8px',
+                                    borderRadius: '6px',
                                     fontWeight: 600,
+                                    fontSize: '0.85rem',
                                     color: 'var(--primary)'
                                 }}>
                                     {user?.role?.toUpperCase()}
@@ -213,34 +228,37 @@ const Settings = () => {
                     </div>
 
                     {/* Portfolio Settings */}
-                    <div className="content-card" style={{ padding: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="content-card" style={{ padding: '0.6rem' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                             <FaGlobe style={{ color: 'var(--primary)' }} /> Portfolio Settings
                         </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                             <SettingToggle
                                 icon={settings.isPublic ? <FaEye /> : <FaEyeSlash />}
                                 label="Portfolio Visibility"
-                                description="Make your portfolio visible to the public"
+                                description="Make your portfolio visible"
                                 checked={settings.isPublic}
                                 onChange={(val) => handleSettingToggle('isPublic', val)}
                                 color="var(--primary-teal)"
+                                compact
                             />
                             <SettingToggle
                                 icon={<FaEnvelope />}
                                 label="Allow Contact Messages"
-                                description="Enable visitors to send you messages"
+                                description="Enable visitors to message you"
                                 checked={settings.allowMessages}
                                 onChange={(val) => handleSettingToggle('allowMessages', val)}
                                 color="var(--primary)"
+                                compact
                             />
                             <SettingToggle
                                 icon={<FaEye />}
                                 label="Show View Count"
-                                description="Display profile view count on dashboard"
+                                description="Display profile view count"
                                 checked={settings.showViews}
                                 onChange={(val) => handleSettingToggle('showViews', val)}
                                 color="#667eea"
+                                compact
                             />
                         </div>
                     </div>
@@ -252,16 +270,16 @@ const Settings = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', maxWidth: '830px', margin: '0 auto' }}
                 >
                     {/* Change Password */}
-                    <div className="content-card" style={{ padding: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="content-card" style={{ padding: '0.6rem' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                             <FaLock style={{ color: 'var(--primary)' }} /> Change Password
                         </h3>
-                        <form onSubmit={submitPasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div className="form-group" style={{ maxWidth: '400px' }}>
-                                <label className="form-label">Current Password</label>
+                        <form onSubmit={submitPasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            <div className="form-group" style={{ width: '100%' }}>
+                                <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>Current Password</label>
                                 <input
                                     type="password"
                                     name="currentPassword"
@@ -272,8 +290,8 @@ const Settings = () => {
                                     placeholder="Enter your current password"
                                 />
                             </div>
-                            <div className="form-group" style={{ maxWidth: '400px' }}>
-                                <label className="form-label">New Password</label>
+                            <div className="form-group" style={{ width: '100%' }}>
+                                <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>New Password</label>
                                 <input
                                     type="password"
                                     name="newPassword"
@@ -284,8 +302,8 @@ const Settings = () => {
                                     placeholder="Minimum 6 characters"
                                 />
                             </div>
-                            <div className="form-group" style={{ maxWidth: '400px' }}>
-                                <label className="form-label">Confirm New Password</label>
+                            <div className="form-group" style={{ width: '100%' }}>
+                                <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>Confirm New Password</label>
                                 <input
                                     type="password"
                                     name="confirmPassword"
@@ -296,22 +314,22 @@ const Settings = () => {
                                     placeholder="Re-enter your new password"
                                 />
                             </div>
-                            <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', marginTop: '0.5rem' }}>
+                            <button type="submit" className="btn-primary" disabled={loading} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', marginTop: '0.2rem', width: '100%' }}>
                                 {loading ? 'Updating...' : 'Update Password'}
                             </button>
                         </form>
                     </div>
 
                     {/* Session Management */}
-                    <div className="content-card" style={{ padding: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="content-card" style={{ padding: '0.6rem' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                             <FaKey style={{ color: 'var(--primary)' }} /> Session Management
                         </h3>
-                        <div style={{ padding: '1rem', background: 'var(--bg-body)', borderRadius: '8px', marginBottom: '1rem' }}>
-                            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-                                Last login: <strong>{new Date().toLocaleString()}</strong>
+                        <div style={{ padding: '0.5rem', background: 'var(--bg-body)', borderRadius: '6px' }}>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
+                                Current session started: <strong>{new Date().toLocaleString()}</strong>
                             </p>
-                            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                                 Active sessions: <strong>1</strong>
                             </p>
                         </div>
@@ -324,37 +342,36 @@ const Settings = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', maxWidth: '830px', margin: '0 auto' }}
                 >
-                    <div className="content-card" style={{ padding: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="content-card" style={{ padding: '0.6rem' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                             <FaShieldAlt style={{ color: 'var(--primary)' }} /> Privacy Controls
                         </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                             <SettingToggle
                                 icon={<FaBell />}
                                 label="Email Notifications"
-                                description="Receive email notifications for new messages"
+                                description="Receive email notifications"
                                 checked={settings.enableNotifications}
                                 onChange={(val) => handleSettingToggle('enableNotifications', val)}
                                 color="var(--primary)"
+                                compact
                             />
-                            <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid var(--primary-red)', borderRadius: '8px', marginTop: '1rem' }}>
-                                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--primary)' }}>
+                            <div style={{ padding: '0.5rem', background: 'rgba(139,69,19,0.04)', border: '1px solid var(--primary)', borderRadius: '6px' }}>
+                                <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.3rem', color: 'var(--primary)' }}>
                                     Data Management
                                 </h4>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
                                     Export or delete your data. This action cannot be undone.
                                 </p>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button
-                                        className="btn-primary"
-                                        style={{ background: 'var(--primary)', flex: 1 }}
-                                        onClick={() => showToast('Export functionality coming soon', 'info')}
-                                    >
-                                        <FaDownload /> Export Data
-                                    </button>
-                                </div>
+                                <button
+                                    className="btn-primary"
+                                    style={{ background: 'var(--primary)', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                                    onClick={() => showToast('Export functionality coming soon', 'info')}
+                                >
+                                    <FaDownload /> Export Data
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -366,20 +383,21 @@ const Settings = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', maxWidth: '830px', margin: '0 auto' }}
                 >
-                    <div className="content-card" style={{ padding: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="content-card" style={{ padding: '0.6rem' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                             <FaPaintBrush style={{ color: 'var(--primary)' }} /> UI Preferences
                         </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                             <SettingToggle
                                 icon={<FaCheckCircle />}
                                 label="Enable Animations"
-                                description="Show smooth transitions and animations"
+                                description="Show smooth transitions"
                                 checked={settings.enableAnimations}
                                 onChange={(val) => handleSettingToggle('enableAnimations', val)}
                                 color="var(--primary-teal)"
+                                compact
                             />
                         </div>
                     </div>
@@ -391,36 +409,38 @@ const Settings = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', maxWidth: '830px', margin: '0 auto' }}
                 >
-                    <div className="content-card" style={{ padding: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="content-card" style={{ padding: '0.6rem' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                             <FaServer style={{ color: 'var(--primary)' }} /> System Configuration
                         </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                             <SettingToggle
                                 icon={<FaUser />}
                                 label="Available for Hire"
-                                description="Show 'Available for hire' badge on your portfolio"
+                                description="Show 'Available for hire' badge"
                                 checked={settings.availableForHire}
                                 onChange={(val) => handleSettingToggle('availableForHire', val)}
                                 color="var(--primary)"
+                                compact
                             />
                             <SettingToggle
                                 icon={<FaCog />}
                                 label="Maintenance Mode"
-                                description="Hide portfolio from public (shows maintenance page)"
+                                description="Hide portfolio from public"
                                 checked={settings.maintenanceMode}
                                 onChange={(val) => handleSettingToggle('maintenanceMode', val)}
                                 color="var(--primary-red)"
+                                compact
                             />
 
-                            <div style={{ padding: '1rem', background: 'var(--bg-body)', border: '1px solid var(--border-color)', borderRadius: '8px', marginTop: '1rem' }}>
-                                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem' }}>System Actions</h4>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                            <div style={{ padding: '0.5rem', background: 'var(--bg-body)', border: '1px solid var(--border-color)', borderRadius: '6px', marginTop: '0.3rem' }}>
+                                <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.3rem' }}>System Actions</h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                                     <button
                                         className="btn-primary"
-                                        style={{ background: 'var(--primary)', width: '100%' }}
+                                        style={{ background: 'var(--primary)', width: '100%', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                                         onClick={clearCache}
                                     >
                                         <FaSync /> Clear Local Cache
@@ -431,28 +451,32 @@ const Settings = () => {
                     </div>
 
                     {/* Danger Zone */}
-                    <div className="content-card" style={{ padding: '1.5rem', border: '2px solid var(--primary-red)' }}>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary-red)' }}>
+                    <div className="content-card" style={{ padding: '0.6rem', border: '1.5px solid var(--primary-red)' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--primary-red)' }}>
                             <FaTrash /> Danger Zone
                         </h3>
-                        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
                             Irreversible actions. Please be careful.
                         </p>
                         <button
                             className="btn-primary"
-                            style={{ background: 'var(--primary-red)', width: '100%' }}
+                            style={{ background: 'var(--primary-red)', width: '100%', padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
+                            disabled={deleting}
                             onClick={async () => {
-                                if (confirm('Are you sure you want to delete all messages? This cannot be undone.')) {
-                                    try {
-                                        await profileService.deleteAllMessages();
-                                        showToast('All messages deleted', 'success');
-                                    } catch (error) {
-                                        showToast('Failed to delete messages', 'error');
-                                    }
+                                if (deleting) return;
+                                if (!confirm('Are you sure you want to delete all messages? This cannot be undone.')) return;
+                                setDeleting(true);
+                                try {
+                                    await profileService.deleteAllMessages();
+                                    showToast('All messages deleted', 'success');
+                                } catch (error) {
+                                    showToast('Failed to delete messages', 'error');
+                                } finally {
+                                    setDeleting(false);
                                 }
                             }}
                         >
-                            <FaTrash /> Delete All Messages
+                            {deleting ? 'Deleting...' : <><FaTrash /> Delete All Messages</>}
                         </button>
                     </div>
                 </motion.div>
@@ -468,7 +492,8 @@ const SettingToggle = ({
     description,
     checked,
     onChange,
-    color
+    color,
+    compact
 }: {
     icon: React.ReactNode;
     label: string;
@@ -476,21 +501,23 @@ const SettingToggle = ({
     checked: boolean;
     onChange: (value: boolean) => void;
     color: string;
+    compact?: boolean;
 }) => {
+    const c = compact;
     return (
         <div
             onClick={() => onChange(!checked)}
             role="switch"
             aria-checked={checked}
             style={{
-                padding: '1rem',
+                padding: c ? '0.4rem' : '1rem',
                 background: 'var(--bg-body)',
-                borderRadius: '8px',
+                borderRadius: c ? '6px' : '8px',
                 border: '1px solid var(--border-color)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: '1rem',
+                gap: c ? '0.5rem' : '1rem',
                 cursor: 'pointer',
                 userSelect: 'none',
                 transition: 'all 0.2s ease'
@@ -498,27 +525,27 @@ const SettingToggle = ({
             onMouseEnter={(e) => e.currentTarget.style.borderColor = color}
             onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
         >
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: 1 }}>
+            <div style={{ display: 'flex', gap: c ? '0.5rem' : '1rem', alignItems: 'center', flex: 1 }}>
                 <div style={{
-                    fontSize: '1.5rem',
+                    fontSize: c ? '1rem' : '1.5rem',
                     color,
-                    width: '40px',
-                    height: '40px',
+                    width: c ? '28px' : '40px',
+                    height: c ? '28px' : '40px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     background: `${color}15`,
-                    borderRadius: '8px'
+                    borderRadius: c ? '6px' : '8px'
                 }}>
                     {icon}
                 </div>
                 <div>
-                    <h4 style={{ fontSize: '0.95rem', fontWeight: 600, margin: '0 0 0.3rem 0' }}>{label}</h4>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>{description}</p>
+                    <h4 style={{ fontSize: c ? '0.8rem' : '0.95rem', fontWeight: 600, margin: '0 0 0.1rem 0' }}>{label}</h4>
+                    <p style={{ fontSize: c ? '0.7rem' : '0.8rem', color: 'var(--text-muted)', margin: 0 }}>{description}</p>
                 </div>
             </div>
 
-            <div style={{ position: 'relative', width: '50px', height: '26px' }}>
+            <div style={{ position: 'relative', width: c ? '36px' : '50px', height: c ? '20px' : '26px' }}>
                 <div style={{
                     position: 'absolute',
                     top: 0,
@@ -527,14 +554,14 @@ const SettingToggle = ({
                     bottom: 0,
                     background: checked ? color : '#e2e8f0',
                     transition: '0.3s',
-                    borderRadius: '26px',
+                    borderRadius: c ? '20px' : '26px',
                 }}>
                     <div style={{
                         position: 'absolute',
-                        height: '20px',
-                        width: '20px',
-                        left: checked ? '27px' : '3px',
-                        bottom: '3px',
+                        height: c ? '14px' : '20px',
+                        width: c ? '14px' : '20px',
+                        left: checked ? (c ? '19px' : '27px') : (c ? '2px' : '3px'),
+                        bottom: c ? '3px' : '3px',
                         background: 'white',
                         transition: '0.3s',
                         borderRadius: '50%',

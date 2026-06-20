@@ -189,7 +189,7 @@ const MessagesSent = () => {
             {/* Compose Modal */}
             {showCompose && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowCompose(false)}>
-                    <div className="admin-card" style={{ width: 520, maxHeight: '90vh', overflow: 'auto', padding: '1.5rem' }} onClick={e => e.stopPropagation()}>
+                    <div className="admin-card" style={{ width: 520, maxWidth: '90vw', maxHeight: '90vh', overflow: 'auto', padding: '1.5rem' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Compose Message</h3>
                             <button className="admin-btn admin-btn--secondary" onClick={() => setShowCompose(false)} style={{ padding: '0.3rem 0.6rem' }}><FaTimes /></button>

@@ -3,27 +3,32 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import {
     FaCog, FaHome, FaInfoCircle, FaSave, FaCopyright,
-    FaPlus, FaEdit, FaTrash
+    FaPlus, FaEdit, FaTrash, FaCode, FaCertificate,
+    FaLanguage, FaBriefcase, FaProjectDiagram, FaUsers, FaUser
 } from 'react-icons/fa';
 import { profileService } from '../../services/profileService';
 import type { Profile } from '../../services/profileService';
 import { useToast } from '../../context/ToastContext';
 import HomeSectionsTab from './profile-sections/HomeSectionsTab';
 import AboutSectionsTab from './profile-sections/AboutSectionsTab';
+import SkillsTab from './profile-sections/SkillsTab';
+import ProjectsTab from './profile-sections/ProjectsTab';
+import ExperienceTab from './profile-sections/ExperienceTab';
+import CertificationsTab from './profile-sections/CertificationsTab';
+import LanguagesTab from './profile-sections/LanguagesTab';
+import TeamTab from './profile-sections/TeamTab';
+import GeneralTab from './profile-sections/GeneralTab';
 
-type SectionId = 'home-sections' | 'about-sections' | 'footer' | 'settings';
-
-const SECTION_COLORS: Record<string, string> = {
-    'home-sections': '#e67e22', 'about-sections': '#8B4513',
-    footer: '#2d2d2d', settings: 'var(--primary)',
-};
+type SectionId = 'home-sections' | 'about-sections' | 'footer' | 'settings' | 'skills' | 'projects' | 'experience' | 'certifications' | 'languages' | 'team' | 'general';
 
 const SECTION_ICONS: Record<string, React.ReactNode> = {
     'home-sections': <FaHome />, 'about-sections': <FaInfoCircle />,
     footer: <FaCopyright />, settings: <FaCog />,
+    skills: <FaCode />, projects: <FaProjectDiagram />, experience: <FaBriefcase />,
+    certifications: <FaCertificate />, languages: <FaLanguage />, team: <FaUsers />, general: <FaUser />,
 };
 
-const SECTIONS: SectionId[] = ['home-sections', 'about-sections', 'footer', 'settings'];
+const SECTIONS: SectionId[] = ['home-sections', 'about-sections', 'skills', 'experience', 'certifications', 'languages', 'projects', 'team', 'footer', 'settings', 'general'];
 
 const emptyP: Profile = {
     id: '', firstName: '', lastName: '', username: '', email: '', bio: '', greeting: '', aboutMeTitle: '', title: '',
@@ -67,6 +72,13 @@ const Resources = () => {
             case 'home-sections': return <HomeSectionsTab profile={profile} onSave={saveProfile} saving={saving} />;
             case 'footer': return <FooterEditor profile={profile} onSave={saveProfile} saving={saving} />;
             case 'about-sections': return <AboutSectionsTab profile={profile} onSave={saveProfile} saving={saving} />;
+            case 'skills': return <SkillsTab profile={profile} onUpdate={setProfile} searchQuery={searchQuery} />;
+            case 'projects': return <ProjectsTab profile={profile} onUpdate={setProfile} searchQuery={searchQuery} />;
+            case 'experience': return <ExperienceTab profile={profile} onUpdate={setProfile} searchQuery={searchQuery} />;
+            case 'certifications': return <CertificationsTab profile={profile} onUpdate={setProfile} searchQuery={searchQuery} />;
+            case 'languages': return <LanguagesTab profile={profile} onUpdate={setProfile} searchQuery={searchQuery} />;
+            case 'team': return <TeamTab profile={profile} onUpdate={setProfile} />;
+            case 'general': return <GeneralTab profile={profile} onUpdate={setProfile} />;
         }
     };
 

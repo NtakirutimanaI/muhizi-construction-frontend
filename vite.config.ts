@@ -8,6 +8,14 @@ export default defineConfig({
     host: true,
     port: 5173,
     proxy: {
+      '/api/docs-json': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/api/swagger.json': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,

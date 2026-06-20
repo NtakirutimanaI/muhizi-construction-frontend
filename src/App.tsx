@@ -23,6 +23,7 @@ import MessagesTrash from './pages/admin/MessagesTrash';
 import Resources from './pages/admin/Resources';
 import FooterSettings from './pages/admin/FooterSettings';
 import Users from './pages/admin/Users';
+import Permissions from './pages/admin/Permissions';
 import Settings from './pages/admin/Settings';
 import Projects from './pages/admin/Projects';
 import Designs from './pages/admin/Designs';
@@ -35,6 +36,9 @@ import Expenses from './pages/admin/Expenses';
 import Reports from './pages/admin/Reports';
 import AuditLogs from './pages/admin/AuditLogs';
 import MlInsights from './pages/admin/MlInsights';
+import SiteActivities from './pages/admin/SiteActivities';
+import MaterialRequests from './pages/admin/MaterialRequests';
+import ProjectEvidence from './pages/admin/ProjectEvidence';
 
 import Loading from './components/Loading';
 import { profileService } from './services/profileService';
@@ -116,6 +120,7 @@ function App() {
                   <Route path="/admin/resources" element={<Resources />} />
                   <Route path="/admin/footer-settings" element={<FooterSettings />} />
                   <Route path="/admin/users" element={<Users />} />
+                  <Route path="/admin/permissions" element={<Permissions />} />
                   <Route path="/admin/settings" element={<Settings />} />
                   <Route path="/admin/projects" element={<Projects />} />
                   <Route path="/admin/designs" element={<Designs />} />
@@ -128,6 +133,9 @@ function App() {
                   <Route path="/admin/reports" element={<Reports />} />
                   <Route path="/admin/audit-logs" element={<AuditLogs />} />
                   <Route path="/admin/ml-insights" element={<MlInsights />} />
+                  <Route path="/admin/site-activities" element={<SiteActivities />} />
+                  <Route path="/admin/material-requests" element={<MaterialRequests />} />
+                  <Route path="/admin/project-evidence" element={<ProjectEvidence />} />
                 </Route>
               </Route>
 
