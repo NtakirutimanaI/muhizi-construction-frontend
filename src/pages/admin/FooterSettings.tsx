@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { FaGlobe, FaSave } from 'react-icons/fa';
 import { profileService } from '../../services/profileService';
 import { useToast } from '../../context/ToastContext';
-import Loading from '../../components/Loading';
 
 const FooterSettings = () => {
     const { showToast } = useToast();
@@ -70,7 +69,7 @@ const FooterSettings = () => {
         }
     };
 
-    if (loading) return <Loading />;
+    if (loading) return <div className="inline-spinner">Loading footer settings...</div>;
 
     return (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>

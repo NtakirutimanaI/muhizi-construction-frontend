@@ -8,8 +8,17 @@ export interface ContactMessage {
     company?: string;
     subject?: string;
     message: string;
-    status?: 'new' | 'unread' | 'read' | 'replied';
+    status?: 'new' | 'unread' | 'read' | 'replied' | 'sent';
     createdAt?: string;
+    isDeleted?: boolean;
+    deletedAt?: string | null;
+    senderId?: string;
+    sender?: {
+        id: string;
+        email?: string;
+        username?: string;
+        profile?: { firstName?: string; lastName?: string };
+    };
 }
 
 export interface Profile {
@@ -235,6 +244,52 @@ export const profileService = {
     markMessageAsRead: async (messageId: string): Promise<ContactMessage> => {
         const response = await api.post(`/profile/messages/${messageId}/read`);
         return response.data;
+    },
+
+    // Delete a single message
+    deleteContactMessage: async (messageId: string): Promise<void> => {
+        await api.delete(`/profile/messages/${messageId}`);
+    },
+
+    // Admin send message
+    sendAdminMessage: async (dto: { name: string; email: string; phone?: string; company?: string; subject?: string; message: string }): Promise<ContactMessage> => {
+        const response = await api.post('/profile/messages/send', dto);
+        return response.data;
+    },
+
+    // Get inbox messages
+    getInboxMessages: async (): Promise<ContactMessage[]> => {
+        const response = await api.get('/profile/messages/inbox');
+        return response.data;
+    },
+
+    // Get sent messages
+    getSentMessages: async (): Promise<ContactMessage[]> => {
+        const response = await api.get('/profile/messages/sent');
+        return response.data;
+    },
+
+    // Get trash messages
+    getTrashMessages: async (): Promise<ContactMessage[]> => {
+        const response = await api.get('/profile/messages/trash');
+        return response.data;
+    },
+
+    // Move message to trash (soft delete)
+    trashMessage: async (messageId: string): Promise<ContactMessage> => {
+        const response = await api.post(`/profile/messages/${messageId}/trash`);
+        return response.data;
+    },
+
+    // Restore message from trash
+    restoreMessage: async (messageId: string): Promise<ContactMessage> => {
+        const response = await api.post(`/profile/messages/${messageId}/restore`);
+        return response.data;
+    },
+
+    // Permanently delete message
+    permanentDeleteMessage: async (messageId: string): Promise<void> => {
+        await api.delete(`/profile/messages/${messageId}/permanent`);
     },
 
     // Delete all messages

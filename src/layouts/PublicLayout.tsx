@@ -28,7 +28,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ profile }) => {
             <div className="scroll-progress">
                 <div className="scroll-progress__fill" style={{ transform: `scaleX(${scrollProgress})`, transformOrigin: 'left center' }} />
             </div>
-            <Navbar />
+            <Navbar profile={profile} />
             <main className="flex-grow">
                 <Outlet context={{ profile }} />
             </main>

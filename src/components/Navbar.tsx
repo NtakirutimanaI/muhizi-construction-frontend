@@ -1,12 +1,17 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { FaSignInAlt } from 'react-icons/fa';
+import type { Profile } from '../services/profileService';
+
+interface NavbarProps {
+    profile?: Profile | null;
+}
 
 const splitChars = (text: string) =>
     text.split('').map((ch, i) => (
         <span key={i} className="nav-char" style={{ animationDelay: `${i * 0.06}s` }}>{ch}</span>
     ));
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC<NavbarProps> = ({ profile }) => {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [phase, setPhase] = useState(0);
@@ -14,6 +19,7 @@ const Navbar: React.FC = () => {
 
     const closeMenu = useCallback(() => setMenuOpen(false), []);
 
+    const companyName = profile?.company || profile?.firstName ? `${profile.firstName} ${profile.lastName}` : 'MUHIZI CONSTRUCTION';
     const thinkChars = useMemo(() => splitChars('Think, Design'), []);
     const buildChars = useMemo(() => splitChars('We Build'), []);
 
@@ -64,7 +70,7 @@ const Navbar: React.FC = () => {
             <div className="container">
                 <div className="navbar-content">
                     <a href="/" className="nav-brand-tag">
-                        <img src="/logo.png" alt="MUHIZI CONSTRUCTION" className="nav-logo" />
+                        <img src={profile?.avatar || '/logo.png'} alt={profile?.firstName ? `${profile.firstName} ${profile.lastName}` : 'MUHIZI CONSTRUCTION'} className="nav-logo" />
                     </a>
                     <span className="nav-center-title">
                         <span className={`nav-title-text ${phase === 0 ? 'fade-in' : 'fade-out'}`}>{thinkChars}</span>

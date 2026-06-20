@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Loading from '../../components/Loading';
 
 const ApiDocs = () => {
     const [loading, setLoading] = useState(true);
@@ -14,7 +13,7 @@ const ApiDocs = () => {
             <div className="content-card" style={{ flex: 1, padding: 0, overflow: 'hidden', position: 'relative', background: '#fff' }}>
                 {loading && (
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-body)', zIndex: 10 }}>
-                        <Loading />
+                        <div className="inline-spinner">Loading API docs...</div>
                     </div>
                 )}
                 <iframe

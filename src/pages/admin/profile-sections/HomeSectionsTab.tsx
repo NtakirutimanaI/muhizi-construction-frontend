@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaHome, FaConciergeBell, FaCalendarAlt, FaSave, FaPlus, FaEdit, FaTrash, FaTimes, FaYoutube, FaProjectDiagram, FaUsers, FaEnvelope, FaQuestionCircle, FaUpload, FaVideo } from 'react-icons/fa';
 import type { Profile } from '../../../services/profileService';
 import { useToast } from '../../../context/ToastContext';
+import { uploadService } from '../../../services/uploadService';
 
 type HomeTab = 'hero-slides' | 'services' | 'events' | 'follow-us' | 'projects' | 'our-team' | 'get-in-touch' | 'faq';
 
@@ -76,7 +77,7 @@ const HeroSlidesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         setVideoData(profile.pageContent?.heroVideoUrl || '');
     }, [profile.pageContent?.heroSlides, profile.pageContent?.heroVideoUrl]);
 
-    const handleVideoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleVideoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         const maxSize = 50 * 1024 * 1024;
@@ -85,12 +86,13 @@ const HeroSlidesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
             return;
         }
         setVideoFileName(file.name);
-        const r = new FileReader();
-        r.onloadend = () => {
-            setVideoData(r.result as string);
-            saveSlides(slides, r.result as string);
-        };
-        r.readAsDataURL(file);
+        try {
+            const uploaded = await uploadService.uploadFile(file);
+            setVideoData(uploaded.secureUrl);
+            saveSlides(slides, uploaded.secureUrl);
+        } catch {
+            showToast('Failed to upload video', 'error');
+        }
     };
 
     const removeVideo = () => {

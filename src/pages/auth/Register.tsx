@@ -3,10 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
 import { motion } from 'framer-motion';
-import { FaLock, FaEnvelope, FaUser, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
+import { FaLock, FaEnvelope, FaUser, FaPhone, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
 
 const Register = () => {
-    const [form, setForm] = useState({ firstName: '', lastName: '', username: '', email: '', password: '' });
+    const [form, setForm] = useState({ firstName: '', lastName: '', username: '', email: '', phone: '', password: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -192,6 +192,25 @@ const Register = () => {
                                         boxSizing: 'border-box',
                                     }}
                                     placeholder="user@example.com" required
+                                    onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
+                                    onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', display: 'block' }}>
+                                Phone
+                            </label>
+                            <div style={{ position: 'relative' }}>
+                                <FaPhone style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }} />
+                                <input type="tel" name="phone" value={form.phone} onChange={handleChange}
+                                    style={{
+                                        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: '10px', padding: '0.85rem 1rem 0.85rem 3rem', width: '100%',
+                                        color: '#fff', fontSize: '0.9rem', outline: 'none', transition: 'border-color 0.2s',
+                                        boxSizing: 'border-box',
+                                    }}
+                                    placeholder="+250 788 000 000"
                                     onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
                                     onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
                             </div>

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { FaPlus, FaTrash, FaEdit, FaTimes, FaSave, FaUsers } from 'react-icons/fa';
 import type { Profile } from '../../../services/profileService';
 import { profileService } from '../../../services/profileService';
+import { uploadService } from '../../../services/uploadService';
 
 interface TeamTabProps {
     profile: Profile;
@@ -13,6 +14,7 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [editForm, setEditForm] = useState({ name: '', role: '', imageUrl: '' });
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     const startNew = () => {
         setEditingIndex(-1);
@@ -35,18 +37,22 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
         setEditForm({ ...editForm, [e.target.name]: e.target.value });
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         if (file.size > 2 * 1024 * 1024) {
             alert('Image must be smaller than 2MB');
             return;
         }
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setEditForm(prev => ({ ...prev, imageUrl: reader.result as string }));
-        };
-        reader.readAsDataURL(file);
+        setUploading(true);
+        try {
+            const uploaded = await uploadService.uploadFile(file);
+            setEditForm(prev => ({ ...prev, imageUrl: uploaded.secureUrl }));
+        } catch {
+            alert('Failed to upload image');
+        } finally {
+            setUploading(false);
+        }
     };
 
     const saveMember = async () => {
@@ -148,8 +154,8 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1rem' }}>
                         <button onClick={cancelEdit} className="admin-icon-btn" style={{ fontSize: '0.9rem', width: 'auto', padding: '0.5rem 1rem' }} disabled={loading}>Cancel</button>
-                        <button onClick={saveMember} className="btn-primary" disabled={loading}>
-                            {loading ? 'Saving...' : <><FaSave /> Save</>}
+                        <button onClick={saveMember} className="btn-primary" disabled={loading || uploading}>
+                            {loading || uploading ? 'Saving...' : <><FaSave /> Save</>}
                         </button>
                     </div>
                 </div>

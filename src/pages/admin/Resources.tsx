@@ -7,7 +7,6 @@ import {
 } from 'react-icons/fa';
 import { profileService } from '../../services/profileService';
 import type { Profile } from '../../services/profileService';
-import Loading from '../../components/Loading';
 import { useToast } from '../../context/ToastContext';
 import HomeSectionsTab from './profile-sections/HomeSectionsTab';
 import AboutSectionsTab from './profile-sections/AboutSectionsTab';
@@ -62,8 +61,6 @@ const Resources = () => {
         finally { setSaving(false); }
     };
 
-    if (loading) return <Loading />;
-
     const renderSection = () => {
         switch (filter) {
             case 'settings': return <SettingsEditor profile={profile} onSave={saveProfile} saving={saving} />;
@@ -100,13 +97,17 @@ const Resources = () => {
                 ))}
             </div>
 
-            <AnimatePresence mode="wait">
-                <motion.div key={filter} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }} style={{ display: 'flex', justifyContent: 'center' }}>
-                    <div style={{ width: '50%', minWidth: '300px', maxWidth: '100%' }}>
-                        {renderSection()}
-                    </div>
-                </motion.div>
-            </AnimatePresence>
+            {loading ? (
+                <div className="inline-spinner">Loading content...</div>
+            ) : (
+                <AnimatePresence mode="wait">
+                    <motion.div key={filter} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }} style={{ display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ width: '50%', minWidth: '300px', maxWidth: '100%' }}>
+                            {renderSection()}
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
+            )}
         </div>
     );
 };
@@ -127,6 +128,12 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [form, setForm] = useState<any>(null);
     const [localSaving, setLocalSaving] = useState(false);
+    const [phone, setPhone] = useState(profile.phone || '');
+    const [contactEmail, setContactEmail] = useState(profile.email || '');
+    const [linkedinUrl, setLinkedinUrl] = useState(profile.socialLinks?.linkedin || '');
+    const [twitterUrl, setTwitterUrl] = useState(profile.socialLinks?.twitter || '');
+    const [githubUrl, setGithubUrl] = useState(profile.socialLinks?.github || '');
+    const [poweredByText, setPoweredByText] = useState(profile.poweredBy || 'Powered and secured by MIS');
 
     useEffect(() => {
         const d = profile.pageContent?.footer;
@@ -140,12 +147,24 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
             { label: 'Services', url: '/#offerings' },
             { label: 'Contact', url: '/#contact' },
         ]);
-    }, [profile.pageContent?.footer]);
+        setPhone(profile.phone || '');
+        setContactEmail(profile.email || '');
+        setLinkedinUrl(profile.socialLinks?.linkedin || '');
+        setTwitterUrl(profile.socialLinks?.twitter || '');
+        setGithubUrl(profile.socialLinks?.github || '');
+        setPoweredByText(profile.poweredBy || 'Powered and secured by MIS');
+    }, [profile]);
 
     const save = async () => {
         setLocalSaving(true);
         const pc = { ...profile.pageContent, footer: { companyDescription, copyrightText, showSocialLinks, showContactInfo, quickLinks } };
-        await onSave({ pageContent: pc });
+        await onSave({
+            pageContent: pc,
+            phone,
+            email: contactEmail,
+            socialLinks: { linkedin: linkedinUrl, twitter: twitterUrl, github: githubUrl },
+            poweredBy: poweredByText,
+        });
         setLocalSaving(false);
     };
 
@@ -190,6 +209,47 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
                         <input type="checkbox" checked={showContactInfo} onChange={e => setShowContactInfo(e.target.checked)} />
                         Show Contact Info
                     </label>
+                </div>
+            </div>
+
+            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Contact Information</h3>
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                    <div className="form-group">
+                        <label className="form-label">Phone Number</label>
+                        <input value={phone} onChange={e => setPhone(e.target.value)} className="form-input" placeholder="+250 788 000 000" />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Email Address</label>
+                        <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} className="form-input" placeholder="info@example.com" />
+                    </div>
+                </div>
+            </div>
+
+            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Social Media Links</h3>
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                    <div className="form-group">
+                        <label className="form-label">LinkedIn URL</label>
+                        <input value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} className="form-input" placeholder="https://linkedin.com/in/..." />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Twitter URL</label>
+                        <input value={twitterUrl} onChange={e => setTwitterUrl(e.target.value)} className="form-input" placeholder="https://twitter.com/..." />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">GitHub URL</label>
+                        <input value={githubUrl} onChange={e => setGithubUrl(e.target.value)} className="form-input" placeholder="https://github.com/..." />
+                    </div>
+                </div>
+            </div>
+
+            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Copyright & Branding</h3>
+                <div className="form-group">
+                    <label className="form-label">Powered By Text</label>
+                    <input value={poweredByText} onChange={e => setPoweredByText(e.target.value)} className="form-input" placeholder="Powered and secured by..." />
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Optional branding text shown below copyright</p>
                 </div>
             </div>
 

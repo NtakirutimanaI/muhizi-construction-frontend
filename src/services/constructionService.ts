@@ -1,0 +1,76 @@
+import api from './api';
+
+export interface Project {
+    id: string;
+    name: string;
+    description?: string;
+    type: 'construction' | 'renovation';
+    status: 'planning' | 'in_progress' | 'completed' | 'cancelled';
+    startDate?: string;
+    endDate?: string;
+    budget?: number;
+    spent?: number;
+    location?: string;
+    clientName?: string;
+    clientContact?: string;
+    progress: number;
+    images?: string[];
+    documents?: { name: string; url: string }[];
+    milestones?: { title: string; date: string; completed: boolean }[];
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Design {
+    id: string;
+    title: string;
+    description?: string;
+    type: 'architectural' | 'structural' | 'interior' | 'landscape';
+    status: 'draft' | 'approved' | 'rejected';
+    fileUrl?: string;
+    thumbnailUrl?: string;
+    projectId?: string;
+    project?: Project;
+    metadata?: { architect?: string; scale?: string; version?: string; dimensions?: string };
+    createdAt: string;
+}
+
+export interface Partnership {
+    id: string;
+    companyName: string;
+    contactPerson?: string;
+    email?: string;
+    phone?: string;
+    partnershipType: 'supplier' | 'subcontractor' | 'investor' | 'joint_venture';
+    status: 'active' | 'inactive' | 'pending';
+    agreementFile?: string;
+    startDate?: string;
+    endDate?: string;
+    notes?: string;
+    createdAt: string;
+}
+
+const baseUrl = '';
+
+export const constructionService = {
+    // Projects
+    getProjects: () => api.get(`${baseUrl}/projects`),
+    getProject: (id: string) => api.get(`${baseUrl}/projects/${id}`),
+    createProject: (data: Partial<Project>) => api.post(`${baseUrl}/projects`, data),
+    updateProject: (id: string, data: Partial<Project>) => api.put(`${baseUrl}/projects/${id}`, data),
+    deleteProject: (id: string) => api.delete(`${baseUrl}/projects/${id}`),
+
+    // Designs
+    getDesigns: () => api.get(`${baseUrl}/designs`),
+    getDesign: (id: string) => api.get(`${baseUrl}/designs/${id}`),
+    createDesign: (data: Partial<Design>) => api.post(`${baseUrl}/designs`, data),
+    updateDesign: (id: string, data: Partial<Design>) => api.put(`${baseUrl}/designs/${id}`, data),
+    deleteDesign: (id: string) => api.delete(`${baseUrl}/designs/${id}`),
+
+    // Partnerships
+    getPartnerships: () => api.get(`${baseUrl}/partnerships`),
+    getPartnership: (id: string) => api.get(`${baseUrl}/partnerships/${id}`),
+    createPartnership: (data: Partial<Partnership>) => api.post(`${baseUrl}/partnerships`, data),
+    updatePartnership: (id: string, data: Partial<Partnership>) => api.put(`${baseUrl}/partnerships/${id}`, data),
+    deletePartnership: (id: string) => api.delete(`${baseUrl}/partnerships/${id}`),
+};

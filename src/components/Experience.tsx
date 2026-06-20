@@ -1,16 +1,23 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useRef } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import type { Profile } from '../services/profileService';
 
 const Experience: React.FC = () => {
     const constraintsRef = useRef<HTMLDivElement>(null);
+    const { profile } = useOutletContext<{ profile: Profile | null }>();
+    const fu = profile?.pageContent?.followUs;
+    const heading = fu?.heading || 'Follow Us';
+    const subtitle = fu?.subtitle || 'Watch our latest projects and company updates';
+    const mainVideoUrl = fu?.youtubeUrl || 'https://www.youtube.com/embed/CJtOOX23Ofo?autoplay=1&mute=1&rel=0';
+    const videos = fu?.videos || [];
 
     return (
         <section className="section section-indicator" id="resume">
             <div className="container">
-                {/* Our Technologies */}
                 <div style={{ marginBottom: '2rem' }} ref={constraintsRef}>
-                    <h2 className="ark-section__heading">Follow Us</h2>
+                    <h2 className="ark-section__heading">{heading}</h2>
 
                     <motion.div
                         drag
@@ -49,11 +56,11 @@ const Experience: React.FC = () => {
                                 borderRadius: '6px',
                                 display: 'inline-block',
                             }}>
-                                Watch our latest projects and company updates
+                                {subtitle}
                             </span>
                         </div>
                         <iframe
-                            src="https://www.youtube.com/embed/CJtOOX23Ofo?autoplay=1&mute=1&rel=0"
+                            src={mainVideoUrl}
                             title="Company Video"
                             style={{
                                 width: '100%',
@@ -66,66 +73,101 @@ const Experience: React.FC = () => {
                     </motion.div>
 
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', justifyContent: 'center' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <motion.div
-                                drag
-                                dragConstraints={constraintsRef}
-                                initial={{ opacity: 0, x: -200 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: false }}
-                                transition={{ duration: 0.8, type: 'spring', stiffness: 200, damping: 10 }}
-                                style={{
-                                    position: 'relative',
-                                    width: '100%',
-                                    maxWidth: '380px',
-                                    aspectRatio: '16 / 9',
-                                    overflow: 'hidden',
-                                    borderRadius: '10px',
-                                    background: '#000',
-                                }}
-                            >
-                                <iframe
-                                    src="https://www.youtube.com/embed/CJtOOX23Ofo?autoplay=1&mute=1&rel=0"
-                                    title="Company Video"
-                                    style={{ width: '100%', height: '100%', border: 'none' }}
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                />
-                            </motion.div>
-                            <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 700 }}>
-                                Construction project timelapse
-                            </p>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <motion.div
-                                drag
-                                dragConstraints={constraintsRef}
-                                initial={{ opacity: 0, x: 200 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: false }}
-                                transition={{ duration: 0.8, type: 'spring', stiffness: 200, damping: 10 }}
-                                style={{
-                                    position: 'relative',
-                                    width: '100%',
-                                    maxWidth: '380px',
-                                    aspectRatio: '16 / 9',
-                                    overflow: 'hidden',
-                                    borderRadius: '10px',
-                                    background: '#000',
-                                }}
-                            >
-                                <iframe
-                                    src="https://www.youtube.com/embed/CJtOOX23Ofo?autoplay=1&mute=1&rel=0"
-                                    title="Company Video"
-                                    style={{ width: '100%', height: '100%', border: 'none' }}
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                />
-                            </motion.div>
-                            <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 700 }}>
-                                Behind the scenes showcase
-                            </p>
-                        </div>
+                        {videos.length > 0 ? videos.map((v, i) => (
+                            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <motion.div
+                                    drag
+                                    dragConstraints={constraintsRef}
+                                    initial={{ opacity: 0, x: i === 0 ? -200 : 200 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: false }}
+                                    transition={{ duration: 0.8, type: 'spring', stiffness: 200, damping: 10 }}
+                                    style={{
+                                        position: 'relative',
+                                        width: '100%',
+                                        maxWidth: '380px',
+                                        aspectRatio: '16 / 9',
+                                        overflow: 'hidden',
+                                        borderRadius: '10px',
+                                        background: '#000',
+                                    }}
+                                >
+                                    <iframe
+                                        src={v.url}
+                                        title={v.title}
+                                        style={{ width: '100%', height: '100%', border: 'none' }}
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    />
+                                </motion.div>
+                                <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 700 }}>
+                                    {v.title}
+                                </p>
+                            </div>
+                        )) : (
+                            <>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <motion.div
+                                        drag
+                                        dragConstraints={constraintsRef}
+                                        initial={{ opacity: 0, x: -200 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: false }}
+                                        transition={{ duration: 0.8, type: 'spring', stiffness: 200, damping: 10 }}
+                                        style={{
+                                            position: 'relative',
+                                            width: '100%',
+                                            maxWidth: '380px',
+                                            aspectRatio: '16 / 9',
+                                            overflow: 'hidden',
+                                            borderRadius: '10px',
+                                            background: '#000',
+                                        }}
+                                    >
+                                        <iframe
+                                            src={mainVideoUrl}
+                                            title="Company Video"
+                                            style={{ width: '100%', height: '100%', border: 'none' }}
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        />
+                                    </motion.div>
+                                    <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 700 }}>
+                                        Construction project timelapse
+                                    </p>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <motion.div
+                                        drag
+                                        dragConstraints={constraintsRef}
+                                        initial={{ opacity: 0, x: 200 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: false }}
+                                        transition={{ duration: 0.8, type: 'spring', stiffness: 200, damping: 10 }}
+                                        style={{
+                                            position: 'relative',
+                                            width: '100%',
+                                            maxWidth: '380px',
+                                            aspectRatio: '16 / 9',
+                                            overflow: 'hidden',
+                                            borderRadius: '10px',
+                                            background: '#000',
+                                        }}
+                                    >
+                                        <iframe
+                                            src={mainVideoUrl}
+                                            title="Company Video"
+                                            style={{ width: '100%', height: '100%', border: 'none' }}
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        />
+                                    </motion.div>
+                                    <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 700 }}>
+                                        Behind the scenes showcase
+                                    </p>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
 

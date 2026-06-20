@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -17,12 +17,24 @@ import Register from './pages/auth/Register';
 import AdminDashboard from './pages/admin/Dashboard';
 import ProfileManagement from './pages/admin/ProfileManagement';
 import ApiDocs from './pages/admin/ApiDocs';
-import Messages from './pages/admin/Messages';
+import MessagesInbox from './pages/admin/MessagesInbox';
+import MessagesSent from './pages/admin/MessagesSent';
+import MessagesTrash from './pages/admin/MessagesTrash';
 import Resources from './pages/admin/Resources';
 import FooterSettings from './pages/admin/FooterSettings';
 import Users from './pages/admin/Users';
-
 import Settings from './pages/admin/Settings';
+import Projects from './pages/admin/Projects';
+import Designs from './pages/admin/Designs';
+import Partnerships from './pages/admin/Partnerships';
+import Employees from './pages/admin/Employees';
+import Attendance from './pages/admin/Attendance';
+import Payroll from './pages/admin/Payroll';
+import Incomes from './pages/admin/Incomes';
+import Expenses from './pages/admin/Expenses';
+import Reports from './pages/admin/Reports';
+import AuditLogs from './pages/admin/AuditLogs';
+import MlInsights from './pages/admin/MlInsights';
 
 import Loading from './components/Loading';
 import { profileService } from './services/profileService';
@@ -61,15 +73,23 @@ function App() {
     return <Loading />;
   }
 
-  // Allow the app to render even if public profile fetch fails, 
-  // so the admin login can still be accessed, but show error for public routes if needed.
-  // Ideally, we might want separate error boundary for public part.
+  function RouteTracker() {
+    const location = useLocation();
+    useEffect(() => {
+      profileService.recordVisit({
+        page: location.pathname,
+        referrer: document.referrer || undefined,
+      }).catch(() => {});
+    }, [location]);
+    return null;
+  }
 
   return (
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
           <NotificationProvider>
+            <RouteTracker />
             <Routes>
               {/* Public Routes */}
               <Route element={<PublicLayout profile={profile} />}>
@@ -88,14 +108,26 @@ function App() {
                 <Route element={<AdminLayout />}>
                   <Route path="/admin" element={<AdminDashboard />} />
                   <Route path="/admin/profile" element={<ProfileManagement />} />
-                  {/* Projects is now part of Profile Management */}
-                  <Route path="/admin/projects" element={<Navigate to="/admin/profile" replace />} />
                   <Route path="/admin/api-docs" element={<ApiDocs />} />
-                  <Route path="/admin/messages" element={<Messages />} />
+                  <Route path="/admin/messages" element={<Navigate to="/admin/messages/inbox" replace />} />
+                  <Route path="/admin/messages/inbox" element={<MessagesInbox />} />
+                  <Route path="/admin/messages/sent" element={<MessagesSent />} />
+                  <Route path="/admin/messages/trash" element={<MessagesTrash />} />
                   <Route path="/admin/resources" element={<Resources />} />
                   <Route path="/admin/footer-settings" element={<FooterSettings />} />
                   <Route path="/admin/users" element={<Users />} />
                   <Route path="/admin/settings" element={<Settings />} />
+                  <Route path="/admin/projects" element={<Projects />} />
+                  <Route path="/admin/designs" element={<Designs />} />
+                  <Route path="/admin/partnerships" element={<Partnerships />} />
+                  <Route path="/admin/employees" element={<Employees />} />
+                  <Route path="/admin/attendance" element={<Attendance />} />
+                  <Route path="/admin/payroll" element={<Payroll />} />
+                  <Route path="/admin/incomes" element={<Incomes />} />
+                  <Route path="/admin/expenses" element={<Expenses />} />
+                  <Route path="/admin/reports" element={<Reports />} />
+                  <Route path="/admin/audit-logs" element={<AuditLogs />} />
+                  <Route path="/admin/ml-insights" element={<MlInsights />} />
                 </Route>
               </Route>
 

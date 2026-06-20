@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaTrash, FaEdit, FaSave, FaTimes, FaGithub, FaGlobe, FaUpload } from 'react-icons/fa';
 import type { Profile } from '../../../services/profileService';
 import { profileService } from '../../../services/profileService';
+import { uploadService } from '../../../services/uploadService';
 
 interface ProjectsTabProps {
     profile: Profile;
@@ -29,22 +30,24 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ profile, onUpdate, searchQuer
 
     const categories = ['Backend', 'Frontend', 'UI/UX', 'Fullstack', 'Other'];
 
-    // Handle image file upload
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [uploading, setUploading] = useState(false);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Check file size (max 2MB)
             if (file.size > 2 * 1024 * 1024) {
                 alert('Image must be smaller than 2MB');
                 return;
             }
-
-            // Convert to base64
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setEditForm((prev: any) => ({ ...prev, imageUrl: reader.result as string }));
-            };
-            reader.readAsDataURL(file);
+            setUploading(true);
+            try {
+                const uploaded = await uploadService.uploadFile(file);
+                setEditForm((prev: any) => ({ ...prev, imageUrl: uploaded.secureUrl }));
+            } catch {
+                alert('Failed to upload image');
+            } finally {
+                setUploading(false);
+            }
         }
     };
 
@@ -512,8 +515,8 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ profile, onUpdate, searchQuer
 
                         <div style={{ display: 'flex', justifySelf: 'end', gap: '10px', justifyContent: 'flex-end' }}>
                             <button onClick={cancelEdit} className="admin-icon-btn" style={{ fontSize: '0.9rem', width: 'auto', padding: '0.5rem 1rem' }} disabled={loading}>Cancel</button>
-                            <button onClick={saveProject} className="btn-primary" disabled={loading}>
-                                {loading ? 'Saving...' : <><FaSave /> Save Project</>}
+                            <button onClick={saveProject} className="btn-primary" disabled={loading || uploading}>
+                                {loading || uploading ? 'Saving...' : <><FaSave /> Save Project</>}
                             </button>
                         </div>
                     </motion.div>

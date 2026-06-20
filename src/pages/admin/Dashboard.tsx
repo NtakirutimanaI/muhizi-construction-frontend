@@ -7,7 +7,6 @@ import {
 } from 'react-icons/fa';
 import { profileService } from '../../services/profileService';
 import type { Profile } from '../../services/profileService';
-import Loading from '../../components/Loading';
 
 interface Stats {
     projects: number;
@@ -34,31 +33,19 @@ interface VisitorStats {
 
 const AdminDashboard = () => {
     const [profile, setProfile] = useState<Profile | null>(null);
-    const [stats, setStats] = useState<Stats | null>(null);
-    const [visitorStats, setVisitorStats] = useState<VisitorStats | null>(null);
+    const [stats, setStats] = useState<Stats>({ projects: 0, skills: 0, messages: 0, unreadMessages: 0, certifications: 0, experience: 0, education: 0, languages: 0, views: 0, clients: 0 });
+    const [visitorStats, setVisitorStats] = useState<VisitorStats>({ total: 0, last30Days: 0, last7Days: 0, today: 0, companies: [], locations: [], pages: [] });
     const [recentMessages, setRecentMessages] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetch = async () => {
-            try {
-                const [profileData, statsData, visitorData, messagesData] = await Promise.all([
-                    profileService.getMyProfile(),
-                    profileService.getStats(),
-                    profileService.getVisitorStats(),
-                    profileService.getContactMessages(),
-                ]);
-                setProfile(profileData);
-                setStats(statsData);
-                setVisitorStats(visitorData);
-                setRecentMessages(messagesData.slice(0, 5));
-            } catch (e) { console.error(e); }
-            finally { setLoading(false); }
+            try { const d = await profileService.getMyProfile(); setProfile(d); } catch (e) { console.error(e); }
+            try { const d = await profileService.getStats(); setStats(d); } catch (e) { console.error(e); }
+            try { const d = await profileService.getVisitorStats(); setVisitorStats(d); } catch (e) { console.error(e); }
+            try { const d = await profileService.getContactMessages(); setRecentMessages(d.slice(0, 5)); } catch (e) { console.error(e); }
         };
         fetch();
     }, []);
-
-    if (loading) return <Loading />;
 
     const summaryCards = [
         { label: 'Total Visitors', value: visitorStats?.total ?? 0, icon: <FaEye />, color: '#3b82f6', sub: `${visitorStats?.today ?? 0} today` },

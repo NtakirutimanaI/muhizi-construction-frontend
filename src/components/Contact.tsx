@@ -7,7 +7,7 @@ interface ContactProps {
     profile: Profile;
 }
 
-const FAQS = [
+const DEFAULT_FAQS = [
     { q: 'What services does MUHIZI CONSTRUCTION offer?', a: 'MUHIZI CONSTRUCTION offers a comprehensive range of construction and real estate services including building construction, road construction, real estate development, property management, architectural design, interior & exterior finishing, renovation & remodeling, and project management.' },
     { q: 'How can I request a quote?', a: 'Simply fill out the contact form with details about your project, and our team will get back to you within 24 hours with a tailored proposal.' },
     { q: 'Do you offer post-construction support?', a: 'Yes, we provide ongoing maintenance, property management, and support packages to ensure your structures remain safe, up-to-date, and in excellent condition.' },
@@ -16,6 +16,10 @@ const FAQS = [
 
 const Contact: React.FC<ContactProps> = ({ profile }) => {
     const { showToast } = useToast();
+    const cs = profile.pageContent?.contactSection;
+    const faqContent = profile.pageContent?.faq;
+    const faqItems = faqContent?.items?.map(i => ({ q: i.question, a: i.answer })) || DEFAULT_FAQS;
+    const faqHeading = faqContent?.heading || 'Frequently Asked Questions';
     const [localData, setLocalData] = useState({
         firstName: '',
         lastName: '',
@@ -69,8 +73,8 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
     return (
         <section className="section" id="contact" style={{ borderBottom: 'none', padding: '60px 0' }}>
             <div className="container">
-                <h2 className="ark-section__heading" style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '0.5rem' }}>Get In Touch</h2>
-                <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '400px' }}>Looking forward to hearing from you</p>
+                <h2 className="ark-section__heading" style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '0.5rem' }}>{cs?.heading || 'Get In Touch'}</h2>
+                <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '400px' }}>{cs?.subtitle || 'Looking forward to hearing from you'}</p>
 
                 {/* Grid: Form + Info */}
                 <div className="ark-contact__grid">
@@ -146,10 +150,10 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                         <div className="ark-contact__social">
                             <h4 className="ark-contact__social-title">Follow Us</h4>
                             <div className="ark-contact__social-links">
-                                <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="YouTube"><FaYoutube /></a>
-                                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="Instagram"><FaInstagram /></a>
-                                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="LinkedIn"><FaLinkedin /></a>
-                                <a href="https://wa.me/250787832490" target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="WhatsApp"><FaWhatsapp /></a>
+                                {profile.socialLinks?.youtube && <a href={profile.socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="YouTube"><FaYoutube /></a>}
+                                {profile.socialLinks?.instagram && <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="Instagram"><FaInstagram /></a>}
+                                {profile.socialLinks?.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="LinkedIn"><FaLinkedin /></a>}
+                                {profile.socialLinks?.whatsapp && <a href={profile.socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="WhatsApp"><FaWhatsapp /></a>}
                             </div>
                         </div>
                     </div>
@@ -172,9 +176,9 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
 
                 {/* FAQ */}
                 <div className="ark-contact__faqs">
-                    <h3 className="ark-contact__faqs-title">Frequently Asked Questions</h3>
+                    <h3 className="ark-contact__faqs-title">{faqHeading}</h3>
                     <div className="ark-contact__faq-list">
-                        {FAQS.map((faq, i) => (
+                        {faqItems.map((faq, i) => (
                             <div
                                 key={i}
                                 className={`ark-contact__faq ${openFaq === i ? 'ark-contact__faq--open' : ''}`}

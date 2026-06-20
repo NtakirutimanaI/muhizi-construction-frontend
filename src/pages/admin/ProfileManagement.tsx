@@ -1,21 +1,13 @@
 import { useState, useEffect } from 'react';
-import { FaUserCircle, FaBriefcase, FaCode, FaTools, FaUsers } from 'react-icons/fa';
+import { FaUserCircle } from 'react-icons/fa';
 import { profileService } from '../../services/profileService';
 import type { Profile } from '../../services/profileService';
 import { useAuth } from '../../context/AuthContext';
 import Loading from '../../components/Loading';
 import GeneralTab from './profile-sections/GeneralTab';
-import ExperienceTab from './profile-sections/ExperienceTab';
-import ProjectsTab from './profile-sections/ProjectsTab';
-import SkillsTab from './profile-sections/SkillsTab';
-import TeamTab from './profile-sections/TeamTab';
 
 const tabs = [
     { key: 'general', label: 'General', icon: FaUserCircle },
-    { key: 'experience', label: 'Experience', icon: FaBriefcase },
-    { key: 'projects', label: 'Projects', icon: FaCode },
-    { key: 'skills', label: 'Skills', icon: FaTools },
-    { key: 'team', label: 'Team', icon: FaUsers },
 ];
 
 const ProfileManagement = () => {
@@ -84,26 +76,6 @@ const ProfileManagement = () => {
             {/* Tab Content */}
             {activeTab === 'general' && (
                 <GeneralTab profile={profile} onUpdate={(updatedProfile) => { handleProfileUpdate(updatedProfile); window.dispatchEvent(new CustomEvent('profile-updated')); }} />
-            )}
-            {activeTab === 'experience' && (
-                <div className="content-card" style={{ padding: '1.5rem' }}>
-                    <ExperienceTab profile={profile} onUpdate={handleProfileUpdate} searchQuery='' />
-                </div>
-            )}
-            {activeTab === 'projects' && (
-                <div className="content-card" style={{ padding: '1.5rem' }}>
-                    <ProjectsTab profile={profile} onUpdate={handleProfileUpdate} searchQuery='' />
-                </div>
-            )}
-            {activeTab === 'skills' && (
-                <div className="content-card" style={{ padding: '1.5rem' }}>
-                    <SkillsTab profile={profile} onUpdate={handleProfileUpdate} searchQuery='' />
-                </div>
-            )}
-            {activeTab === 'team' && (
-                <div className="content-card" style={{ padding: '1.5rem' }}>
-                    <TeamTab profile={profile} onUpdate={handleProfileUpdate} />
-                </div>
             )}
         </div>
     );

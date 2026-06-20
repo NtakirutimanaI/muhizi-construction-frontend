@@ -10,6 +10,11 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
     const [showScroll, setShowScroll] = useState(false);
     const [email, setEmail] = useState('');
 
+    const footerContent = profile.pageContent?.footer;
+    const companyDesc = footerContent?.companyDescription || profile.about?.split('.')[0] || 'Construction & Real Estate';
+    const copyright = footerContent?.copyrightText || `© ${new Date().getFullYear()}. By ${profile.firstName} ${profile.lastName}`;
+    const quickLinks = footerContent?.quickLinks;
+
     useEffect(() => {
         const checkScroll = () => {
             if (!showScroll && window.pageYOffset > 400) {
@@ -44,30 +49,38 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                             <a href="/"><img src="/logo.png" alt="MUHIZI CONSTRUCTION" style={{ height: 70, marginBottom: '0.75rem', borderRadius: '50%', background: '#fff', padding: '8px', marginLeft: '40px' }} /></a>
                             <h4 className="ark-footer__col-title">MUHIZI CONSTRUCTION</h4>
                             <p style={{ fontSize: '0.9rem', color: 'rgba(243,241,241,0.6)', lineHeight: '1.6', margin: '0 0 0.75rem', maxWidth: '22ch' }}>
-                                {profile.about?.split('.')[0] || 'Construction & Real Estate'}
+                                {companyDesc}
                             </p>
-                            <div className="ark-footer__social">
-                                {profile.socialLinks?.linkedin && (
-                                    <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaLinkedin /></a>
-                                )}
-                                {profile.socialLinks?.twitter && (
-                                    <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaTwitter /></a>
-                                )}
-                                {profile.socialLinks?.github && (
-                                    <a href={profile.socialLinks.github} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaGithub /></a>
-                                )}
-                            </div>
+                            {footerContent?.showSocialLinks !== false && (
+                                <div className="ark-footer__social">
+                                    {profile.socialLinks?.linkedin && (
+                                        <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaLinkedin /></a>
+                                    )}
+                                    {profile.socialLinks?.twitter && (
+                                        <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaTwitter /></a>
+                                    )}
+                                    {profile.socialLinks?.github && (
+                                        <a href={profile.socialLinks.github} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaGithub /></a>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Quick Links */}
                         <div className="ark-footer__col">
                             <h4 className="ark-footer__col-title">Quick Links</h4>
-                            <a href="/#home" className="ark-footer__nav-link">Home</a>
-                            <a href="/#resume" className="ark-footer__nav-link">About</a>
-                            <a href="/#offerings" className="ark-footer__nav-link">Services</a>
-                            <a href="/#projects" className="ark-footer__nav-link">Projects</a>
-                            <a href="/#team" className="ark-footer__nav-link">Team</a>
-                            <a href="/#contact" className="ark-footer__nav-link">Contact</a>
+                            {quickLinks && quickLinks.length > 0 ? quickLinks.map((link, i) => (
+                                <a key={i} href={link.url} className="ark-footer__nav-link">{link.label}</a>
+                            )) : (
+                                <>
+                                    <a href="/#home" className="ark-footer__nav-link">Home</a>
+                                    <a href="/#resume" className="ark-footer__nav-link">About</a>
+                                    <a href="/#offerings" className="ark-footer__nav-link">Services</a>
+                                    <a href="/#projects" className="ark-footer__nav-link">Projects</a>
+                                    <a href="/#team" className="ark-footer__nav-link">Team</a>
+                                    <a href="/#contact" className="ark-footer__nav-link">Contact</a>
+                                </>
+                            )}
                         </div>
 
                         {/* Services */}
@@ -83,17 +96,21 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                         {/* Contact & Map */}
                         <div className="ark-footer__col">
                             <h4 className="ark-footer__col-title">Get in Touch</h4>
-                            <a href={`tel:${profile.phone}`} className="ark-footer__phone"><FaPhone size={12} style={{ marginRight: '6px' }} />{profile.phone || '123-456-7890'}</a>
-                            <a href={`mailto:${profile.email}`} className="ark-footer__phone"><FaEnvelope size={12} style={{ marginRight: '6px' }} />{profile.email}</a>
-                            {profile.location && (
-                                <p className="ark-footer__address"><FaMapMarkerAlt size={12} style={{ marginRight: '6px' }} />{profile.location}</p>
+                            {footerContent?.showContactInfo !== false && (
+                                <>
+                                    <a href={`tel:${profile.phone}`} className="ark-footer__phone"><FaPhone size={12} style={{ marginRight: '6px' }} />{profile.phone || '123-456-7890'}</a>
+                                    <a href={`mailto:${profile.email}`} className="ark-footer__phone"><FaEnvelope size={12} style={{ marginRight: '6px' }} />{profile.email}</a>
+                                    {profile.location && (
+                                        <p className="ark-footer__address"><FaMapMarkerAlt size={12} style={{ marginRight: '6px' }} />{profile.location}</p>
+                                    )}
+                                    <iframe
+                                        className="ark-footer__map"
+                                        title="Location"
+                                        loading="lazy"
+                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(profile.location || 'Kigali, Rwanda')}&output=embed`}
+                                    />
+                                </>
                             )}
-                            <iframe
-                                className="ark-footer__map"
-                                title="Location"
-                                loading="lazy"
-                                src={`https://maps.google.com/maps?q=${encodeURIComponent(profile.location || 'Kigali, Rwanda')}&output=embed`}
-                            />
                         </div>
                     </div>
 
@@ -117,7 +134,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
 
                     {/* Bottom bar */}
                     <div className="ark-footer__bottom">
-                        <p className="ark-footer__copy">© {new Date().getFullYear()}. By {profile.firstName} {profile.lastName}</p>
+                        <p className="ark-footer__copy">{copyright}</p>
                         <p className="ark-footer__copy" style={{ color: 'rgba(243,241,241,0.35)' }}>Powered by <a href="https://mis-frontend-eta.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>MAKE IT SOLUTIONS (MIS)</a></p>
                     </div>
                 </div>

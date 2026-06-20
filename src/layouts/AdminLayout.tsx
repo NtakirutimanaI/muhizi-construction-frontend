@@ -4,7 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import {
     FaChartBar, FaUser, FaEnvelope, FaSignOutAlt, FaCog, FaBook,
     FaSearch, FaPlus, FaBell, FaDatabase, FaMoon, FaSun,
-    FaCheck, FaTrash, FaTimes, FaProjectDiagram, FaBars, FaGlobe, FaUsers
+    FaCheck, FaTrash, FaTimes, FaProjectDiagram, FaBars, FaGlobe, FaUsers,
+    FaDraftingCompass, FaHandshake, FaUserTie, FaClipboardList,
+    FaMoneyBillWave, FaArrowUp, FaArrowDown, FaChartPie, FaHistory, FaBrain,
+    FaInbox, FaPaperPlane, FaArchive
 } from 'react-icons/fa';
 import { useNotification } from '../context/NotificationContext';
 import { profileService, type Profile, type ContactMessage } from '../services/profileService';
@@ -32,6 +35,8 @@ const AdminLayout = () => {
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const isOnMessages = location.pathname.startsWith('/admin/messages');
     const notifRef = useRef<HTMLDivElement>(null);
     const addMenuRef = useRef<HTMLDivElement>(null);
     const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -59,7 +64,7 @@ const AdminLayout = () => {
     useEffect(() => {
         const fetchMessages = async () => {
             try {
-                const data = await profileService.getContactMessages();
+                const data = await profileService.getInboxMessages();
                 setMessages(data.slice(0, 5)); // Get latest 5
                 setUnreadMessages(data.filter(m => !m.status || m.status === 'new' || m.status === 'unread').length);
             } catch (error) {
@@ -117,15 +122,61 @@ const AdminLayout = () => {
         setShowNotifications(!showNotifications);
     };
 
-    const navItems = [
-        { path: '/admin', icon: <FaChartBar />, label: 'Overview' },
-        { path: '/admin/profile', icon: <FaUser />, label: 'Profile' },
-        { path: '/admin/resources', icon: <FaDatabase />, label: 'Resources' },
-        { path: '/admin/api-docs', icon: <FaBook />, label: 'API Docs' },
-        { path: '/admin/messages', icon: <FaEnvelope />, label: 'Messages' },
-        { path: '/admin/footer-settings', icon: <FaGlobe />, label: 'Footer' },
-        { path: '/admin/users', icon: <FaUsers />, label: 'Users' },
-        { path: '/admin/settings', icon: <FaCog />, label: 'Settings' },
+    const role = user?.role || '';
+
+    const sections = [
+        {
+            label: 'Main',
+            items: [
+                { path: '/admin', icon: <FaChartBar />, label: 'Dashboard' },
+            ],
+        },
+        {
+            label: 'Content',
+            items: [
+                { path: '/admin/resources', icon: <FaDatabase />, label: 'CMS' },
+            ],
+        },
+        {
+            label: 'Operations',
+            items: [
+                { path: '/admin/projects', icon: <FaProjectDiagram />, label: 'Projects' },
+                { path: '/admin/designs', icon: <FaDraftingCompass />, label: 'Designs' },
+                { path: '/admin/partnerships', icon: <FaHandshake />, label: 'Partnerships' },
+            ],
+        },
+        {
+            label: 'HR',
+            items: [
+                { path: '/admin/employees', icon: <FaUserTie />, label: 'Employees' },
+                { path: '/admin/attendance', icon: <FaClipboardList />, label: 'Attendance' },
+                { path: '/admin/payroll', icon: <FaMoneyBillWave />, label: 'Payroll' },
+            ],
+        },
+        {
+            label: 'Finance',
+            items: [
+                { path: '/admin/incomes', icon: <FaArrowUp />, label: 'Incomes' },
+                { path: '/admin/expenses', icon: <FaArrowDown />, label: 'Expenses' },
+                { path: '/admin/reports', icon: <FaChartPie />, label: 'Reports' },
+            ],
+        },
+        {
+            label: 'Insights',
+            items: [
+                { path: '/admin/audit-logs', icon: <FaHistory />, label: 'Audit Logs' },
+                { path: '/admin/ml-insights', icon: <FaBrain />, label: 'ML Insights' },
+            ],
+        },
+        {
+            label: 'Admin',
+            items: [
+                { path: '/admin/messages', icon: <FaEnvelope />, label: 'Messages' },
+                { path: '/admin/users', icon: <FaUsers />, label: 'Users' },
+                { path: '/admin/api-docs', icon: <FaBook />, label: 'API Docs' },
+                { path: '/admin/settings', icon: <FaCog />, label: 'Settings' },
+            ],
+        },
     ];
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -434,7 +485,7 @@ const AdminLayout = () => {
                         >
                             <div style={{ textAlign: 'right' }}>
                                 <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{user?.firstName || 'Admin'}</div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Administrator</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>{role.replace(/_/g, ' ') || 'Administrator'}</div>
                             </div>
 
                             {user?.avatar ? (
@@ -493,20 +544,34 @@ const AdminLayout = () => {
             {/* Sidebar */}
             <aside className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
                 <nav className="admin-nav">
-                    {navItems.map((item) => {
-                        const isActive = location.pathname === item.path;
-                        return (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                className={`admin-nav-item ${isActive ? 'active' : ''}`}
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                {item.icon}
-                                <span>{item.label}</span>
-                            </Link>
-                        );
-                    })}
+                    {sections.map((section, si) => (
+                        <div key={si}>
+                            <div style={{
+                                padding: '1.5rem 1rem 0.4rem',
+                                fontSize: '0.65rem',
+                                fontWeight: 800,
+                                textTransform: 'uppercase',
+                                color: 'var(--text-muted)',
+                                letterSpacing: '0.08em',
+                            }}>
+                                {section.label}
+                            </div>
+                            {section.items.map((item) => {
+                                const isActive = location.pathname.startsWith(item.path);
+                                return (
+                                    <Link
+                                        key={item.path}
+                                        to={item.path}
+                                        className={`admin-nav-item ${isActive ? 'active' : ''}`}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        {item.icon}
+                                        <span>{item.label}</span>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    ))}
                 </nav>
 
                 <div style={{ padding: '1rem', borderTop: '1px solid #333' }}>
@@ -520,8 +585,35 @@ const AdminLayout = () => {
                 </div>
             </aside>
 
+            {/* Messages Sub-Sidebar */}
+            {isOnMessages && (
+                <aside className="admin-subsidebar">
+                    <div style={{ padding: '1.2rem 1rem 0.6rem', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
+                        Messages
+                    </div>
+                    <Link to="/admin/messages/inbox"
+                        className={`admin-nav-item ${location.pathname === '/admin/messages/inbox' ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaInbox /> <span>Inbox</span>
+                    </Link>
+                    <Link to="/admin/messages/sent"
+                        className={`admin-nav-item ${location.pathname === '/admin/messages/sent' ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaPaperPlane /> <span>Sent</span>
+                    </Link>
+                    <Link to="/admin/messages/trash"
+                        className={`admin-nav-item ${location.pathname === '/admin/messages/trash' ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaArchive /> <span>Trash</span>
+                    </Link>
+                </aside>
+            )}
+
             {/* Content Wrapper */}
-            <div className="admin-content">
+            <div className={`admin-content ${isOnMessages ? 'admin-content--with-subsidebar' : ''}`}>
                 <main className="admin-main">
                     <Outlet context={{ searchQuery }} />
                 </main>

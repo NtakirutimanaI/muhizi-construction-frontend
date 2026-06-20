@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { uploadService } from '../services/uploadService';
 
 interface ProfileFormModalProps {
     isOpen: boolean;
@@ -79,12 +80,15 @@ const ProfileFormModal: React.FC<ProfileFormModalProps> = ({ isOpen, onClose }) 
     const totalFields = 25;
     const percentage = Math.min(Math.round((filledFields / totalFields) * 100), 100);
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => setForm(prev => ({ ...prev, profileImage: ev.target?.result as string }));
-            reader.readAsDataURL(file);
+            try {
+                const uploaded = await uploadService.uploadFile(file);
+                setForm(prev => ({ ...prev, profileImage: uploaded.secureUrl }));
+            } catch {
+                alert('Failed to upload image');
+            }
         }
     };
 
@@ -119,28 +123,34 @@ const ProfileFormModal: React.FC<ProfileFormModalProps> = ({ isOpen, onClose }) 
     const removeTechSkill = (index: number) => {
         setForm(prev => ({ ...prev, techSkills: prev.techSkills.filter((_, i) => i !== index) }));
     };
-    const handleTechSkillImage = (index: number, file: File | null) => {
-        setForm(prev => {
-            const skills = [...prev.techSkills];
-            skills[index] = { ...skills[index], imageFile: file };
-            return { ...prev, techSkills: skills };
-        });
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                setTechSkillPreviews(prev => {
-                    const arr = [...prev];
-                    arr[index] = ev.target?.result as string;
-                    return arr;
-                });
-            };
-            reader.readAsDataURL(file);
-        } else {
+    const handleTechSkillImage = async (index: number, file: File | null) => {
+        if (!file) {
+            setForm(prev => {
+                const skills = [...prev.techSkills];
+                skills[index] = { ...skills[index], imageFile: null };
+                return { ...prev, techSkills: skills };
+            });
             setTechSkillPreviews(prev => {
                 const arr = [...prev];
                 arr[index] = null;
                 return arr;
             });
+            return;
+        }
+        try {
+            const uploaded = await uploadService.uploadFile(file);
+            setForm(prev => {
+                const skills = [...prev.techSkills];
+                skills[index] = { ...skills[index], imageFile: null, imageUrl: uploaded.secureUrl };
+                return { ...prev, techSkills: skills };
+            });
+            setTechSkillPreviews(prev => {
+                const arr = [...prev];
+                arr[index] = uploaded.secureUrl;
+                return arr;
+            });
+        } catch {
+            alert('Failed to upload image');
         }
     };
 

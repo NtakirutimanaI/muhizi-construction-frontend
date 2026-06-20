@@ -55,8 +55,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                             exit={{ opacity: 0, x: 20, scale: 0.9 }}
                             layout
                             style={{
-                                background: toast.type === 'success' ? 'var(--primary-teal, #4ecdc4)' : toast.type === 'error' ? 'var(--primary-red, #ff6b6b)' : '#3B82F6',
-                                color: '#fff',
+                                background: '#2d2d2d',
+                                color: toast.type === 'success' ? '#fff' : toast.type === 'error' ? '#ff6b6b' : '#3B82F6',
                                 padding: '12px 20px',
                                 borderRadius: '8px',
                                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
