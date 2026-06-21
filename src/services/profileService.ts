@@ -110,6 +110,7 @@ export interface Profile {
         github?: string;
         linkedin?: string;
         twitter?: string;
+        facebook?: string;
         instagram?: string;
         [key: string]: string | undefined;
     };
@@ -127,6 +128,7 @@ export interface Profile {
                 description: string;
                 tags: string[];
                 color: string;
+                images?: string[];
             }>;
         };
         events?: Array<{

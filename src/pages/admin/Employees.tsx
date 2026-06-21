@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaUsers, FaUserCheck, FaUserTimes, FaDollarSign, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
+import { useToast } from '../../context/ToastContext';
 import type { Employee } from '../../services/hrService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -19,6 +20,7 @@ const DEPARTMENTS = ['construction', 'engineering', 'design', 'finance', 'hr', '
 const PAGE_SIZES = [5, 10, 15, 20];
 
 const Employees = () => {
+    const { showToast } = useToast();
     const [data, setData] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -199,7 +201,7 @@ const Employees = () => {
         setForm({
             firstName: item.firstName, lastName: item.lastName, email: item.email,
             phone: item.phone || '', position: item.position || '', department: item.department,
-            hireDate: item.hireDate || '', salary: item.salary, status: item.status,
+            hireDate: item.hireDate || '', salary: Number(item.salary) || 0, status: item.status,
         });
         setModalPos(null);
         setShowModal(true);
@@ -207,11 +209,25 @@ const Employees = () => {
 
     const handleSave = async () => {
         try {
-            if (editing) await hrService.updateEmployee(editing.id, form);
-            else await hrService.createEmployee(form);
+            const payload = {
+                ...form,
+                hireDate: form.hireDate || null,
+            };
+            if (editing) {
+                await hrService.updateEmployee(editing.id, payload);
+                showToast('Employee updated successfully', 'success');
+            } else {
+                await hrService.createEmployee(payload);
+                showToast('Employee created successfully', 'success');
+            }
             setShowModal(false);
             fetch();
-        } catch (e) { console.error(e); }
+        } catch (e: any) {
+            console.error('SAVE ERROR', e);
+            const errData = e?.response?.data;
+            const errMsg = errData ? JSON.stringify(errData) : (e?.message || 'Unknown error');
+            showToast(errMsg, 'error');
+        }
     };
 
     const handleDelete = async (id: string) => {

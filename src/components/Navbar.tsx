@@ -15,6 +15,7 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [phase, setPhase] = useState(0);
+    const [overDark, setOverDark] = useState(true);
     const navRef = useRef<HTMLElement>(null);
 
     const closeMenu = useCallback(() => setMenuOpen(false), []);
@@ -27,8 +28,23 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
         const handleScroll = () => {
             setScrolled(window.scrollY > 50);
         };
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const theme = entry.target.getAttribute('data-nav-theme') || 'dark';
+                    setOverDark(theme === 'dark');
+                }
+            });
+        }, { rootMargin: '-70px 0px -80% 0px' });
+
+        const sections = document.querySelectorAll('[data-nav-theme]');
+        sections.forEach(el => observer.observe(el));
+        return () => observer.disconnect();
     }, []);
 
     useEffect(() => {
@@ -63,6 +79,8 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
         return () => document.removeEventListener('click', handleClickOutside);
     }, [menuOpen]);
 
+    const textColor = !scrolled ? '#fff' : overDark ? '#fff' : '#000';
+
     return (
         <nav ref={navRef} className={`navbar ${scrolled ? 'scrolled' : ''}`}
             onMouseLeave={() => setMenuOpen(false)}
@@ -70,18 +88,19 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
             <div className="container">
                 <div className="navbar-content">
                     <a href="/" className="nav-brand-tag">
-                        <img src={profile?.companyLogo || profile?.avatar || '/logo.png'} alt={profile?.company || (profile?.firstName ? `${profile.firstName} ${profile.lastName}` : 'MUHIZI CONSTRUCTION')} className="nav-logo" />
+                        <img src={profile?.companyLogo || profile?.avatar || '/logo.png'} alt={companyName} className="nav-logo" />
+                        <span className="brand-name" style={{ color: textColor }}>{companyName}</span>
                     </a>
                     <span className="nav-center-title">
-                        <span className={`nav-title-text ${phase === 0 ? 'fade-in' : 'fade-out'}`}>{thinkChars}</span>
-                        <span className={`nav-title-text ${phase === 2 ? 'fade-in' : 'fade-out'}`}>{buildChars}</span>
+                        <span className={`nav-title-text ${phase === 0 ? 'fade-in' : 'fade-out'}`} style={{ color: textColor }}>{thinkChars}</span>
+                        <span className={`nav-title-text ${phase === 2 ? 'fade-in' : 'fade-out'}`} style={{ color: textColor }}>{buildChars}</span>
                     </span>
                     <div className="nav-actions">
-                        <a href="/#contact" className="nav-get-in-touch" onClick={closeMenu}>Get in Touch &rarr;</a>
-                        <a href="/login" className="nav-login-icon" aria-label="Login">
+                        <a href="/#contact" className="nav-get-in-touch" onClick={closeMenu} style={{ color: textColor, borderColor: textColor }}>Get in Touch &rarr;</a>
+                        <a href="/login" className="nav-login-icon" aria-label="Login" style={{ color: textColor }}>
                             <FaSignInAlt size={20} />
                         </a>
-                        <button className="nav-mobile-toggle" onClick={() => setMenuOpen(true)} aria-label="Toggle menu">
+                        <button className="nav-mobile-toggle" onClick={() => setMenuOpen(true)} aria-label="Toggle menu" style={{ color: textColor }}>
                             {menuOpen ? (
                                 <span className="hamburger-close">&times;</span>
                             ) : (

@@ -159,6 +159,7 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
     const [form, setForm] = useState({
         phone: profile.phone || '',
         email: profile.email || '',
+        location: profile.location || '',
         linkedinUrl: profile.socialLinks?.linkedin || '',
         twitterUrl: profile.socialLinks?.twitter || '',
         githubUrl: profile.socialLinks?.github || '',
@@ -171,6 +172,7 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
         setForm({
             phone: profile.phone || '',
             email: profile.email || '',
+            location: profile.location || '',
             linkedinUrl: profile.socialLinks?.linkedin || '',
             twitterUrl: profile.socialLinks?.twitter || '',
             githubUrl: profile.socialLinks?.github || '',
@@ -187,6 +189,7 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
         await onSave({
             phone: form.phone,
             email: form.email,
+            location: form.location,
             socialLinks: {
                 linkedin: form.linkedinUrl,
                 twitter: form.twitterUrl,
@@ -216,6 +219,10 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
                     <div className="form-group">
                         <label className="form-label">Email Address</label>
                         <input type="email" name="email" className="form-input" value={form.email} onChange={handleChange} placeholder="your@email.com" />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Address / Location</label>
+                        <input type="text" name="location" className="form-input" value={form.location} onChange={handleChange} placeholder="Kigali, Rwanda" />
                     </div>
                 </div>
             </div>
@@ -268,6 +275,10 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
                         <div>
                             <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>Email</h4>
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{form.email || 'Not set'}</p>
+                        </div>
+                        <div>
+                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>Location</h4>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{form.location || 'Not set'}</p>
                         </div>
                         <div>
                             <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>Follow Us</h4>

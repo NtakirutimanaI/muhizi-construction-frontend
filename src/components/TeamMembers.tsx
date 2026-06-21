@@ -26,7 +26,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
     const getNextIndex = () => (current === members.length - 1 ? 0 : current + 1);
 
     return (
-        <section className="section section-indicator" id="team">
+        <section data-nav-theme="light" className="section section-indicator" id="team">
             <div className="container">
                 <motion.span
                     className="ark-section__sub"

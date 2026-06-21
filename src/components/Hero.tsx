@@ -41,7 +41,7 @@ const Hero: React.FC<HeroProps> = ({ slides: propSlides, videoUrl }) => {
     }, [next]);
 
     return (
-        <section className="hero" id="home">
+        <section data-nav-theme="dark" className="hero" id="home">
             <div className="hero-video-wrap">
                 <video
                     className="hero-video-bg"

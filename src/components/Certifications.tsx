@@ -13,7 +13,7 @@ const Certifications: React.FC<CertificationsProps> = ({ profile }) => {
     if (certs.length === 0) return null;
 
     return (
-        <section className="section section-indicator" id="certifications">
+        <section data-nav-theme="light" className="section section-indicator" id="certifications">
             <div className="container">
                 <h2 className="ark-section__heading">Certifications</h2>
                 <div className="ark-grid-auto">

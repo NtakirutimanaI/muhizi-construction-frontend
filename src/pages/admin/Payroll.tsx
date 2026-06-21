@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDollarSign, FaMoneyBillWave, FaPercentage, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaCheckCircle, FaBan, FaHourglassHalf, FaClock } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
+import { authService } from '../../services/authService';
 import type { Payroll, Employee, Attendance } from '../../services/hrService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -45,12 +46,37 @@ const PayrollPage = () => {
 
     const fetch = async () => {
         try {
-            const [payRes, empRes] = await Promise.all([
+            const [payRes, empRes, usersRes] = await Promise.all([
                 hrService.getPayroll(),
                 hrService.getEmployees(),
+                authService.getAllUsers().catch(() => []),
             ]);
             setData(payRes.data || []);
-            setEmployees(empRes.data || []);
+            const empData = empRes.data || [];
+            const users = Array.isArray(usersRes) ? usersRes : [];
+            const employeeUsers = users.filter((u: any) => u.role === 'employee');
+            const empEmails = new Set(empData.map((e: Employee) => e.email.toLowerCase()));
+            const missing = employeeUsers.filter((u: any) => {
+                const email = (u.email || '').toLowerCase();
+                return email && !empEmails.has(email);
+            });
+            if (missing.length > 0) {
+                const created = await Promise.all(
+                    missing.map((u: any) =>
+                        hrService.createEmployee({
+                            firstName: u.profile?.firstName || u.username || 'Unknown',
+                            lastName: u.profile?.lastName || 'User',
+                            email: u.email,
+                            department: 'other',
+                            status: 'active',
+                            salary: 0,
+                        }).then(r => r.data).catch(() => null)
+                    )
+                );
+                setEmployees([...empData, ...created.filter(Boolean) as Employee[]]);
+            } else {
+                setEmployees(empData);
+            }
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };

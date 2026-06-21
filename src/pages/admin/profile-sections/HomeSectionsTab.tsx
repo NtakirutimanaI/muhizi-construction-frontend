@@ -210,7 +210,7 @@ const HeroSlidesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
 };
 
 /* ───── Services Editor ───── */
-interface ServiceItemForm { title: string; description: string; tags: string; color: string; }
+interface ServiceItemForm { title: string; description: string; tags: string; color: string; images: string[]; }
 
 const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const [heading, setHeading] = useState(profile.pageContent?.services?.heading || 'Core Services');
@@ -219,6 +219,9 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [form, setForm] = useState<ServiceItemForm | null>(null);
     const [localSaving, setLocalSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const pc = profile.pageContent;
@@ -234,18 +237,39 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         setLocalSaving(false);
     };
 
-    const openNew = () => { setEditingIndex(-1); setForm({ title: '', description: '', tags: '', color: '#8B4513' }); };
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+        setUploading(true);
+        setUploadProgress(0);
+        try {
+            for (let i = 0; i < files.length; i++) {
+                const uploaded = await uploadService.uploadFile(files[i], (pct) => setUploadProgress(pct));
+                setForm(p => ({ ...p!, images: [...(p?.images || []), uploaded.secureUrl] }));
+            }
+        } catch {
+            alert('Failed to upload image');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const removeImage = (idx: number) => {
+        setForm(p => ({ ...p!, images: p!.images.filter((_, i) => i !== idx) }));
+    };
+
+    const openNew = () => { setEditingIndex(-1); setForm({ title: '', description: '', tags: '', color: '#8B4513', images: [] }); };
     const openEdit = (i: number) => {
         const item = items[i];
         setEditingIndex(i);
-        setForm({ title: item.title, description: item.description, tags: item.tags.join(', '), color: item.color });
+        setForm({ title: item.title, description: item.description, tags: item.tags.join(', '), color: item.color, images: item.images || [] });
     };
     const cancel = () => { setEditingIndex(null); setForm(null); };
 
     const handleSaveItem = async () => {
         if (!form) return;
         const updated = [...items];
-        const newItem = { title: form.title, description: form.description, tags: form.tags.split(',').map(t => t.trim()).filter(Boolean), color: form.color };
+        const newItem = { title: form.title, description: form.description, tags: form.tags.split(',').map(t => t.trim()).filter(Boolean), color: form.color, images: form.images };
         if (editingIndex === -1) updated.push(newItem);
         else if (editingIndex !== null) updated[editingIndex] = newItem;
         setItems(updated);
@@ -296,6 +320,30 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                         <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                             <label className="form-label">Accent Color</label>
                             <input type="color" value={form.color} onChange={e => setForm(p => ({ ...p!, color: e.target.value }))} className="form-input" style={{ width: '80px', height: '40px', padding: '2px' }} />
+                        </div>
+                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                            <label className="form-label">Slider Images</label>
+                            <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} style={{ display: 'none' }} />
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '6px' }}>
+                                {form.images.map((img, idx) => (
+                                    <div key={idx} style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                                        <img src={img} alt={`slide ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <button type="button" onClick={() => removeImage(idx)} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: 20, height: 20, fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>{uploading ? 'Uploading...' : <><FaUpload /> Add Image</>}</button>
+                                {uploading && (
+                                    <div style={{ flex: 1, minWidth: 100 }}>
+                                        <div style={{ height: 8, background: 'var(--border-color)', borderRadius: 4, overflow: 'hidden' }}>
+                                            <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'var(--primary)', borderRadius: 4, transition: 'width 0.3s' }} />
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2, textAlign: 'center' }}>{uploadProgress}%</div>
+                                    </div>
+                                )}
+                            </div>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Upload images that will appear as a slideshow on the service card</p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                             <button onClick={cancel} className="admin-icon-btn" style={{ fontSize: '0.85rem', width: 'auto', padding: '0.4rem 0.8rem' }}>Cancel</button>
@@ -550,6 +598,9 @@ const ProjectsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [form, setForm] = useState<any>(null);
     const [localSaving, setLocalSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => { setProjects(profile.projects || []); }, [profile.projects]);
 
@@ -557,6 +608,21 @@ const ProjectsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         setLocalSaving(true);
         await onSave({ projects: updated } as any);
         setLocalSaving(false);
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        setUploadProgress(0);
+        try {
+            const uploaded = await uploadService.uploadFile(file, (pct) => setUploadProgress(pct));
+            setForm((p: any) => ({ ...p, imageUrl: uploaded.secureUrl }));
+        } catch {
+            alert('Failed to upload image');
+        } finally {
+            setUploading(false);
+        }
     };
 
     const openNew = () => { setEditingIndex(-1); setForm({ name: '', description: '', technologies: [], url: '', imageUrl: '', featured: false }); };
@@ -599,8 +665,27 @@ const ProjectsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                             <textarea value={form.description} onChange={e => setForm((p: any) => ({ ...p, description: e.target.value }))} className="form-textarea" rows={3} placeholder="Project description" />
                         </div>
                         <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">Image URL</label>
-                            <input value={form.imageUrl || ''} onChange={e => setForm((p: any) => ({ ...p, imageUrl: e.target.value }))} className="form-input" placeholder="https://example.com/image.jpg" />
+                            <label className="form-label">Image</label>
+                            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                {form.imageUrl && (
+                                    <div style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-color)', flexShrink: 0 }}>
+                                        <img src={form.imageUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <button type="button" onClick={() => setForm((p: any) => ({ ...p, imageUrl: '' }))} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: 20, height: 20, fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
+                                    </div>
+                                )}
+                                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>
+                                    {uploading ? 'Uploading...' : <><FaUpload /> {form.imageUrl ? 'Replace Image' : 'Upload Image'}</>}
+                                </button>
+                                {uploading && (
+                                    <div style={{ flex: 1, minWidth: 120 }}>
+                                        <div style={{ height: 8, background: 'var(--border-color)', borderRadius: 4, overflow: 'hidden' }}>
+                                            <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'var(--primary)', borderRadius: 4, transition: 'width 0.3s' }} />
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2, textAlign: 'center' }}>{uploadProgress}%</div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                             <label className="form-label">Live URL</label>

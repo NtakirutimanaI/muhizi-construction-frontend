@@ -10,6 +10,7 @@ const FooterSettings = () => {
     const [footerData, setFooterData] = useState({
         phone: '',
         email: '',
+        location: '',
         linkedinUrl: '',
         twitterUrl: '',
         githubUrl: '',
@@ -27,6 +28,7 @@ const FooterSettings = () => {
             setFooterData({
                 phone: profile.phone || '',
                 email: profile.email || '',
+                location: profile.location || '',
                 linkedinUrl: profile.socialLinks?.linkedin || '',
                 twitterUrl: profile.socialLinks?.twitter || '',
                 githubUrl: profile.socialLinks?.github || '',
@@ -51,6 +53,7 @@ const FooterSettings = () => {
             await profileService.updateProfile({
                 phone: footerData.phone,
                 email: footerData.email,
+                location: footerData.location,
                 socialLinks: {
                     linkedin: footerData.linkedinUrl,
                     twitter: footerData.twitterUrl,
@@ -118,6 +121,20 @@ const FooterSettings = () => {
                             />
                             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
                                 Primary contact email displayed in the footer
+                            </p>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Address / Location</label>
+                            <input
+                                type="text"
+                                name="location"
+                                className="form-input"
+                                value={footerData.location}
+                                onChange={handleChange}
+                                placeholder="Kigali, Rwanda"
+                            />
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                                Physical address displayed in the footer with map
                             </p>
                         </div>
                     </div>
@@ -230,6 +247,10 @@ const FooterSettings = () => {
                         <div>
                             <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem' }}>Email</h4>
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{footerData.email || 'Not set'}</p>
+                        </div>
+                        <div>
+                            <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem' }}>Location</h4>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{footerData.location || 'Not set'}</p>
                         </div>
                         <div>
                             <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem' }}>Follow Us</h4>

@@ -12,7 +12,7 @@ interface AboutProps {
 const About: React.FC<AboutProps> = ({ profile }) => {
     const [hover, setHover] = useState(false);
     return (
-        <section className="section section-indicator" id="about" style={{
+        <section data-nav-theme="light" className="section section-indicator" id="about" style={{
             paddingBottom: '5px',
             background: `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url(/img.png) center/cover fixed`,
         }}>

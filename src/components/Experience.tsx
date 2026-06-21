@@ -14,7 +14,7 @@ const Experience: React.FC = () => {
     const videos = fu?.videos || [];
 
     return (
-        <section className="section section-indicator" id="resume">
+        <section data-nav-theme="light" className="section section-indicator" id="resume">
             <div className="container">
                 <div style={{ marginBottom: '2rem' }} ref={constraintsRef}>
                     <h2 className="ark-section__heading">{heading}</h2>

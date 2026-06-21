@@ -56,25 +56,39 @@ const slides = [
     'https://picsum.photos/seed/web4/600/400',
 ];
 
-const ImageSlider = ({ color, seed }: { color: string; seed: number }) => {
+const ImageSlider = ({ color, seed, images }: { color: string; seed: number; images?: string[] }) => {
+    const slideImages = images && images.length > 0 ? images : slides;
     const [current, setCurrent] = useState(0);
 
     const prev = useCallback(() => {
-        setCurrent(c => (c === 0 ? slides.length - 1 : c - 1));
-    }, []);
+        setCurrent(c => (c === 0 ? slideImages.length - 1 : c - 1));
+    }, [slideImages.length]);
 
     const next = useCallback(() => {
-        setCurrent(c => (c === slides.length - 1 ? 0 : c + 1));
-    }, []);
+        setCurrent(c => (c === slideImages.length - 1 ? 0 : c + 1));
+    }, [slideImages.length]);
 
     useEffect(() => {
+        if (images && images.length > 0) return;
         const timer = setInterval(next, 4000);
         return () => clearInterval(timer);
-    }, [next]);
+    }, [next, images]);
+
+    if (images && images.length > 0) {
+        return (
+            <div className="offer-card__slider">
+                <div className="offer-card__image-grid">
+                    {slideImages.map((src, i) => (
+                        <div key={i} className="offer-card__image-grid-cell" style={{ backgroundImage: `url(${src})` }} />
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="offer-card__slider">
-            {slides.map((base, i) => (
+            {slideImages.map((base, i) => (
                 <div
                     key={i}
                     className="offer-card__slide"
@@ -92,7 +106,7 @@ const ImageSlider = ({ color, seed }: { color: string; seed: number }) => {
                 <FaChevronRight />
             </button>
             <div className="offer-card__slider-dots">
-                {slides.map((_, i) => (
+                {slideImages.map((_, i) => (
                     <span
                         key={i}
                         className={`offer-card__slider-dot ${i === current ? 'active' : ''}`}
@@ -113,6 +127,7 @@ interface WhatWeOfferProps {
         description: string;
         tags: string[];
         color: string;
+        images?: string[];
     }>;
 }
 
@@ -123,7 +138,7 @@ const WhatWeOffer: React.FC<WhatWeOfferProps> = ({ heading: propHeading, subtitl
         ? propItems.map((item, i) => ({ ...item, icon: offerIcons[i % offerIcons.length] }))
         : defaultOfferings;
     return (
-        <section className="section section-indicator section-offer-dark" id="offerings">
+        <section data-nav-theme="dark" className="section section-indicator section-offer-dark" id="offerings">
             <div className="container">
                     <motion.div
                         style={{ marginBottom: '3rem' }}
@@ -132,9 +147,14 @@ const WhatWeOffer: React.FC<WhatWeOfferProps> = ({ heading: propHeading, subtitl
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, ease: 'easeOut' }}
                     >
-                        <span className="ark-section__sub" style={{ display: 'inline-block', marginLeft: '90px' }}>
+                        <motion.span
+                            className="ark-section__sub"
+                            style={{ display: 'inline-block', marginLeft: '90px' }}
+                            animate={{ x: [-20, 20, -20] }}
+                            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                        >
                             What We Offer
-                        </span>
+                        </motion.span>
                         <h2 className="ark-section__heading">
                             {heading}
                         </h2>
@@ -166,7 +186,7 @@ const WhatWeOffer: React.FC<WhatWeOfferProps> = ({ heading: propHeading, subtitl
                             >
                                 <div className="offer-card__split">
                                     <div className="offer-card__image">
-                                        <ImageSlider color={item.color} seed={index * 10} />
+                                        <ImageSlider color={item.color} seed={index * 10} images={item.images} />
                                     </div>
                                     <div className="offer-card__content">
                                         <h3 className="offer-card__title">{item.title}</h3>

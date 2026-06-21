@@ -23,9 +23,12 @@ export interface Attendance {
     employeeId: string;
     employee?: Employee;
     date: string;
+    projectId?: string;
+    project?: { id: string; name: string; location: string };
+    site?: string;
     checkIn?: string;
     checkOut?: string;
-    status: 'present' | 'absent' | 'late' | 'half_day' | 'on_leave';
+    status: 'present' | 'absent' | 'late' | 'half_day' | 'on_leave' | 'permission' | 'suspended';
     notes?: string;
     createdAt: string;
 }
@@ -64,6 +67,9 @@ export const hrService = {
     getAttendanceStats: () => api.get(`${baseUrl}/attendance/stats`),
     getAttendanceByRange: (start: string, end: string) => api.get(`${baseUrl}/attendance/range?start=${start}&end=${end}`),
     getAttendanceByEmployee: (employeeId: string) => api.get(`${baseUrl}/attendance/employee/${employeeId}`),
+    getAttendanceByEmployeeMonth: (employeeId: string, year: number, month: number) => api.get(`${baseUrl}/attendance/employee/${employeeId}/month?year=${year}&month=${month}`),
+    getAttendanceByProject: (projectId: string) => api.get(`${baseUrl}/attendance/project/${projectId}`),
+    getAttendanceBySite: (site: string) => api.get(`${baseUrl}/attendance/site/${encodeURIComponent(site)}`),
     createAttendance: (data: Partial<Attendance>) => api.post(`${baseUrl}/attendance`, data),
     updateAttendance: (id: string, data: Partial<Attendance>) => api.put(`${baseUrl}/attendance/${id}`, data),
     deleteAttendance: (id: string) => api.delete(`${baseUrl}/attendance/${id}`),

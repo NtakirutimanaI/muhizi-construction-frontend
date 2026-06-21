@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaPlus, FaYoutube, FaInstagram, FaLinkedin, FaWhatsapp } from 'react-icons/fa';
+import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaPlus, FaFacebook, FaInstagram, FaLinkedin } from 'react-icons/fa';
 import { profileService, type ContactMessage, type Profile } from '../services/profileService';
 import { useToast } from '../context/ToastContext';
 
@@ -71,7 +71,7 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
     };
 
     return (
-        <section className="section" id="contact" style={{ borderBottom: 'none', padding: '60px 0' }}>
+        <section data-nav-theme="light" className="section" id="contact" style={{ borderBottom: 'none', padding: '60px 0' }}>
             <div className="container">
                 <h2 className="ark-section__heading" style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '0.5rem' }}>{cs?.heading || 'Get In Touch'}</h2>
                 <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '400px' }}>{cs?.subtitle || 'Looking forward to hearing from you'}</p>
@@ -150,10 +150,9 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                         <div className="ark-contact__social">
                             <h4 className="ark-contact__social-title">Follow Us</h4>
                             <div className="ark-contact__social-links">
-                                {profile.socialLinks?.youtube && <a href={profile.socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="YouTube"><FaYoutube /></a>}
-                                {profile.socialLinks?.instagram && <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="Instagram"><FaInstagram /></a>}
-                                {profile.socialLinks?.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="LinkedIn"><FaLinkedin /></a>}
-                                {profile.socialLinks?.whatsapp && <a href={profile.socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="WhatsApp"><FaWhatsapp /></a>}
+                                <a href={profile.socialLinks?.facebook || 'https://facebook.com/muhiziconstruction'} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="Facebook"><FaFacebook /></a>
+                                <a href={profile.socialLinks?.instagram || 'https://instagram.com/muhizi_construction'} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="Instagram"><FaInstagram /></a>
+                                <a href={profile.socialLinks?.linkedin || 'https://linkedin.com/company/muhizi-construction'} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="LinkedIn"><FaLinkedin /></a>
                             </div>
                         </div>
                     </div>

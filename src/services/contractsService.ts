@@ -11,6 +11,8 @@ export interface Contract {
     status: 'active' | 'expiring_soon' | 'expired' | 'draft';
     fileUrl?: string;
     fileSize?: string;
+    body?: string;
+    footer?: string;
     createdAt: string;
 }
 

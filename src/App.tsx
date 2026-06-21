@@ -40,6 +40,7 @@ import SiteActivities from './pages/admin/SiteActivities';
 import MaterialRequests from './pages/admin/MaterialRequests';
 import ProjectEvidence from './pages/admin/ProjectEvidence';
 import SiteRules from './pages/admin/SiteRules';
+import EmployeeAssignments from './pages/admin/EmployeeAssignments';
 import Approvals from './pages/admin/Approvals';
 import Contracts from './pages/admin/Contracts';
 import ProjectDetail from './pages/admin/ProjectDetail';
@@ -134,6 +135,7 @@ function App() {
                       <Route path="partnerships" element={<Partnerships />} />
                       <Route path="employees" element={<Employees />} />
                       <Route path="attendance" element={<Attendance />} />
+                      <Route path="employee-assignments" element={<EmployeeAssignments />} />
                       <Route path="payroll" element={<Payroll />} />
                       <Route path="incomes" element={<Incomes />} />
                       <Route path="expenses" element={<Expenses />} />

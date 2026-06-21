@@ -51,6 +51,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         items: [
             { path: '/admin/employees', icon: 'FaUserTie', label: 'Employees', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER] },
             { path: '/admin/attendance', icon: 'FaClipboardList', label: 'Attendance', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.EMPLOYEE] },
+            { path: '/admin/employee-assignments', icon: 'FaTasks', label: 'Assignments', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.SITE_MANAGER] },
             { path: '/admin/salary-history', icon: 'FaHistory', label: 'Salary History', roles: [ROLES.EMPLOYEE] },
             { path: '/admin/payroll', icon: 'FaMoneyBillWave', label: 'Payroll', roles: [ROLES.ADMIN, ROLES.MANAGER] },
             { path: '/admin/contracts', icon: 'FaFileAlt', label: 'Contracts', roles: [ROLES.ADMIN, ROLES.MANAGER] },

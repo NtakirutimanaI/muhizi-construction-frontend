@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaProjectDiagram, FaDollarSign, FaCheckCircle, FaSpinner, FaClock, FaSearch, FaCalendarAlt, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
+import { useToast } from '../../context/ToastContext';
 import type { Project } from '../../services/constructionService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -22,6 +23,7 @@ const PAGE_SIZES = [5, 10, 15, 20];
 
 const Projects = () => {
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [data, setData] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -204,9 +206,9 @@ const Projects = () => {
         setForm({
             name: item.name, description: item.description || '', type: item.type,
             status: item.status, startDate: item.startDate || '', endDate: item.endDate || '',
-            budget: item.budget || 0, location: item.location || '',
+            budget: Number(item.budget) || 0, location: item.location || '',
             clientName: item.clientName || '', clientContact: item.clientContact || '',
-            progress: item.progress,
+            progress: Number(item.progress) || 0,
         });
         setModalPos(null);
         setShowModal(true);
@@ -214,14 +216,26 @@ const Projects = () => {
 
     const handleSave = async () => {
         try {
+            const payload = {
+                ...form,
+                startDate: form.startDate || null,
+                endDate: form.endDate || null,
+            };
             if (editing) {
-                await constructionService.updateProject(editing.id, form);
+                await constructionService.updateProject(editing.id, payload);
+                showToast('Project updated successfully', 'success');
             } else {
-                await constructionService.createProject(form);
+                await constructionService.createProject(payload);
+                showToast('Project created successfully', 'success');
             }
             setShowModal(false);
             fetch();
-        } catch (e) { console.error(e); }
+        } catch (e: any) {
+            console.error('SAVE ERROR', e);
+            const errData = e?.response?.data;
+            const errMsg = errData ? JSON.stringify(errData) : (e?.message || 'Unknown error');
+            showToast(errMsg, 'error');
+        }
     };
 
     const handleDelete = async (id: string) => {

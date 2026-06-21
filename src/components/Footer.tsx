@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaLinkedin, FaTwitter, FaGithub, FaArrowUp, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
+import { FaLinkedin, FaFacebook, FaInstagram, FaArrowUp, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
 import type { Profile } from '../services/profileService';
 
 interface FooterProps {
@@ -40,7 +40,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
     };
 
     return (
-        <footer className="ark-footer">
+        <footer data-nav-theme="dark" className="ark-footer">
             <div className="container">
                 <div className="ark-footer__inner">
                     <div className="ark-footer__grid">
@@ -53,15 +53,9 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                             </p>
                             {footerContent?.showSocialLinks !== false && (
                                 <div className="ark-footer__social">
-                                    {profile.socialLinks?.linkedin && (
-                                        <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaLinkedin /></a>
-                                    )}
-                                    {profile.socialLinks?.twitter && (
-                                        <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaTwitter /></a>
-                                    )}
-                                    {profile.socialLinks?.github && (
-                                        <a href={profile.socialLinks.github} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaGithub /></a>
-                                    )}
+                                    <a href={profile.socialLinks?.linkedin || 'https://linkedin.com/company/muhizi-construction'} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaLinkedin /></a>
+                                    <a href={profile.socialLinks?.facebook || 'https://facebook.com/muhiziconstruction'} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaFacebook /></a>
+                                    <a href={profile.socialLinks?.instagram || 'https://instagram.com/muhizi_construction'} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaInstagram /></a>
                                 </div>
                             )}
                         </div>
@@ -98,11 +92,9 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                             <h4 className="ark-footer__col-title">Get in Touch</h4>
                             {footerContent?.showContactInfo !== false && (
                                 <>
-                                    <a href={`tel:${profile.phone}`} className="ark-footer__phone"><FaPhone size={12} style={{ marginRight: '6px' }} />{profile.phone || '123-456-7890'}</a>
-                                    <a href={`mailto:${profile.email}`} className="ark-footer__phone"><FaEnvelope size={12} style={{ marginRight: '6px' }} />{profile.email}</a>
-                                    {profile.location && (
-                                        <p className="ark-footer__address"><FaMapMarkerAlt size={12} style={{ marginRight: '6px' }} />{profile.location}</p>
-                                    )}
+                                    <a href={`tel:${profile.phone}`} className="ark-footer__phone"><FaPhone size={12} />{profile.phone || '123-456-7890'}</a>
+                                    <a href={`mailto:${profile.email}`} className="ark-footer__phone"><FaEnvelope size={12} />{profile.email}</a>
+                                    <p className="ark-footer__address"><FaMapMarkerAlt size={12} />{profile.location || 'Kigali, Rwanda'}</p>
                                     <iframe
                                         className="ark-footer__map"
                                         title="Location"

@@ -14,7 +14,7 @@ interface EventsProps {
 const Events: React.FC<EventsProps> = ({ events: propEvents }) => {
     const events = propEvents || defaultEvents;
     return (
-        <section className="section section-indicator" id="events">
+        <section data-nav-theme="light" className="section section-indicator" id="events">
             <div className="container">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
@@ -22,9 +22,14 @@ const Events: React.FC<EventsProps> = ({ events: propEvents }) => {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
                 >
-                    <span className="ark-section__sub" style={{ display: 'inline-block', marginLeft: '30px' }}>
+                    <motion.span
+                        className="ark-section__sub"
+                        style={{ display: 'inline-block', marginLeft: '30px' }}
+                        animate={{ x: [-20, 20, -20] }}
+                        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                    >
                         Upcoming
-                    </span>
+                    </motion.span>
                     <h2 className="ark-section__heading">Events</h2>
                 </motion.div>
 

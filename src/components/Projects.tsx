@@ -9,11 +9,16 @@ const Projects: React.FC<ProjectsProps> = ({ profile }) => {
     const displayProjects = profile.projects || [];
 
     return (
-        <section className="section projects" id="projects">
+        <section data-nav-theme="dark" className="section projects" id="projects">
             <div className="container">
-                <span className="ark-section__sub" style={{ display: 'inline-block', marginLeft: '30px', color: '#fff' }}>
+                <motion.span
+                    className="ark-section__sub"
+                    style={{ display: 'inline-block', marginLeft: '30px', color: '#fff' }}
+                    animate={{ x: [-20, 20, -20] }}
+                    transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                >
                     What We Do
-                </span>
+                </motion.span>
                 <h2 className="ark-section__heading">Projects</h2>
                 <motion.p
                     style={{
