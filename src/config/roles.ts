@@ -28,12 +28,6 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         ],
     },
     {
-        label: 'Content',
-        items: [
-            { path: '/admin/resources', icon: 'FaDatabase', label: 'CMS', roles: [ROLES.ADMIN] },
-        ],
-    },
-    {
         label: 'Operations',
         items: [
             { path: '/admin/projects', icon: 'FaProjectDiagram', label: 'Projects', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.CLIENT, ROLES.EMPLOYEE] },
@@ -78,6 +72,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.EMPLOYEE, ROLES.CLIENT] },
             { path: '/admin/users', icon: 'FaUsers', label: 'Users', roles: [ROLES.ADMIN] },
             { path: '/admin/permissions', icon: 'FaLock', label: 'Permissions', roles: [ROLES.ADMIN] },
+            { path: '/admin/resources', icon: 'FaDatabase', label: 'CMS', roles: [ROLES.ADMIN] },
             { path: '/admin/api-docs', icon: 'FaBook', label: 'API Docs', roles: [ROLES.ADMIN] },
             { path: '/admin/settings', icon: 'FaCog', label: 'Settings', roles: [ROLES.ADMIN] },
         ],
