@@ -16,6 +16,12 @@ export interface CreateSubscriberDto {
     source?: string;
 }
 
+export interface SendUpdateDto {
+    subject: string;
+    message: string;
+    html?: string;
+}
+
 const BASE = '/subscribers';
 
 export const subscriberService = {
@@ -41,5 +47,10 @@ export const subscriberService = {
 
     async remove(id: string): Promise<void> {
         await api.delete(`${BASE}/${id}`);
+    },
+
+    async sendUpdate(dto: SendUpdateDto): Promise<{ sent: number; total: number }> {
+        const res = await api.post(`${BASE}/send-update`, dto);
+        return res.data;
     },
 };

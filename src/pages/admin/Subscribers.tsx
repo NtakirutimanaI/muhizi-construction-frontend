@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { FaEnvelope, FaTrash, FaChevronLeft, FaChevronRight, FaSpinner } from 'react-icons/fa';
+import { FaEnvelope, FaTrash, FaChevronLeft, FaChevronRight, FaSpinner, FaPaperPlane, FaTimes } from 'react-icons/fa';
 import { subscriberService } from '../../services/subscriberService';
 import type { Subscriber } from '../../services/subscriberService';
 import { useToast } from '../../context/ToastContext';
@@ -13,6 +13,10 @@ const Subscribers = () => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
+    const [showSendUpdate, setShowSendUpdate] = useState(false);
+    const [updateSubject, setUpdateSubject] = useState('');
+    const [updateMessage, setUpdateMessage] = useState('');
+    const [sending, setSending] = useState(false);
     const { showToast } = useToast();
 
     useEffect(() => {
@@ -71,13 +75,39 @@ const Subscribers = () => {
         return '#ef4444';
     };
 
+    const handleSendUpdate = async () => {
+        if (!updateSubject.trim() || !updateMessage.trim()) {
+            showToast('Subject and message are required', 'error');
+            return;
+        }
+        setSending(true);
+        try {
+            const result = await subscriberService.sendUpdate({
+                subject: updateSubject.trim(),
+                message: updateMessage.trim(),
+            });
+            showToast(`Update sent to ${result.sent}/${result.total} subscribers`, 'success');
+            setShowSendUpdate(false);
+            setUpdateSubject('');
+            setUpdateMessage('');
+        } catch {
+            showToast('Failed to send update', 'error');
+        } finally {
+            setSending(false);
+        }
+    };
+
     if (loading) return <div style={{ padding: '4rem', textAlign: 'center', color: 'gray', fontSize: '1.2rem' }}><FaSpinner className="spin" /> Loading...</div>;
 
     return (
         <div className="admin-page">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}><FaEnvelope style={{ color: '#8B4513' }} /> Subscribers</h2>
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <button onClick={() => setShowSendUpdate(true)}
+                        style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <FaPaperPlane size={10} /> Send Update
+                    </button>
                     {(['total', 'active', 'inactive'] as const).map(k => (
                         <div key={k} className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: k === 'total' ? '#8B4513' : k === 'active' ? '#22c55e' : '#6b7280', color: '#fff' }}>
                             <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{counts[k]}</div>
@@ -150,6 +180,37 @@ const Subscribers = () => {
                     </div>
                 </div>
             </div>
+
+            {showSendUpdate && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => !sending && setShowSendUpdate(false)}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
+                    <div onClick={e => e.stopPropagation()} className="admin-modal" style={{ position: 'relative', padding: '2rem', maxWidth: '550px', width: '100%' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaPaperPlane style={{ color: '#2563eb' }} size={16} /> Send Update to Subscribers</h3>
+                            <button onClick={() => setShowSendUpdate(false)} disabled={sending} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', fontSize: '1.2rem' }}><FaTimes /></button>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', color: 'gray', marginBottom: '1rem' }}>
+                            This will send an email to all <strong>{counts.active} active</strong> subscribers.
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div>
+                                <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Subject</label>
+                                <input type="text" className="form-input" value={updateSubject} onChange={e => setUpdateSubject(e.target.value)} placeholder="e.g. New Project Announcement" style={{ width: '100%', padding: '0.4rem' }} />
+                            </div>
+                            <div>
+                                <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Message</label>
+                                <textarea className="form-input" value={updateMessage} onChange={e => setUpdateMessage(e.target.value)} placeholder="Write your message here..." rows={6} style={{ width: '100%', padding: '0.4rem', resize: 'vertical' }} />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #ddd' }}>
+                            <button onClick={() => setShowSendUpdate(false)} disabled={sending} style={{ padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+                            <button onClick={handleSendUpdate} disabled={sending} style={{ padding: '0.4rem 1.2rem', borderRadius: '6px', border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                                {sending ? <><FaSpinner className="spin" /> Sending...</> : <><FaPaperPlane /> Send to All</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
