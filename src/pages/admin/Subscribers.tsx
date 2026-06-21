@@ -13,6 +13,7 @@ const Subscribers = () => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [showSendUpdate, setShowSendUpdate] = useState(false);
     const [updateSubject, setUpdateSubject] = useState('');
     const [updateMessage, setUpdateMessage] = useState('');
@@ -80,20 +81,43 @@ const Subscribers = () => {
             showToast('Subject and message are required', 'error');
             return;
         }
+        const ids = Array.from(selectedIds);
+        if (!ids.length) {
+            showToast('Select at least one subscriber', 'error');
+            return;
+        }
         setSending(true);
         try {
             const result = await subscriberService.sendUpdate({
                 subject: updateSubject.trim(),
                 message: updateMessage.trim(),
+                subscriberIds: ids,
             });
             showToast(`Update sent to ${result.sent}/${result.total} subscribers`, 'success');
             setShowSendUpdate(false);
             setUpdateSubject('');
             setUpdateMessage('');
+            setSelectedIds(new Set());
         } catch {
             showToast('Failed to send update', 'error');
         } finally {
             setSending(false);
+        }
+    };
+
+    const toggleSelect = (id: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === paginated.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(paginated.map(s => s.id)));
         }
     };
 
@@ -104,9 +128,12 @@ const Subscribers = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}><FaEnvelope style={{ color: '#8B4513' }} /> Subscribers</h2>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <button onClick={() => setShowSendUpdate(true)}
+                    <button onClick={() => {
+                            if (!selectedIds.size) { showToast('Select subscribers first', 'error'); return; }
+                            setShowSendUpdate(true);
+                        }}
                         style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <FaPaperPlane size={10} /> Send Update
+                        <FaPaperPlane size={10} /> Send Update {selectedIds.size ? `(${selectedIds.size})` : ''}
                     </button>
                     {(['total', 'active', 'inactive'] as const).map(k => (
                         <div key={k} className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: k === 'total' ? '#8B4513' : k === 'active' ? '#22c55e' : '#6b7280', color: '#fff' }}>
@@ -132,10 +159,16 @@ const Subscribers = () => {
                 </div>
                 <div style={{ overflowX: 'auto' }}>
                     <table className="admin-table">
-                        <thead><tr><th>Email</th><th>Status</th><th>ML Score</th><th>Category</th><th>Source</th><th>Subscribed</th><th>Actions</th></tr></thead>
+                        <thead><tr>
+                            <th style={{ width: 40 }}>
+                                <input type="checkbox" checked={paginated.length > 0 && selectedIds.size === paginated.length} onChange={toggleSelectAll} style={{ cursor: 'pointer' }} />
+                            </th>
+                            <th>Email</th><th>Status</th><th>ML Score</th><th>Category</th><th>Source</th><th>Subscribed</th><th>Actions</th>
+                        </tr></thead>
                         <tbody>
                             {paginated.map(s => (
                                 <tr key={s.id}>
+                                    <td><input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelect(s.id)} style={{ cursor: 'pointer' }} /></td>
                                     <td><strong>{s.email}</strong></td>
                                     <td><span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '10px', background: s.isActive ? '#22c55e20' : '#6b728020', color: s.isActive ? '#22c55e' : '#6b7280' }}>{s.isActive ? 'Active' : 'Inactive'}</span></td>
                                     <td><span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '10px', background: `${scoreColor(s.mlScore)}20`, color: scoreColor(s.mlScore) }}>{s.mlScore}</span></td>
@@ -154,7 +187,7 @@ const Subscribers = () => {
                                     </div></td>
                                 </tr>
                             ))}
-                            {!paginated.length && <tr><td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'gray' }}>{search ? 'No match' : 'No subscribers yet.'}</td></tr>}
+                            {!paginated.length && <tr><td colSpan={8} style={{ padding: '2rem', textAlign: 'center', color: 'gray' }}>{search ? 'No match' : 'No subscribers yet.'}</td></tr>}
                         </tbody>
                     </table>
                 </div>
@@ -190,7 +223,7 @@ const Subscribers = () => {
                             <button onClick={() => setShowSendUpdate(false)} disabled={sending} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', fontSize: '1.2rem' }}><FaTimes /></button>
                         </div>
                         <p style={{ fontSize: '0.85rem', color: 'gray', marginBottom: '1rem' }}>
-                            This will send an email to all <strong>{counts.active} active</strong> subscribers.
+                            This will send an email to <strong>{selectedIds.size} selected</strong> subscriber(s).
                         </p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             <div>

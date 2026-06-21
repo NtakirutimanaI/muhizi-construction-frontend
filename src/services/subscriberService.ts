@@ -20,6 +20,7 @@ export interface SendUpdateDto {
     subject: string;
     message: string;
     html?: string;
+    subscriberIds?: string[];
 }
 
 const BASE = '/subscribers';
