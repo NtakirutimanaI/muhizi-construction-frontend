@@ -1,41 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FaLinkedin, FaFacebook, FaInstagram, FaArrowUp, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
 import type { Profile } from '../services/profileService';
+import { subscriberService } from '../services/subscriberService';
 
 interface FooterProps {
     profile: Profile;
 }
 
 const Footer: React.FC<FooterProps> = ({ profile }) => {
-    const [showScroll, setShowScroll] = useState(false);
     const [email, setEmail] = useState('');
+    const [subscribing, setSubscribing] = useState(false);
+    const [subscribeMsg, setSubscribeMsg] = useState('');
 
     const footerContent = profile.pageContent?.footer;
     const companyDesc = footerContent?.companyDescription || profile.about?.split('.')[0] || 'Construction & Real Estate';
     const copyright = footerContent?.copyrightText || `© ${new Date().getFullYear()}. By ${profile.firstName} ${profile.lastName}`;
     const quickLinks = footerContent?.quickLinks;
 
-    useEffect(() => {
-        const checkScroll = () => {
-            if (!showScroll && window.pageYOffset > 400) {
-                setShowScroll(true);
-            } else if (showScroll && window.pageYOffset <= 400) {
-                setShowScroll(false);
-            }
-        };
-        window.addEventListener('scroll', checkScroll);
-        return () => window.removeEventListener('scroll', checkScroll);
-    }, [showScroll]);
-
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleSubscribe = (e: React.FormEvent) => {
+    const handleSubscribe = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (email.trim()) {
-            alert('Thank you for subscribing!');
+        if (!email.trim()) return;
+        setSubscribing(true);
+        setSubscribeMsg('');
+        try {
+            await subscriberService.subscribe({ email: email.trim(), source: 'footer' });
+            setSubscribeMsg('Subscribed successfully!');
             setEmail('');
+        } catch (err: any) {
+            const msg = err?.response?.data?.message || 'Subscription failed. Try again.';
+            setSubscribeMsg(msg);
+        } finally {
+            setSubscribing(false);
+            setTimeout(() => setSubscribeMsg(''), 5000);
         }
     };
 
@@ -119,8 +119,16 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                                     required
                                     className="ark-footer__subscribe-input"
                                 />
-                                <button type="submit" className="ark-footer__subscribe-btn">Subscribe</button>
+                                <button type="submit" className="ark-footer__subscribe-btn" disabled={subscribing}>{subscribing ? 'Sending...' : 'Subscribe'}</button>
                             </form>
+                            {subscribeMsg && (
+                                <p style={{
+                                    marginTop: '0.5rem',
+                                    fontSize: '0.8rem',
+                                    color: subscribeMsg.includes('successfully') ? '#22c55e' : '#ef4444',
+                                    textAlign: 'center',
+                                }}>{subscribeMsg}</p>
+                            )}
                         </div>
                     </div>
 
@@ -133,11 +141,9 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
             </div>
 
             {/* Back to Top */}
-            {showScroll && (
-                <button onClick={scrollToTop} className="back-to-top-ark" aria-label="Back to top">
-                    <FaArrowUp />
-                </button>
-            )}
+            <button onClick={scrollToTop} className="back-to-top-ark" aria-label="Back to top">
+                <FaArrowUp />
+            </button>
         </footer>
     );
 };

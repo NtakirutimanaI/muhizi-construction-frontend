@@ -17,6 +17,7 @@ import Register from './pages/auth/Register';
 import AdminDashboard from './pages/admin/Dashboard';
 import ProfileManagement from './pages/admin/ProfileManagement';
 import ApiDocs from './pages/admin/ApiDocs';
+import Subscribers from './pages/admin/Subscribers';
 import MessagesInbox from './pages/admin/MessagesInbox';
 import MessagesSent from './pages/admin/MessagesSent';
 import MessagesTrash from './pages/admin/MessagesTrash';
@@ -122,6 +123,7 @@ function App() {
                       <Route index element={<AdminDashboard />} />
                       <Route path="profile" element={<ProfileManagement />} />
                       <Route path="api-docs" element={<ApiDocs />} />
+                      <Route path="subscribers" element={<Subscribers />} />
                       <Route path="messages" element={<Navigate to={`${b}/messages/inbox`} replace />} />
                       <Route path="messages/inbox" element={<MessagesInbox />} />
                       <Route path="messages/sent" element={<MessagesSent />} />
