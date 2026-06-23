@@ -245,10 +245,13 @@ const ServicesSection: React.FC<Props> = (props) => {
 /* ───── Top Service Editor ───── */
 const TopServiceEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const { showToast } = useToast();
-    const cards = profile.pageContent?.aboutSection?.cards || [];
-    const firstCard = cards[0] || { title: 'Building Construction', description: 'Residential and Commercial buildings' };
+    const allCards = profile.pageContent?.aboutSection?.cards || [];
+    const firstCard = allCards[0] || { title: 'Building Construction', description: 'Residential and Commercial buildings' };
     const [heading, setHeading] = useState(firstCard.title);
     const [subtitle, setSubtitle] = useState(firstCard.description);
+    const [extraCards, setExtraCards] = useState(allCards.slice(1));
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [form, setForm] = useState<{ title: string; description: string } | null>(null);
     const [localSaving, setLocalSaving] = useState(false);
 
     useEffect(() => {
@@ -256,22 +259,17 @@ const TopServiceEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         const fc = c[0] || { title: 'Building Construction', description: 'Residential and Commercial buildings' };
         setHeading(fc.title);
         setSubtitle(fc.description);
+        setExtraCards(c.slice(1));
     }, [profile.pageContent?.aboutSection?.cards]);
 
-    const save = async () => {
+    const save = async (updatedCards: typeof allCards) => {
         setLocalSaving(true);
         try {
-            const existingCards = [...(profile.pageContent?.aboutSection?.cards || [])];
-            if (existingCards.length > 0) {
-                existingCards[0] = { ...existingCards[0], title: heading, description: subtitle };
-            } else {
-                existingCards.push({ title: heading, description: subtitle });
-            }
             const pc = {
                 ...profile.pageContent,
                 aboutSection: {
                     ...(profile.pageContent?.aboutSection || {}),
-                    cards: existingCards,
+                    cards: updatedCards,
                 },
             };
             await onSave({ pageContent: pc });
@@ -283,22 +281,99 @@ const TopServiceEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         }
     };
 
+    const handleSaveFirst = async () => {
+        const updated = [{ title: heading, description: subtitle }, ...extraCards];
+        await save(updated);
+    };
+
+    const openNew = () => { setEditingIndex(-1); setForm({ title: '', description: '' }); };
+    const openEdit = (i: number) => { setEditingIndex(i); setForm({ ...extraCards[i] }); };
+    const cancel = () => { setEditingIndex(null); setForm(null); };
+
+    const handleSaveItem = async () => {
+        if (!form) return;
+        let updated = [...extraCards];
+        if (editingIndex === -1) updated.push(form);
+        else if (editingIndex !== null) updated[editingIndex] = form;
+        setExtraCards(updated);
+        cancel();
+        await save([{ title: heading, description: subtitle }, ...updated]);
+    };
+
+    const handleDelete = async (i: number) => {
+        if (!window.confirm('Delete this service card?')) return;
+        const updated = extraCards.filter((_, idx) => idx !== i);
+        setExtraCards(updated);
+        await save([{ title: heading, description: subtitle }, ...updated]);
+    };
+
     const isSaving = saving || localSaving;
 
     return (
-        <div className="content-card" style={{ padding: '1.5rem' }}>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Top Service Section</h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>This updates the first service card in the Overview section on the home page.</p>
-            <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                <label className="form-label">Heading</label>
-                <input value={heading} onChange={e => setHeading(e.target.value)} className="form-input" placeholder="Building Construction" />
+        <div>
+            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>First Service Card</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>This updates the first card in the Overview section on the home page.</p>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Heading</label>
+                    <input value={heading} onChange={e => setHeading(e.target.value)} className="form-input" placeholder="Building Construction" />
+                </div>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Subtitle</label>
+                    <textarea value={subtitle} onChange={e => setSubtitle(e.target.value)} className="form-textarea" rows={2} placeholder="Residential and Commercial buildings" />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button onClick={handleSaveFirst} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save First Card</>}</button>
+                </div>
             </div>
-            <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                <label className="form-label">Subtitle</label>
-                <textarea value={subtitle} onChange={e => setSubtitle(e.target.value)} className="form-textarea" rows={2} placeholder="Residential and Commercial buildings" />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Top Service</>}</button>
+
+            <div className="content-card" style={{ padding: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Additional Service Cards ({extraCards.length})</h3>
+                    <button onClick={openNew} disabled={editingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add New Service</button>
+                </div>
+
+                <AnimatePresence>
+                    {editingIndex !== null && form && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                            className="content-card" style={{ marginBottom: '1rem', padding: '1rem', border: '2px solid var(--primary)' }}
+                        >
+                            <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>{editingIndex === -1 ? 'New Service' : 'Edit Service'}</h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                <div className="form-group">
+                                    <label className="form-label">Title</label>
+                                    <input value={form.title} onChange={e => setForm(p => ({ ...p!, title: e.target.value }))} className="form-input" placeholder="Service title" />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Description</label>
+                                    <input value={form.description} onChange={e => setForm(p => ({ ...p!, description: e.target.value }))} className="form-input" placeholder="Service description" />
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                                <button onClick={cancel} className="admin-icon-btn" style={{ fontSize: '0.85rem', width: 'auto', padding: '0.4rem 0.8rem' }}>Cancel</button>
+                                <button onClick={handleSaveItem} disabled={isSaving} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}><FaSave /> Save</button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {extraCards.map((c, i) => (
+                        <div key={i} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.8rem' }}>
+                            <div>
+                                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{c.title}</div>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{c.description}</div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                                <button onClick={() => openEdit(i)} className="admin-icon-btn"><FaEdit /></button>
+                                <button onClick={() => handleDelete(i)} className="admin-icon-btn" style={{ color: 'var(--primary-red)' }}><FaTrash /></button>
+                            </div>
+                        </div>
+                    ))}
+                    {extraCards.length === 0 && (
+                        <div style={{ padding: '1.5rem', textAlign: 'center', border: '2px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>No additional cards yet. Click "Add New Service" above.</div>
+                    )}
+                </div>
             </div>
         </div>
     );
