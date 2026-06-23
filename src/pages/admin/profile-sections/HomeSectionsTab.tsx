@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaHome, FaConciergeBell, FaCalendarAlt, FaSave, FaPlus, FaEdit, FaTrash, FaTimes, FaYoutube, FaProjectDiagram, FaUsers, FaEnvelope, FaQuestionCircle, FaUpload, FaVideo } from 'react-icons/fa';
 import type { Profile } from '../../../services/profileService';
+import { profileService } from '../../../services/profileService';
 import { useToast } from '../../../context/ToastContext';
 import { uploadService } from '../../../services/uploadService';
 
@@ -423,8 +424,9 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                 if (editingIndex === -1) finalItems.push(newItem);
                 else if (editingIndex !== null) finalItems[editingIndex] = newItem;
             }
-            const pc = { ...profile.pageContent, services: { heading, subtitle, items: finalItems } };
-            await onSave({ pageContent: pc });
+            const pc = { ...(profile.pageContent || {}), services: { heading, subtitle, items: finalItems } };
+            const updated = await profileService.updateProfile({ pageContent: pc });
+            window.dispatchEvent(new CustomEvent('profile-updated'));
             setSaveMessage('Services saved successfully!');
             setTimeout(() => setSaveMessage(null), 4000);
             showToast('Services saved successfully!', 'success');

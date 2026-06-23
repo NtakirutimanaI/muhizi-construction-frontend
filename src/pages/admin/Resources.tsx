@@ -47,6 +47,11 @@ const Resources = () => {
     const [filter, setFilter] = useState<SectionId>(tabParam || 'home-sections');
 
     useEffect(() => { loadProfile(); }, []);
+    useEffect(() => {
+        const handler = () => loadProfile();
+        window.addEventListener('profile-updated', handler);
+        return () => window.removeEventListener('profile-updated', handler);
+    }, []);
     useEffect(() => { if (tabParam && SECTIONS.includes(tabParam)) setFilter(tabParam); }, [tabParam]);
 
     const loadProfile = async () => {
