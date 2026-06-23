@@ -420,24 +420,17 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
         setUploading(true);
-        setUploadProgress(0);
+        setUploadProgress(10);
         try {
             const fileArray = Array.from(files);
-            const results: string[] = [];
-            for (let i = 0; i < fileArray.length; i++) {
-                setUploadProgress(Math.round(((i) / fileArray.length) * 100));
-                try {
-                    const uploaded = await uploadService.uploadBase64(fileArray[i]);
-                    results.push(uploaded.secureUrl);
-                } catch {
-                    const uploaded = await uploadService.uploadFile(fileArray[i]);
-                    results.push(uploaded.secureUrl);
-                }
-            }
+            const results = await Promise.all(fileArray.map((f) =>
+                uploadService.uploadFile(f).then(r => r.secureUrl)
+            ));
             setForm(p => ({ ...p!, images: [...(p?.images || []), ...results] }));
             setUploadProgress(100);
+            setTimeout(() => setUploadProgress(0), 1500);
         } catch (e: any) {
-            alert('Failed to upload image(s): ' + (e?.message || 'unknown error'));
+            alert('Upload failed: ' + (e?.response?.data?.message || e?.message || 'unknown error'));
         } finally {
             setUploading(false);
         }

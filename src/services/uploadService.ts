@@ -24,6 +24,7 @@ export const uploadService = {
         const token = localStorage.getItem('accessToken');
         const response = await axios.post(`${API_BASE_URL}/upload`, formData, {
             headers: { Authorization: `Bearer ${token}` },
+            timeout: 60000,
             onUploadProgress: (e) => {
                 if (e.total && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
             },
@@ -49,6 +50,7 @@ export const uploadService = {
             data: base64,
         }, {
             headers: { Authorization: `Bearer ${token}` },
+            timeout: 60000,
         });
         return response.data;
     },
@@ -59,6 +61,7 @@ export const uploadService = {
         const token = localStorage.getItem('accessToken');
         const response = await axios.post(`${API_BASE_URL}/upload/multiple`, formData, {
             headers: { Authorization: `Bearer ${token}` },
+            timeout: 120000,
         });
         return response.data;
     },
