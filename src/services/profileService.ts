@@ -120,11 +120,6 @@ export interface Profile {
             body: string;
             color: string;
         }>;
-        topServices?: {
-            heading?: string;
-            subtitle?: string;
-            imageUrl?: string;
-        };
         services?: {
             heading?: string;
             subtitle?: string;
@@ -142,6 +137,13 @@ export interface Profile {
             location: string;
             description: string;
         }>;
+        aboutSection?: {
+            heading?: string;
+            subtitle?: string;
+            cards?: Array<{ title: string; description: string }>;
+            tickerText?: string;
+            imageUrl?: string;
+        };
         aboutStats?: Array<{
             value: number;
             suffix: string;
@@ -168,10 +170,16 @@ export interface Profile {
             secondaryButtonText: string;
             secondaryButtonLink: string;
         };
+        projectsSection?: {
+            heading?: string;
+            subtitle?: string;
+        };
         followUs?: {
             heading?: string;
             subtitle?: string;
             youtubeUrl?: string;
+            viewMoreText?: string;
+            viewMoreUrl?: string;
             videos?: Array<{
                 url: string;
                 title: string;
@@ -193,6 +201,7 @@ export interface Profile {
             companyDescription?: string;
             copyrightText?: string;
             quickLinks?: Array<{ label: string; url: string }>;
+            servicesList?: Array<{ label: string }>;
             showSocialLinks?: boolean;
             showContactInfo?: boolean;
         };

@@ -16,6 +16,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
     const companyDesc = footerContent?.companyDescription || profile.about?.split('.')[0] || 'Construction & Real Estate';
     const copyright = footerContent?.copyrightText || `© ${new Date().getFullYear()}. By ${profile.firstName} ${profile.lastName}`;
     const quickLinks = footerContent?.quickLinks;
+    const servicesList = footerContent?.servicesList;
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -80,11 +81,17 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                         {/* Services */}
                         <div className="ark-footer__col">
                             <h4 className="ark-footer__col-title">Services</h4>
-                            <span className="ark-footer__link">Building Construction</span>
-                            <span className="ark-footer__link">Road Construction</span>
-                            <span className="ark-footer__link">Real Estate</span>
-                            <span className="ark-footer__link">Property Management</span>
-                            <span className="ark-footer__link">Architectural Design</span>
+                            {servicesList && servicesList.length > 0 ? servicesList.map((s, i) => (
+                                <span key={i} className="ark-footer__link">{s.label}</span>
+                            )) : (
+                                <>
+                                    <span className="ark-footer__link">Building Construction</span>
+                                    <span className="ark-footer__link">Road Construction</span>
+                                    <span className="ark-footer__link">Real Estate</span>
+                                    <span className="ark-footer__link">Property Management</span>
+                                    <span className="ark-footer__link">Architectural Design</span>
+                                </>
+                            )}
                         </div>
 
                         {/* Contact & Map */}

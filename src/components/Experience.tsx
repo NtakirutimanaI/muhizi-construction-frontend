@@ -172,7 +172,7 @@ const Experience: React.FC = () => {
                 </div>
 
                 <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                    <Link to="/about" style={{
+                    <Link to={fu?.viewMoreUrl || '/about'} style={{
                         background: 'transparent',
                         color: '#000',
                         fontWeight: 700,
@@ -189,7 +189,7 @@ const Experience: React.FC = () => {
                         onMouseEnter={(e) => { e.currentTarget.style.background = '#1B2042'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#1B2042'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000'; e.currentTarget.style.borderColor = '#000'; }}
                     >
-                        View More Videos &rarr;
+                        {fu?.viewMoreText || 'View More Videos'} &rarr;
                     </Link>
                 </div>
             </div>

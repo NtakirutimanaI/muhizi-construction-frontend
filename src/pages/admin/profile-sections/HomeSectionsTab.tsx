@@ -244,40 +244,43 @@ const ServicesSection: React.FC<Props> = (props) => {
 
 /* ───── Top Service Editor ───── */
 const TopServiceEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
-    const ts = profile.pageContent?.topServices;
-    const [heading, setHeading] = useState(ts?.heading || '');
-    const [subtitle, setSubtitle] = useState(ts?.subtitle || '');
-    const [imageUrl, setImageUrl] = useState(ts?.imageUrl || '');
+    const { showToast } = useToast();
+    const cards = profile.pageContent?.aboutSection?.cards || [];
+    const firstCard = cards[0] || { title: 'Building Construction', description: 'Residential and Commercial buildings' };
+    const [heading, setHeading] = useState(firstCard.title);
+    const [subtitle, setSubtitle] = useState(firstCard.description);
     const [localSaving, setLocalSaving] = useState(false);
-    const [uploading, setUploading] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        const d = profile.pageContent?.topServices;
-        setHeading(d?.heading || '');
-        setSubtitle(d?.subtitle || '');
-        setImageUrl(d?.imageUrl || '');
-    }, [profile.pageContent?.topServices]);
-
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setUploading(true);
-        try {
-            const uploaded = await uploadService.uploadFile(file);
-            setImageUrl(uploaded.secureUrl);
-        } catch {
-            alert('Failed to upload image');
-        } finally {
-            setUploading(false);
-        }
-    };
+        const c = profile.pageContent?.aboutSection?.cards || [];
+        const fc = c[0] || { title: 'Building Construction', description: 'Residential and Commercial buildings' };
+        setHeading(fc.title);
+        setSubtitle(fc.description);
+    }, [profile.pageContent?.aboutSection?.cards]);
 
     const save = async () => {
         setLocalSaving(true);
-        const pc = { ...profile.pageContent, topServices: { heading, subtitle, imageUrl } };
-        await onSave({ pageContent: pc });
-        setLocalSaving(false);
+        try {
+            const existingCards = [...(profile.pageContent?.aboutSection?.cards || [])];
+            if (existingCards.length > 0) {
+                existingCards[0] = { ...existingCards[0], title: heading, description: subtitle };
+            } else {
+                existingCards.push({ title: heading, description: subtitle });
+            }
+            const pc = {
+                ...profile.pageContent,
+                aboutSection: {
+                    ...(profile.pageContent?.aboutSection || {}),
+                    cards: existingCards,
+                },
+            };
+            await onSave({ pageContent: pc });
+            showToast('Top service saved successfully!', 'success');
+        } catch (e: any) {
+            showToast(e?.message || 'Failed to save', 'error');
+        } finally {
+            setLocalSaving(false);
+        }
     };
 
     const isSaving = saving || localSaving;
@@ -285,26 +288,14 @@ const TopServiceEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     return (
         <div className="content-card" style={{ padding: '1.5rem' }}>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Top Service Section</h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>This updates the first service card in the Overview section on the home page.</p>
             <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                 <label className="form-label">Heading</label>
-                <input value={heading} onChange={e => setHeading(e.target.value)} className="form-input" placeholder="Our Services" />
+                <input value={heading} onChange={e => setHeading(e.target.value)} className="form-input" placeholder="Building Construction" />
             </div>
             <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                 <label className="form-label">Subtitle</label>
-                <textarea value={subtitle} onChange={e => setSubtitle(e.target.value)} className="form-textarea" rows={2} placeholder="Brief introduction to your services" />
-            </div>
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label">Image</label>
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    {imageUrl && (
-                        <div style={{ position: 'relative', width: 160, height: 100, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                            <img src={imageUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            <button type="button" onClick={() => setImageUrl('')} style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: 22, height: 22, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
-                        </div>
-                    )}
-                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>{uploading ? 'Uploading...' : <><FaUpload /> {imageUrl ? 'Replace Image' : 'Upload Image'}</>}</button>
-                </div>
+                <textarea value={subtitle} onChange={e => setSubtitle(e.target.value)} className="form-textarea" rows={2} placeholder="Residential and Commercial buildings" />
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Top Service</>}</button>
@@ -316,10 +307,19 @@ const TopServiceEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
 /* ───── Services Editor (Bottom Services) ───── */
 interface ServiceItemForm { title: string; description: string; tags: string; color: string; images: string[]; }
 
+const defaultServiceItems = [
+    { title: 'Building Construction', description: 'High-quality residential, commercial, and industrial building construction using modern techniques and premium materials — delivered on time and within budget.', color: '#7BC043', tags: ['Residential', 'Commercial', 'Industrial', 'Infrastructure', 'Government', 'Project Management', 'Consultation'], images: [] },
+    { title: 'Road Construction', description: 'Comprehensive road and highway construction services including asphalt paving, earthworks, drainage systems, and bridge construction for public and private sectors.', color: '#4ecdc4', tags: ['Highways', 'Bridges', 'Asphalt Paving', 'Earthworks', 'Drainage', 'Urban Roads', 'Rural Roads'], images: [] },
+    { title: 'Real Estate Development', description: 'End-to-end real estate development from land acquisition and feasibility studies to design, construction, and property marketing — creating value at every stage.', color: '#ff5252', tags: ['Land Acquisition', 'Feasibility Studies', 'Design & Build', 'Property Marketing', 'Mixed-Use', 'Residential Estates', 'Commercial Plazas'], images: [] },
+    { title: 'Property Management', description: 'Professional property management services including tenant sourcing, rent collection, maintenance coordination, and 24/7 emergency response for residential and commercial properties.', color: '#ff9f43', tags: ['Tenant Sourcing', 'Rent Collection', 'Maintenance', 'Emergency Response', 'Commercial Leasing', 'Residential Leasing', 'Facility Management'], images: [] },
+    { title: 'Architectural Design', description: 'Innovative architectural design services from concept to completion — creating functional, sustainable, and aesthetically outstanding buildings and spaces.', color: '#fd79a8', tags: ['Concept Design', 'Sustainable Architecture', '3D Visualization', 'Structural Planning', 'Interior Design', 'Urban Design', 'Landscaping'], images: [] },
+    { title: 'Interior & Exterior Finishing', description: 'Premium interior and exterior finishing services including painting, flooring, tiling, ceiling installation, façade cladding, and landscaping — adding the perfect final touch.', color: '#fdcb6e', tags: ['Painting', 'Flooring', 'Tiling', 'Ceiling', 'Façade Cladding', 'Landscaping', 'Joinery'], images: [] },
+];
+
 const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const [heading, setHeading] = useState(profile.pageContent?.services?.heading || 'Core Services');
-    const [subtitle, setSubtitle] = useState(profile.pageContent?.services?.subtitle || '');
-    const [items, setItems] = useState(profile.pageContent?.services?.items || []);
+    const [subtitle, setSubtitle] = useState(profile.pageContent?.services?.subtitle || 'We deliver end-to-end construction and real estate solutions tailored to your needs — from planning and design to execution and project handover.');
+    const [items, setItems] = useState(profile.pageContent?.services?.items?.length ? profile.pageContent.services.items : defaultServiceItems);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [form, setForm] = useState<ServiceItemForm | null>(null);
     const [localSaving, setLocalSaving] = useState(false);
@@ -330,8 +330,8 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     useEffect(() => {
         const pc = profile.pageContent;
         setHeading(pc?.services?.heading || 'Core Services');
-        setSubtitle(pc?.services?.subtitle || '');
-        setItems(pc?.services?.items || []);
+        setSubtitle(pc?.services?.subtitle || 'We deliver end-to-end construction and real estate solutions tailored to your needs — from planning and design to execution and project handover.');
+        setItems(pc?.services?.items?.length ? pc.services.items : defaultServiceItems);
     }, [profile.pageContent]);
 
     const save = async () => {
@@ -583,6 +583,8 @@ const FollowUsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const [subtitle, setSubtitle] = useState(fu?.subtitle || 'Watch our latest projects and company updates');
     const [youtubeUrl, setYoutubeUrl] = useState(fu?.youtubeUrl || 'https://www.youtube.com/embed/CJtOOX23Ofo');
     const [yearsOfExperience, setYearsOfExperience] = useState(profile.yearsOfExperience || 0);
+    const [viewMoreText, setViewMoreText] = useState(fu?.viewMoreText || 'View More Videos');
+    const [viewMoreUrl, setViewMoreUrl] = useState(fu?.viewMoreUrl || '/about');
     const [videos, setVideos] = useState(fu?.videos || [
         { url: 'https://www.youtube.com/embed/CJtOOX23Ofo', title: 'Construction project timelapse', description: '' },
         { url: 'https://www.youtube.com/embed/CJtOOX23Ofo', title: 'Behind the scenes showcase', description: '' },
@@ -596,6 +598,8 @@ const FollowUsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         setHeading(d?.heading || 'Follow Us');
         setSubtitle(d?.subtitle || 'Watch our latest projects and company updates');
         setYoutubeUrl(d?.youtubeUrl || 'https://www.youtube.com/embed/CJtOOX23Ofo');
+        setViewMoreText(d?.viewMoreText || 'View More Videos');
+        setViewMoreUrl(d?.viewMoreUrl || '/about');
         setYearsOfExperience(profile.yearsOfExperience || 0);
         setVideos(d?.videos || [
             { url: 'https://www.youtube.com/embed/CJtOOX23Ofo', title: 'Construction project timelapse', description: '' },
@@ -605,7 +609,7 @@ const FollowUsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
 
     const save = async () => {
         setLocalSaving(true);
-        const pc = { ...profile.pageContent, followUs: { heading, subtitle, youtubeUrl, videos } };
+        const pc = { ...profile.pageContent, followUs: { heading, subtitle, youtubeUrl, videos, viewMoreText, viewMoreUrl } };
         await onSave({ pageContent: pc, yearsOfExperience } as any);
         setLocalSaving(false);
     };
@@ -649,6 +653,16 @@ const FollowUsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                 <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                     <label className="form-label">Main YouTube URL</label>
                     <input value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} className="form-input" placeholder="https://www.youtube.com/embed/..." />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <div className="form-group">
+                        <label className="form-label">View More Text</label>
+                        <input value={viewMoreText} onChange={e => setViewMoreText(e.target.value)} className="form-input" placeholder="View More Videos" />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">View More URL</label>
+                        <input value={viewMoreUrl} onChange={e => setViewMoreUrl(e.target.value)} className="form-input" placeholder="/about" />
+                    </div>
                 </div>
             </div>
 
@@ -754,10 +768,43 @@ const ProjectsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
 
     const isSaving = saving || localSaving;
 
+    const ps = profile.pageContent?.projectsSection;
+    const [sectionHeading, setSectionHeading] = useState(ps?.heading || 'Featured Projects');
+    const [sectionSubtitle, setSectionSubtitle] = useState(ps?.subtitle || 'Some of our recent work');
+
+    useEffect(() => {
+        const d = profile.pageContent?.projectsSection;
+        setSectionHeading(d?.heading || 'Featured Projects');
+        setSectionSubtitle(d?.subtitle || 'Some of our recent work');
+    }, [profile.pageContent?.projectsSection]);
+
+    const saveSection = async () => {
+        setLocalSaving(true);
+        const pc = { ...profile.pageContent, projectsSection: { heading: sectionHeading, subtitle: sectionSubtitle } };
+        await onSave({ pageContent: pc } as any);
+        setLocalSaving(false);
+    };
+
     return (
         <div>
+            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Projects Section Settings</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <div className="form-group">
+                        <label className="form-label">Heading</label>
+                        <input value={sectionHeading} onChange={e => setSectionHeading(e.target.value)} className="form-input" placeholder="Featured Projects" />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Subtitle</label>
+                        <input value={sectionSubtitle} onChange={e => setSectionSubtitle(e.target.value)} className="form-input" placeholder="Some of our recent work" />
+                    </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
+                    <button onClick={saveSection} disabled={isSaving} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>{isSaving ? 'Saving...' : <><FaSave /> Save Section</>}</button>
+                </div>
+            </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Projects ({projects.length})</h3>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Project Items ({projects.length})</h3>
                 <button onClick={openNew} disabled={editingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add</button>
             </div>
             <AnimatePresence>

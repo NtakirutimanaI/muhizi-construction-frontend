@@ -7,6 +7,7 @@ interface ProjectsProps {
 
 const Projects: React.FC<ProjectsProps> = ({ profile }) => {
     const displayProjects = profile.projects || [];
+    const ps = profile.pageContent?.projectsSection;
 
     return (
         <section data-nav-theme="dark" className="section projects" id="projects">
@@ -19,7 +20,7 @@ const Projects: React.FC<ProjectsProps> = ({ profile }) => {
                 >
                     What We Do
                 </motion.span>
-                <h2 className="ark-section__heading">Projects</h2>
+                <h2 className="ark-section__heading">{ps?.heading || 'Projects'}</h2>
                 <motion.p
                     style={{
                         maxWidth: '600px', margin: '0 auto 3rem', color: '#ffffff',
@@ -30,7 +31,7 @@ const Projects: React.FC<ProjectsProps> = ({ profile }) => {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
                 >
-                    All our construction projects are delivered with the highest quality standards, on time and within budget. From residential buildings to major infrastructure, each project reflects our commitment to excellence and client satisfaction. Some of our successful projects showcase
+                    {ps?.subtitle || 'All our construction projects are delivered with the highest quality standards, on time and within budget. From residential buildings to major infrastructure, each project reflects our commitment to excellence and client satisfaction. Some of our successful projects showcase'}
                 </motion.p>
                 <div className="projects__grid">
                     {displayProjects.map((project, index) => {
