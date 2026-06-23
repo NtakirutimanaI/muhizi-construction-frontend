@@ -54,7 +54,7 @@ const PayrollPage = () => {
             setData(payRes.data || []);
             const empData = empRes.data || [];
             const users = Array.isArray(usersRes) ? usersRes : [];
-            const employeeUsers = users.filter((u: any) => u.role === 'employee');
+            const employeeUsers = users.filter((u: any) => u.role === 'engineering_studio');
             const empEmails = new Set(empData.map((e: Employee) => e.email.toLowerCase()));
             const missing = employeeUsers.filter((u: any) => {
                 const email = (u.email || '').toLowerCase();

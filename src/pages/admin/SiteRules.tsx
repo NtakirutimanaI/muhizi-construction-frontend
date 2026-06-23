@@ -31,7 +31,7 @@ const emptyForm: FormData = { title: '', iconName: 'FaBullhorn', pinColor: '#e74
 const SiteRules = () => {
     const { user } = useAuth();
     const role = user?.role || '';
-    const canManage = role === 'admin' || role === 'site_manager';
+    const canManage = role === 'admin' || role === 'site_engineer';
 
     const [rules, setRules] = useState<SiteRule[]>([]);
     const [loading, setLoading] = useState(true);

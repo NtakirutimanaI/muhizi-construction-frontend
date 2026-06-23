@@ -4,7 +4,7 @@ import { profileService } from '../../services/profileService';
 import { authService } from '../../services/authService';
 import { useToast } from '../../context/ToastContext';
 
-const ROLES: string[] = ['admin', 'site_manager', 'manager', 'employee', 'client'];
+const ROLES: string[] = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'client'];
 
 interface UserData {
     id: string;
@@ -43,16 +43,17 @@ const PERMISSION_GROUPS: PermissionGroup[] = [
 
 const DEFAULT_PERMISSIONS: Record<string, string[]> = {
     admin: ['*'],
-    site_manager: ['profile:read', 'profile:update', 'messages:read', 'messages:update', 'resources:read', 'resources:create', 'resources:update', 'notifications:read', 'visitors:read'],
-    manager: ['profile:read', 'messages:read', 'resources:read', 'notifications:read', 'visitors:read'],
-    employee: ['profile:read', 'messages:read', 'resources:read'],
+    managing_director: ['profile:read', 'messages:read', 'resources:read', 'notifications:read', 'visitors:read'],
+    finance_director: ['profile:read', 'messages:read', 'resources:read', 'notifications:read', 'visitors:read', 'incomes:read', 'incomes:create', 'incomes:update', 'expenses:read', 'expenses:create', 'expenses:update', 'payroll:read', 'reports:read'],
+    site_engineer: ['profile:read', 'profile:update', 'messages:read', 'messages:update', 'resources:read', 'resources:create', 'resources:update', 'notifications:read', 'visitors:read', 'projects:read', 'designs:read'],
+    engineering_studio: ['profile:read', 'messages:read', 'resources:read', 'projects:read', 'designs:read', 'designs:create', 'designs:update'],
     client: ['profile:read'],
 };
 
 const LOCAL_KEY = 'app_permissions';
 
-const roleColors: Record<string, string> = { admin: '#ef4444', site_manager: '#f59e0b', manager: '#1B2042', employee: '#22c55e', client: '#8b5cf6' };
-const roleLabels: Record<string, string> = { admin: 'Admin', site_manager: 'Site Manager', manager: 'Manager', employee: 'Employee', client: 'Client' };
+const roleColors: Record<string, string> = { admin: '#ef4444', managing_director: '#1B2042', finance_director: '#f59e0b', site_engineer: '#22c55e', engineering_studio: '#3b82f6', client: '#8b5cf6' };
+const roleLabels: Record<string, string> = { admin: 'CEO', managing_director: 'Managing Director', finance_director: 'Finance Director', site_engineer: 'Site Engineer', engineering_studio: 'Engineering Studio', client: 'Client' };
 
 export default function Permissions() {
     const { showToast } = useToast();

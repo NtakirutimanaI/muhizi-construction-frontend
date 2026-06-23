@@ -15,7 +15,7 @@ interface UserData {
     updatedAt?: string;
 }
 
-const ROLES = ['admin', 'site_manager', 'manager', 'employee', 'client'];
+const ROLES = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'client'];
 const PAGE_SIZES = [5, 10, 15, 20];
 
 const Users = () => {
@@ -24,7 +24,7 @@ const Users = () => {
     const [showModal, setShowModal] = useState<'add' | 'edit' | 'view' | null>(null);
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
     const [form, setForm] = useState({
-        firstName: '', lastName: '', email: '', username: '', password: '', role: 'employee', isActive: true, phone: '',
+        firstName: '', lastName: '', email: '', username: '', password: '', role: 'site_engineer', isActive: true, phone: '',
     });
     const [showPassword, setShowPassword] = useState(false);
     const [passwordError, setPasswordError] = useState('');
@@ -211,7 +211,7 @@ const Users = () => {
     }, [totalPages, page]);
 
     const openAdd = () => {
-        setForm({ firstName: '', lastName: '', email: '', username: '', password: '', role: 'employee', isActive: true, phone: '' });
+        setForm({ firstName: '', lastName: '', email: '', username: '', password: '', role: 'site_engineer', isActive: true, phone: '' });
         setSelectedUser(null);
         setPasswordError('');
         setModalPos(null);
@@ -285,7 +285,7 @@ const Users = () => {
     if (loading) return <div className="admin-page"><div className="inline-spinner">Loading users...</div></div>;
 
     const roleColors: Record<string, string> = {
-        admin: '#ef4444', site_manager: '#f59e0b', manager: '#1B2042', employee: '#22c55e', client: '#8b5cf6',
+        admin: '#ef4444', managing_director: '#1B2042', finance_director: '#f59e0b', site_engineer: '#22c55e', engineering_studio: '#3b82f6', client: '#8b5cf6',
     };
 
     const modalTitle = showModal === 'add' ? 'Add User' : showModal === 'edit' ? 'Edit User' : 'User Details';
@@ -311,11 +311,11 @@ const Users = () => {
                     </div>
                     <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{users.filter(u => u.role === 'admin').length}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Admins</div>
+                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>CEO</div>
                     </div>
                     <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{users.filter(u => u.role === 'site_manager').length}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Mgrs</div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{users.filter(u => u.role === 'managing_director').length}</div>
+                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>M. Director</div>
                     </div>
                 </div>
             </div>

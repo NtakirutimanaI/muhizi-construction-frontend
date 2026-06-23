@@ -4,6 +4,10 @@ export const ROLES = {
     MANAGER: 'manager',
     EMPLOYEE: 'employee',
     CLIENT: 'client',
+    MANAGING_DIRECTOR: 'managing_director',
+    FINANCE_DIRECTOR: 'finance_director',
+    SITE_ENGINEER: 'site_engineer',
+    ENGINEERING_STUDIO: 'engineering_studio',
 } as const;
 
 export type Role = (typeof ROLES)[keyof typeof ROLES];
@@ -24,39 +28,38 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     {
         label: 'Main',
         items: [
-            { path: '/admin', icon: 'FaChartBar', label: 'Dashboard', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.EMPLOYEE, ROLES.CLIENT] },
+            { path: '/admin', icon: 'FaChartBar', label: 'Dashboard', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.CLIENT] },
         ],
     },
     {
         label: 'Operations',
         items: [
-            { path: '/admin/projects', icon: 'FaProjectDiagram', label: 'Projects', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.CLIENT, ROLES.EMPLOYEE] },
-            { path: '/admin/designs', icon: 'FaDraftingCompass', label: 'Designs', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.CLIENT] },
-            { path: '/admin/site-activities', icon: 'FaHardHat', label: 'Activities', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.EMPLOYEE] },
-            { path: '/admin/material-requests', icon: 'FaTruck', label: 'Material Requests', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER] },
-            { path: '/admin/project-evidence', icon: 'FaCamera', label: 'Project Evidence', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER] },
-            { path: '/admin/approvals', icon: 'FaCheckDouble', label: 'Approvals', roles: [ROLES.ADMIN, ROLES.MANAGER] },
+            { path: '/admin/projects', icon: 'FaProjectDiagram', label: 'Projects', roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.CLIENT] },
+            { path: '/admin/designs', icon: 'FaDraftingCompass', label: 'Designs', roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.CLIENT] },
+            { path: '/admin/site-activities', icon: 'FaHardHat', label: 'Activities', roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/material-requests', icon: 'FaTruck', label: 'Material Requests', roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER] },
+            { path: '/admin/project-evidence', icon: 'FaCamera', label: 'Project Evidence', roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER] },
+            { path: '/admin/approvals', icon: 'FaCheckDouble', label: 'Approvals', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.CLIENT] },
-            { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.EMPLOYEE] },
+            { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
         ],
     },
     {
         label: 'HR',
         items: [
-            { path: '/admin/employees', icon: 'FaUserTie', label: 'Employees', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER] },
-            { path: '/admin/attendance', icon: 'FaClipboardList', label: 'Attendance', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.EMPLOYEE] },
-            { path: '/admin/employee-assignments', icon: 'FaTasks', label: 'Assignments', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.SITE_MANAGER] },
-            { path: '/admin/salary-history', icon: 'FaHistory', label: 'Salary History', roles: [ROLES.EMPLOYEE] },
-            { path: '/admin/payroll', icon: 'FaMoneyBillWave', label: 'Payroll', roles: [ROLES.ADMIN, ROLES.MANAGER] },
-            { path: '/admin/contracts', icon: 'FaFileAlt', label: 'Contracts', roles: [ROLES.ADMIN, ROLES.MANAGER] },
+            { path: '/admin/employees', icon: 'FaUserTie', label: 'Employees', roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/attendance', icon: 'FaClipboardList', label: 'Attendance', roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/employee-assignments', icon: 'FaTasks', label: 'Assignments', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER] },
+            { path: '/admin/payroll', icon: 'FaMoneyBillWave', label: 'Payroll', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/contracts', icon: 'FaFileAlt', label: 'Contracts', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR] },
         ],
     },
     {
         label: 'Finance',
         items: [
-            { path: '/admin/incomes', icon: 'FaArrowUp', label: 'Incomes', roles: [ROLES.ADMIN, ROLES.MANAGER] },
-            { path: '/admin/expenses', icon: 'FaArrowDown', label: 'Expenses', roles: [ROLES.ADMIN, ROLES.MANAGER] },
-            { path: '/admin/reports', icon: 'FaChartPie', label: 'Reports', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER] },
+            { path: '/admin/incomes', icon: 'FaArrowUp', label: 'Incomes', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/expenses', icon: 'FaArrowDown', label: 'Expenses', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/reports', icon: 'FaChartPie', label: 'Reports', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
         ],
     },
     {
@@ -69,7 +72,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     {
         label: 'Admin',
         items: [
-            { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.EMPLOYEE, ROLES.CLIENT] },
+            { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO, ROLES.CLIENT] },
             { path: '/admin/users', icon: 'FaUsers', label: 'Users', roles: [ROLES.ADMIN] },
             { path: '/admin/permissions', icon: 'FaLock', label: 'Permissions', roles: [ROLES.ADMIN] },
             { path: '/admin/resources', icon: 'FaDatabase', label: 'CMS', roles: [ROLES.ADMIN] },
@@ -88,9 +91,10 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
 
 export const ROLE_PATH_MAP: Record<string, string> = {
   [ROLES.ADMIN]: '/admin',
-  [ROLES.MANAGER]: '/manager',
-  [ROLES.SITE_MANAGER]: '/site-manager',
-  [ROLES.EMPLOYEE]: '/employee',
+  [ROLES.MANAGING_DIRECTOR]: '/admin',
+  [ROLES.FINANCE_DIRECTOR]: '/admin',
+  [ROLES.SITE_ENGINEER]: '/admin',
+  [ROLES.ENGINEERING_STUDIO]: '/admin',
   [ROLES.CLIENT]: '/client',
 };
 
