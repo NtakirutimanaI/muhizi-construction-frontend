@@ -4336,6 +4336,10 @@ img {
   color: #fff;
 }
 
+.service-cards > .service-card:last-child:nth-child(4) {
+  grid-column: 2;
+}
+
 .service-card-icon {
   font-size: 2rem;
   color: #333;
