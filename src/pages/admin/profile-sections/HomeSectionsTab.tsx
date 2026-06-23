@@ -401,6 +401,7 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const [localSaving, setLocalSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [saveMessage, setSaveMessage] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -412,22 +413,26 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
 
     const save = async () => {
         setLocalSaving(true);
+        setSaveMessage(null);
         try {
             let finalItems = items;
             if (form) {
                 finalItems = [...items];
-                const newItem = { title: form.title, description: form.description, tags: form.tags.split(',').map(t => t.trim()).filter(Boolean), color: form.color, images: form.images };
+                const tags = (form.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+                const newItem = { title: form.title || '', description: form.description || '', tags, color: form.color || '#1B2042', images: form.images || [] };
                 if (editingIndex === -1) finalItems.push(newItem);
                 else if (editingIndex !== null) finalItems[editingIndex] = newItem;
             }
             const pc = { ...profile.pageContent, services: { heading, subtitle, items: finalItems } };
-            console.log('Services save: sending', JSON.stringify(pc.services).slice(0, 200));
             await onSave({ pageContent: pc });
+            setSaveMessage('Services saved successfully!');
+            setTimeout(() => setSaveMessage(null), 4000);
             showToast('Services saved successfully!', 'success');
             if (form) cancel();
         } catch (e: any) {
-            console.error('Services save error:', e);
             const msg = e?.response?.data?.message || e?.message || 'Failed to save services';
+            setSaveMessage('Error: ' + msg);
+            setTimeout(() => setSaveMessage(null), 6000);
             showToast(msg, 'error');
         } finally {
             setLocalSaving(false);
@@ -572,7 +577,15 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                     <div style={{ padding: '1.5rem', textAlign: 'center', border: '2px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>No services yet.</div>
                 )}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px' }}>
+                {saveMessage && (
+                    <span style={{
+                        fontSize: '0.85rem', fontWeight: 600,
+                        color: saveMessage.startsWith('Error') ? '#d32f2f' : '#2e7d32',
+                        background: saveMessage.startsWith('Error') ? '#ffebee' : '#e8f5e9',
+                        padding: '6px 14px', borderRadius: '8px',
+                    }}>{saveMessage}</span>
+                )}
                 <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Services</>}</button>
             </div>
         </div>
