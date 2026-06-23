@@ -90,7 +90,7 @@ const WhatWeOffer: React.FC<WhatWeOfferProps> = ({ heading: propHeading, subtitl
                             animate={{ x: [-20, 20, -20] }}
                             transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
                         >
-                            What We Offer
+                            Our Services
                         </motion.span>
                         <h2 className="ark-section__heading">
                             {heading}
