@@ -21,8 +21,8 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
     const closeMenu = useCallback(() => setMenuOpen(false), []);
 
     const companyName = profile?.company || '';
-    const thinkChars = useMemo(() => splitChars('Think, Design'), []);
-    const buildChars = useMemo(() => splitChars('We Build'), []);
+    const thinkChars = useMemo(() => splitChars('Design'), []);
+    const buildChars = useMemo(() => splitChars('Build'), []);
 
     useEffect(() => {
         const handleScroll = () => {
