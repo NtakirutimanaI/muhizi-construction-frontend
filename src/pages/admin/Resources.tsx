@@ -321,7 +321,7 @@ const BrandEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (u
         setUploading(true);
         setUploadProgress(0);
         try {
-            const result = await uploadService.uploadFile(file, setUploadProgress);
+            const result = await uploadService.uploadBase64(file);
             const url = result.secureUrl || result.url;
             setCompanyLogoUrl(url);
             await onSave({ companyLogo: url, company: companyName });

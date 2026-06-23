@@ -31,6 +31,28 @@ export const uploadService = {
         return response.data;
     },
 
+    uploadBase64: async (file: File): Promise<UploadedFile> => {
+        const token = localStorage.getItem('accessToken');
+        const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result as string;
+                const comma = result.indexOf(',');
+                resolve(comma >= 0 ? result.substring(comma + 1) : result);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+        const response = await axios.post(`${API_BASE_URL}/upload/base64`, {
+            filename: file.name,
+            mimeType: file.type,
+            data: base64,
+        }, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    },
+
     uploadFiles: async (files: File[]): Promise<UploadedFile[]> => {
         const formData = new FormData();
         files.forEach((file) => formData.append('files', file));
