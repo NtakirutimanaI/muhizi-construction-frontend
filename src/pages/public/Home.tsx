@@ -1,5 +1,6 @@
 import Hero from '../../components/Hero';
 import About from '../../components/About';
+import TopServices from '../../components/TopServices';
 import WhatWeOffer from '../../components/WhatWeOffer';
 import Experience from '../../components/Experience';
 import Projects from '../../components/Projects';
@@ -30,6 +31,8 @@ const Home = () => {
             <Hero slides={pc?.heroSlides} videoUrl={pc?.heroVideoUrl} />
             <div className="section-divider" />
             <About profile={profile} />
+            <div className="section-divider" />
+            <TopServices heading={pc?.topServices?.heading} subtitle={pc?.topServices?.subtitle} imageUrl={pc?.topServices?.imageUrl} />
             <div className="section-divider" />
             <WhatWeOffer heading={pc?.services?.heading} subtitle={pc?.services?.subtitle} items={pc?.services?.items} />
             <div className="section-divider" />

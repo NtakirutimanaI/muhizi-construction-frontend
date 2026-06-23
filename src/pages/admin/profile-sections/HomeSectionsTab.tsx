@@ -48,7 +48,7 @@ const HomeSectionsTab: React.FC<Props> = ({ profile, onSave, saving }) => {
             <AnimatePresence mode="wait">
                 <motion.div key={subTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
                     {subTab === 'hero-slides' && <HeroSlidesEditor profile={profile} onSave={onSave} saving={saving} />}
-                    {subTab === 'services' && <ServicesEditor profile={profile} onSave={onSave} saving={saving} />}
+                    {subTab === 'services' && <ServicesSection profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'events' && <EventsEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'follow-us' && <FollowUsEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'projects' && <ProjectsEditor profile={profile} onSave={onSave} saving={saving} />}
@@ -209,7 +209,111 @@ const HeroSlidesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     );
 };
 
-/* ───── Services Editor ───── */
+/* ───── Services Section (Top / Bottom sub-tabs) ───── */
+type ServicesSubTab = 'top-service' | 'bottom-services';
+
+const SERVICES_SUB_TABS: { id: ServicesSubTab; label: string }[] = [
+    { id: 'top-service', label: 'Top - Service' },
+    { id: 'bottom-services', label: 'Bottom - Services' },
+];
+
+const ServicesSection: React.FC<Props> = (props) => {
+    const [svcTab, setSvcTab] = useState<ServicesSubTab>('top-service');
+
+    return (
+        <div>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem' }}>
+                {SERVICES_SUB_TABS.map(t => (
+                    <button key={t.id} onClick={() => setSvcTab(t.id)}
+                        style={{
+                            padding: '0.3rem 0.7rem', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 600,
+                            whiteSpace: 'nowrap', border: 'none', cursor: 'pointer',
+                            background: svcTab === t.id ? 'var(--text-main)' : 'transparent',
+                            color: svcTab === t.id ? 'var(--bg-body)' : 'var(--text-muted)',
+                        }}
+                    >
+                        {t.label}
+                    </button>
+                ))}
+            </div>
+            {svcTab === 'top-service' && <TopServiceEditor {...props} />}
+            {svcTab === 'bottom-services' && <ServicesEditor {...props} />}
+        </div>
+    );
+};
+
+/* ───── Top Service Editor ───── */
+const TopServiceEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
+    const ts = profile.pageContent?.topServices;
+    const [heading, setHeading] = useState(ts?.heading || '');
+    const [subtitle, setSubtitle] = useState(ts?.subtitle || '');
+    const [imageUrl, setImageUrl] = useState(ts?.imageUrl || '');
+    const [localSaving, setLocalSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const d = profile.pageContent?.topServices;
+        setHeading(d?.heading || '');
+        setSubtitle(d?.subtitle || '');
+        setImageUrl(d?.imageUrl || '');
+    }, [profile.pageContent?.topServices]);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const uploaded = await uploadService.uploadFile(file);
+            setImageUrl(uploaded.secureUrl);
+        } catch {
+            alert('Failed to upload image');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const save = async () => {
+        setLocalSaving(true);
+        const pc = { ...profile.pageContent, topServices: { heading, subtitle, imageUrl } };
+        await onSave({ pageContent: pc });
+        setLocalSaving(false);
+    };
+
+    const isSaving = saving || localSaving;
+
+    return (
+        <div className="content-card" style={{ padding: '1.5rem' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Top Service Section</h3>
+            <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                <label className="form-label">Heading</label>
+                <input value={heading} onChange={e => setHeading(e.target.value)} className="form-input" placeholder="Our Services" />
+            </div>
+            <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                <label className="form-label">Subtitle</label>
+                <textarea value={subtitle} onChange={e => setSubtitle(e.target.value)} className="form-textarea" rows={2} placeholder="Brief introduction to your services" />
+            </div>
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">Image</label>
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    {imageUrl && (
+                        <div style={{ position: 'relative', width: 160, height: 100, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                            <img src={imageUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <button type="button" onClick={() => setImageUrl('')} style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: 22, height: 22, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
+                        </div>
+                    )}
+                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>{uploading ? 'Uploading...' : <><FaUpload /> {imageUrl ? 'Replace Image' : 'Upload Image'}</>}</button>
+                </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Top Service</>}</button>
+            </div>
+        </div>
+    );
+};
+
+/* ───── Services Editor (Bottom Services) ───── */
 interface ServiceItemForm { title: string; description: string; tags: string; color: string; images: string[]; }
 
 const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {

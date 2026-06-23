@@ -120,6 +120,11 @@ export interface Profile {
             body: string;
             color: string;
         }>;
+        topServices?: {
+            heading?: string;
+            subtitle?: string;
+            imageUrl?: string;
+        };
         services?: {
             heading?: string;
             subtitle?: string;
