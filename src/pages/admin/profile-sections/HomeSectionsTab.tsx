@@ -392,6 +392,7 @@ const defaultServiceItems = [
 ];
 
 const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
+    const { showToast } = useToast();
     const [heading, setHeading] = useState(profile.pageContent?.services?.heading || 'Core Services');
     const [subtitle, setSubtitle] = useState(profile.pageContent?.services?.subtitle || 'We deliver end-to-end construction and real estate solutions tailored to your needs — from planning and design to execution and project handover.');
     const [items, setItems] = useState(profile.pageContent?.services?.items?.length ? profile.pageContent.services.items : defaultServiceItems);
@@ -411,9 +412,15 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
 
     const save = async () => {
         setLocalSaving(true);
-        const pc = { ...profile.pageContent, services: { heading, subtitle, items } };
-        await onSave({ pageContent: pc });
-        setLocalSaving(false);
+        try {
+            const pc = { ...profile.pageContent, services: { heading, subtitle, items } };
+            await onSave({ pageContent: pc });
+            showToast('Services saved successfully!', 'success');
+        } catch (e: any) {
+            showToast(e?.message || 'Failed to save services', 'error');
+        } finally {
+            setLocalSaving(false);
+        }
     };
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
