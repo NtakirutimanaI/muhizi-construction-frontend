@@ -413,9 +413,17 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const save = async () => {
         setLocalSaving(true);
         try {
-            const pc = { ...profile.pageContent, services: { heading, subtitle, items } };
+            let finalItems = items;
+            if (form) {
+                finalItems = [...items];
+                const newItem = { title: form.title, description: form.description, tags: form.tags.split(',').map(t => t.trim()).filter(Boolean), color: form.color, images: form.images };
+                if (editingIndex === -1) finalItems.push(newItem);
+                else if (editingIndex !== null) finalItems[editingIndex] = newItem;
+            }
+            const pc = { ...profile.pageContent, services: { heading, subtitle, items: finalItems } };
             await onSave({ pageContent: pc });
             showToast('Services saved successfully!', 'success');
+            if (form) cancel();
         } catch (e: any) {
             showToast(e?.message || 'Failed to save services', 'error');
         } finally {
