@@ -34,8 +34,6 @@ const Hero: React.FC<HeroProps> = ({ slides: propSlides, videoUrl }) => {
         return () => clearInterval(autoTimer.current);
     }, [next, slides.length]);
 
-    if (!slides.length && !videoUrl) return null;
-
     return (
         <section data-nav-theme="dark" className="hero" id="home">
             <div className="hero-video-wrap">
@@ -47,7 +45,7 @@ const Hero: React.FC<HeroProps> = ({ slides: propSlides, videoUrl }) => {
                     playsInline
                     poster="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80"
                 >
-                    {videoUrl && <source src={videoUrl} type="video/mp4" />}
+                    <source src={videoUrl || '/hero-video.mp4'} type="video/mp4" />
                 </video>
                 <div className="hero-overlay" />
                 <div className="container hero-content">
