@@ -69,31 +69,18 @@ const ImageSlider = ({ color, seed, images }: { color: string; seed: number; ima
     }, [slideImages.length]);
 
     useEffect(() => {
-        if (images && images.length > 0) return;
         const timer = setInterval(next, 4000);
         return () => clearInterval(timer);
-    }, [next, images]);
-
-    if (images && images.length > 0) {
-        return (
-            <div className="offer-card__slider">
-                <div className="offer-card__image-grid">
-                    {slideImages.map((src, i) => (
-                        <div key={i} className="offer-card__image-grid-cell" style={{ backgroundImage: `url(${src})` }} />
-                    ))}
-                </div>
-            </div>
-        );
-    }
+    }, [next]);
 
     return (
         <div className="offer-card__slider">
-            {slideImages.map((base, i) => (
+            {slideImages.map((src, i) => (
                 <div
                     key={i}
                     className="offer-card__slide"
                     style={{
-                        backgroundImage: `url(${base}?random=${seed + i})`,
+                        backgroundImage: `url(${src}${images && images.length > 0 ? '' : `?random=${seed + i}`})`,
                         opacity: i === current ? 1 : 0,
                         zIndex: i === current ? 1 : 0,
                     }}
