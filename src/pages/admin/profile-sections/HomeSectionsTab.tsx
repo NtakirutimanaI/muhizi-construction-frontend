@@ -426,13 +426,18 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
             const results: string[] = [];
             for (let i = 0; i < fileArray.length; i++) {
                 setUploadProgress(Math.round(((i) / fileArray.length) * 100));
-                const uploaded = await uploadService.uploadBase64(fileArray[i]);
-                results.push(uploaded.secureUrl);
+                try {
+                    const uploaded = await uploadService.uploadBase64(fileArray[i]);
+                    results.push(uploaded.secureUrl);
+                } catch {
+                    const uploaded = await uploadService.uploadFile(fileArray[i]);
+                    results.push(uploaded.secureUrl);
+                }
             }
             setForm(p => ({ ...p!, images: [...(p?.images || []), ...results] }));
             setUploadProgress(100);
-        } catch {
-            alert('Failed to upload image(s)');
+        } catch (e: any) {
+            alert('Failed to upload image(s): ' + (e?.message || 'unknown error'));
         } finally {
             setUploading(false);
         }
