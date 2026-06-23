@@ -5,7 +5,7 @@ import {
     FaCog, FaHome, FaInfoCircle, FaSave, FaCopyright,
     FaPlus, FaEdit, FaTrash, FaCode,
     FaProjectDiagram, FaUsers, FaUser, FaPhone, FaEnvelope, FaLink, FaUpload,
-    FaTag
+    FaTag, FaCertificate
 } from 'react-icons/fa';
 import { profileService } from '../../services/profileService';
 import type { Profile } from '../../services/profileService';
@@ -16,16 +16,17 @@ import AboutSectionsTab from './profile-sections/AboutSectionsTab';
 import ProjectsTab from './profile-sections/ProjectsTab';
 import TeamTab from './profile-sections/TeamTab';
 import GeneralTab from './profile-sections/GeneralTab';
+import CertificationsTab from './profile-sections/CertificationsTab';
 
-type SectionId = 'home-sections' | 'about-sections' | 'footer' | 'brand' | 'settings' | 'projects' | 'team' | 'general';
+type SectionId = 'home-sections' | 'about-sections' | 'footer' | 'brand' | 'settings' | 'projects' | 'team' | 'certifications' | 'general';
 
 const SECTION_ICONS: Record<string, React.ReactNode> = {
     'home-sections': <FaHome />, 'about-sections': <FaInfoCircle />,
     footer: <FaCopyright />, brand: <FaTag />, settings: <FaCog />, projects: <FaProjectDiagram />,
-    team: <FaUsers />, general: <FaUser />,
+    team: <FaUsers />, certifications: <FaCertificate />, general: <FaUser />,
 };
 
-const SECTIONS: SectionId[] = ['home-sections', 'about-sections', 'projects', 'team', 'footer', 'brand', 'settings', 'general'];
+const SECTIONS: SectionId[] = ['home-sections', 'about-sections', 'projects', 'team', 'certifications', 'footer', 'brand', 'settings', 'general'];
 
 const emptyP: Profile = {
     id: '', firstName: '', lastName: '', username: '', email: '', bio: '', greeting: '', aboutMeTitle: '', title: '',
@@ -75,6 +76,7 @@ const Resources = () => {
             case 'brand': return <BrandEditor profile={profile} onSave={saveProfile} saving={saving} />;
             case 'projects': return <ProjectsTab profile={profile} onUpdate={setProfile} searchQuery={searchQuery} />;
             case 'team': return <TeamTab profile={profile} onUpdate={setProfile} />;
+            case 'certifications': return <CertificationsTab profile={profile} onUpdate={setProfile} />;
             case 'general': return <GeneralTab profile={profile} onUpdate={setProfile} />;
         }
     };
@@ -139,13 +141,13 @@ const SettingsEditor = ({ profile, onSave, saving }: { profile: Profile; onSave:
 
             <div className="content-card" style={{ padding: '1.5rem' }}>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Social Links</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
-                    {['github', 'linkedin', 'twitter'].map(k => (
-                        <div className="form-group" key={k}><label className="form-label" style={{ textTransform: 'capitalize' }}>{k}</label>
-                            <input value={form.socialLinks[k] || ''} onChange={e => setForm(p => ({ ...p, socialLinks: { ...p.socialLinks, [k]: e.target.value } }))} className="form-input" placeholder={`${k.charAt(0).toUpperCase() + k.slice(1)} URL`} />
-                        </div>
-                    ))}
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                                    {['github', 'linkedin', 'twitter', 'facebook', 'instagram'].map(k => (
+                                        <div className="form-group" key={k}><label className="form-label" style={{ textTransform: 'capitalize' }}>{k}</label>
+                                            <input value={form.socialLinks[k] || ''} onChange={e => setForm(p => ({ ...p, socialLinks: { ...p.socialLinks, [k]: e.target.value } }))} className="form-input" placeholder={`${k.charAt(0).toUpperCase() + k.slice(1)} URL`} />
+                                        </div>
+                                    ))}
+                                </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <button onClick={handleSave} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Settings</>}</button>
                 </div>
@@ -156,6 +158,7 @@ const SettingsEditor = ({ profile, onSave, saving }: { profile: Profile; onSave:
 
 /* ───── Footer Editor ───── */
 const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (u: Partial<Profile>) => Promise<void>; saving: boolean }) => {
+    const fc = profile.pageContent?.footer;
     const [form, setForm] = useState({
         phone: profile.phone || '',
         email: profile.email || '',
@@ -163,25 +166,44 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
         linkedinUrl: profile.socialLinks?.linkedin || '',
         twitterUrl: profile.socialLinks?.twitter || '',
         githubUrl: profile.socialLinks?.github || '',
-        poweredByText: profile.poweredBy || 'Powered and secured by MIS'
+        facebookUrl: profile.socialLinks?.facebook || '',
+        instagramUrl: profile.socialLinks?.instagram || '',
+        poweredByText: profile.poweredBy || 'Powered and secured by MIS',
+        companyDescription: fc?.companyDescription || '',
+        copyrightText: fc?.copyrightText || '',
+        showSocialLinks: fc?.showSocialLinks !== false,
+        showContactInfo: fc?.showContactInfo !== false,
     });
+    const [quickLinks, setQuickLinks] = useState<Array<{ label: string; url: string }>>(fc?.quickLinks || []);
+    const [qlEditingIndex, setQlEditingIndex] = useState<number | null>(null);
+    const [qlForm, setQlForm] = useState<{ label: string; url: string } | null>(null);
     const [localSaving, setLocalSaving] = useState(false);
     const { showToast } = useToast();
 
     useEffect(() => {
-        setForm({
+        const f = profile.pageContent?.footer;
+        setForm(p => ({
+            ...p,
             phone: profile.phone || '',
             email: profile.email || '',
             location: profile.location || '',
             linkedinUrl: profile.socialLinks?.linkedin || '',
             twitterUrl: profile.socialLinks?.twitter || '',
             githubUrl: profile.socialLinks?.github || '',
-            poweredByText: profile.poweredBy || 'Powered and secured by MIS'
-        });
+            facebookUrl: profile.socialLinks?.facebook || '',
+            instagramUrl: profile.socialLinks?.instagram || '',
+            poweredByText: profile.poweredBy || 'Powered and secured by MIS',
+            companyDescription: f?.companyDescription || '',
+            copyrightText: f?.copyrightText || '',
+            showSocialLinks: f?.showSocialLinks !== false,
+            showContactInfo: f?.showContactInfo !== false,
+        }));
+        setQuickLinks(f?.quickLinks || []);
     }, [profile]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value, type } = e.target as HTMLInputElement;
+        setForm(p => ({ ...p, [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value }));
     };
 
     const handleSave = async () => {
@@ -193,16 +215,44 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
             socialLinks: {
                 linkedin: form.linkedinUrl,
                 twitter: form.twitterUrl,
-                github: form.githubUrl
+                github: form.githubUrl,
+                facebook: form.facebookUrl,
+                instagram: form.instagramUrl,
             },
-            poweredBy: form.poweredByText
+            poweredBy: form.poweredByText,
+            pageContent: {
+                ...profile.pageContent,
+                footer: {
+                    companyDescription: form.companyDescription,
+                    copyrightText: form.copyrightText,
+                    quickLinks,
+                    showSocialLinks: form.showSocialLinks,
+                    showContactInfo: form.showContactInfo,
+                }
+            }
         });
         setLocalSaving(false);
         showToast('Footer settings saved successfully!', 'success');
     };
     const isSaving = saving || localSaving;
 
-    const copyrightText = `© ${new Date().getFullYear()} By ${profile.firstName} ${profile.lastName}`;
+    const qlOpenNew = () => { setQlEditingIndex(-1); setQlForm({ label: '', url: '' }); };
+    const qlOpenEdit = (i: number) => { setQlEditingIndex(i); setQlForm({ ...quickLinks[i] }); };
+    const qlCancel = () => { setQlEditingIndex(null); setQlForm(null); };
+    const qlSave = () => {
+        if (!qlForm?.label || !qlForm?.url) return;
+        const updated = [...quickLinks];
+        if (qlEditingIndex === -1) updated.push(qlForm);
+        else if (qlEditingIndex !== null) updated[qlEditingIndex] = qlForm;
+        setQuickLinks(updated);
+        qlCancel();
+    };
+    const qlDelete = (i: number) => {
+        if (!window.confirm('Delete this quick link?')) return;
+        setQuickLinks(quickLinks.filter((_, idx) => idx !== i));
+    };
+
+    const showCopyrightEditable = form.copyrightText !== `© ${new Date().getFullYear()} By ${profile.firstName} ${profile.lastName}`;
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -233,10 +283,83 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
                     <FaLink style={{ color: 'var(--primary)' }} /> Social Media Links
                 </h3>
                 <div style={{ display: 'grid', gap: '1rem' }}>
-                    {(['linkedinUrl', 'twitterUrl', 'githubUrl'] as const).map(k => (
+                    {(['linkedinUrl', 'twitterUrl', 'githubUrl', 'facebookUrl', 'instagramUrl'] as const).map(k => (
                         <div className="form-group" key={k}>
                             <label className="form-label" style={{ textTransform: 'capitalize' }}>{k.replace('Url', '')}</label>
                             <input type="url" name={k} className="form-input" value={form[k]} onChange={handleChange} placeholder={`https://${k.replace('Url', '')}.com/...`} />
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Company Description */}
+            <div className="content-card" style={{ padding: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FaInfoCircle style={{ color: 'var(--primary)' }} /> Company Description
+                </h3>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Description (shown in footer)</label>
+                    <textarea name="companyDescription" className="form-textarea" rows={3} value={form.companyDescription} onChange={handleChange} placeholder="Brief company description for the footer..." />
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>Leave empty to auto-use the first sentence of your About section.</p>
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Visibility Toggles</label>
+                    <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer' }}>
+                            <input type="checkbox" name="showSocialLinks" checked={form.showSocialLinks} onChange={handleChange} />
+                            Show Social Links
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer' }}>
+                            <input type="checkbox" name="showContactInfo" checked={form.showContactInfo} onChange={handleChange} />
+                            Show Contact Info
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            {/* Quick Links */}
+            <div className="content-card" style={{ padding: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FaLink style={{ color: 'var(--primary)' }} /> Quick Links ({quickLinks.length})
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Leave empty to show default links (Home, About, Services, Projects, Team, Contact).</p>
+                <AnimatePresence>
+                    {qlEditingIndex !== null && qlForm && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                            className="content-card" style={{ marginBottom: '1rem', padding: '1rem', border: '2px solid var(--primary)' }}
+                        >
+                            <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>{qlEditingIndex === -1 ? 'New Quick Link' : 'Edit Quick Link'}</h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                <div className="form-group">
+                                    <label className="form-label">Label</label>
+                                    <input value={qlForm.label} onChange={e => setQlForm(p => ({ ...p!, label: e.target.value }))} className="form-input" placeholder="e.g. Our Services" />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">URL</label>
+                                    <input value={qlForm.url} onChange={e => setQlForm(p => ({ ...p!, url: e.target.value }))} className="form-input" placeholder="/services or https://..." />
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                                <button onClick={qlCancel} className="admin-icon-btn" style={{ fontSize: '0.85rem', width: 'auto', padding: '0.4rem 0.8rem' }}>Cancel</button>
+                                <button onClick={qlSave} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}><FaSave /> Save</button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
+                    <button onClick={qlOpenNew} disabled={qlEditingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add Link</button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    {quickLinks.map((ql, i) => (
+                        <div key={i} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.8rem' }}>
+                            <div>
+                                <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{ql.label}</span>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>{ql.url}</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                                <button onClick={() => qlOpenEdit(i)} className="admin-icon-btn"><FaEdit /></button>
+                                <button onClick={() => qlDelete(i)} className="admin-icon-btn" style={{ color: 'var(--primary-red)' }}><FaTrash /></button>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -250,8 +373,10 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
                 <div style={{ display: 'grid', gap: '1rem' }}>
                     <div className="form-group">
                         <label className="form-label">Copyright Text</label>
-                        <input type="text" className="form-input" value={copyrightText} disabled style={{ opacity: 0.7 }} />
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Auto-generated from your profile name and current year</p>
+                        <input type="text" name="copyrightText" className="form-input" value={form.copyrightText || `© ${new Date().getFullYear()} By ${profile.firstName} ${profile.lastName}`} onChange={handleChange} placeholder={`© ${new Date().getFullYear()} By ${profile.firstName} ${profile.lastName}`} />
+                        {!showCopyrightEditable && (
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>Auto-generated from your profile name and current year. Type a custom value above to override.</p>
+                        )}
                     </div>
                     <div className="form-group">
                         <label className="form-label">Powered By Text</label>
@@ -286,12 +411,16 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
                                 {form.linkedinUrl && <span>LinkedIn</span>}
                                 {form.twitterUrl && <span>Twitter</span>}
                                 {form.githubUrl && <span>GitHub</span>}
-                                {!form.linkedinUrl && !form.twitterUrl && !form.githubUrl && <span>No social links</span>}
+                                {form.facebookUrl && <span>Facebook</span>}
+                                {form.instagramUrl && <span>Instagram</span>}
+                                {!form.linkedinUrl && !form.twitterUrl && !form.githubUrl && !form.facebookUrl && !form.instagramUrl && <span>No social links</span>}
                             </div>
                         </div>
                         <div>
-                            <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>{copyrightText}</p>
+                            <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>{form.copyrightText || `© ${new Date().getFullYear()} By ${profile.firstName} ${profile.lastName}`}</p>
                             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{form.poweredByText}</p>
+                            {!form.showSocialLinks && <p style={{ fontSize: '0.75rem', color: 'var(--primary-red)' }}>Social links hidden</p>}
+                            {!form.showContactInfo && <p style={{ fontSize: '0.75rem', color: 'var(--primary-red)' }}>Contact info hidden</p>}
                         </div>
                     </div>
                 </div>
