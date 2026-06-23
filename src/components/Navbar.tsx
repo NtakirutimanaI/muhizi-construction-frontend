@@ -88,7 +88,7 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
             <div className="container">
                 <div className="navbar-content">
                     <a href="/" className="nav-brand-tag">
-                        <img src={profile?.companyLogo || profile?.avatar || '/logo.png'} alt={companyName} className="nav-logo" />
+                        <img src={profile?.companyLogo || profile?.avatar || '/logo.jpeg'} alt={companyName} className="nav-logo" />
                         <span className="brand-name" style={{ color: textColor }}>{companyName}</span>
                     </a>
                     <span className="nav-center-title">

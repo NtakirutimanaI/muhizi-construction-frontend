@@ -46,7 +46,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                     <div className="ark-footer__grid">
                         {/* Brand / About */}
                         <div className="ark-footer__col">
-                            <a href="/"><img src={profile.companyLogo || '/logo.png'} alt={profile.company || 'MUHIZI CONSTRUCTION'} style={{ height: 70, marginBottom: '0.75rem', borderRadius: '50%', background: '#fff', padding: '8px', marginLeft: '40px' }} /></a>
+                            <a href="/"><img src={profile.companyLogo || '/logo.jpeg'} alt={profile.company || 'MUHIZI CONSTRUCTION'} style={{ height: 70, marginBottom: '0.75rem', borderRadius: '50%', background: '#fff', padding: '8px', marginLeft: '40px' }} /></a>
                             <h4 className="ark-footer__col-title">{profile.company || 'MUHIZI CONSTRUCTION'}</h4>
                             <p style={{ fontSize: '0.9rem', color: 'rgba(243,241,241,0.6)', lineHeight: '1.6', margin: '0 0 0.75rem', maxWidth: '22ch' }}>
                                 {companyDesc}
