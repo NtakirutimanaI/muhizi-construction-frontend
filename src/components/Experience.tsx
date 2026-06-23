@@ -186,7 +186,7 @@ const Experience: React.FC = () => {
                         border: '2px solid #000',
                         transition: 'background 0.2s, color 0.2s, border-color 0.2s',
                     }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = '#8B4513'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#8B4513'; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#1B2042'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#1B2042'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000'; e.currentTarget.style.borderColor = '#000'; }}
                     >
                         View More Videos &rarr;

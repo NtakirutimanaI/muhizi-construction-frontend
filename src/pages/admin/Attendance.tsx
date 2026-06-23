@@ -17,7 +17,7 @@ const STATUS_OPTIONS: { value: AttendanceStatus; label: string; color: string }[
     { value: 'present', label: 'Present', color: '#22c55e' },
     { value: 'absent', label: 'Absent', color: '#ef4444' },
     { value: 'late', label: 'Late', color: '#f59e0b' },
-    { value: 'on_leave', label: 'On Leave', color: '#3b82f6' },
+    { value: 'on_leave', label: 'On Leave', color: '#1B2042' },
     { value: 'permission', label: 'Permission', color: '#8b5cf6' },
     { value: 'suspended', label: 'Suspended', color: '#6b7280' },
 ];
@@ -190,7 +190,7 @@ const AttendancePage = () => {
 
     const downloadPDF = () => {
         const doc = new jsPDF();
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
         doc.setFontSize(22);
@@ -235,7 +235,7 @@ const AttendancePage = () => {
     };
 
     const downloadExcel = () => {
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const today = new Date().toLocaleDateString();
         const period = fromDate && toDate ? `Period: ${fromDate} to ${toDate}` : '';
         const headers = ['#', 'Employee', 'Date', 'Project', 'Site', 'Check In', 'Check Out', 'Status'];
@@ -367,7 +367,7 @@ const AttendancePage = () => {
                     <FaClock style={{ color: 'var(--primary)' }} /> Attendance
                 </h2>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.total}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total</div>
                     </div>
@@ -383,7 +383,7 @@ const AttendancePage = () => {
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.late}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Late</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#3b82f6', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.onLeave}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>On Leave</div>
                     </div>
@@ -424,7 +424,7 @@ const AttendancePage = () => {
                             Employees on <strong>{selectedProject?.name}</strong> — {new Date(selectedDate).toLocaleDateString()}
                             <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}> ({batchData.length} people)</span>
                         </span>
-                        <button className="admin-btn" onClick={handleBatchSave} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff' }}>
+                        <button className="admin-btn" onClick={handleBatchSave} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff' }}>
                             <FaSave style={{ marginRight: 6 }} /> Save All
                         </button>
                     </div>
@@ -472,10 +472,10 @@ const AttendancePage = () => {
                         <input type="text" className="form-input" placeholder="Search employee, status..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 400 }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
-                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
                             <FaFileExcel /> Excel
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
                             <FaFilePdf /> PDF
                         </button>
                     </div>

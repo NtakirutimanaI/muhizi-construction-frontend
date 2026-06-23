@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { notificationService, type Notification } from '../services/notificationService';
 import { useAuth } from './AuthContext';
@@ -10,17 +10,27 @@ interface NotificationContextProps {
     setShowNotifications: (show: boolean) => void;
     fetchNotifications: () => Promise<void>;
     markAsRead: (id: string) => Promise<void>;
+    markAllAsRead: () => Promise<void>;
     deleteNotification: (id: string) => Promise<void>;
     toggleNotifications: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextProps | undefined>(undefined);
 
+const typeLabels: Record<string, string> = {
+    system: 'System',
+    account_activity: 'Messages',
+    profile_update: 'Profile',
+    welcome: 'Welcome',
+    password_reset: 'Password',
+};
+
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { isAuthenticated } = useAuth();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [showNotifications, setShowNotifications] = useState(false);
+    const [activeTab, setActiveTab] = useState<string>('all');
 
     const fetchNotifications = async () => {
         try {
@@ -44,6 +54,16 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         }
     };
 
+    const markAllAsRead = async () => {
+        try {
+            await notificationService.markAllAsRead();
+            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+            setUnreadCount(0);
+        } catch (error) {
+            console.error('Failed to mark all as read', error);
+        }
+    };
+
     const deleteNotification = async (id: string) => {
         try {
             await notificationService.delete(id);
@@ -56,6 +76,16 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     };
 
     const toggleNotifications = () => setShowNotifications(prev => !prev);
+
+    const uniqueTypes = useMemo(() => {
+        const types = new Set(notifications.map(n => n.type));
+        return ['all', ...Array.from(types)];
+    }, [notifications]);
+
+    const filtered = useMemo(() => {
+        if (activeTab === 'all') return notifications;
+        return notifications.filter(n => n.type === activeTab);
+    }, [notifications, activeTab]);
 
     // Initial load and polling every minute
     useEffect(() => {
@@ -74,6 +104,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                 setShowNotifications,
                 fetchNotifications,
                 markAsRead,
+                markAllAsRead,
                 deleteNotification,
                 toggleNotifications,
             }}
@@ -90,3 +121,6 @@ export const useNotification = () => {
     }
     return context;
 };
+
+export type { NotificationContextProps };
+export { typeLabels, typeLabels as NOTIFICATION_TYPE_LABELS };

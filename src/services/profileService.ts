@@ -191,6 +191,7 @@ export interface Profile {
             showSocialLinks?: boolean;
             showContactInfo?: boolean;
         };
+        showTeamSection?: boolean;
     };
     services: string[];
     createdAt: string;

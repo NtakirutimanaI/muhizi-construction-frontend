@@ -14,7 +14,7 @@ const iconMap: Record<string, React.ReactNode> = {
     FaBullhorn: <FaBullhorn size={16} />, FaGavel: <FaGavel size={16} />,
 };
 
-const pinColors = ['#e74c3c', '#f39c12', '#2ecc71', '#3498db', '#9b59b6', '#8B4513', '#e67e22', '#1abc9c'];
+const pinColors = ['#e74c3c', '#f39c12', '#2ecc71', '#3498db', '#9b59b6', '#1B2042', '#e67e22', '#1abc9c'];
 const iconOptions = Object.keys(iconMap);
 const rotations = ['-1.5deg', '0.8deg', '-0.5deg', '1.2deg', '-0.8deg', '0.5deg'];
 
@@ -97,7 +97,7 @@ const SiteRules = () => {
             <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <FaBullhorn style={{ color: '#8B4513' }} /> Site Rules Board
+                        <FaBullhorn style={{ color: '#1B2042' }} /> Site Rules Board
                     </h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
                         Official notices and regulations — all employees must read and comply
@@ -108,8 +108,8 @@ const SiteRules = () => {
                         <button
                             onClick={() => setManageMode(!manageMode)}
                             style={{
-                                padding: '0.4rem 1rem', borderRadius: '8px', border: `1px solid ${manageMode ? '#8B4513' : 'var(--border-color)'}`,
-                                background: manageMode ? '#8B4513' : 'transparent',
+                                padding: '0.4rem 1rem', borderRadius: '8px', border: `1px solid ${manageMode ? '#1B2042' : 'var(--border-color)'}`,
+                                background: manageMode ? '#1B2042' : 'transparent',
                                 color: manageMode ? '#fff' : 'var(--text-main)',
                                 cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem',
                                 fontWeight: 600,
@@ -131,9 +131,9 @@ const SiteRules = () => {
             </div>
 
             <div style={{
-                background: 'linear-gradient(135deg, #5C2E0A 0%, #7A3B10 30%, #6B3410 60%, #4A2508 100%)',
+                background: 'linear-gradient(135deg, #1B2042 0%, #1B2042 30%, #1B2042 60%, #1B2042 100%)',
                 borderRadius: '16px', padding: '2rem 1.5rem 1.5rem',
-                border: '4px solid #3D1E06',
+                border: '4px solid #1B2042',
                 boxShadow: 'inset 0 2px 20px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.3)',
                 position: 'relative',
             }}>
@@ -148,8 +148,8 @@ const SiteRules = () => {
 
                 <div style={{
                     position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)',
-                    background: '#3D1E06', padding: '4px 24px', borderRadius: '4px',
-                    border: '1px solid #5C2E0A', boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                    background: '#1B2042', padding: '4px 24px', borderRadius: '4px',
+                    border: '1px solid #1B2042', boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                 }}>
                     <span style={{ color: '#D4A574', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
                         &#9733; Official Notice Board &#9733;
@@ -199,7 +199,7 @@ const SiteRules = () => {
                                 <div
                                     className="notice-card"
                                     style={{
-                                        background: 'linear-gradient(145deg, #8B4513 0%, #7A3B10 100%)',
+                                        background: 'linear-gradient(145deg, #1B2042 0%, #1B2042 100%)',
                                         borderRadius: '6px', padding: '1.25rem 1.25rem 1rem',
                                         color: '#fff', position: 'relative',
                                         transform: `rotate(${rotations[idx % rotations.length]})`,
@@ -335,7 +335,7 @@ const SiteRules = () => {
                 >
                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }} />
                     <div onClick={(e) => e.stopPropagation()} style={{
-                        position: 'relative', background: 'linear-gradient(145deg, #8B4513, #6B3410)',
+                        position: 'relative', background: 'linear-gradient(145deg, #1B2042, #1B2042)',
                         borderRadius: '16px', padding: '2rem 2.5rem', maxWidth: '700px', width: '100%',
                         maxHeight: '85vh', overflowY: 'auto', color: '#fff',
                         boxShadow: '0 24px 64px rgba(0,0,0,0.5), 0 8px 20px rgba(0,0,0,0.3)',
@@ -436,7 +436,7 @@ const SiteRules = () => {
                                 Cancel
                             </button>
                             <button onClick={handleSave}
-                                style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: '#8B4513', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
+                                style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
                                 <FaSave size={12} /> {formModal.edit ? 'Update' : 'Publish'}
                             </button>
                         </div>

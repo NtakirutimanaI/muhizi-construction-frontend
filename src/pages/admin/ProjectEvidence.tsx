@@ -91,7 +91,7 @@ const ProjectEvidencePage = () => {
         <div>
             <div style={{ marginBottom: '1.5rem' }}>
                 <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <FaImage style={{ color: '#8B4513' }} /> Project Evidence
+                    <FaImage style={{ color: '#1B2042' }} /> Project Evidence
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Upload and manage project photos and videos</p>
             </div>
@@ -106,7 +106,7 @@ const ProjectEvidencePage = () => {
                     </select>
                 </div>
                 <input value={search} onChange={e => { setPage(1); setSearch(e.target.value); }} placeholder="Search by project or title..." style={{ flex: 1, minWidth: '200px', padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.85rem' }} />
-                <button onClick={openNew} style={{ padding: '0.4rem 1rem', borderRadius: '8px', border: 'none', background: '#8B4513', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
+                <button onClick={openNew} style={{ padding: '0.4rem 1rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
                     <FaPlus size={12} /> Add Evidence
                 </button>
             </div>
@@ -176,48 +176,48 @@ const ProjectEvidencePage = () => {
 
             {showModal && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="content-card" style={{ width: '100%', maxWidth: 500, padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h3 style={{ fontWeight: 800, fontSize: '1.1rem' }}>{editing ? 'Edit Evidence' : 'Add Evidence'}</h3>
-                            <button onClick={close} style={{ color: 'var(--text-muted)' }}><FaTimes /></button>
+                    <div className="content-card" style={{ width: '100%', maxWidth: 400, padding: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                            <h3 style={{ fontWeight: 800, fontSize: '0.95rem' }}>{editing ? 'Edit Evidence' : 'Add Evidence'}</h3>
+                            <button onClick={close} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><FaTimes /></button>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            <div className="form-group">
-                                <label className="form-label">Project</label>
-                                <select value={form.project} onChange={e => setForm(p => ({ ...p, project: e.target.value }))} className="form-select">
-                                    <option value="">Select project</option>
-                                    {projects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
-                                </select>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                                <div className="form-group">
-                                    <label className="form-label">Type</label>
-                                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                                        <button onClick={() => setForm(p => ({ ...p, type: 'image' }))} style={{ flex: 1, padding: '0.4rem', borderRadius: '6px', border: form.type === 'image' ? '2px solid #8B4513' : '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}><FaImage /> Image</button>
-                                        <button onClick={() => setForm(p => ({ ...p, type: 'video' }))} style={{ flex: 1, padding: '0.4rem', borderRadius: '6px', border: form.type === 'video' ? '2px solid #8B4513' : '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}><FaVideo /> Video</button>
-                                    </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                <div>
+                                    <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Project</label>
+                                    <select value={form.project} onChange={e => setForm(p => ({ ...p, project: e.target.value }))} className="form-select" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>
+                                        <option value="">Select</option>
+                                        {projects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                                    </select>
                                 </div>
-                                <div className="form-group">
-                                    <label className="form-label">Date</label>
-                                    <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} className="form-input" />
+                                <div>
+                                    <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Date</label>
+                                    <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }} />
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Title</label>
-                                <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="form-input" placeholder="e.g. Foundation pouring complete" />
+                            <div>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Type</label>
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                    <button onClick={() => setForm(p => ({ ...p, type: 'image' }))} style={{ flex: 1, padding: '0.3rem', borderRadius: '6px', border: form.type === 'image' ? '2px solid #1B2042' : '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}><FaImage /> Image</button>
+                                    <button onClick={() => setForm(p => ({ ...p, type: 'video' }))} style={{ flex: 1, padding: '0.3rem', borderRadius: '6px', border: form.type === 'video' ? '2px solid #1B2042' : '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}><FaVideo /> Video</button>
+                                </div>
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Image URL</label>
-                                <input value={form.url} onChange={e => setForm(p => ({ ...p, url: e.target.value }))} className="form-input" placeholder="https://example.com/photo.jpg" />
+                            <div>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Title</label>
+                                <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="form-input" placeholder="e.g. Foundation pour" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }} />
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Notes</label>
-                                <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="form-textarea" rows={2} placeholder="Additional notes..." />
+                            <div>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Image URL</label>
+                                <input value={form.url} onChange={e => setForm(p => ({ ...p, url: e.target.value }))} className="form-input" placeholder="https://..." style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }} />
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Notes</label>
+                                <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="form-textarea" rows={1} placeholder="Optional notes" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }} />
                             </div>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1.5rem' }}>
-                            <button onClick={close} className="admin-icon-btn" style={{ width: 'auto', padding: '0.5rem 1rem' }}>Cancel</button>
-                            <button onClick={save} className="btn-primary"><FaSave /> Save</button>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '0.75rem' }}>
+                            <button onClick={close} className="admin-icon-btn" style={{ width: 'auto', padding: '0.3rem 0.75rem', fontSize: '0.8rem' }}>Cancel</button>
+                            <button onClick={save} className="btn-primary" style={{ padding: '0.3rem 0.75rem', fontSize: '0.8rem' }}><FaSave size={11} /> Save</button>
                         </div>
                     </div>
                 </div>

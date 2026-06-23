@@ -358,7 +358,7 @@ const Settings = () => {
                                 color="var(--primary)"
                                 compact
                             />
-                            <div style={{ padding: '0.5rem', background: 'rgba(139,69,19,0.04)', border: '1px solid var(--primary)', borderRadius: '6px' }}>
+                            <div style={{ padding: '0.5rem', background: 'rgba(27,32,66,0.04)', border: '1px solid var(--primary)', borderRadius: '6px' }}>
                                 <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.3rem', color: 'var(--primary)' }}>
                                     Data Management
                                 </h4>

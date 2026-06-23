@@ -115,7 +115,7 @@ const HeroSlidesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         setLocalSaving(false);
     };
 
-    const openNew = () => { setEditingIndex(-1); setForm({ title: '', body: '', color: '#8B4513' }); };
+    const openNew = () => { setEditingIndex(-1); setForm({ title: '', body: '', color: '#1B2042' }); };
     const openEdit = (i: number) => { setEditingIndex(i); setForm({ ...slides[i] }); };
     const cancel = () => { setEditingIndex(null); };
 
@@ -258,7 +258,7 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         setForm(p => ({ ...p!, images: p!.images.filter((_, i) => i !== idx) }));
     };
 
-    const openNew = () => { setEditingIndex(-1); setForm({ title: '', description: '', tags: '', color: '#8B4513', images: [] }); };
+    const openNew = () => { setEditingIndex(-1); setForm({ title: '', description: '', tags: '', color: '#1B2042', images: [] }); };
     const openEdit = (i: number) => {
         const item = items[i];
         setEditingIndex(i);
@@ -478,6 +478,7 @@ const FollowUsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const [heading, setHeading] = useState(fu?.heading || 'Follow Us');
     const [subtitle, setSubtitle] = useState(fu?.subtitle || 'Watch our latest projects and company updates');
     const [youtubeUrl, setYoutubeUrl] = useState(fu?.youtubeUrl || 'https://www.youtube.com/embed/CJtOOX23Ofo');
+    const [yearsOfExperience, setYearsOfExperience] = useState(profile.yearsOfExperience || 0);
     const [videos, setVideos] = useState(fu?.videos || [
         { url: 'https://www.youtube.com/embed/CJtOOX23Ofo', title: 'Construction project timelapse', description: '' },
         { url: 'https://www.youtube.com/embed/CJtOOX23Ofo', title: 'Behind the scenes showcase', description: '' },
@@ -491,16 +492,17 @@ const FollowUsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         setHeading(d?.heading || 'Follow Us');
         setSubtitle(d?.subtitle || 'Watch our latest projects and company updates');
         setYoutubeUrl(d?.youtubeUrl || 'https://www.youtube.com/embed/CJtOOX23Ofo');
+        setYearsOfExperience(profile.yearsOfExperience || 0);
         setVideos(d?.videos || [
             { url: 'https://www.youtube.com/embed/CJtOOX23Ofo', title: 'Construction project timelapse', description: '' },
             { url: 'https://www.youtube.com/embed/CJtOOX23Ofo', title: 'Behind the scenes showcase', description: '' },
         ]);
-    }, [profile.pageContent?.followUs]);
+    }, [profile.pageContent?.followUs, profile.yearsOfExperience]);
 
     const save = async () => {
         setLocalSaving(true);
         const pc = { ...profile.pageContent, followUs: { heading, subtitle, youtubeUrl, videos } };
-        await onSave({ pageContent: pc });
+        await onSave({ pageContent: pc, yearsOfExperience } as any);
         setLocalSaving(false);
     };
 
@@ -535,6 +537,10 @@ const FollowUsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                 <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                     <label className="form-label">Subtitle</label>
                     <input value={subtitle} onChange={e => setSubtitle(e.target.value)} className="form-input" placeholder="Watch our latest projects" />
+                </div>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Years of Experience</label>
+                    <input type="number" value={yearsOfExperience} onChange={e => setYearsOfExperience(parseInt(e.target.value) || 0)} className="form-input" placeholder="e.g. 10" />
                 </div>
                 <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                     <label className="form-label">Main YouTube URL</label>
@@ -726,15 +732,29 @@ const ProjectsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
 /* ───── Our Team Editor (inline) ───── */
 const OurTeamEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const [members, setMembers] = useState(profile.teamMembers || []);
+    const [visible, setVisible] = useState(profile.pageContent?.showTeamSection !== false);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [form, setForm] = useState<any>(null);
     const [localSaving, setLocalSaving] = useState(false);
 
-    useEffect(() => { setMembers(profile.teamMembers || []); }, [profile.teamMembers]);
+    useEffect(() => {
+        setMembers(profile.teamMembers || []);
+        setVisible(profile.pageContent?.showTeamSection !== false);
+    }, [profile.teamMembers, profile.pageContent?.showTeamSection]);
 
     const save = async (updated: any[]) => {
         setLocalSaving(true);
-        await onSave({ teamMembers: updated } as any);
+        const pc = { ...profile.pageContent, showTeamSection: visible };
+        await onSave({ teamMembers: updated, pageContent: pc } as any);
+        setLocalSaving(false);
+    };
+
+    const toggleVisibility = async () => {
+        const next = !visible;
+        setVisible(next);
+        setLocalSaving(true);
+        const pc = { ...profile.pageContent, showTeamSection: next };
+        await onSave({ pageContent: pc } as any);
         setLocalSaving(false);
     };
 
@@ -761,7 +781,13 @@ const OurTeamEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Team Members ({members.length})</h3>
-                <button onClick={openNew} disabled={editingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add</button>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                        <input type="checkbox" checked={visible} onChange={toggleVisibility} disabled={saving || localSaving} style={{ width: 16, height: 16, cursor: 'pointer' }} />
+                        Visible on website
+                    </label>
+                    <button onClick={openNew} disabled={editingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add</button>
+                </div>
             </div>
             <AnimatePresence>
                 {editingIndex !== null && form && (

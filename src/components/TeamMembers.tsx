@@ -9,8 +9,9 @@ interface TeamMembersProps {
 
 const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
     const members = profile.teamMembers || [];
+    const showSection = profile.pageContent?.showTeamSection !== false;
 
-    if (members.length === 0) return null;
+    if (members.length === 0 || !showSection) return null;
 
     const [current, setCurrent] = useState(0);
 

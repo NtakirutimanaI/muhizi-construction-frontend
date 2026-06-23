@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Public Pages
 import Home from './pages/public/Home';
 import About from './pages/public/About';
+import Team from './pages/public/Team';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
@@ -106,6 +107,7 @@ function App() {
               <Route element={<PublicLayout profile={profile} />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/team" element={<Team />} />
               </Route>
 
               {/* Auth Routes */}

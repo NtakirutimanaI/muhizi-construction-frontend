@@ -83,7 +83,7 @@ const Projects = () => {
 
     const downloadPDF = () => {
         const doc = new jsPDF();
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
 
@@ -133,7 +133,7 @@ const Projects = () => {
     };
 
     const downloadExcel = () => {
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const today = new Date().toLocaleDateString();
         const period = fromDate && toDate ? `Period: ${fromDate} to ${toDate}` : '';
         const headers = ['#', 'Name', 'Type', 'Status', 'Budget', 'Progress', 'Client', 'Start Date'];
@@ -252,32 +252,32 @@ const Projects = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '0.5rem' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0, fontSize: '1.2rem' }}>
                     <FaProjectDiagram style={{ color: 'var(--primary)' }} /> Projects
                 </h2>
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.total}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.inProgress}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Active</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.completed}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Completed</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.planning}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Planning</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {(stats.totalBudget / 1000).toFixed(0)}K</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Budget</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.avgProgress}%</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Avg Prog</div>
                     </div>
@@ -285,20 +285,20 @@ const Projects = () => {
             </div>
 
             <div className="admin-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>All Projects</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <input type="text" className="form-input" placeholder="Search name, client, location..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 400 }} />
-                        <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
-                        <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
-                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.35rem' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>All Projects</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                        <input type="text" className="form-input" placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 220 }} />
+                        <input type="date" className="form-input" style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 120 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
+                        <input type="date" className="form-input" style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 120 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
+                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 0.7rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: canDownload ? 1 : 0.5 }}>
                             <FaFileExcel /> Excel
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 0.7rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: canDownload ? 1 : 0.5 }}>
                             <FaFilePdf /> PDF
                         </button>
-                        <button className="admin-btn" onClick={openNew} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
-                            <FaPlus style={{ marginRight: 6 }} />Add Project
+                        <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 1rem', fontSize: '0.82rem' }}>
+                            <FaPlus style={{ marginRight: 4 }} />Add Project
                         </button>
                     </div>
                 </div>
@@ -351,16 +351,16 @@ const Projects = () => {
                         </tbody>
                     </table>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '0.5rem 0', flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.25rem 0', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                         Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Per page:</span>
                             <select
                                 className="form-select"
-                                style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }}
+                                style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.75rem' }}
                                 value={pageSize}
                                 onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}
                             >
@@ -369,12 +369,12 @@ const Projects = () => {
                             </select>
                         </div>
                         {pageSize > 0 && totalPages > 1 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 28, fontSize: '0.78rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                             </div>
                         )}
                     </div>

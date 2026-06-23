@@ -70,13 +70,13 @@ const About = () => {
                         <motion.div
                             key={i}
                             className="ark-card"
-                            style={{ padding: '2rem', textAlign: 'center', borderTop: '4px solid #8B4513' }}
+                            style={{ padding: '2rem', textAlign: 'center', borderTop: '4px solid #1B2042' }}
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
                         >
                             <img src={item.icon} alt={item.title} style={{ width: 48, height: 48, marginBottom: '0.75rem' }} />
-                            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 700, color: '#8B4513', margin: '0 0 0.75rem' }}>{item.title}</h3>
+                            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 700, color: '#1B2042', margin: '0 0 0.75rem' }}>{item.title}</h3>
                             <p style={{ fontSize: '0.95rem', lineHeight: '1.7', color: 'var(--text-main)', margin: 0 }}>{item.text}</p>
                         </motion.div>
                     ))}
@@ -84,7 +84,7 @@ const About = () => {
 
                 <div style={{ marginTop: '4rem' }}>
                     <motion.h2
-                        style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, color: '#8B4513', textAlign: 'center', marginBottom: '2rem' }}
+                        style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, color: '#1B2042', textAlign: 'center', marginBottom: '2rem' }}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.3 }}
@@ -96,13 +96,13 @@ const About = () => {
                             <motion.div
                                 key={i}
                                 className="ark-card"
-                                style={{ padding: '2rem', textAlign: 'center', borderTop: '4px solid #8B4513' }}
+                                style={{ padding: '2rem', textAlign: 'center', borderTop: '4px solid #1B2042' }}
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
                             >
                                 <img src={item.icon} alt={item.title} style={{ width: 48, height: 48, marginBottom: '0.75rem' }} />
-                                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 700, color: '#8B4513', margin: '0 0 0.75rem' }}>{item.title}</h3>
+                                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 700, color: '#1B2042', margin: '0 0 0.75rem' }}>{item.title}</h3>
                                 <p style={{ fontSize: '0.95rem', lineHeight: '1.7', color: 'var(--text-main)', margin: 0 }}>{item.text}</p>
                             </motion.div>
                         ))}
@@ -110,7 +110,7 @@ const About = () => {
                 </div>
 
                 <motion.div
-                    style={{ marginTop: '4rem', background: '#8B4513', borderRadius: '12px', padding: '3rem', color: '#fff' }}
+                    style={{ marginTop: '4rem', background: '#1B2042', borderRadius: '12px', padding: '3rem', color: '#fff' }}
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.5 }}
@@ -136,12 +136,12 @@ const About = () => {
                 </motion.div>
 
                 <motion.div
-                    style={{ marginTop: '4rem', borderRadius: '12px', padding: '3.5rem', textAlign: 'center', border: '2px solid #8B4513' }}
+                    style={{ marginTop: '4rem', borderRadius: '12px', padding: '3.5rem', textAlign: 'center', border: '2px solid #1B2042' }}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5, delay: 0.7 }}
                 >
-                    <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 700, margin: '0 0 1rem', color: '#8B4513' }}>
+                    <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 700, margin: '0 0 1rem', color: '#1B2042' }}>
                         {cta.title}
                     </h2>
                     <p style={{ fontSize: '1.1rem', lineHeight: '1.8', color: 'var(--text-main)', maxWidth: 600, margin: '0 auto 2rem' }}>
@@ -151,17 +151,17 @@ const About = () => {
                         <motion.a
                             href={cta.buttonLink}
                             style={{ display: 'inline-block', padding: '1rem 2.5rem', borderRadius: '50px', fontWeight: 700, fontSize: '1.1rem', textDecoration: 'none' }}
-                            initial={{ background: '#8B4513', color: '#fff' }}
-                            whileHover={{ scale: 1.05, boxShadow: '0 8px 25px rgba(139,69,19,0.3)', background: '#fff', color: '#8B4513' }}
+                            initial={{ background: '#1B2042', color: '#fff' }}
+                            whileHover={{ scale: 1.05, boxShadow: '0 8px 25px rgba(27,32,66,0.3)', background: '#fff', color: '#1B2042' }}
                             whileTap={{ scale: 0.98 }}
                         >
                             {cta.buttonText}
                         </motion.a>
                         <motion.a
                             href={cta.secondaryButtonLink}
-                            style={{ display: 'inline-block', padding: '1rem 2.5rem', borderRadius: '50px', fontWeight: 700, fontSize: '1.1rem', textDecoration: 'none', border: '2px solid #8B4513' }}
-                            initial={{ background: '#fff', color: '#8B4513' }}
-                            whileHover={{ scale: 1.05, boxShadow: '0 8px 25px rgba(139,69,19,0.3)', background: '#8B4513', color: '#fff' }}
+                            style={{ display: 'inline-block', padding: '1rem 2.5rem', borderRadius: '50px', fontWeight: 700, fontSize: '1.1rem', textDecoration: 'none', border: '2px solid #1B2042' }}
+                            initial={{ background: '#fff', color: '#1B2042' }}
+                            whileHover={{ scale: 1.05, boxShadow: '0 8px 25px rgba(27,32,66,0.3)', background: '#1B2042', color: '#fff' }}
                             whileTap={{ scale: 0.98 }}
                         >
                             {cta.secondaryButtonText}

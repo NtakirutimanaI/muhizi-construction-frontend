@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
     FaChartBar, FaUser, FaEnvelope, FaSignOutAlt, FaCog, FaBook,
@@ -15,12 +15,43 @@ import { profileService, type Profile, type ContactMessage } from '../services/p
 import { AnimatePresence, motion } from 'framer-motion';
 import { SIDEBAR_SECTIONS, type Role } from '../config/roles';
 
+const timeAgo = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days}d ago`;
+    return new Date(dateStr).toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
+
+const notifTypeIcon = (type: string) => {
+    switch (type) {
+        case 'system': return <FaCog size={10} />;
+        case 'account_activity': return <FaEnvelope size={10} />;
+        case 'profile_update': return <FaUser size={10} />;
+        case 'welcome': return <FaBell size={10} />;
+        default: return <FaBell size={10} />;
+    }
+};
+
+const notifTypeLabel: Record<string, string> = {
+    all: 'All',
+    system: 'System',
+    account_activity: 'Messages',
+    profile_update: 'Profile',
+    welcome: 'Welcome',
+};
+
 const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
     const { logout, user } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
 
     // Use notification context
-    const { notifications, unreadCount, fetchNotifications, markAsRead, deleteNotification, showNotifications, setShowNotifications } = useNotification();
+    const { notifications, unreadCount, fetchNotifications, markAsRead, markAllAsRead, deleteNotification, showNotifications, setShowNotifications } = useNotification();
 
     // Profile preferences for notification settings
     const [profilePrefs, setProfilePrefs] = useState<Profile | null>(null);
@@ -37,6 +68,8 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [expandedNav, setExpandedNav] = useState<string[]>(['Messages']);
+    const [notifTab, setNotifTab] = useState<string>('all');
 
     const isOnMessages = location.pathname.startsWith(`${basePath}/messages`);
     const isOnCms = location.pathname.startsWith(`${basePath}/resources`);
@@ -183,7 +216,7 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
                     </button>
                     {/* Brand Logo */}
                     <Link to="/" className="admin-brand">
-                        <span style={{ width: '12px', height: '12px', background: 'var(--primary)', borderRadius: '50%', display: 'inline-block' }}></span>
+                        <span style={{ width: '12px', height: '12px', background: '#fff', borderRadius: '50%', display: 'inline-block' }}></span>
                         MUHIZI Panel
                     </Link>
 
@@ -205,7 +238,7 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
                         <button
                             title="Create New"
                             onClick={() => setShowAddMenu(!showAddMenu)}
-                            style={{ width: '35px', height: '35px', background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', cursor: 'pointer', border: 'none' }}
+                            style={{ width: '35px', height: '35px', background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer', border: 'none' }}
                         >
                             <FaPlus size={12} />
                         </button>
@@ -375,79 +408,92 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
                                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                     className="dropdown-panel"
                                     style={{
-                                        position: 'absolute',
-                                        right: 0,
-                                        top: '120%',
-                                        width: '320px',
-                                        maxHeight: '400px',
-                                        background: 'var(--bg-card)',
-                                        border: '1px solid var(--border-color)',
-                                        borderRadius: '12px',
-                                        boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-                                        zIndex: 1000,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        overflow: 'hidden'
+                                        position: 'absolute', right: 0, top: '120%', width: '360px',
+                                        maxHeight: '480px', background: 'var(--bg-card)',
+                                        border: '1px solid var(--border-color)', borderRadius: '12px',
+                                        boxShadow: '0 10px 40px rgba(0,0,0,0.2)', zIndex: 1000,
+                                        display: 'flex', flexDirection: 'column', overflow: 'hidden'
                                     }}
                                 >
                                     <div style={{ padding: '10px 15px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-body)' }}>
-                                        <h4 style={{ fontWeight: 800, fontSize: '0.9rem' }}>Notifications</h4>
-                                        <button onClick={() => setShowNotifications(false)} style={{ color: 'var(--text-muted)' }}><FaTimes /></button>
+                                        <h4 style={{ fontWeight: 800, fontSize: '0.9rem' }}>
+                                            <FaBell size={12} style={{ marginRight: 6 }} />
+                                            Notifications
+                                        </h4>
+                                        <div style={{ display: 'flex', gap: 6 }}>
+                                            {unreadCount > 0 && (
+                                                <button onClick={(e) => { e.stopPropagation(); markAllAsRead(); }}
+                                                    title="Mark all as read"
+                                                    style={{ fontSize: '0.75rem', color: 'var(--primary-teal)', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+                                                    <FaCheck size={10} /> All Read
+                                                </button>
+                                            )}
+                                            <button onClick={() => setShowNotifications(false)} style={{ color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}><FaTimes /></button>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: 2, padding: '6px 10px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-body)' }}>
+                                        {Object.entries(notifTypeLabel).map(([key, label]) => {
+                                            const count = key === 'all' ? notifications.length : notifications.filter(n => n.type === key).length;
+                                            if (count === 0 && key !== 'all') return null;
+                                            return (
+                                                <button key={key} onClick={() => setNotifTab(key)}
+                                                    style={{
+                                                        padding: '3px 8px', borderRadius: '6px', border: 'none', fontSize: '0.7rem', fontWeight: 600,
+                                                        background: notifTab === key ? 'var(--primary)' : 'transparent',
+                                                        color: notifTab === key ? '#000' : 'var(--text-muted)', cursor: 'pointer',
+                                                    }}>
+                                                    {label} ({count})
+                                                </button>
+                                            );
+                                        })}
                                     </div>
 
                                     <div style={{ overflowY: 'auto', flex: 1 }}>
-                                        {notifications.length === 0 ? (
-                                            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                                No notifications
-                                            </div>
-                                        ) : (
-                                            notifications.map(n => (
-                                                <div
-                                                    key={n.id}
-                                                    style={{
-                                                        padding: '12px 15px',
-                                                        borderBottom: '1px solid var(--border-color)',
-                                                        background: n.isRead ? 'transparent' : 'rgba(var(--primary-teal-rgb, 100, 255, 218), 0.05)',
-                                                        position: 'relative'
-                                                    }}
-                                                >
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                                        <span style={{ fontWeight: n.isRead ? 600 : 800, fontSize: '0.9rem', color: n.isRead ? 'var(--text-muted)' : 'var(--text-main)' }}>{n.title}</span>
-                                                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                                                            {new Date(n.createdAt).toLocaleDateString()}
-                                                        </span>
-                                                    </div>
-                                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', lineHeight: '1.4' }}>{n.message}</p>
-
-                                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                                        {!n.isRead && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    markAsRead(n.id);
-                                                                }}
-                                                                title="Mark as Read"
-                                                                style={{ fontSize: '0.8rem', color: 'var(--primary-teal)', background: 'transparent', padding: '2px', border: 'none', cursor: 'pointer' }}
-                                                            >
-                                                                <FaCheck />
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                if (window.confirm('Delete this notification?')) {
-                                                                    deleteNotification(n.id);
-                                                                }
-                                                            }}
-                                                            title="Delete"
-                                                            style={{ fontSize: '0.8rem', color: 'var(--primary-red)', background: 'transparent', padding: '2px', border: 'none', cursor: 'pointer' }}
-                                                        >
-                                                            <FaTrash />
-                                                        </button>
-                                                    </div>
+                                        {(() => {
+                                            const filtered = notifTab === 'all' ? notifications : notifications.filter(n => n.type === notifTab);
+                                            return filtered.length === 0 ? (
+                                                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                                                    <FaBell size={24} style={{ opacity: 0.2, marginBottom: 8 }} />
+                                                    <p>No notifications</p>
                                                 </div>
-                                            ))
-                                        )}
+                                            ) : (
+                                                filtered.map(n => (
+                                                    <div key={n.id}
+                                                        style={{
+                                                            padding: '10px 15px',
+                                                            borderBottom: '1px solid var(--border-color)',
+                                                            background: n.isRead ? 'transparent' : 'rgba(var(--primary-teal-rgb, 100, 255, 218), 0.05)',
+                                                        }}
+                                                    >
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                                                            <span style={{ fontWeight: n.isRead ? 600 : 800, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                                {notifTypeIcon(n.type)}
+                                                                {n.title}
+                                                            </span>
+                                                            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                                                                {timeAgo(n.createdAt)}
+                                                            </span>
+                                                        </div>
+                                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '2px 0 6px', lineHeight: '1.3' }}>{n.message}</p>
+                                                        <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                                                            {!n.isRead && (
+                                                                <button onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }}
+                                                                    title="Mark as Read"
+                                                                    style={{ fontSize: '0.75rem', color: 'var(--primary-teal)', background: 'transparent', padding: 2, border: 'none', cursor: 'pointer' }}>
+                                                                    <FaCheck size={10} />
+                                                                </button>
+                                                            )}
+                                                            <button onClick={(e) => { e.stopPropagation(); if (window.confirm('Delete this notification?')) deleteNotification(n.id); }}
+                                                                title="Delete"
+                                                                style={{ fontSize: '0.75rem', color: 'var(--primary-red)', background: 'transparent', padding: 2, border: 'none', cursor: 'pointer' }}>
+                                                                <FaTrash size={10} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            );
+                                        })()}
                                     </div>
                                 </motion.div>
                             )}
@@ -536,16 +582,59 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
                             </div>
                             {section.items.map((item) => {
                                 const isActive = location.pathname.startsWith(item.path);
+                                const isExpanded = expandedNav.includes(item.label);
+                                const subItems: Record<string, { path: string; icon: React.ReactNode; label: string }[]> = {
+                                    Messages: [
+                                        { path: `${basePath}/messages/inbox`, icon: <FaInbox />, label: 'Inbox' },
+                                        { path: `${basePath}/messages/sent`, icon: <FaPaperPlane />, label: 'Sent' },
+                                        { path: `${basePath}/messages/trash`, icon: <FaArchive />, label: 'Trash' },
+                                    ],
+                                };
+                                const hasSub = subItems[item.label];
                                 return (
-                                    <Link
-                                        key={item.path}
-                                        to={item.path}
-                                        className={`admin-nav-item ${isActive ? 'active' : ''}`}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                        {item.icon}
-                                        <span>{item.label}</span>
-                                    </Link>
+                                    <div key={item.path}>
+                                        <div
+                                            onClick={() => {
+                                                if (hasSub) {
+                                                    setExpandedNav(prev => prev.includes(item.label)
+                                                        ? prev.filter(l => l !== item.label)
+                                                        : [...prev, item.label]
+                                                    );
+                                                } else {
+                                                    navigate(item.path);
+                                                }
+                                                setMobileMenuOpen(false);
+                                            }}
+                                            className={`admin-nav-item ${isActive ? 'active' : ''}`}
+                                            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                                        >
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                {item.icon}
+                                                <span>{item.label}</span>
+                                            </span>
+                                            {hasSub && (
+                                                <span style={{ fontSize: '0.6rem', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                                                    ▶
+                                                </span>
+                                            )}
+                                        </div>
+                                        {hasSub && isExpanded && (
+                                            <div style={{ paddingLeft: '1.5rem' }}>
+                                                {hasSub.map(sub => (
+                                                    <Link
+                                                        key={sub.path}
+                                                        to={sub.path}
+                                                        className={`admin-nav-item ${location.pathname === sub.path ? 'active' : ''}`}
+                                                        onClick={() => setMobileMenuOpen(false)}
+                                                        style={{ fontSize: '0.85rem', padding: '0.4rem 0.75rem' }}
+                                                    >
+                                                        {sub.icon}
+                                                        <span>{sub.label}</span>
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 );
                             })}
                         </div>

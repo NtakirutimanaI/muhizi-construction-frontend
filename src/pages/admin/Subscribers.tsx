@@ -126,17 +126,17 @@ const Subscribers = () => {
     return (
         <div className="admin-page">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}><FaEnvelope style={{ color: '#8B4513' }} /> Subscribers</h2>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}><FaEnvelope style={{ color: '#1B2042' }} /> Subscribers</h2>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
                     <button onClick={() => {
                             if (!selectedIds.size) { showToast('Select subscribers first', 'error'); return; }
                             setShowSendUpdate(true);
                         }}
-                        style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         <FaPaperPlane size={10} /> Send Update {selectedIds.size ? `(${selectedIds.size})` : ''}
                     </button>
                     {(['total', 'active', 'inactive'] as const).map(k => (
-                        <div key={k} className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: k === 'total' ? '#8B4513' : k === 'active' ? '#22c55e' : '#6b7280', color: '#fff' }}>
+                        <div key={k} className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: k === 'total' ? '#1B2042' : k === 'active' ? '#22c55e' : '#6b7280', color: '#fff' }}>
                             <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{counts[k]}</div>
                             <div style={{ fontSize: '0.65rem', opacity: 0.85, textTransform: 'capitalize' }}>{k}</div>
                         </div>
@@ -151,7 +151,7 @@ const Subscribers = () => {
                         <input type="text" className="form-input" placeholder="Search email..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 250 }} />
                         {(['all', 'active', 'inactive'] as const).map(f => (
                             <button key={f} onClick={() => { setFilter(f); setPage(1); }}
-                                style={{ padding: '0.25rem 0.7rem', borderRadius: '12px', border: '1px solid #ddd', background: filter === f ? '#8B4513' : 'transparent', color: filter === f ? '#fff' : '#333', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, textTransform: 'capitalize' }}>
+                                style={{ padding: '0.25rem 0.7rem', borderRadius: '12px', border: '1px solid #ddd', background: filter === f ? '#1B2042' : 'transparent', color: filter === f ? '#fff' : '#333', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, textTransform: 'capitalize' }}>
                                 {f}
                             </button>
                         ))}
@@ -219,7 +219,7 @@ const Subscribers = () => {
                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
                     <div onClick={e => e.stopPropagation()} className="admin-modal" style={{ position: 'relative', padding: '2rem', maxWidth: '550px', width: '100%' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaPaperPlane style={{ color: '#2563eb' }} size={16} /> Send Update to Subscribers</h3>
+                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaPaperPlane style={{ color: '#1B2042' }} size={16} /> Send Update to Subscribers</h3>
                             <button onClick={() => setShowSendUpdate(false)} disabled={sending} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', fontSize: '1.2rem' }}><FaTimes /></button>
                         </div>
                         <p style={{ fontSize: '0.85rem', color: 'gray', marginBottom: '1rem' }}>
@@ -237,7 +237,7 @@ const Subscribers = () => {
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #ddd' }}>
                             <button onClick={() => setShowSendUpdate(false)} disabled={sending} style={{ padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
-                            <button onClick={handleSendUpdate} disabled={sending} style={{ padding: '0.4rem 1.2rem', borderRadius: '6px', border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                            <button onClick={handleSendUpdate} disabled={sending} style={{ padding: '0.4rem 1.2rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
                                 {sending ? <><FaSpinner className="spin" /> Sending...</> : <><FaPaperPlane /> Send to All</>}
                             </button>
                         </div>

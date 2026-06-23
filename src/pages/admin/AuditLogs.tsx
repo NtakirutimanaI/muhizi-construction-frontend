@@ -71,7 +71,7 @@ const AuditLogs = () => {
 
     const downloadPDF = () => {
         const doc = new jsPDF();
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
 
@@ -121,7 +121,7 @@ const AuditLogs = () => {
     };
 
     const downloadExcel = () => {
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const today = new Date().toLocaleDateString();
         const period = fromDate && toDate ? `Period: ${fromDate} to ${toDate}` : '';
         const headers = ['#', 'User', 'Action', 'Entity', 'IP Address', 'Date'];
@@ -152,7 +152,7 @@ const AuditLogs = () => {
     };
 
     const actionColors: Record<string, string> = {
-        CREATE: '#22c55e', UPDATE: '#3b82f6', DELETE: '#ef4444', LOGIN: '#f59e0b', LOGOUT: '#6b7280',
+        CREATE: '#22c55e', UPDATE: '#1B2042', DELETE: '#ef4444', LOGIN: '#f59e0b', LOGOUT: '#6b7280',
     };
 
     if (loading) return <div className="admin-page"><div className="inline-spinner">Loading audit logs...</div></div>;
@@ -164,16 +164,16 @@ const AuditLogs = () => {
                     <FaShieldAlt style={{ color: 'var(--primary)' }} /> Audit Logs
                 </h2>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.total}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total Logs</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.uniqueUsers}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Unique Users</div>
                     </div>
                     {stats.topActions.map(([action, count]) => (
-                        <div key={action} className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                        <div key={action} className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                             <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{count}</div>
                             <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>{action}</div>
                         </div>
@@ -188,10 +188,10 @@ const AuditLogs = () => {
                         <input type="text" className="form-input" placeholder="Search user, action, entity, IP..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 400 }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
-                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
                             <FaFileExcel /> Excel
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
                             <FaFilePdf /> PDF
                         </button>
                     </div>

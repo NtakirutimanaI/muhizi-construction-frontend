@@ -108,14 +108,14 @@ const Approvals = () => {
     return (
         <div className="admin-page">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}><FaCheckDouble style={{ color: '#8B4513' }} /> Approvals</h2>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}><FaCheckDouble style={{ color: '#1B2042' }} /> Approvals</h2>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                     <button onClick={() => { setForm(emptyF()); setShowCreate(true); }}
-                        style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#8B4513', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         <FaPlus size={10} /> New
                     </button>
                     {(['total', 'pending', 'approved', 'rejected'] as const).map(k => (
-                        <div key={k} className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: k === 'total' ? '#8B4513' : k === 'pending' ? '#f59e0b' : k === 'approved' ? '#22c55e' : '#ef4444', color: '#fff' }}>
+                        <div key={k} className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: k === 'total' ? '#1B2042' : k === 'pending' ? '#f59e0b' : k === 'approved' ? '#22c55e' : '#ef4444', color: '#fff' }}>
                             <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{byStatus[k]}</div>
                             <div style={{ fontSize: '0.65rem', opacity: 0.85, textTransform: 'capitalize' }}>{k}</div>
                         </div>
@@ -130,7 +130,7 @@ const Approvals = () => {
                         <input type="text" className="form-input" placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 300 }} />
                         {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
                             <button key={f} onClick={() => { setFilter(f); setPage(1); }}
-                                style={{ padding: '0.25rem 0.7rem', borderRadius: '12px', border: '1px solid #ddd', background: filter === f ? '#8B4513' : 'transparent', color: filter === f ? '#fff' : '#333', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, textTransform: 'capitalize' }}>
+                                style={{ padding: '0.25rem 0.7rem', borderRadius: '12px', border: '1px solid #ddd', background: filter === f ? '#1B2042' : 'transparent', color: filter === f ? '#fff' : '#333', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, textTransform: 'capitalize' }}>
                                 {f} ({f === 'all' ? requests.length : requests.filter(r => r.status === f).length})
                             </button>
                         ))}
@@ -144,7 +144,7 @@ const Approvals = () => {
                                 <tr key={req.id}>
                                     <td><strong>{req.title}</strong></td>
                                     <td>{req.requester.split('(')[0].trim()}</td>
-                                    <td><span style={{ fontSize: '0.72rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: req.type === 'material' ? '#3b82f620' : '#22c55e20', color: req.type === 'material' ? '#3b82f6' : '#22c55e', fontWeight: 600 }}>{req.type === 'material' ? <FaTruck size={10} /> : <FaDollarSign size={10} />} {req.type}</span></td>
+                                    <td><span style={{ fontSize: '0.72rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: req.type === 'material' ? '#1B204220' : '#22c55e20', color: req.type === 'material' ? '#1B2042' : '#22c55e', fontWeight: 600 }}>{req.type === 'material' ? <FaTruck size={10} /> : <FaDollarSign size={10} />} {req.type}</span></td>
                                     <td>{req.type === 'material' ? `${req.items?.reduce((s, i) => s + i.qty, 0) || 0} items` : `RWF ${(req.amount || 0).toLocaleString()}`}</td>
                                     <td>{req.requestedAt}</td>
                                     <td><span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '10px', background: st(req.status).bg, color: st(req.status).color }}>{st(req.status).icon} {req.status}</span></td>
@@ -209,7 +209,7 @@ const Approvals = () => {
                 <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => !saving && setShowCreate(false)}>
                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
                     <div onClick={e => e.stopPropagation()} className="admin-modal" style={{ position: 'relative', padding: '2rem', maxWidth: '600px', width: '100%', maxHeight: '85vh', overflowY: 'auto' }}>
-                        <h3 style={{ marginTop: 0 }}><FaPlus style={{ color: '#8B4513' }} size={14} /> New Request</h3>
+                        <h3 style={{ marginTop: 0 }}><FaPlus style={{ color: '#1B2042' }} size={14} /> New Request</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             <div><label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Type</label><select className="form-select" value={form.type} onChange={e => setForm(prev => ({ ...prev, type: e.target.value as 'material' | 'money' }))} style={{ width: '100%', padding: '0.4rem' }}><option value="material">Material</option><option value="money">Money</option></select></div>
                             <div><label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Title</label><input type="text" className="form-input" value={form.title} onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))} style={{ width: '100%', padding: '0.4rem' }} /></div>
@@ -221,7 +221,7 @@ const Approvals = () => {
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #ddd' }}>
                             <button onClick={() => setShowCreate(false)} disabled={saving} style={{ padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
-                            <button onClick={create} disabled={saving} style={{ padding: '0.4rem 1.2rem', borderRadius: '6px', border: 'none', background: '#8B4513', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>{saving ? <><FaSpinner className="spin" /> Saving...</> : 'Submit'}</button>
+                            <button onClick={create} disabled={saving} style={{ padding: '0.4rem 1.2rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>{saving ? <><FaSpinner className="spin" /> Saving...</> : 'Submit'}</button>
                         </div>
                     </div>
                 </div>

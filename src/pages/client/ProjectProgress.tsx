@@ -27,7 +27,7 @@ const ProjectProgress = () => {
         <div>
             <div style={{ marginBottom: '1.5rem' }}>
                 <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <FaHardHat style={{ color: '#8B4513' }} /> Project Progress
+                    <FaHardHat style={{ color: '#1B2042' }} /> Project Progress
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Track the latest progress of your construction projects</p>
             </div>

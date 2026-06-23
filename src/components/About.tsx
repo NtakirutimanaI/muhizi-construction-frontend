@@ -25,7 +25,7 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                 >
                     <span
                         className="ark-section__sub"
-                        style={{ color: hover ? '#8B4513' : '#000', fontSize: '1.625rem', fontWeight: '700', textTransform: 'none', transition: 'color 0.3s', cursor: 'default' }}
+                        style={{ color: hover ? '#1B2042' : '#000', fontSize: '1.625rem', fontWeight: '700', textTransform: 'none', transition: 'color 0.3s', cursor: 'default' }}
                         onMouseEnter={() => setHover(true)}
                         onMouseLeave={() => setHover(false)}
                     >
@@ -74,7 +74,7 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                     </Link>
                 </div>
 
-                <div style={{ width: 'calc(100% + 60px)', marginLeft: '-15px', marginRight: 'auto', marginTop: '5.5rem', padding: '0.75rem 0', background: '#8B4513', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ width: 'calc(100% + 60px)', marginLeft: '-15px', marginRight: 'auto', marginTop: '5.5rem', padding: '0.75rem 0', background: '#1B2042', borderRadius: '4px', overflow: 'hidden' }}>
                     <span className="slide-bounce" style={{ fontSize: '1rem', fontWeight: 500, color: '#fff', letterSpacing: '0.3em', marginLeft: '20px', paddingRight: '0.5rem' }}>
                         Building Construction &middot; Road Construction &middot; Infrastructure &middot; Renovation &middot; Maintenance
                     </span>

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDraftingCompass, FaCheckCircle, FaRegClock, FaRegTimesCircle, FaFileAlt, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import type { Design, Project } from '../../services/constructionService';
+import { uploadService } from '../../services/uploadService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -27,6 +28,10 @@ const Designs = () => {
     const [pageSize, setPageSize] = useState(10);
     const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
     const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadingThumb, setUploadingThumb] = useState(false);
+    const [thumbUploadProgress, setThumbUploadProgress] = useState(0);
 
     const fetch = async () => {
         try {
@@ -79,7 +84,7 @@ const Designs = () => {
 
     const downloadPDF = () => {
         const doc = new jsPDF();
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
 
@@ -129,7 +134,7 @@ const Designs = () => {
     };
 
     const downloadExcel = () => {
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const today = new Date().toLocaleDateString();
         const period = fromDate && toDate ? `Period: ${fromDate} to ${toDate}` : '';
         const headers = ['#', 'Title', 'Type', 'Status', 'Project', 'Has File', 'Created'];
@@ -203,6 +208,30 @@ const Designs = () => {
         setShowModal(true);
     };
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        setUploadProgress(0);
+        try {
+            const result = await uploadService.uploadFile(file, (pct) => setUploadProgress(pct));
+            setForm(p => ({ ...p, fileUrl: result.secureUrl }));
+        } catch (err) { console.error('File upload failed', err); }
+        setUploading(false);
+    };
+
+    const handleThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploadingThumb(true);
+        setThumbUploadProgress(0);
+        try {
+            const result = await uploadService.uploadFile(file, (pct) => setThumbUploadProgress(pct));
+            setForm(p => ({ ...p, thumbnailUrl: result.secureUrl }));
+        } catch (err) { console.error('Thumbnail upload failed', err); }
+        setUploadingThumb(false);
+    };
+
     const handleSave = async () => {
         try {
             if (editing) await constructionService.updateDesign(editing.id, form);
@@ -224,33 +253,33 @@ const Designs = () => {
         draft: '#6b7280', approved: '#22c55e', rejected: '#ef4444',
     };
     const typeColors: Record<string, string> = {
-        architectural: '#3b82f6', structural: '#8b5cf6', interior: '#f59e0b', landscape: '#22c55e',
+        architectural: '#1B2042', structural: '#8b5cf6', interior: '#f59e0b', landscape: '#22c55e',
     };
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '0.5rem' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0, fontSize: '1.2rem' }}>
                     <FaDraftingCompass style={{ color: 'var(--primary)' }} /> Designs
                 </h2>
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.total}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.approved}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Approved</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.draft}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Draft</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.rejected}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Rejected</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.architectural}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Architect</div>
                     </div>
@@ -258,20 +287,20 @@ const Designs = () => {
             </div>
 
             <div className="admin-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>All Designs</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <input type="text" className="form-input" placeholder="Search title, type, project..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 400 }} />
-                        <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
-                        <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
-                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.35rem' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>All Designs</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                        <input type="text" className="form-input" placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 220 }} />
+                        <input type="date" className="form-input" style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 120 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
+                        <input type="date" className="form-input" style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 120 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
+                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 0.7rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: canDownload ? 1 : 0.5 }}>
                             <FaFileExcel /> Excel
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 0.7rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: canDownload ? 1 : 0.5 }}>
                             <FaFilePdf /> PDF
                         </button>
-                        <button className="admin-btn" onClick={openNew} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
-                            <FaPlus style={{ marginRight: 6 }} />Add Design
+                        <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 1rem', fontSize: '0.82rem' }}>
+                            <FaPlus style={{ marginRight: 4 }} />Add Design
                         </button>
                     </div>
                 </div>
@@ -318,16 +347,16 @@ const Designs = () => {
                         </tbody>
                     </table>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '0.5rem 0', flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.25rem 0', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                         Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Per page:</span>
                             <select
                                 className="form-select"
-                                style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }}
+                                style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.75rem' }}
                                 value={pageSize}
                                 onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}
                             >
@@ -336,12 +365,12 @@ const Designs = () => {
                             </select>
                         </div>
                         {pageSize > 0 && totalPages > 1 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 28, fontSize: '0.78rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                             </div>
                         )}
                     </div>
@@ -386,13 +415,53 @@ const Designs = () => {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="form-group">
-                                    <label className="form-label">File URL</label>
-                                    <input className="form-input" value={form.fileUrl} onChange={e => setForm(p => ({ ...p, fileUrl: e.target.value }))} placeholder="https://example.com/design.pdf" />
+                                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                                    <label className="form-label">Design File</label>
+                                    {form.fileUrl ? (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                            <a href={form.fileUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.82rem', color: 'var(--primary-teal)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                <FaFileAlt /> View uploaded file
+                                            </a>
+                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }} onClick={() => setForm(p => ({ ...p, fileUrl: '' }))}>
+                                                Replace
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <input type="file" accept="image/*,.pdf,.doc,.docx" onChange={handleFileUpload} disabled={uploading} style={{ fontSize: '0.82rem', maxWidth: '100%' }} />
+                                            {uploading && (
+                                                <div style={{ marginTop: 6 }}>
+                                                    <div style={{ width: '100%', maxWidth: 300, height: 6, background: '#eee', borderRadius: 3, overflow: 'hidden' }}>
+                                                        <div style={{ width: `${uploadProgress}%`, height: 6, background: 'var(--primary-teal)', borderRadius: 3, transition: 'width 0.3s' }} />
+                                                    </div>
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Uploading... {uploadProgress}%</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Thumbnail URL</label>
-                                    <input className="form-input" value={form.thumbnailUrl} onChange={e => setForm(p => ({ ...p, thumbnailUrl: e.target.value }))} placeholder="https://example.com/thumb.jpg" />
+                                    <label className="form-label">Thumbnail</label>
+                                    {form.thumbnailUrl ? (
+                                        <div>
+                                            <img src={form.thumbnailUrl} alt="Thumbnail" style={{ maxWidth: 120, maxHeight: 80, borderRadius: 4, display: 'block', marginBottom: 4, objectFit: 'cover' }} />
+                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }} onClick={() => setForm(p => ({ ...p, thumbnailUrl: '' }))}>
+                                                Remove
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <input type="file" accept="image/*" onChange={handleThumbUpload} disabled={uploadingThumb} style={{ fontSize: '0.82rem', maxWidth: '100%' }} />
+                                            {uploadingThumb && (
+                                                <div style={{ marginTop: 6 }}>
+                                                    <div style={{ width: '100%', maxWidth: 300, height: 6, background: '#eee', borderRadius: 3, overflow: 'hidden' }}>
+                                                        <div style={{ width: `${thumbUploadProgress}%`, height: 6, background: 'var(--primary-teal)', borderRadius: 3, transition: 'width 0.3s' }} />
+                                                    </div>
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Uploading... {thumbUploadProgress}%</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="form-group" style={{ marginTop: '1rem' }}>

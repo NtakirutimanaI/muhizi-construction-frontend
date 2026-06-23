@@ -126,7 +126,7 @@ const PayrollPage = () => {
 
     const downloadPDF = () => {
         const doc = new jsPDF();
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
 
@@ -177,7 +177,7 @@ const PayrollPage = () => {
     };
 
     const downloadExcel = () => {
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const today = new Date().toLocaleDateString();
         const period = filterMonth && filterYear ? `Period: ${MONTHS[filterMonth - 1]} ${filterYear}` : '';
         const headers = ['#', 'Employee', 'Period', 'Basic', 'Allowances', 'Deductions', 'Net', 'Status'];
@@ -385,27 +385,27 @@ const PayrollPage = () => {
                     <FaDollarSign style={{ color: 'var(--primary)' }} /> Payroll
                 </h2>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {totals.net.toLocaleString()}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total Payroll</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {totals.basic.toLocaleString()}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Basic Salary</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {totals.allowances.toLocaleString()}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Allowances</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {totals.deductions.toLocaleString()}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Deductions</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{totals.count}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Records</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{totals.paid}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Paid</div>
                     </div>
@@ -427,13 +427,13 @@ const PayrollPage = () => {
                                 <option key={y} value={y}>{y}</option>
                             ))}
                         </select>
-                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
                             <FaFileExcel /> Excel
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
                             <FaFilePdf /> PDF
                         </button>
-                        <button className="admin-btn" onClick={openNew} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
+                        <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
                             <FaPlus style={{ marginRight: 6 }} />Add Payroll
                         </button>
                     </div>
@@ -574,7 +574,7 @@ const PayrollPage = () => {
                                         <span style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}><FaBan style={{ color: '#ef4444' }} /> Absent: {attendanceStats.absent}</span>
                                         <span style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}><FaHourglassHalf style={{ color: '#f59e0b' }} /> Late: {attendanceStats.late}</span>
                                         <span style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}><FaClock style={{ color: '#8b5cf6' }} /> Half Day: {attendanceStats.halfDay}</span>
-                                        <span style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}><FaClock style={{ color: '#3b82f6' }} /> On Leave: {attendanceStats.onLeave}</span>
+                                        <span style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}><FaClock style={{ color: '#1B2042' }} /> On Leave: {attendanceStats.onLeave}</span>
                                     </div>
                                 </div>
                             )}

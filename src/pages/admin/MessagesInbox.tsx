@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaEnvelope, FaUser, FaPhone, FaBuilding, FaCheck, FaClock, FaTrash, FaInbox, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaEnvelope, FaUser, FaPhone, FaBuilding, FaCheck, FaClock, FaTrash, FaInbox, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight, FaPaperPlane, FaTimes } from 'react-icons/fa';
 import { profileService, type ContactMessage } from '../../services/profileService';
 import { useToast } from '../../context/ToastContext';
 import jsPDF from 'jspdf';
@@ -18,6 +18,11 @@ const MessagesInbox = () => {
     const [toDate, setToDate] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [showReply, setShowReply] = useState(false);
+    const [replySubject, setReplySubject] = useState('');
+    const [replyMessage, setReplyMessage] = useState('');
+    const [sending, setSending] = useState(false);
 
     useEffect(() => { loadMessages(); }, []);
 
@@ -83,6 +88,40 @@ const MessagesInbox = () => {
 
     const formatDate = (dateString: string) => new Date(dateString).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
+    const toggleSelect = (id: string) => {
+        setSelectedIds(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === paginated.length) setSelectedIds(new Set());
+        else setSelectedIds(new Set(paginated.map(m => m.id!)));
+    };
+
+    const handleReply = async () => {
+        if (!replyMessage.trim()) { showToast('Message is required', 'error'); return; }
+        const selected = messages.filter(m => selectedIds.has(m.id!));
+        if (!selected.length) { showToast('No messages selected', 'error'); return; }
+        setSending(true);
+        let sent = 0;
+        for (const msg of selected) {
+            try {
+                await profileService.sendAdminMessage({
+                    name: msg.name,
+                    email: msg.email,
+                    subject: replySubject.trim() || `Re: ${msg.subject || 'Your Message'}`,
+                    message: replyMessage.trim(),
+                });
+                sent++;
+            } catch { /* skip failed */ }
+        }
+        showToast(`Reply sent to ${sent}/${selected.length} recipient(s)`, sent === selected.length ? 'success' : 'error');
+        setShowReply(false);
+        setReplySubject('');
+        setReplyMessage('');
+        setSelectedIds(new Set());
+        setSending(false);
+    };
+
     const tableData = useMemo(() => filtered.map((m, i) => [
         String(i + 1), m.name, m.email, m.subject || '—',
         m.status === 'new' || m.status === 'unread' ? 'Unread' : 'Read',
@@ -91,7 +130,7 @@ const MessagesInbox = () => {
 
     const downloadPDF = () => {
         const doc = new jsPDF();
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
         doc.setFontSize(22); doc.setTextColor(brown); doc.setFont('helvetica', 'bold');
@@ -121,7 +160,7 @@ const MessagesInbox = () => {
     };
 
     const downloadExcel = () => {
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const headers = ['#', 'Name', 'Email', 'Subject', 'Status', 'Date'];
         const rows = tableData.map(r => `<tr>${r.map(c => `<td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${c}</td>`).join('')}</tr>`).join('');
         const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>
@@ -147,6 +186,14 @@ const MessagesInbox = () => {
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
                     <FaEnvelope style={{ color: 'var(--primary)' }} /> Messages
                 </h2>
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button onClick={() => {
+                        if (!selectedIds.size) { showToast('Select messages first', 'error'); return; }
+                        setReplySubject(''); setReplyMessage(''); setShowReply(true);
+                    }}
+                        style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <FaPaperPlane size={10} /> Reply {selectedIds.size ? `(${selectedIds.size})` : ''}
+                    </button>
                 <div className="admin-summary-cards">
                     <div className="admin-summary-card">
                         <div className="admin-summary-card__value">{messages.length}</div>
@@ -161,6 +208,7 @@ const MessagesInbox = () => {
                         <div className="admin-summary-card__label">Read</div>
                     </div>
                 </div>
+                </div>
             </div>
 
             <div className="admin-card" style={{ marginBottom: '1rem' }}>
@@ -174,10 +222,10 @@ const MessagesInbox = () => {
                         <input type="text" className="form-input" placeholder="Search name, email, subject..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 280 }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 130 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 130 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
-                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: canDownload ? 1 : 0.5 }}>
                             <FaFileExcel /> Excel
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: canDownload ? 1 : 0.5 }}>
                             <FaFilePdf /> PDF
                         </button>
                     </div>
@@ -188,6 +236,10 @@ const MessagesInbox = () => {
                 <div className="admin-card" style={{ padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>Inbox ({filtered.length})</h3>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', cursor: 'pointer' }}>
+                            <input type="checkbox" checked={paginated.length > 0 && selectedIds.size === paginated.length} onChange={toggleSelectAll} style={{ cursor: 'pointer' }} />
+                            Select All
+                        </label>
                     </div>
                     <div style={{ flex: 1, overflowY: 'auto', maxHeight: '520px' }}>
                         {loading ? (
@@ -199,22 +251,29 @@ const MessagesInbox = () => {
                             </div>
                         ) : (
                             paginated.map(msg => (
-                                <div key={msg.id} onClick={() => handleSelect(msg)} style={{
+                                <div key={msg.id} style={{
                                     padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)',
-                                    borderLeft: `3px solid ${!msg.status || msg.status === 'unread' || msg.status === 'new' ? '#8B4513' : 'transparent'}`,
-                                    background: selectedMessage?.id === msg.id ? 'rgba(139,69,19,0.06)' : '#fff',
+                                    borderLeft: `3px solid ${!msg.status || msg.status === 'unread' || msg.status === 'new' ? '#1B2042' : 'transparent'}`,
+                                    background: selectedMessage?.id === msg.id ? 'rgba(27,32,66,0.06)' : '#fff',
                                     cursor: 'pointer', transition: 'all 0.2s',
                                 }}
                                     onMouseEnter={e => { if (selectedMessage?.id !== msg.id) e.currentTarget.style.background = 'var(--bg-body)'; }}
                                     onMouseLeave={e => { if (selectedMessage?.id !== msg.id) e.currentTarget.style.background = '#fff'; }}
                                 >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                                        <h4 style={{ fontSize: '0.9rem', fontWeight: !msg.status || msg.status === 'unread' || msg.status === 'new' ? 700 : 500, margin: 0 }}>{msg.name}</h4>
-                                        {(!msg.status || msg.status === 'unread' || msg.status === 'new') && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#8B4513', flexShrink: 0 }} />}
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                                        <div onClick={e => e.stopPropagation()} style={{ paddingTop: '0.15rem' }}>
+                                            <input type="checkbox" checked={selectedIds.has(msg.id!)} onChange={() => toggleSelect(msg.id!)} style={{ cursor: 'pointer' }} />
+                                        </div>
+                                        <div style={{ flex: 1 }} onClick={() => handleSelect(msg)}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                                <h4 style={{ fontSize: '0.9rem', fontWeight: !msg.status || msg.status === 'unread' || msg.status === 'new' ? 700 : 500, margin: 0 }}>{msg.name}</h4>
+                                                {(!msg.status || msg.status === 'unread' || msg.status === 'new') && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#1B2042', flexShrink: 0 }} />}
+                                            </div>
+                                            {msg.subject && <p style={{ fontSize: '0.8rem', margin: '0 0 0.25rem 0', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{msg.subject}</p>}
+                                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 0.4rem 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{msg.message?.length > 80 ? msg.message.slice(0, 80) + '...' : msg.message}</p>
+                                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>{msg.createdAt ? formatDate(msg.createdAt) : ''}</p>
+                                        </div>
                                     </div>
-                                    {msg.subject && <p style={{ fontSize: '0.8rem', margin: '0 0 0.25rem 0', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{msg.subject}</p>}
-                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 0.4rem 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{msg.message}</p>
-                                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>{msg.createdAt ? formatDate(msg.createdAt) : ''}</p>
                                 </div>
                             ))
                         )}
@@ -239,9 +298,9 @@ const MessagesInbox = () => {
                 </div>
 
                 {selectedMessage && (
-                    <div className="admin-card" style={{ padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <div className="admin-card" style={{ padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', maxHeight: '520px' }}>
                         <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ padding: '0.2rem 0.75rem', borderRadius: 12, fontSize: '0.7rem', fontWeight: 600, background: !selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? 'rgba(139,69,19,0.12)' : 'rgba(0,128,128,0.12)', color: !selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? '#8B4513' : 'var(--primary-teal)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <span style={{ padding: '0.2rem 0.75rem', borderRadius: 12, fontSize: '0.7rem', fontWeight: 600, background: !selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? 'rgba(27,32,66,0.12)' : 'rgba(0,128,128,0.12)', color: !selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? '#1B2042' : 'var(--primary-teal)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                                 {!selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? <FaClock size={10} /> : <FaCheck size={10} />}
                                 {!selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? 'NEW' : 'READ'}
                             </span>
@@ -252,7 +311,7 @@ const MessagesInbox = () => {
                         <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
                             <div style={{ marginBottom: '1.5rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#8B4513', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.1rem' }}><FaUser size={18} /></div>
+                                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#1B2042', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.1rem' }}><FaUser size={18} /></div>
                                     <div>
                                         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>{selectedMessage.name}</h2>
                                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.15rem 0 0 0' }}>{selectedMessage.createdAt ? formatDate(selectedMessage.createdAt) : ''}</p>
@@ -291,6 +350,36 @@ const MessagesInbox = () => {
                     </div>
                 )}
             </div>
+
+            {showReply && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }} onClick={() => { if (!sending) setShowReply(false); }}>
+                    <div className="admin-card" style={{ width: 520, maxWidth: '95vw', padding: 0 }} onClick={e => e.stopPropagation()}>
+                        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaPaperPlane size={13} /> Reply to {selectedIds.size} Recipient(s)</h3>
+                            <button onClick={() => { if (!sending) setShowReply(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text-muted)' }}><FaTimes size={16} /></button>
+                        </div>
+                        <div style={{ padding: '1.25rem' }}>
+                            <div style={{ marginBottom: '0.75rem' }}>
+                                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>Subject</label>
+                                <input className="form-input" type="text" value={replySubject} onChange={e => setReplySubject(e.target.value)} placeholder="Re: Your Message" style={{ width: '100%' }} />
+                            </div>
+                            <div style={{ marginBottom: '0.75rem' }}>
+                                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>Message <span style={{ color: '#d32f2f' }}>*</span></label>
+                                <textarea className="form-input" rows={6} value={replyMessage} onChange={e => setReplyMessage(e.target.value)} placeholder="Type your reply..." style={{ width: '100%', resize: 'vertical' }} />
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem', padding: '0.5rem 0.75rem', background: 'var(--bg-body)', borderRadius: 6 }}>
+                                <strong>Recipients:</strong> {messages.filter(m => selectedIds.has(m.id!)).map(m => m.name).join(', ')}
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                <button className="admin-btn admin-btn--secondary" onClick={() => setShowReply(false)} disabled={sending} style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>Cancel</button>
+                                <button className="admin-btn" onClick={handleReply} disabled={sending || !replyMessage.trim()} style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem', opacity: sending || !replyMessage.trim() ? 0.6 : 1 }}>
+                                    {sending ? <>Sending...</> : <><FaPaperPlane size={11} /> Send Reply</>}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

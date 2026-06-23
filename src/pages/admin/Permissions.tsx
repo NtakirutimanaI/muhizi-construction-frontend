@@ -51,7 +51,7 @@ const DEFAULT_PERMISSIONS: Record<string, string[]> = {
 
 const LOCAL_KEY = 'app_permissions';
 
-const roleColors: Record<string, string> = { admin: '#ef4444', site_manager: '#f59e0b', manager: '#3b82f6', employee: '#22c55e', client: '#8b5cf6' };
+const roleColors: Record<string, string> = { admin: '#ef4444', site_manager: '#f59e0b', manager: '#1B2042', employee: '#22c55e', client: '#8b5cf6' };
 const roleLabels: Record<string, string> = { admin: 'Admin', site_manager: 'Site Manager', manager: 'Manager', employee: 'Employee', client: 'Client' };
 
 export default function Permissions() {
@@ -347,7 +347,7 @@ export default function Permissions() {
                     </table>
                 </div>
 
-                <div style={{ marginTop: '0.75rem', padding: '0.4rem 0.6rem', background: 'rgba(139,69,19,0.08)', borderRadius: 6, fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                <div style={{ marginTop: '0.75rem', padding: '0.4rem 0.6rem', background: 'rgba(27,32,66,0.08)', borderRadius: 6, fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                     <FaShieldAlt style={{ color: 'var(--primary)' }} />
                     <span>Each permission change saves immediately to the database and is permanent until modified.</span>
                 </div>
@@ -447,7 +447,7 @@ export default function Permissions() {
                     </div>
                 )}
 
-                <div style={{ marginTop: '0.75rem', padding: '0.4rem 0.6rem', background: 'rgba(139,69,19,0.08)', borderRadius: 6, fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                <div style={{ marginTop: '0.75rem', padding: '0.4rem 0.6rem', background: 'rgba(27,32,66,0.08)', borderRadius: 6, fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                     <FaUsers style={{ color: 'var(--primary)' }} />
                     <span>Select a new role from the dropdown to assign. Changes are saved immediately.</span>
                 </div>

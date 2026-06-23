@@ -72,7 +72,7 @@ const SiteActivities = () => {
             .catch(() => {});
     };
 
-    const statusColor = (s: string) => s === 'completed' ? '#22c55e' : s === 'in_progress' ? '#3b82f6' : '#f59e0b';
+    const statusColor = (s: string) => s === 'completed' ? '#22c55e' : s === 'in_progress' ? '#1B2042' : '#f59e0b';
 
     if (loading) {
         return (
@@ -86,7 +86,7 @@ const SiteActivities = () => {
         <div>
             <div style={{ marginBottom: '1.5rem' }}>
                 <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <FaHardHat style={{ color: '#8B4513' }} /> Site Activities
+                    <FaHardHat style={{ color: '#1B2042' }} /> Site Activities
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Track daily construction site activities</p>
             </div>
@@ -101,7 +101,7 @@ const SiteActivities = () => {
                     </select>
                 </div>
                 <input value={search} onChange={e => { setPage(1); setSearch(e.target.value); }} placeholder="Search by project or description..." style={{ flex: 1, minWidth: '200px', padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.85rem' }} />
-                <button onClick={openNew} style={{ padding: '0.4rem 1rem', borderRadius: '8px', border: 'none', background: '#8B4513', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
+                <button onClick={openNew} style={{ padding: '0.4rem 1rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
                     <FaPlus size={12} /> New Activity
                 </button>
             </div>
@@ -110,7 +110,7 @@ const SiteActivities = () => {
                 {paginated.map(a => (
                     <div key={a.id} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.85rem', flexWrap: 'wrap' }}>
                         <div style={{ flex: 1, minWidth: '160px', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                            <FaHardHat style={{ color: '#8B4513' }} />
+                            <FaHardHat style={{ color: '#1B2042' }} />
                             <span style={{ fontWeight: 700, fontSize: '0.82rem', whiteSpace: 'nowrap' }}>{a.project}</span>
                             <span style={{ fontSize: '0.6rem', fontWeight: 600, padding: '0.05rem 0.35rem', borderRadius: '4px', background: `${statusColor(a.status)}20`, color: statusColor(a.status), textTransform: 'capitalize' }}>{a.status.replace('_', ' ')}</span>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{a.date} &mdash; {a.description} {a.workers > 0 && `(${a.workers} workers)`}</span>

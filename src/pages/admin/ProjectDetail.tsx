@@ -15,7 +15,7 @@ const iconMap: Record<string, React.ReactNode> = {
 
 const statusStyles: Record<string, { color: string; bg: string; icon: React.ReactNode }> = {
     planning: { color: '#6b7280', bg: '#6b728020', icon: <FaClock size={12} /> },
-    in_progress: { color: '#3b82f6', bg: '#3b82f620', icon: <FaSpinner size={12} /> },
+    in_progress: { color: '#1B2042', bg: '#1B204220', icon: <FaSpinner size={12} /> },
     completed: { color: '#22c55e', bg: '#22c55e20', icon: <FaCheckCircle size={12} /> },
     cancelled: { color: '#ef4444', bg: '#ef444420', icon: <FaTimesCircle size={12} /> },
 };
@@ -76,7 +76,7 @@ const sampleContracts = [
 const sampleRules = [
     { title: 'Job Start Time & Attendance', iconName: 'FaClock', pinColor: '#e74c3c', items: ['Report by 6:30 AM sharp — gates close at 6:45 AM.', 'Biometric scan at main gate.', 'Afternoon shift starts at 1:00 PM.', 'Overtime requires site manager approval.'] },
     { title: 'Safety Rules', iconName: 'FaHardHat', pinColor: '#f39c12', items: ['PPE mandatory at all times.', '3rd PPE offense = termination.', 'Report all accidents immediately.', 'Monthly safety drills required.'] },
-    { title: 'Site Confidentiality', iconName: 'FaLock', pinColor: '#8B4513', items: ['No photos without authorization.', 'NDA signed upon hiring.', 'Social media posts require clearance.'] },
+    { title: 'Site Confidentiality', iconName: 'FaLock', pinColor: '#1B2042', items: ['No photos without authorization.', 'NDA signed upon hiring.', 'Social media posts require clearance.'] },
 ];
 
 const ProjectDetail = () => {
@@ -112,7 +112,7 @@ const ProjectDetail = () => {
                 </button>
                 <div>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <FaProjectDiagram style={{ color: '#8B4513' }} /> {project.name}
+                        <FaProjectDiagram style={{ color: '#1B2042' }} /> {project.name}
                     </h1>
                     {project.location && <p style={{ margin: '0.15rem 0 0', fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         <FaMapMarkerAlt size={12} /> {project.location}
@@ -125,9 +125,9 @@ const ProjectDetail = () => {
                     <button key={t.key} onClick={() => setActiveTab(t.key)}
                         style={{
                             padding: '0.5rem 1rem', border: 'none', background: 'none',
-                            color: activeTab === t.key ? '#8B4513' : 'var(--text-muted)',
+                            color: activeTab === t.key ? '#1B2042' : 'var(--text-muted)',
                             cursor: 'pointer', fontSize: '0.82rem', fontWeight: activeTab === t.key ? 700 : 500,
-                            borderBottom: activeTab === t.key ? '2px solid #8B4513' : '2px solid transparent',
+                            borderBottom: activeTab === t.key ? '2px solid #1B2042' : '2px solid transparent',
                             marginBottom: '-2px', display: 'flex', alignItems: 'center', gap: '0.35rem',
                             transition: 'all 0.15s',
                         }}>
@@ -139,7 +139,7 @@ const ProjectDetail = () => {
             {activeTab === 'overview' && (
                 <div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                        <div className="content-card" style={{ padding: '0.75rem 1rem', borderLeft: '3px solid #8B4513' }}>
+                        <div className="content-card" style={{ padding: '0.75rem 1rem', borderLeft: '3px solid #1B2042' }}>
                             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Status</div>
                             <div style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                                 {statusStyles[project.status]?.icon} <span style={{ textTransform: 'capitalize' }}>{project.status.replace('_', ' ')}</span>
@@ -149,14 +149,14 @@ const ProjectDetail = () => {
                             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Budget</div>
                             <div style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: '0.15rem' }}>RWF {(project.budget || 0).toLocaleString()}</div>
                         </div>
-                        <div className="content-card" style={{ padding: '0.75rem 1rem', borderLeft: '3px solid #3b82f6' }}>
+                        <div className="content-card" style={{ padding: '0.75rem 1rem', borderLeft: '3px solid #1B2042' }}>
                             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Progress</div>
                             <div style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: '0.15rem' }}>{project.progress || 0}%</div>
                             <div style={{ marginTop: '0.3rem', height: '4px', background: 'var(--border-color)', borderRadius: '2px', overflow: 'hidden' }}>
-                                <div style={{ width: `${project.progress || 0}%`, height: '100%', background: '#8B4513', borderRadius: '2px' }} />
+                                <div style={{ width: `${project.progress || 0}%`, height: '100%', background: '#1B2042', borderRadius: '2px' }} />
                             </div>
                         </div>
-                        <div className="content-card" style={{ padding: '0.75rem 1rem', borderLeft: '3px solid #8B4513' }}>
+                        <div className="content-card" style={{ padding: '0.75rem 1rem', borderLeft: '3px solid #1B2042' }}>
                             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Type</div>
                             <div style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: '0.15rem', textTransform: 'capitalize' }}>{project.type || '—'}</div>
                         </div>
@@ -187,7 +187,7 @@ const ProjectDetail = () => {
                             { icon: <FaFileAlt />, label: 'Contracts', count: sampleContracts.length, tab: 'contracts' as Tab },
                             { icon: <FaGavel />, label: 'Site Rules', count: sampleRules.length, tab: 'rules' as Tab },
                         ].map((s, i) => (
-                            <div key={i} className="content-card" style={{ padding: '0.75rem 1rem', cursor: 'pointer', borderLeft: '3px solid #8B4513' }}
+                            <div key={i} className="content-card" style={{ padding: '0.75rem 1rem', cursor: 'pointer', borderLeft: '3px solid #1B2042' }}
                                 onClick={() => setActiveTab(s.tab)}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>{s.icon} {s.label}</div>
                                 <div style={{ fontSize: '1.3rem', fontWeight: 800, marginTop: '0.1rem' }}>{s.count}</div>
@@ -210,7 +210,7 @@ const ProjectDetail = () => {
                                         <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{a.task}</div>
                                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{a.date} &middot; {a.crew}</div>
                                     </div>
-                                    <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '10px', background: a.status === 'completed' ? '#22c55e20' : '#3b82f620', color: a.status === 'completed' ? '#22c55e' : '#3b82f6', textTransform: 'capitalize' }}>{a.status.replace('_', ' ')}</span>
+                                    <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '10px', background: a.status === 'completed' ? '#22c55e20' : '#1B204220', color: a.status === 'completed' ? '#22c55e' : '#1B2042', textTransform: 'capitalize' }}>{a.status.replace('_', ' ')}</span>
                                 </div>
                             ))}
                         </div>
@@ -358,7 +358,7 @@ const ProjectDetail = () => {
                     onClick={() => setSelectedRule(null)}>
                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }} />
                     <div onClick={(e) => e.stopPropagation()} style={{
-                        position: 'relative', background: 'linear-gradient(145deg, #8B4513, #6B3410)', borderRadius: '16px',
+                        position: 'relative', background: 'linear-gradient(145deg, #1B2042, #1B2042)', borderRadius: '16px',
                         padding: '1.5rem 2rem', maxWidth: '600px', width: '100%', maxHeight: '80vh', overflowY: 'auto', color: '#fff',
                         boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
                     }}>

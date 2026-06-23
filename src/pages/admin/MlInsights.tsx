@@ -139,7 +139,7 @@ const MlInsights = () => {
 
     const downloadLeadPDF = () => {
         const doc = new jsPDF();
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
 
@@ -174,7 +174,7 @@ const MlInsights = () => {
     };
 
     const downloadLeadExcel = () => {
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const headers = ['#', 'Company', 'Score', 'Category', 'Visits'];
         const rows = leadTableData.map(r => `<tr>${r.map(c => `<td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${c}</td>`).join('')}</tr>`).join('');
         const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>
@@ -196,7 +196,7 @@ const MlInsights = () => {
 
     const downloadProjectPDF = () => {
         const doc = new jsPDF();
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
 
@@ -231,7 +231,7 @@ const MlInsights = () => {
     };
 
     const downloadProjectExcel = () => {
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const headers = ['#', 'Project', 'Type', 'Status', 'Effectiveness'];
         const rows = projectTableData.map(r => `<tr>${r.map(c => `<td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${c}</td>`).join('')}</tr>`).join('');
         const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>
@@ -260,27 +260,27 @@ const MlInsights = () => {
                     <FaBrain style={{ color: 'var(--primary)' }} /> ML Insights
                 </h2>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.totalLeads}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total Leads</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.hotLeads}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Hot</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.warmLeads}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Warm</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.coldLeads}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Cold</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.avgEffectiveness}%</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Avg Effectiveness</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.todayVisitors}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Today Visitors</div>
                     </div>
@@ -295,10 +295,10 @@ const MlInsights = () => {
                             <h3 style={{ margin: 0 }}>Lead Scoring</h3>
                         </div>
                         <div style={{ display: 'flex', gap: '0.4rem' }}>
-                            <button className="admin-btn" onClick={downloadLeadExcel} disabled={leadScores.length === 0} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: leadScores.length > 0 ? 1 : 0.5 }}>
+                            <button className="admin-btn" onClick={downloadLeadExcel} disabled={leadScores.length === 0} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: leadScores.length > 0 ? 1 : 0.5 }}>
                                 <FaFileExcel /> Excel
                             </button>
-                            <button className="admin-btn" onClick={downloadLeadPDF} disabled={leadScores.length === 0} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: leadScores.length > 0 ? 1 : 0.5 }}>
+                            <button className="admin-btn" onClick={downloadLeadPDF} disabled={leadScores.length === 0} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: leadScores.length > 0 ? 1 : 0.5 }}>
                                 <FaFilePdf /> PDF
                             </button>
                         </div>
@@ -350,10 +350,10 @@ const MlInsights = () => {
                             <h3 style={{ margin: 0 }}>Project Effectiveness</h3>
                         </div>
                         <div style={{ display: 'flex', gap: '0.4rem' }}>
-                            <button className="admin-btn" onClick={downloadProjectExcel} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <button className="admin-btn" onClick={downloadProjectExcel} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5 }}>
                                 <FaFileExcel /> Excel
                             </button>
-                            <button className="admin-btn" onClick={downloadProjectPDF} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <button className="admin-btn" onClick={downloadProjectPDF} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5 }}>
                                 <FaFilePdf /> PDF
                             </button>
                         </div>
@@ -369,7 +369,7 @@ const MlInsights = () => {
                                         <td>
                                             <span style={{
                                                 display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
-                                                color: '#fff', background: p.status === 'completed' ? '#22c55e' : p.status === 'in_progress' ? '#3b82f6' : '#6b7280',
+                                                color: '#fff', background: p.status === 'completed' ? '#22c55e' : p.status === 'in_progress' ? '#1B2042' : '#6b7280',
                                             }}>{p.status}</span>
                                         </td>
                                         <td>
@@ -403,14 +403,14 @@ const MlInsights = () => {
                     <>
                         <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                             {visitorTrend.map(t => (
-                                <div key={t.label} className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                                <div key={t.label} className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                                     <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{t.value}</div>
                                     <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>{t.label}</div>
                                 </div>
                             ))}
                         </div>
                         {forecast && (
-                            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(139,69,19,0.06)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(27,32,66,0.06)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                                 <FaChartLine style={{ color: 'var(--primary)', flexShrink: 0 }} />
                                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                                     <strong>ML Forecast:</strong> Trend is <strong style={{ color: forecast.trend === 'up' ? '#22c55e' : forecast.trend === 'down' ? '#ef4444' : '#f59e0b' }}>{forecast.trend}</strong>
@@ -465,7 +465,7 @@ const MlInsights = () => {
                     />
                     <button
                         className="btn-primary"
-                        style={{ background: '#8B4513', alignSelf: 'flex-end', padding: '0.6rem 1.2rem', whiteSpace: 'nowrap' }}
+                        style={{ background: '#1B2042', alignSelf: 'flex-end', padding: '0.6rem 1.2rem', whiteSpace: 'nowrap' }}
                         disabled={mlStatus.messageClassify === 'loading' || !classifyInput.trim()}
                         onClick={async () => {
                             if (!classifyInput.trim()) return;
@@ -484,7 +484,7 @@ const MlInsights = () => {
                     </button>
                 </div>
                 {classification && (
-                    <div style={{ marginTop: '1rem', padding: '1rem', borderRadius: 8, background: 'rgba(139,69,19,0.06)', border: '1px solid rgba(139,69,19,0.2)' }}>
+                    <div style={{ marginTop: '1rem', padding: '1rem', borderRadius: 8, background: 'rgba(27,32,66,0.06)', border: '1px solid rgba(27,32,66,0.2)' }}>
                         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                             <div>
                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Category</span>

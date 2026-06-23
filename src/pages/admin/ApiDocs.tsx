@@ -15,7 +15,7 @@ interface GroupedEndpoints {
 
 const METHOD_COLORS: Record<string, string> = {
     GET: '#22c55e',
-    POST: '#3b82f6',
+    POST: '#1B2042',
     PUT: '#f59e0b',
     PATCH: '#8b5cf6',
     DELETE: '#ef4444',
@@ -132,9 +132,9 @@ const ApiDocs = () => {
     }, []);
 
     const statCards = [
-        { label: 'Total', value: counts.total, color: '#8B4513' },
+        { label: 'Total', value: counts.total, color: '#1B2042' },
         { label: 'GET', value: counts.GET, color: '#22c55e' },
-        { label: 'POST', value: counts.POST, color: '#3b82f6' },
+        { label: 'POST', value: counts.POST, color: '#1B2042' },
         { label: 'PUT', value: counts.PUT, color: '#f59e0b' },
         { label: 'PATCH', value: counts.PATCH, color: '#8b5cf6' },
         { label: 'DELETE', value: counts.DELETE, color: '#ef4444' },
@@ -254,8 +254,8 @@ const ApiDocs = () => {
                                         }}
                                     >
                                         {isExpanded ? <FaChevronDown size={10} /> : <FaChevronRight size={10} />}
-                                        <span style={{ color: '#8B4513' }}>{TAG_LABELS[tag] || tag}</span>
-                                        <span style={{ background: '#8B4513', color: '#fff', padding: '1px 8px', borderRadius: 10, fontSize: '0.7rem', fontWeight: 600 }}>{filtered.length}</span>
+                                        <span style={{ color: '#1B2042' }}>{TAG_LABELS[tag] || tag}</span>
+                                        <span style={{ background: '#1B2042', color: '#fff', padding: '1px 8px', borderRadius: 10, fontSize: '0.7rem', fontWeight: 600 }}>{filtered.length}</span>
                                     </div>
 
                                     {/* Table */}

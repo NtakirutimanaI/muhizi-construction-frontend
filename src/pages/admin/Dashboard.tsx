@@ -40,7 +40,7 @@ const AdminDashboard = () => {
 
     const quickActions = [
         { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: 'Daily site logs' },
-        { to: '/admin/material-requests', icon: <FaTruck />, bg: '#3b82f6', label: 'Material Requests', sub: 'Track materials' },
+        { to: '/admin/material-requests', icon: <FaTruck />, bg: '#1B2042', label: 'Material Requests', sub: 'Track materials' },
         { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: 'Photos & videos' },
         { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: 'Worker check-ins' },
     ];
@@ -48,7 +48,7 @@ const AdminDashboard = () => {
     const summaryCards = [
         {
             label: 'Total Visitors', value: visitorStats?.total ?? 0, sub: `${visitorStats?.today ?? 0} today`,
-            icon: <FaEye />, color: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+            icon: <FaEye />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #1B2042)',
         },
         {
             label: 'Messages', value: stats?.messages ?? 0, sub: `${stats?.unreadMessages ?? 0} unread`,
@@ -58,7 +58,7 @@ const AdminDashboard = () => {
 
     const trendCards = [
         { label: 'Today', value: visitorStats?.today ?? 0, icon: <FaCalendarDay />, color: '#22c55e' },
-        { label: 'Last 7 Days', value: visitorStats?.last7Days ?? 0, icon: <FaCalendarWeek />, color: '#3b82f6' },
+        { label: 'Last 7 Days', value: visitorStats?.last7Days ?? 0, icon: <FaCalendarWeek />, color: '#1B2042' },
         { label: 'Last 30 Days', value: visitorStats?.last30Days ?? 0, icon: <FaCalendarAlt />, color: '#8b5cf6' },
     ];
 
@@ -105,7 +105,7 @@ const AdminDashboard = () => {
                 {/* Visitor Trends */}
                 <div className="content-card" style={{ padding: '1.25rem' }}>
                     <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <FaChartLine style={{ color: '#8B4513' }} /> Visitor Trends
+                        <FaChartLine style={{ color: '#1B2042' }} /> Visitor Trends
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         {trendCards.map(c => {
@@ -134,9 +134,9 @@ const AdminDashboard = () => {
                 <div className="content-card" style={{ padding: '1.25rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                         <h3 style={{ fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <FaEnvelope style={{ color: '#3b82f6' }} /> Recent Messages
+                            <FaEnvelope style={{ color: '#1B2042' }} /> Recent Messages
                         </h3>
-                        <Link to="/admin/messages" style={{ color: '#8B4513', fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Link to="/admin/messages" style={{ color: '#1B2042', fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             View All <FaArrowRight size={10} />
                         </Link>
                     </div>
@@ -177,7 +177,7 @@ const AdminDashboard = () => {
             {/* Quick Actions */}
             <div className="content-card" style={{ padding: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
-                    <FaArrowUp style={{ color: '#8B4513', fontSize: '0.9rem' }} />
+                    <FaArrowUp style={{ color: '#1B2042', fontSize: '0.9rem' }} />
                     <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Quick Actions</h3>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem' }}>
@@ -194,7 +194,7 @@ const AdminDashboard = () => {
                         >
                             <div style={{
                                 width: '40px', height: '40px', borderRadius: '10px',
-                                background: `${action.bg}15`, display: 'flex', alignItems: 'center',
+                                background: '#fff', display: 'flex', alignItems: 'center',
                                 justifyContent: 'center', color: action.bg, fontSize: '1rem',
                             }}>
                                 {action.icon}

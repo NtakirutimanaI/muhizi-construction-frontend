@@ -45,13 +45,13 @@ const SalaryHistory = () => {
         <div>
             <div style={{ marginBottom: '1.5rem' }}>
                 <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <FaHistory style={{ color: '#8B4513' }} /> Salary History
+                    <FaHistory style={{ color: '#1B2042' }} /> Salary History
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>View your salary and payment records</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div className="content-card" style={{ padding: '1rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                <div className="content-card" style={{ padding: '1rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                     <div style={{ fontSize: '1.4rem', fontWeight: 800 }}>RWF {totals.net.toLocaleString()}</div>
                     <div style={{ fontSize: '0.7rem', opacity: 0.85 }}>Total Net Pay</div>
                 </div>
@@ -60,7 +60,7 @@ const SalaryHistory = () => {
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Total Basic</div>
                 </div>
                 <div className="content-card" style={{ padding: '1rem', textAlign: 'center', border: '1px solid var(--border-color)' }}>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#3b82f6' }}>RWF {totals.allowances.toLocaleString()}</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1B2042' }}>RWF {totals.allowances.toLocaleString()}</div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Total Allowances</div>
                 </div>
                 <div className="content-card" style={{ padding: '1rem', textAlign: 'center', border: '1px solid var(--border-color)' }}>
@@ -68,7 +68,7 @@ const SalaryHistory = () => {
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Total Deductions</div>
                 </div>
                 <div className="content-card" style={{ padding: '1rem', textAlign: 'center', border: '1px solid var(--border-color)' }}>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#8B4513' }}>{records.filter(r => r.status === 'paid').length}</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1B2042' }}>{records.filter(r => r.status === 'paid').length}</div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Paid Records</div>
                 </div>
             </div>
@@ -101,7 +101,7 @@ const SalaryHistory = () => {
                                 <tr key={r.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                     <td style={{ padding: '0.6rem 0.5rem', fontWeight: 600 }}>{MONTHS[r.month - 1]} {r.year}</td>
                                     <td style={{ padding: '0.6rem 0.5rem', textAlign: 'right' }}>RWF {r.basicSalary.toLocaleString()}</td>
-                                    <td style={{ padding: '0.6rem 0.5rem', textAlign: 'right', color: '#3b82f6' }}>RWF {(r.totalAllowances || 0).toLocaleString()}</td>
+                                    <td style={{ padding: '0.6rem 0.5rem', textAlign: 'right', color: '#1B2042' }}>RWF {(r.totalAllowances || 0).toLocaleString()}</td>
                                     <td style={{ padding: '0.6rem 0.5rem', textAlign: 'right', color: '#ef4444' }}>RWF {(r.totalDeductions || 0).toLocaleString()}</td>
                                     <td style={{ padding: '0.6rem 0.5rem', textAlign: 'right', fontWeight: 700, color: '#22c55e' }}>RWF {r.netSalary.toLocaleString()}</td>
                                     <td style={{ padding: '0.6rem 0.5rem', textAlign: 'center' }}>

@@ -68,7 +68,7 @@ const EmployeeAssignments = () => {
     }, [totalPages, page]);
 
     const roleColors: Record<string, string> = {
-        manager: '#8b5cf6', site_manager: '#f59e0b', worker: '#22c55e', supervisor: '#3b82f6',
+        manager: '#8b5cf6', site_manager: '#f59e0b', worker: '#22c55e', supervisor: '#1B2042',
     };
 
     const openNew = () => { setEditing(null); setForm(emptyForm); setModalPos(null); setShowModal(true); };
@@ -156,7 +156,7 @@ const EmployeeAssignments = () => {
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
                     <FaTasks style={{ color: 'var(--primary)' }} /> Employee Assignments
                 </h2>
-                <button className="admin-btn" onClick={openNew} style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
+                <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
                     <FaPlus style={{ marginRight: 6 }} />Assign Employee
                 </button>
             </div>

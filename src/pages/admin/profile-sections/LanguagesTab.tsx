@@ -80,7 +80,7 @@ const LanguagesTab: React.FC<LanguagesTabProps> = ({ profile, onUpdate, searchQu
 
     const getProficiencyColor = (level: string) => {
         const map: Record<string, string> = {
-            Native: '#22c55e', Fluent: '#3b82f6', Advanced: '#8b5cf6',
+            Native: '#22c55e', Fluent: '#1B2042', Advanced: '#8b5cf6',
             Intermediate: '#f59e0b', Basic: '#ef4444', Conversational: '#ec4899',
         };
         return map[level] || 'var(--text-muted)';

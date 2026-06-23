@@ -181,7 +181,7 @@ const Contracts = () => {
             <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <FaFileAlt style={{ color: '#8B4513' }} /> Contracts
+                        <FaFileAlt style={{ color: '#1B2042' }} /> Contracts
                     </h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
                         Manage employee contract documents — upload, review, and track expiry
@@ -193,14 +193,14 @@ const Contracts = () => {
                         <FaFileSignature size={12} /> Create Contract
                     </button>
                     <button onClick={() => setShowUpload(true)}
-                        style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', background: '#8B4513', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
+                        style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
                         <FaPlus size={12} /> Upload Contract
                     </button>
                 </div>
             </div>
 
             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-                <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#8B4513', color: '#fff' }}>
+                <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
                     <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{contracts.length}</div>
                     <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total</div>
                 </div>
@@ -228,7 +228,7 @@ const Contracts = () => {
                     <button key={f} onClick={() => setFilterStatus(f)}
                         style={{
                             padding: '0.4rem 0.85rem', borderRadius: '20px', border: '1px solid var(--border-color)',
-                            background: filterStatus === f ? '#8B4513' : 'transparent',
+                            background: filterStatus === f ? '#1B2042' : 'transparent',
                             color: filterStatus === f ? '#fff' : 'var(--text-main)',
                             cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600,
                             textTransform: f === 'expiring_soon' ? 'none' : 'capitalize',
@@ -491,7 +491,7 @@ const Contracts = () => {
                                     onChange={e => setSelectedFile(e.target.files?.[0] || null)} />
                                 <div onClick={() => fileInputRef.current?.click()}
                                     style={{ border: '2px dashed var(--border-color)', borderRadius: '10px', padding: '1rem', textAlign: 'center', cursor: 'pointer', transition: 'border-color 0.2s' }}
-                                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#8B4513'}
+                                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#1B2042'}
                                     onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}>
                                     {selectedFile ? (
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
@@ -515,7 +515,7 @@ const Contracts = () => {
                                 Cancel
                             </button>
                             <button onClick={handleUpload} disabled={!form.title || !form.employeeId || !form.startDate || uploading}
-                                style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: '#8B4513', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', opacity: (!form.title || !form.employeeId || !form.startDate || uploading) ? 0.5 : 1 }}>
+                                style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', opacity: (!form.title || !form.employeeId || !form.startDate || uploading) ? 0.5 : 1 }}>
                                 {uploading ? <FaSpinner className="spin" size={12} /> : (editing ? <FaEdit size={12} /> : <FaUpload size={12} />)} {uploading ? 'Saving...' : editing ? 'Update' : 'Upload'}
                             </button>
                         </div>

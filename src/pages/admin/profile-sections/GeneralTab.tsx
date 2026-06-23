@@ -118,7 +118,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ profile, onUpdate }) => {
                     </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <button type="button" onClick={handleChangePassword} disabled={changingPassword} className="admin-btn" style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', padding: '0.3rem 0.75rem', fontSize: '0.8rem' }}>
+                    <button type="button" onClick={handleChangePassword} disabled={changingPassword} className="admin-btn" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', padding: '0.3rem 0.75rem', fontSize: '0.8rem' }}>
                         {changingPassword ? 'Changing...' : 'Change Password'}
                     </button>
                 </div>
@@ -149,7 +149,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ profile, onUpdate }) => {
                                 No Image
                             </div>
                         )}
-                        <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#8B4513', color: '#fff', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', border: '2px solid var(--bg-white)' }}>
+                        <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#1B2042', color: '#fff', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', border: '2px solid var(--bg-white)' }}>
                             <FaCamera size={9} />
                         </div>
                     </div>
@@ -200,7 +200,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ profile, onUpdate }) => {
                         type="submit"
                         disabled={loading}
                         className="admin-btn"
-                        style={{ background: '#8B4513', borderColor: '#8B4513', color: '#fff', padding: '0.3rem 0.75rem', fontSize: '0.8rem' }}
+                        style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', padding: '0.3rem 0.75rem', fontSize: '0.8rem' }}
                     >
                         {loading ? 'Saving...' : <><FaSave style={{ marginRight: 6 }} /> Save</>}
                     </button>

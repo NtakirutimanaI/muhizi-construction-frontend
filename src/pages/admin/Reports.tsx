@@ -38,7 +38,7 @@ const Reports = () => {
     const downloadPDF = () => {
         if (!monthly && !yearly) return;
         const doc = new jsPDF();
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const pageW = doc.internal.pageSize.getWidth();
         const periodStr = view === 'monthly' ? `${MONTHS[month - 1]} ${year}` : `${year}`;
 
@@ -142,7 +142,7 @@ const Reports = () => {
 
     const downloadExcel = () => {
         if (!monthly && !yearly) return;
-        const brown = '#8B4513';
+        const brown = '#1B2042';
         const periodStr = view === 'monthly' ? `${MONTHS[month - 1]} ${year}` : `${year}`;
         const title = `${view === 'monthly' ? 'Monthly' : 'Yearly'} Financial Report`;
         let rows = '';
@@ -197,12 +197,12 @@ const Reports = () => {
                     <div style={{ display: 'flex', gap: 0, border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
                         <button onClick={() => setView('monthly')} style={{
                             padding: '0.4rem 0.9rem', fontSize: '0.8rem', fontWeight: 600, border: 'none', cursor: 'pointer',
-                            background: view === 'monthly' ? '#8B4513' : 'transparent',
+                            background: view === 'monthly' ? '#1B2042' : 'transparent',
                             color: view === 'monthly' ? '#fff' : 'var(--text-muted)',
                         }}>Monthly</button>
                         <button onClick={() => setView('yearly')} style={{
                             padding: '0.4rem 0.9rem', fontSize: '0.8rem', fontWeight: 600, border: 'none', cursor: 'pointer',
-                            background: view === 'yearly' ? '#8B4513' : 'transparent',
+                            background: view === 'yearly' ? '#1B2042' : 'transparent',
                             color: view === 'yearly' ? '#fff' : 'var(--text-muted)',
                         }}>Yearly</button>
                     </div>
@@ -238,8 +238,8 @@ const Reports = () => {
                             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ef4444' }}>RWF {monthly.totalExpense.toLocaleString()}</div>
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Total Expense</div>
                         </div>
-                        <div className="content-card" style={{ padding: '1.25rem', textAlign: 'center', border: '1px solid var(--border-color)', background: '#8B451310' }}>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#8B4513' }}>RWF {monthly.netProfit.toLocaleString()}</div>
+                        <div className="content-card" style={{ padding: '1.25rem', textAlign: 'center', border: '1px solid var(--border-color)', background: '#1B204210' }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1B2042' }}>RWF {monthly.netProfit.toLocaleString()}</div>
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Net Profit</div>
                         </div>
                         <div className="content-card" style={{ padding: '1.25rem', textAlign: 'center', border: '1px solid var(--border-color)' }}>
@@ -294,8 +294,8 @@ const Reports = () => {
                             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ef4444' }}>RWF {yearly.totalExpense.toLocaleString()}</div>
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Total Expense</div>
                         </div>
-                        <div className="content-card" style={{ padding: '1.25rem', textAlign: 'center', border: '1px solid var(--border-color)', background: '#8B451310' }}>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#8B4513' }}>RWF {yearly.netProfit.toLocaleString()}</div>
+                        <div className="content-card" style={{ padding: '1.25rem', textAlign: 'center', border: '1px solid var(--border-color)', background: '#1B204210' }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1B2042' }}>RWF {yearly.netProfit.toLocaleString()}</div>
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Net Profit</div>
                         </div>
                     </div>
