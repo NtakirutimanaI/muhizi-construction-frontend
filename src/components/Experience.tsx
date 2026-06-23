@@ -8,9 +8,9 @@ const Experience: React.FC = () => {
     const constraintsRef = useRef<HTMLDivElement>(null);
     const { profile } = useOutletContext<{ profile: Profile | null }>();
     const fu = profile?.pageContent?.followUs;
-    const heading = fu?.heading || 'Follow Us';
-    const subtitle = fu?.subtitle || 'Watch our latest projects and company updates';
-    const mainVideoUrl = fu?.youtubeUrl || 'https://www.youtube.com/embed/CJtOOX23Ofo?autoplay=1&mute=1&rel=0';
+    const heading = fu?.heading;
+    const subtitle = fu?.subtitle;
+    const mainVideoUrl = fu?.youtubeUrl;
     const videos = fu?.videos || [];
 
     return (
@@ -104,75 +104,12 @@ const Experience: React.FC = () => {
                                     {v.title}
                                 </p>
                             </div>
-                        )) : (
-                            <>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                    <motion.div
-                                        drag
-                                        dragConstraints={constraintsRef}
-                                        initial={{ opacity: 0, x: -200 }}
-                                        whileInView={{ opacity: 1, x: 0 }}
-                                        viewport={{ once: false }}
-                                        transition={{ duration: 0.8, type: 'spring', stiffness: 200, damping: 10 }}
-                                        style={{
-                                            position: 'relative',
-                                            width: '100%',
-                                            maxWidth: '380px',
-                                            aspectRatio: '16 / 9',
-                                            overflow: 'hidden',
-                                            borderRadius: '10px',
-                                            background: '#000',
-                                        }}
-                                    >
-                                        <iframe
-                                            src={mainVideoUrl}
-                                            title="Company Video"
-                                            style={{ width: '100%', height: '100%', border: 'none' }}
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                        />
-                                    </motion.div>
-                                    <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 700 }}>
-                                        Construction project timelapse
-                                    </p>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                    <motion.div
-                                        drag
-                                        dragConstraints={constraintsRef}
-                                        initial={{ opacity: 0, x: 200 }}
-                                        whileInView={{ opacity: 1, x: 0 }}
-                                        viewport={{ once: false }}
-                                        transition={{ duration: 0.8, type: 'spring', stiffness: 200, damping: 10 }}
-                                        style={{
-                                            position: 'relative',
-                                            width: '100%',
-                                            maxWidth: '380px',
-                                            aspectRatio: '16 / 9',
-                                            overflow: 'hidden',
-                                            borderRadius: '10px',
-                                            background: '#000',
-                                        }}
-                                    >
-                                        <iframe
-                                            src={mainVideoUrl}
-                                            title="Company Video"
-                                            style={{ width: '100%', height: '100%', border: 'none' }}
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                        />
-                                    </motion.div>
-                                    <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 700 }}>
-                                        Behind the scenes showcase
-                                    </p>
-                                </div>
-                            </>
-                        )}
+                        )) : null}
                     </div>
                 </div>
 
                 <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                    <Link to={fu?.viewMoreUrl || '/about'} style={{
+                    {fu?.viewMoreUrl && <Link to={fu?.viewMoreUrl} style={{
                         background: 'transparent',
                         color: '#000',
                         fontWeight: 700,
@@ -189,8 +126,8 @@ const Experience: React.FC = () => {
                         onMouseEnter={(e) => { e.currentTarget.style.background = '#1B2042'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#1B2042'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000'; e.currentTarget.style.borderColor = '#000'; }}
                     >
-                        {fu?.viewMoreText || 'View More Videos'} &rarr;
-                    </Link>
+                        {fu?.viewMoreText} &rarr;
+                    </Link>}
                 </div>
             </div>
         </section>

@@ -41,7 +41,7 @@ const Stats: React.FC<StatsProps> = ({ profile, customStats }) => {
         { value: profile.projects?.length || 0, suffix: '+', label: 'Projects Completed' },
         { value: profile.yearsOfExperience || 0, suffix: '+', label: 'Years Experience' },
         { value: profile.teamMembers?.length || 0, suffix: '+', label: 'Team Members' },
-        ...(customStats || [{ value: 98, suffix: '%', label: 'Satisfaction Rate' }]),
+        ...(customStats || []),
     ];
     const items = derived;
 

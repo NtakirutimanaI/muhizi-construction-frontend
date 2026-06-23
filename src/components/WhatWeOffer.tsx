@@ -2,62 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FaLaptopCode, FaMobileAlt, FaCloud, FaPaintBrush, FaRocket, FaShieldAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
-const defaultOfferings = [
-    {
-        icon: FaLaptopCode,
-        title: 'Building Construction',
-        description: 'High-quality residential, commercial, and industrial building construction using modern techniques and premium materials — delivered on time and within budget.',
-        color: '#7BC043',
-        tags: ['Residential', 'Commercial', 'Industrial', 'Infrastructure', 'Government', 'Project Management', 'Consultation'],
-    },
-    {
-        icon: FaMobileAlt,
-        title: 'Road Construction',
-        description: 'Comprehensive road and highway construction services including asphalt paving, earthworks, drainage systems, and bridge construction for public and private sectors.',
-        color: '#4ecdc4',
-        tags: ['Highways', 'Bridges', 'Asphalt Paving', 'Earthworks', 'Drainage', 'Urban Roads', 'Rural Roads'],
-    },
-    {
-        icon: FaCloud,
-        title: 'Real Estate Development',
-        description: 'End-to-end real estate development from land acquisition and feasibility studies to design, construction, and property marketing — creating value at every stage.',
-        color: '#ff5252',
-        tags: ['Land Acquisition', 'Feasibility Studies', 'Design & Build', 'Property Marketing', 'Mixed-Use', 'Residential Estates', 'Commercial Plazas'],
-    },
-    {
-        icon: FaPaintBrush,
-        title: 'Property Management',
-        description: 'Professional property management services including tenant sourcing, rent collection, maintenance coordination, and 24/7 emergency response for residential and commercial properties.',
-        color: '#ff9f43',
-        tags: ['Tenant Sourcing', 'Rent Collection', 'Maintenance', 'Emergency Response', 'Commercial Leasing', 'Residential Leasing', 'Facility Management'],
-    },
-    {
-        icon: FaShieldAlt,
-        title: 'Architectural Design',
-        description: 'Innovative architectural design services from concept to completion — creating functional, sustainable, and aesthetically outstanding buildings and spaces.',
-        color: '#fd79a8',
-        tags: ['Concept Design', 'Sustainable Architecture', '3D Visualization', 'Structural Planning', 'Interior Design', 'Urban Design', 'Landscaping'],
-    },
-    {
-        icon: FaRocket,
-        title: 'Interior & Exterior Finishing',
-        description: 'Premium interior and exterior finishing services including painting, flooring, tiling, ceiling installation, façade cladding, and landscaping — adding the perfect final touch.',
-        color: '#fdcb6e',
-        tags: ['Painting', 'Flooring', 'Tiling', 'Ceiling', 'Façade Cladding', 'Landscaping', 'Joinery'],
-    },
-];
-
 const offerIcons = [FaLaptopCode, FaMobileAlt, FaCloud, FaPaintBrush, FaShieldAlt, FaRocket];
 
-const slides = [
-    'https://picsum.photos/seed/web1/600/400',
-    'https://picsum.photos/seed/web2/600/400',
-    'https://picsum.photos/seed/web3/600/400',
-    'https://picsum.photos/seed/web4/600/400',
-];
-
 const ImageSlider = ({ color, seed, images }: { color: string; seed: number; images?: string[] }) => {
-    const slideImages = images && images.length > 0 ? images : slides;
+    const slideImages = images || [];
     const [current, setCurrent] = useState(0);
 
     const prev = useCallback(() => {
@@ -73,6 +21,7 @@ const ImageSlider = ({ color, seed, images }: { color: string; seed: number; ima
         return () => clearInterval(timer);
     }, [next]);
 
+    if (slideImages.length === 0) return null;
     return (
         <div className="offer-card__slider">
             {slideImages.map((src, i) => (
@@ -119,11 +68,12 @@ interface WhatWeOfferProps {
 }
 
 const WhatWeOffer: React.FC<WhatWeOfferProps> = ({ heading: propHeading, subtitle: propSubtitle, items: propItems }) => {
-    const heading = propHeading || 'Core Services';
-    const subtitle = propSubtitle || 'We deliver end-to-end construction and real estate solutions tailored to your needs — from planning and design to execution and project handover.';
+    const heading = propHeading;
+    const subtitle = propSubtitle;
     const offerings = propItems
         ? propItems.map((item, i) => ({ ...item, icon: offerIcons[i % offerIcons.length] }))
-        : defaultOfferings;
+        : [];
+    if (!offerings.length) return null;
     return (
         <section data-nav-theme="dark" className="section section-indicator section-offer-dark" id="offerings">
             <div className="container">

@@ -7,19 +7,12 @@ interface ContactProps {
     profile: Profile;
 }
 
-const DEFAULT_FAQS = [
-    { q: 'What services does MUHIZI CONSTRUCTION offer?', a: 'MUHIZI CONSTRUCTION offers a comprehensive range of construction and real estate services including building construction, road construction, real estate development, property management, architectural design, interior & exterior finishing, renovation & remodeling, and project management.' },
-    { q: 'How can I request a quote?', a: 'Simply fill out the contact form with details about your project, and our team will get back to you within 24 hours with a tailored proposal.' },
-    { q: 'Do you offer post-construction support?', a: 'Yes, we provide ongoing maintenance, property management, and support packages to ensure your structures remain safe, up-to-date, and in excellent condition.' },
-    { q: 'What types of projects do you handle?', a: 'We specialize in residential buildings, commercial complexes, roads and highways, industrial facilities, real estate developments, renovations, and infrastructure projects across Rwanda.' },
-];
-
 const Contact: React.FC<ContactProps> = ({ profile }) => {
     const { showToast } = useToast();
     const cs = profile.pageContent?.contactSection;
     const faqContent = profile.pageContent?.faq;
-    const faqItems = faqContent?.items?.map(i => ({ q: i.question, a: i.answer })) || DEFAULT_FAQS;
-    const faqHeading = faqContent?.heading || 'Frequently Asked Questions';
+    const faqItems = faqContent?.items?.map(i => ({ q: i.question, a: i.answer })) || [];
+    const faqHeading = faqContent?.heading;
     const [localData, setLocalData] = useState({
         firstName: '',
         lastName: '',
@@ -73,8 +66,8 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
     return (
         <section data-nav-theme="light" className="section" id="contact" style={{ borderBottom: 'none', padding: '60px 0' }}>
             <div className="container">
-                <h2 className="ark-section__heading" style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '0.5rem' }}>{cs?.heading || 'Get In Touch'}</h2>
-                <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '400px' }}>{cs?.subtitle || 'Looking forward to hearing from you'}</p>
+                {cs?.heading && <h2 className="ark-section__heading" style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '0.5rem' }}>{cs?.heading}</h2>}
+                {cs?.subtitle && <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '400px' }}>{cs?.subtitle}</p>}
 
                 {/* Grid: Form + Info */}
                 <div className="ark-contact__grid">
@@ -128,7 +121,7 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                                 <div className="ark-contact__info-icon"><FaPhone /></div>
                                 <div>
                                     <h4>Phone</h4>
-                                    <p>{profile.phone || '123-456-7890'}</p>
+                                    <p>{profile.phone}</p>
                                 </div>
                             </div>
                             <div className="ark-contact__info-item">
@@ -142,7 +135,7 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                                 <div className="ark-contact__info-icon"><FaMapMarkerAlt /></div>
                                 <div>
                                     <h4>Location</h4>
-                                    <p>{profile.location || 'Kigali, Rwanda'}</p>
+                                    <p>{profile.location}</p>
                                 </div>
                             </div>
                         </div>
@@ -150,9 +143,9 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                         <div className="ark-contact__social">
                             <h4 className="ark-contact__social-title">Follow Us</h4>
                             <div className="ark-contact__social-links">
-                                <a href={profile.socialLinks?.facebook || 'https://facebook.com/muhiziconstruction'} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="Facebook"><FaFacebook /></a>
-                                <a href={profile.socialLinks?.instagram || 'https://instagram.com/muhizi_construction'} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="Instagram"><FaInstagram /></a>
-                                <a href={profile.socialLinks?.linkedin || 'https://linkedin.com/company/muhizi-construction'} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="LinkedIn"><FaLinkedin /></a>
+                                {profile.socialLinks?.facebook && <a href={profile.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="Facebook"><FaFacebook /></a>}
+                                {profile.socialLinks?.instagram && <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="Instagram"><FaInstagram /></a>}
+                                {profile.socialLinks?.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="LinkedIn"><FaLinkedin /></a>}
                             </div>
                         </div>
                     </div>

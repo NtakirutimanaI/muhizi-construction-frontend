@@ -11,23 +11,14 @@ interface AboutProps {
 
 const CARD_ICONS = [FaBuilding, FaRoad, FaIndustry, FaHome, FaHardHat, FaTools];
 
-const defaultCards = [
-    { title: 'Building Construction', description: 'Residential and commercial buildings' },
-    { title: 'Road Construction', description: 'Highways, roads and pavement' },
-    { title: 'Infrastructure', description: 'Water, drainage and utilities' },
-    { title: 'Renovation', description: 'Remodeling and restoration' },
-    { title: 'Project Management', description: 'Planning and supervision' },
-    { title: 'Maintenance', description: 'Ongoing property care' },
-];
-
 const About: React.FC<AboutProps> = ({ profile }) => {
     const [hover, setHover] = useState(false);
     const as = profile.pageContent?.aboutSection;
-    const heading = as?.heading || 'Overview';
-    const subtitle = as?.subtitle || 'Our Products Are Beautiful, Good Quality And Professional';
-    const cards = as?.cards?.length ? as.cards : defaultCards;
-    const tickerText = as?.tickerText || 'Building Construction \u00B7 Road Construction \u00B7 Infrastructure \u00B7 Renovation \u00B7 Maintenance';
-    const bgImage = as?.imageUrl || '/img.png';
+    const heading = as?.heading;
+    const subtitle = as?.subtitle;
+    const cards = as?.cards || [];
+    const tickerText = as?.tickerText;
+    const bgImage = as?.imageUrl;
     return (
         <section data-nav-theme="light" className="section section-indicator" id="about" style={{
             paddingBottom: '5px',
@@ -58,7 +49,7 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                             <div key={i} className="service-card">
                                 <Icon className="service-card-icon" />
                                 <h3 className="service-card-title">{card.title}</h3>
-                                <p className="service-card-desc">{card.description}</p>
+                                {card.description && <p className="service-card-desc">{card.description}</p>}
                             </div>
                         );
                     })}

@@ -47,19 +47,11 @@ const AboutSectionsTab: React.FC<Props> = ({ profile, onSave, saving }) => {
                 <motion.div key={subTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
                     {subTab === 'about-home' && <AboutHomeEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'stats' && <StatsEditor profile={profile} onSave={onSave} saving={saving} />}
-                    {subTab === 'mission' && <CardEditor profile={profile} onSave={onSave} saving={saving} section="mission" defaultTitle="Our Mission" defaultText="To deliver exceptional construction..." defaultIcon="https://images.icon-icons.com/5904/PNG/96/326365_paper-plane-icon.png" />}
-                    {subTab === 'vision' && <CardEditor profile={profile} onSave={onSave} saving={saving} section="vision" defaultTitle="Our Vision" defaultText="To be the most trusted..." defaultIcon="https://images.icon-icons.com/5904/PNG/96/326321_sun-icon.png" />}
-                    {subTab === 'philosophy' && <CardEditor profile={profile} onSave={onSave} saving={saving} section="philosophy" defaultTitle="Our Philosophy" defaultText="We believe in building..." defaultIcon="https://images.icon-icons.com/5904/PNG/96/326370_star-icon.png" />}
-                    {subTab === 'core-values' && <ArrayCardEditor profile={profile} onSave={onSave} saving={saving} section="coreValues" defaultItems={[
-                        { title: 'Excellence', text: 'We strive for the highest standards...', icon: 'https://images.icon-icons.com/5904/PNG/96/326321_sun-icon.png' },
-                        { title: 'Integrity', text: 'We conduct business with honesty...', icon: 'https://images.icon-icons.com/5904/PNG/96/326329_heart-icon.png' },
-                        { title: 'Innovation', text: 'We embrace modern technology...', icon: 'https://images.icon-icons.com/5904/PNG/96/326323_lightning-bolt-icon.png' },
-                    ]} />}
-                    {subTab === 'why-choose-us' && <ArrayCardEditor profile={profile} onSave={onSave} saving={saving} section="whyChooseUs" defaultItems={[
-                        { title: 'Experienced Team', text: 'Our skilled professionals bring years of expertise...', icon: 'https://images.icon-icons.com/5904/PNG/96/326322_location-pin-icon.png' },
-                        { title: 'Client-Centric Approach', text: 'We prioritize your vision and needs...', icon: 'https://images.icon-icons.com/5904/PNG/96/326365_paper-plane-icon.png' },
-                        { title: 'Timely Delivery', text: 'We respect your time and budget...', icon: 'https://images.icon-icons.com/5904/PNG/96/326370_star-icon.png' },
-                    ]} />}
+                    {subTab === 'mission' && <CardEditor profile={profile} onSave={onSave} saving={saving} section="mission" />}
+                    {subTab === 'vision' && <CardEditor profile={profile} onSave={onSave} saving={saving} section="vision" />}
+                    {subTab === 'philosophy' && <CardEditor profile={profile} onSave={onSave} saving={saving} section="philosophy" />}
+                    {subTab === 'core-values' && <ArrayCardEditor profile={profile} onSave={onSave} saving={saving} section="coreValues" />}
+                    {subTab === 'why-choose-us' && <ArrayCardEditor profile={profile} onSave={onSave} saving={saving} section="whyChooseUs" />}
                     {subTab === 'cta' && <CtaEditor profile={profile} onSave={onSave} saving={saving} />}
                 </motion.div>
             </AnimatePresence>
@@ -165,9 +157,9 @@ const AboutHomeEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                         </div>
                     </div>
                 ))}
-                {cards.length === 0 && (
-                    <div style={{ padding: '1.5rem', textAlign: 'center', border: '2px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>No cards yet. Default cards will be shown.</div>
-                )}
+                    {cards.length === 0 && (
+                        <div style={{ padding: '1.5rem', textAlign: 'center', border: '2px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>No cards yet.</div>
+                    )}
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save About Section</>}</button>
@@ -268,19 +260,19 @@ const StatsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
 };
 
 /* ───── Single Card Editor (Mission/Vision/Philosophy) ───── */
-const CardEditor: React.FC<Props & { section: string; defaultTitle: string; defaultText: string; defaultIcon: string }> = ({ profile, onSave, saving, section, defaultTitle, defaultText, defaultIcon }) => {
+const CardEditor: React.FC<Props & { section: string }> = ({ profile, onSave, saving, section }) => {
     const key = section as 'mission' | 'vision' | 'philosophy';
     const data = profile.pageContent?.[key];
-    const [title, setTitle] = useState(data?.title || defaultTitle);
-    const [text, setText] = useState(data?.text || defaultText);
-    const [icon, setIcon] = useState(data?.icon || defaultIcon);
+    const [title, setTitle] = useState(data?.title || '');
+    const [text, setText] = useState(data?.text || '');
+    const [icon, setIcon] = useState(data?.icon || '');
     const [localSaving, setLocalSaving] = useState(false);
 
     useEffect(() => {
         const d = profile.pageContent?.[key];
-        setTitle(d?.title || defaultTitle);
-        setText(d?.text || defaultText);
-        setIcon(d?.icon || defaultIcon);
+        setTitle(d?.title || '');
+        setText(d?.text || '');
+        setIcon(d?.icon || '');
     }, [profile.pageContent, key]);
 
     const handleSave = async () => {
@@ -321,13 +313,13 @@ const CardEditor: React.FC<Props & { section: string; defaultTitle: string; defa
 };
 
 /* ───── Array Card Editor (Core Values / Why Choose Us) ───── */
-const ArrayCardEditor: React.FC<Props & { section: 'coreValues' | 'whyChooseUs'; defaultItems: Array<{ title: string; text: string; icon: string }> }> = ({ profile, onSave, saving, section, defaultItems }) => {
-    const [items, setItems] = useState(profile.pageContent?.[section] || defaultItems);
+const ArrayCardEditor: React.FC<Props & { section: 'coreValues' | 'whyChooseUs' }> = ({ profile, onSave, saving, section }) => {
+    const [items, setItems] = useState(profile.pageContent?.[section] || []);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [form, setForm] = useState<{ title: string; text: string; icon: string } | null>(null);
     const [localSaving, setLocalSaving] = useState(false);
 
-    useEffect(() => { setItems(profile.pageContent?.[section] || defaultItems); }, [profile.pageContent?.[section]]);
+    useEffect(() => { setItems(profile.pageContent?.[section] || []); }, [profile.pageContent?.[section]]);
 
     const save = async (updated: any[]) => {
         setLocalSaving(true);
@@ -418,22 +410,22 @@ const ArrayCardEditor: React.FC<Props & { section: 'coreValues' | 'whyChooseUs';
 /* ───── CTA Editor ───── */
 const CtaEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const cta = profile.pageContent?.cta;
-    const [title, setTitle] = useState(cta?.title || 'Ready to Start Your Project?');
-    const [subtitle, setSubtitle] = useState(cta?.subtitle || 'Let us bring your vision to life. Contact us today for a consultation and free estimate.');
-    const [buttonText, setButtonText] = useState(cta?.buttonText || 'Get In Touch');
-    const [buttonLink, setButtonLink] = useState(cta?.buttonLink || '/contact');
-    const [secondaryButtonText, setSecondaryButtonText] = useState(cta?.secondaryButtonText || 'Meet Our Team');
-    const [secondaryButtonLink, setSecondaryButtonLink] = useState(cta?.secondaryButtonLink || '/team');
+    const [title, setTitle] = useState(cta?.title || '');
+    const [subtitle, setSubtitle] = useState(cta?.subtitle || '');
+    const [buttonText, setButtonText] = useState(cta?.buttonText || '');
+    const [buttonLink, setButtonLink] = useState(cta?.buttonLink || '');
+    const [secondaryButtonText, setSecondaryButtonText] = useState(cta?.secondaryButtonText || '');
+    const [secondaryButtonLink, setSecondaryButtonLink] = useState(cta?.secondaryButtonLink || '');
     const [localSaving, setLocalSaving] = useState(false);
 
     useEffect(() => {
         const d = profile.pageContent?.cta;
-        setTitle(d?.title || 'Ready to Start Your Project?');
-        setSubtitle(d?.subtitle || 'Let us bring your vision to life...');
-        setButtonText(d?.buttonText || 'Get In Touch');
-        setButtonLink(d?.buttonLink || '/contact');
-        setSecondaryButtonText(d?.secondaryButtonText || 'Meet Our Team');
-        setSecondaryButtonLink(d?.secondaryButtonLink || '/team');
+        setTitle(d?.title || '');
+        setSubtitle(d?.subtitle || '');
+        setButtonText(d?.buttonText || '');
+        setButtonLink(d?.buttonLink || '');
+        setSecondaryButtonText(d?.secondaryButtonText || '');
+        setSecondaryButtonLink(d?.secondaryButtonLink || '');
     }, [profile.pageContent?.cta]);
 
     const handleSave = async () => {

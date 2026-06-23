@@ -13,8 +13,8 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
     const [subscribeMsg, setSubscribeMsg] = useState('');
 
     const footerContent = profile.pageContent?.footer;
-    const companyDesc = footerContent?.companyDescription || profile.about?.split('.')[0] || 'Construction & Real Estate';
-    const copyright = footerContent?.copyrightText || `© ${new Date().getFullYear()}. By ${profile.firstName} ${profile.lastName}`;
+    const companyDesc = footerContent?.companyDescription || profile.about?.split('.')[0];
+    const copyright = footerContent?.copyrightText || (profile.firstName ? `© ${new Date().getFullYear()}. By ${profile.firstName} ${profile.lastName}` : '');
     const quickLinks = footerContent?.quickLinks;
     const servicesList = footerContent?.servicesList;
 
@@ -47,16 +47,16 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                     <div className="ark-footer__grid">
                         {/* Brand / About */}
                         <div className="ark-footer__col">
-                            <a href="/"><img src={profile.companyLogo || '/logo.jpeg'} alt={profile.company || 'Logo'} style={{ height: 70, marginBottom: '0.75rem', borderRadius: '50%', background: '#fff', padding: '8px', marginLeft: '40px' }} /></a>
+                            <a href="/"><img src={profile.companyLogo} alt={profile.company || 'Logo'} style={{ height: 70, marginBottom: '0.75rem', borderRadius: '50%', background: '#fff', padding: '8px', marginLeft: '40px' }} /></a>
                             {profile.company && <h4 className="ark-footer__col-title">{profile.company}</h4>}
                             <p style={{ fontSize: '0.9rem', color: 'rgba(243,241,241,0.6)', lineHeight: '1.6', margin: '0 0 0.75rem', maxWidth: '22ch' }}>
                                 {companyDesc}
                             </p>
                             {footerContent?.showSocialLinks !== false && (
                                 <div className="ark-footer__social">
-                                    <a href={profile.socialLinks?.linkedin || 'https://linkedin.com/company/muhizi-construction'} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaLinkedin /></a>
-                                    <a href={profile.socialLinks?.facebook || 'https://facebook.com/muhiziconstruction'} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaFacebook /></a>
-                                    <a href={profile.socialLinks?.instagram || 'https://instagram.com/muhizi_construction'} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaInstagram /></a>
+                                    {profile.socialLinks?.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaLinkedin /></a>}
+                                    {profile.socialLinks?.facebook && <a href={profile.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaFacebook /></a>}
+                                    {profile.socialLinks?.instagram && <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaInstagram /></a>}
                                 </div>
                             )}
                         </div>
@@ -66,16 +66,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                             <h4 className="ark-footer__col-title">Quick Links</h4>
                             {quickLinks && quickLinks.length > 0 ? quickLinks.map((link, i) => (
                                 <a key={i} href={link.url} className="ark-footer__nav-link">{link.label}</a>
-                            )) : (
-                                <>
-                                    <a href="/#home" className="ark-footer__nav-link">Home</a>
-                                    <a href="/#resume" className="ark-footer__nav-link">About</a>
-                                    <a href="/#offerings" className="ark-footer__nav-link">Services</a>
-                                    <a href="/#projects" className="ark-footer__nav-link">Projects</a>
-                                    <a href="/#team" className="ark-footer__nav-link">Team</a>
-                                    <a href="/#contact" className="ark-footer__nav-link">Contact</a>
-                                </>
-                            )}
+                            )) : null}
                         </div>
 
                         {/* Services */}
@@ -83,15 +74,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                             <h4 className="ark-footer__col-title">Services</h4>
                             {servicesList && servicesList.length > 0 ? servicesList.map((s, i) => (
                                 <span key={i} className="ark-footer__link">{s.label}</span>
-                            )) : (
-                                <>
-                                    <span className="ark-footer__link">Building Construction</span>
-                                    <span className="ark-footer__link">Road Construction</span>
-                                    <span className="ark-footer__link">Real Estate</span>
-                                    <span className="ark-footer__link">Property Management</span>
-                                    <span className="ark-footer__link">Architectural Design</span>
-                                </>
-                            )}
+                            )) : null}
                         </div>
 
                         {/* Contact & Map */}
@@ -99,15 +82,15 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                             <h4 className="ark-footer__col-title">Get in Touch</h4>
                             {footerContent?.showContactInfo !== false && (
                                 <>
-                                    <a href={`tel:${profile.phone}`} className="ark-footer__phone"><FaPhone size={12} />{profile.phone || '123-456-7890'}</a>
+                                    <a href={`tel:${profile.phone}`} className="ark-footer__phone"><FaPhone size={12} />{profile.phone}</a>
                                     <a href={`mailto:${profile.email}`} className="ark-footer__phone"><FaEnvelope size={12} />{profile.email}</a>
-                                    <p className="ark-footer__address"><FaMapMarkerAlt size={12} />{profile.location || 'Kigali, Rwanda'}</p>
-                                    <iframe
+                                    <p className="ark-footer__address"><FaMapMarkerAlt size={12} />{profile.location}</p>
+                                    {profile.location && <iframe
                                         className="ark-footer__map"
                                         title="Location"
                                         loading="lazy"
-                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(profile.location || 'Kigali, Rwanda')}&output=embed`}
-                                    />
+                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(profile.location)}&output=embed`}
+                                    />}
                                 </>
                             )}
                         </div>
