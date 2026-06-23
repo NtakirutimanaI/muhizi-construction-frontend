@@ -421,11 +421,14 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                 else if (editingIndex !== null) finalItems[editingIndex] = newItem;
             }
             const pc = { ...profile.pageContent, services: { heading, subtitle, items: finalItems } };
+            console.log('Services save: sending', JSON.stringify(pc.services).slice(0, 200));
             await onSave({ pageContent: pc });
             showToast('Services saved successfully!', 'success');
             if (form) cancel();
         } catch (e: any) {
-            showToast(e?.message || 'Failed to save services', 'error');
+            console.error('Services save error:', e);
+            const msg = e?.response?.data?.message || e?.message || 'Failed to save services';
+            showToast(msg, 'error');
         } finally {
             setLocalSaving(false);
         }

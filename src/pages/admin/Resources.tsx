@@ -63,8 +63,12 @@ const Resources = () => {
             setProfile(fresh);
             window.dispatchEvent(new CustomEvent('profile-updated'));
             showToast('Saved successfully!', 'success');
-        } catch (e: any) { showToast(e?.response?.data?.message || 'Failed to save', 'error'); }
-        finally { setSaving(false); }
+        } catch (e: any) {
+            console.error('saveProfile error:', e?.response?.data || e);
+            showToast(e?.response?.data?.message || e?.message || 'Failed to save', 'error');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const renderSection = () => {
