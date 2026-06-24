@@ -17,6 +17,14 @@ const Experience: React.FC = () => {
         <section data-nav-theme="light" className="section section-indicator" id="resume">
             <div className="container">
                 <div style={{ marginBottom: '2rem' }} ref={constraintsRef}>
+                    <motion.span
+                        className="ark-section__sub"
+                        style={{ display: 'inline-block', marginLeft: '30px' }}
+                        animate={{ x: [-20, 20, -20] }}
+                        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                        Follow Us
+                    </motion.span>
                     <h2 className="ark-section__heading">{heading}</h2>
 
                     <motion.div

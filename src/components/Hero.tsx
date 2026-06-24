@@ -64,7 +64,7 @@ const Hero: React.FC<HeroProps> = ({ slides: propSlides, videoUrl }) => {
                 </div>
             </div>
 
-            <div className="container">
+            <div className="hero-spacer">
             </div>
         </section>
     );

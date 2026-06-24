@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type MotionProps } from 'framer-motion';
 import { FaLaptopCode, FaMobileAlt, FaCloud, FaPaintBrush, FaRocket, FaShieldAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 const offerIcons = [FaLaptopCode, FaMobileAlt, FaCloud, FaPaintBrush, FaShieldAlt, FaRocket];
@@ -73,20 +73,28 @@ const WhatWeOffer: React.FC<WhatWeOfferProps> = ({ heading: propHeading, subtitl
     const offerings = propItems
         ? propItems.map((item, i) => ({ ...item, icon: offerIcons[i % offerIcons.length] }))
         : [];
+    const [isSmall, setIsSmall] = useState(window.innerWidth < 768);
+    useEffect(() => {
+        const onResize = () => setIsSmall(window.innerWidth < 768);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
+    const noAnim: MotionProps = {};
+    const animInView: MotionProps = { initial: { opacity: 0, y: 70 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.6, ease: 'easeOut' } };
+    const cardAnim: MotionProps = { initial: { opacity: 0, x: 300 }, whileInView: { opacity: 1, x: 0 }, viewport: { margin: '-80px' }, transition: { duration: 0.7, ease: 'easeOut' }, whileHover: { y: -5, scale: 1.01 } };
+
     if (!offerings.length) return null;
     return (
         <section data-nav-theme="dark" className="section section-indicator section-offer-dark" id="offerings">
             <div className="container">
                     <motion.div
                         style={{ marginBottom: '3rem' }}
-                        initial={{ opacity: 0, y: 70 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                        {...(isSmall ? noAnim : animInView)}
                     >
                         <motion.span
                             className="ark-section__sub"
-                            style={{ display: 'inline-block', marginLeft: '90px' }}
+                            style={{ display: 'inline-block', marginLeft: '30px', color: '#fff' }}
                             animate={{ x: [-20, 20, -20] }}
                             transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
                         >
@@ -100,10 +108,7 @@ const WhatWeOffer: React.FC<WhatWeOfferProps> = ({ heading: propHeading, subtitl
                                 maxWidth: '600px', margin: '0 auto', color: '#ffffff',
                                 fontSize: '1.05rem', lineHeight: '1.7'
                             }}
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
+                            {...(isSmall ? noAnim : { initial: { opacity: 0, y: 30 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.6, delay: 0.3, ease: 'easeOut' } })}
                         >
                             {subtitle}
                         </motion.p>
@@ -115,11 +120,7 @@ const WhatWeOffer: React.FC<WhatWeOfferProps> = ({ heading: propHeading, subtitl
                                 <motion.div
                                 key={item.title}
                                 className={`offer-card offer-card--wide ${index >= 4 ? 'offer-card--centered' : ''} ${index === 1 || index === 2 || index === 5 || index === 6 ? 'offer-card--reverse' : ''}`}
-                                initial={{ opacity: 0, x: index % 2 === 0 ? -300 : 300 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ margin: '-80px' }}
-                                transition={{ delay: index * 0.12, duration: 0.7, ease: 'easeOut' }}
-                                whileHover={{ y: -5, scale: 1.01 }}
+                                {...(isSmall ? noAnim : { ...cardAnim, initial: { opacity: 0, x: index % 2 === 0 ? -300 : 300 }, transition: { delay: index * 0.12, duration: 0.7, ease: 'easeOut' } })}
                             >
                                 <div className="offer-card__split">
                                     <div className="offer-card__image">

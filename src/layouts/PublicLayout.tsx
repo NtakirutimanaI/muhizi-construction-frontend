@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { FaWhatsapp } from 'react-icons/fa';
-import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 import ChatWidget from '../components/ChatWidget';
 import type { Profile } from '../services/profileService';
 
@@ -25,10 +25,10 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ profile }) => {
 
     return (
         <div className="flex flex-col min-h-screen">
+            <Navbar profile={profile} />
             <div className="scroll-progress">
                 <div className="scroll-progress__fill" style={{ transform: `scaleX(${scrollProgress})`, transformOrigin: 'left center' }} />
             </div>
-            <Navbar profile={profile} />
             <main className="flex-grow">
                 <Outlet context={{ profile }} />
             </main>
@@ -37,6 +37,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ profile }) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Chat on WhatsApp"
+                className="whatsapp-float"
                 style={{
                     position: 'fixed',
                     bottom: '6rem',
