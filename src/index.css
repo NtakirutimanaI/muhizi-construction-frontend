@@ -1516,6 +1516,7 @@ img {
   justify-content: space-between;
   align-items: center;
   position: relative;
+  overflow: hidden;
 }
 
 /* Brand/Name Section */
@@ -1854,10 +1855,6 @@ img {
 }
 
 @media (max-width: 400px) {
-  .nav-center-title {
-    font-size: 1.1rem;
-  }
-
   .nav-get-in-touch {
     padding: 0.3rem 0.5rem;
     font-size: 0.7rem;
