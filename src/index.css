@@ -4479,6 +4479,24 @@ img {
   }
 }
 
+@media (max-width: 768px) {
+  .about-page {
+    padding-top: 80px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .about-page {
+    padding-top: 60px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-page {
+    padding-top: 50px !important;
+  }
+}
+
 
 .ark-grid-3 {
   display: grid;
@@ -4590,17 +4608,17 @@ img {
 
 @media (max-width: 640px) {
   .whatsapp-float {
-    right: auto !important;
-    left: 100px !important;
+    right: 1rem !important;
+    left: auto !important;
   }
 
   .chat-toggle-btn {
-    right: auto !important;
-    left: 100px !important;
+    right: 1rem !important;
+    left: auto !important;
   }
 
   .chat-panel {
-    right: auto !important;
-    left: 100px !important;
+    right: 1rem !important;
+    left: auto !important;
   }
 }

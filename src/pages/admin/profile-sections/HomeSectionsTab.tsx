@@ -1012,6 +1012,8 @@ const OurTeamEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [form, setForm] = useState<any>(null);
     const [localSaving, setLocalSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setMembers(profile.teamMembers || []);
@@ -1038,6 +1040,24 @@ const OurTeamEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const openEdit = (i: number) => { setEditingIndex(i); setForm({ ...members[i] }); };
     const cancel = () => { setEditingIndex(null); };
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Image must be smaller than 2MB');
+            return;
+        }
+        setUploading(true);
+        try {
+            const uploaded = await uploadService.uploadFile(file);
+            setForm((p: any) => ({ ...p, imageUrl: uploaded.secureUrl }));
+        } catch {
+            alert('Failed to upload image');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSave = async () => {
         const updated = [...members];
         if (editingIndex === -1) updated.push(form);
@@ -1051,7 +1071,7 @@ const OurTeamEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         await save(members.filter((_, idx) => idx !== i));
     };
 
-    const isSaving = saving || localSaving;
+    const isSaving = saving || localSaving || uploading;
 
     return (
         <div>
@@ -1059,7 +1079,7 @@ const OurTeamEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Team Members ({members.length})</h3>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                        <input type="checkbox" checked={visible} onChange={toggleVisibility} disabled={saving || localSaving} style={{ width: 16, height: 16, cursor: 'pointer' }} />
+                        <input type="checkbox" checked={visible} onChange={toggleVisibility} disabled={saving || localSaving || uploading} style={{ width: 16, height: 16, cursor: 'pointer' }} />
                         Visible on website
                     </label>
                     <button onClick={openNew} disabled={editingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add</button>
@@ -1082,8 +1102,27 @@ const OurTeamEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                             </div>
                         </div>
                         <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">Image URL</label>
-                            <input value={form.imageUrl || ''} onChange={e => setForm((p: any) => ({ ...p, imageUrl: e.target.value }))} className="form-input" placeholder="https://example.com/photo.jpg" />
+                            <label className="form-label">Photo</label>
+                            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                {form.imageUrl ? (
+                                    <div style={{ width: '70px', height: '70px', borderRadius: '8px', overflow: 'hidden', border: '2px solid var(--border-color)', flexShrink: 0 }}>
+                                        <img src={form.imageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    </div>
+                                ) : (
+                                    <div style={{ width: '70px', height: '70px', borderRadius: '8px', border: '2px dashed var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem', flexShrink: 0 }}>
+                                        No image
+                                    </div>
+                                )}
+                                <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }} disabled={uploading}>
+                                    {uploading ? 'Uploading...' : 'Choose File'}
+                                </button>
+                                {form.imageUrl && (
+                                    <button type="button" onClick={() => setForm((p: any) => ({ ...p, imageUrl: '' }))} className="admin-icon-btn" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>
+                                        <FaTimes /> Remove
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                             <button onClick={cancel} className="admin-icon-btn" style={{ fontSize: '0.85rem', width: 'auto', padding: '0.4rem 0.8rem' }}>Cancel</button>

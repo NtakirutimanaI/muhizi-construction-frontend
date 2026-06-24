@@ -28,7 +28,7 @@ const About = () => {
     }, []);
 
     return (
-        <section className="section" style={{
+        <section className="section about-page" style={{
             padding: '120px 0 60px',
             background: `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(/bg-about.png) center/cover fixed`,
         }}>
