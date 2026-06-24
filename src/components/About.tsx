@@ -59,17 +59,25 @@ const About: React.FC<AboutProps> = ({ profile }) => {
 
                 <Stats profile={profile} />
 
-                <div className="about-btn-wrap" style={{ textAlign: 'left', marginTop: '-60px' }}>
+                <div className="about-btn-wrap" style={{ textAlign: 'left', marginTop: '1rem' }}>
                     <Link to="/about" className="about-btn" style={{ display: 'inline-block', background: 'transparent', color: '#000', padding: '0.75rem 2rem', textDecoration: 'none', fontSize: '1.1rem', fontWeight: 600, border: '1px solid #000', borderRadius: '6px', transition: 'all 0.3s' }}>
                         About Us &rarr;
                     </Link>
                 </div>
 
-                <div className="ticker-bar" style={{ width: '100%', marginTop: '5.5rem', padding: '0.75rem 0', background: '#1B2042', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ marginTop: '1.5rem', padding: '6px 0 0.1rem', textAlign: 'center', background: '#1B2042' }}>
+                    <p style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600, margin: 0 }}>
+                        Call Us On Phone: +250780620735 or Email: muhizidesigningacademy@gmail.com
+                    </p>
+                </div>
+
+                {tickerText && (
+                <div className="ticker-bar" style={{ width: '100%', marginTop: '3rem', padding: '0.75rem 0', background: '#1B2042', borderRadius: '4px', overflow: 'hidden' }}>
                     <span className="slide-bounce" style={{ fontSize: '1rem', fontWeight: 500, color: '#fff', letterSpacing: '0.3em', marginLeft: '20px', paddingRight: '0.5rem' }}>
                         {tickerText}
                     </span>
                 </div>
+                )}
             </div>
         </section>
     );
