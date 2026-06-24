@@ -39,7 +39,7 @@ const Login = () => {
     };
 
     return (
-        <div style={{
+        <div className="login-page" style={{
             minHeight: '100vh',
             display: 'flex',
             alignItems: 'center',
