@@ -12,7 +12,7 @@ const Loading = () => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'var(--bg-body)',
+            background: '#f4f4f4',
             zIndex: 9999
         }}>
             <motion.div

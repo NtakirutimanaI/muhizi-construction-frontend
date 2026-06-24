@@ -1,7 +1,7 @@
 import axios from 'axios';
 import api from './api';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://muhizi-construction-backend.vercel.app';
 
 export interface UploadedFile {
     id: string;
