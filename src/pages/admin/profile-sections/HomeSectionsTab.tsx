@@ -68,6 +68,8 @@ const HeroSlidesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const [slides, setSlides] = useState(profile.pageContent?.heroSlides || []);
     const [videoData, setVideoData] = useState(profile.pageContent?.heroVideoUrl || '');
     const [videoFileName, setVideoFileName] = useState('');
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [form, setForm] = useState<any>(null);
     const [localSaving, setLocalSaving] = useState(false);
@@ -78,21 +80,34 @@ const HeroSlidesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         setVideoData(profile.pageContent?.heroVideoUrl || '');
     }, [profile.pageContent?.heroSlides, profile.pageContent?.heroVideoUrl]);
 
+    const triggerVideoPicker = () => {
+        if (videoFileRef.current) {
+            videoFileRef.current.click();
+        }
+    };
+
     const handleVideoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        e.target.value = '';
         const maxSize = 50 * 1024 * 1024;
         if (file.size > maxSize) {
             showToast('Video must be smaller than 50MB', 'error');
             return;
         }
         setVideoFileName(file.name);
+        setUploading(true);
+        setUploadProgress(0);
         try {
-            const uploaded = await uploadService.uploadFile(file);
+            const uploaded = await uploadService.uploadFile(file, (pct) => setUploadProgress(pct));
             setVideoData(uploaded.secureUrl);
-            saveSlides(slides, uploaded.secureUrl);
-        } catch {
-            showToast('Failed to upload video', 'error');
+            await saveSlides(slides, uploaded.secureUrl);
+        } catch (e: any) {
+            const msg = e?.response?.data?.message || e?.message || 'Failed to upload video';
+            showToast(msg, 'error');
+        } finally {
+            setUploading(false);
+            setUploadProgress(0);
         }
     };
 
@@ -145,13 +160,21 @@ const HeroSlidesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                         <video src={videoData} style={{ width: '100%', maxHeight: '200px', borderRadius: '8px', marginBottom: '0.5rem' }} controls />
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{videoFileName || 'Custom video'}</p>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button type="button" onClick={() => videoFileRef.current?.click()} className="admin-icon-btn" style={{ width: 'auto', padding: '0.4rem 0.8rem', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.85rem' }}><FaUpload /> Replace</button>
+                            <button type="button" onClick={triggerVideoPicker} disabled={uploading} className="admin-icon-btn" style={{ width: 'auto', padding: '0.4rem 0.8rem', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.85rem' }}><FaUpload /> {uploading ? 'Uploading...' : 'Replace'}</button>
                             <button type="button" onClick={removeVideo} className="admin-icon-btn" style={{ color: 'var(--primary-red)', width: 'auto', padding: '0.4rem 0.8rem', border: '1px solid var(--primary-red)', borderRadius: '6px', fontSize: '0.85rem' }}><FaTimes /> Remove</button>
                         </div>
                     </div>
                 ) : (
                     <div>
-                        <button type="button" onClick={() => videoFileRef.current?.click()} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}><FaUpload /> Upload Video</button>
+                        <button type="button" onClick={triggerVideoPicker} disabled={uploading} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}><FaUpload /> {uploading ? 'Uploading...' : 'Upload Video'}</button>
+                        {uploading && (
+                            <div style={{ marginTop: '8px' }}>
+                                <div style={{ height: 8, background: 'var(--border-color)', borderRadius: 4, overflow: 'hidden' }}>
+                                    <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'var(--primary)', borderRadius: 4, transition: 'width 0.3s' }} />
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2, textAlign: 'center' }}>{uploadProgress}%</div>
+                            </div>
+                        )}
                         <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Max 50MB. Supports MP4, WebM, Ogg.</p>
                     </div>
                 )}
