@@ -13,6 +13,12 @@ const Experience: React.FC = () => {
     const mainVideoUrl = fu?.youtubeUrl;
     const videos = fu?.videos || [];
 
+    const toEmbedUrl = (url: string | undefined) => {
+        if (!url) return '';
+        const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+    };
+
     return (
         <section data-nav-theme="light" className="section section-indicator" id="resume">
             <div className="container">
@@ -68,7 +74,7 @@ const Experience: React.FC = () => {
                             </span>
                         </div>
                         <iframe
-                            src={mainVideoUrl}
+                            src={toEmbedUrl(mainVideoUrl)}
                             title="Company Video"
                             style={{
                                 width: '100%',
@@ -80,40 +86,52 @@ const Experience: React.FC = () => {
                         />
                     </motion.div>
 
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', justifyContent: 'center' }}>
-                        {videos.length > 0 ? videos.map((v, i) => (
-                            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <motion.div
-                                    drag
-                                    dragConstraints={constraintsRef}
-                                    initial={{ opacity: 0, x: i === 0 ? -200 : 200 }}
-                                    whileInView={{ opacity: 1, x: 0 }}
-                                    viewport={{ once: false }}
-                                    transition={{ duration: 0.8, type: 'spring', stiffness: 200, damping: 10 }}
-                                    style={{
-                                        position: 'relative',
-                                        width: '100%',
-                                        maxWidth: '380px',
-                                        aspectRatio: '16 / 9',
-                                        overflow: 'hidden',
-                                        borderRadius: '10px',
-                                        background: '#000',
-                                    }}
-                                >
-                                    <iframe
-                                        src={v.url}
-                                        title={v.title}
-                                        style={{ width: '100%', height: '100%', border: 'none' }}
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    />
-                                </motion.div>
-                                <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 700 }}>
-                                    {v.title}
-                                </p>
-                            </div>
-                        )) : null}
-                    </div>
+                    {videos.length > 0 && (
+                        <div style={{
+                            display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1rem',
+                            justifyContent: 'center',
+                        }}>
+                            {videos.map((v, i) => (
+                                <div key={i} style={{
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                    flex: '1 1 280px', maxWidth: '360px', minWidth: '240px',
+                                }}>
+                                    <motion.div
+                                        drag
+                                        dragConstraints={constraintsRef}
+                                        initial={{ opacity: 0, x: i === 0 ? -200 : 200 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: false }}
+                                        transition={{ duration: 0.8, type: 'spring', stiffness: 200, damping: 10 }}
+                                        style={{
+                                            position: 'relative',
+                                            width: '100%',
+                                            aspectRatio: '16 / 9',
+                                            overflow: 'hidden',
+                                            borderRadius: '12px',
+                                            background: '#000',
+                                            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                                        }}
+                                    >
+                                        <iframe
+                                            src={toEmbedUrl(v.url)}
+                                            title={v.title}
+                                            style={{ width: '100%', height: '100%', border: 'none' }}
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        />
+                                    </motion.div>
+                                    <p style={{
+                                        marginTop: '0.5rem', fontSize: '0.85rem',
+                                        color: 'var(--text-muted)', textAlign: 'center',
+                                        fontWeight: 700, lineHeight: 1.3,
+                                    }}>
+                                        {v.title}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <div style={{ textAlign: 'center', marginBottom: '3rem' }}>

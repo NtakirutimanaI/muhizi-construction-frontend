@@ -41,7 +41,6 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ profile }) => {
                 style={{
                     position: 'fixed',
                     bottom: '6rem',
-                    right: '2rem',
                     width: '56px',
                     height: '56px',
                     borderRadius: '50%',

@@ -398,6 +398,7 @@ const Projects = () => {
                                     <select className="form-select" value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}>
                                         <option value="construction">Construction</option>
                                         <option value="renovation">Renovation</option>
+                                        <option value="design">Design</option>
                                     </select>
                                 </div>
                                 <div className="form-group">
@@ -440,7 +441,7 @@ const Projects = () => {
                             </div>
                             <div className="form-group" style={{ marginTop: '1rem' }}>
                                 <label className="form-label">Description</label>
-                                <textarea className="form-textarea" rows={3} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
+                                <textarea className="form-textarea" rows={3} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Project description" />
                             </div>
                         </div>
                         <div className="admin-modal-footer">

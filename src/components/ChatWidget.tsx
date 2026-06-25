@@ -223,7 +223,6 @@ const ChatWidget = () => {
                 style={{
                     position: 'fixed',
                     bottom: '2rem',
-                    right: '2rem',
                     zIndex: 9999,
                     width: '60px',
                     height: '60px',
@@ -251,7 +250,6 @@ const ChatWidget = () => {
                         style={{
                             position: 'fixed',
                             bottom: '7rem',
-                            right: '2rem',
                             zIndex: 9999,
                             width: '350px',
                             maxHeight: '600px',
