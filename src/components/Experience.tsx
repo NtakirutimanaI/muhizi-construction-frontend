@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import { useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { Profile } from '../services/profileService';
@@ -88,13 +87,17 @@ const Experience: React.FC = () => {
 
                     {videos.length > 0 && (
                         <div style={{
-                            display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1rem',
+                            display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginTop: '1.5rem',
                             justifyContent: 'center',
                         }}>
                             {videos.map((v, i) => (
                                 <div key={i} style={{
                                     display: 'flex', flexDirection: 'column', alignItems: 'center',
                                     flex: '1 1 280px', maxWidth: '360px', minWidth: '240px',
+                                    background: '#fff',
+                                    borderRadius: '14px',
+                                    overflow: 'hidden',
+                                    boxShadow: '0 6px 30px rgba(0,0,0,0.12)',
                                 }}>
                                     <motion.div
                                         drag
@@ -108,9 +111,7 @@ const Experience: React.FC = () => {
                                             width: '100%',
                                             aspectRatio: '16 / 9',
                                             overflow: 'hidden',
-                                            borderRadius: '12px',
                                             background: '#000',
-                                            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
                                         }}
                                     >
                                         <iframe
@@ -121,39 +122,47 @@ const Experience: React.FC = () => {
                                             allowFullScreen
                                         />
                                     </motion.div>
-                                    <p style={{
-                                        marginTop: '0.5rem', fontSize: '0.85rem',
-                                        color: 'var(--text-muted)', textAlign: 'center',
-                                        fontWeight: 700, lineHeight: 1.3,
-                                    }}>
-                                        {v.title}
-                                    </p>
+                                    <div style={{ padding: '0.75rem 1rem 1rem', width: '100%' }}>
+                                        <p style={{
+                                            margin: 0, fontSize: '0.9rem',
+                                            color: '#111', textAlign: 'center',
+                                            fontWeight: 700, lineHeight: 1.3,
+                                        }}>
+                                            {v.title}
+                                        </p>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
 
-                <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                    {fu?.viewMoreUrl && <Link to={fu?.viewMoreUrl} style={{
-                        background: 'transparent',
-                        color: '#000',
-                        fontWeight: 700,
-                        fontSize: '0.95rem',
-                        textDecoration: 'none',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '0.65rem 1.5rem',
-                        borderRadius: '8px',
-                        border: '2px solid #000',
-                        transition: 'background 0.2s, color 0.2s, border-color 0.2s',
-                    }}
+
+
+                <div style={{ textAlign: 'center', paddingBottom: '3rem' }}>
+                    <a
+                        href={mainVideoUrl || 'https://www.youtube.com'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            display: 'inline-flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '2px',
+                            padding: '0.35rem 1rem',
+                            borderRadius: '6px',
+                            border: '1.5px solid #000',
+                            color: '#000',
+                            fontWeight: 600,
+                            fontSize: '0.8rem',
+                            textDecoration: 'none',
+                            transition: 'background 0.2s, color 0.2s, border-color 0.2s',
+                        }}
                         onMouseEnter={(e) => { e.currentTarget.style.background = '#1B2042'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#1B2042'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000'; e.currentTarget.style.borderColor = '#000'; }}
                     >
-                        {fu?.viewMoreText} &rarr;
-                    </Link>}
+                        View More Videos (Channel) <span>&darr;</span>
+                    </a>
                 </div>
             </div>
         </section>

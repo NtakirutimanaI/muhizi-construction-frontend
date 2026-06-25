@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaPlus, FaFacebook, FaInstagram, FaLinkedin } from 'react-icons/fa';
+import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaPlus, FaPaperPlane, FaFacebook, FaInstagram, FaLinkedin } from 'react-icons/fa';
 import { profileService, type ContactMessage, type Profile } from '../services/profileService';
 import { useToast } from '../context/ToastContext';
 
@@ -66,8 +66,8 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
     return (
         <section data-nav-theme="light" className="section" id="contact" style={{ borderBottom: 'none', padding: '60px 0' }}>
             <div className="container">
-                {cs?.heading && <h2 className="ark-section__heading" style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '0.5rem' }}>{cs?.heading}</h2>}
-                {cs?.subtitle && <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '400px' }}>{cs?.subtitle}</p>}
+                <h2 className="ark-section__heading" style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '0.5rem' }}>Are You Interested?</h2>
+                <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '500px' }}>Reach Out From Us By type a mesage or Visit us on Our Location</p>
 
                 {/* Grid: Form + Info */}
                 <div className="ark-contact__grid">
@@ -100,8 +100,8 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                                 Message *
                                 <textarea name="message" required value={localData.message} onChange={handleChange} rows={5} placeholder="Tell us about your project..." />
                             </label>
-                            <button type="submit" className="btn-submit" disabled={status === 'loading'} style={{ width: '100%', marginTop: '0.5rem' }}>
-                                {status === 'loading' ? 'Sending...' : 'Send Message'}
+                            <button type="submit" className="btn-submit" disabled={status === 'loading'} style={{ width: '100%', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                                <FaPaperPlane /> {status === 'loading' ? 'Sending...' : 'Send Message'}
                             </button>
                             {status === 'success' && (
                                 <p style={{ color: 'var(--primary)', fontWeight: 600, margin: 0 }}>✅ Message sent successfully!</p>
@@ -150,21 +150,6 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                         </div>
                     </div>
                 </div>
-
-                {/* Map */}
-                {profile.location && (
-                    <div className="ark-contact__map">
-                        <h3 className="ark-contact__map-title">Find Us</h3>
-                        <div className="ark-contact__map-wrap">
-                            <iframe
-                                className="ark-contact__map-iframe"
-                                title="Office Location"
-                                loading="lazy"
-                                src={`https://maps.google.com/maps?q=${encodeURIComponent(profile.location)}&output=embed`}
-                            />
-                        </div>
-                    </div>
-                )}
 
                 {/* FAQ */}
                 <div className="ark-contact__faqs">

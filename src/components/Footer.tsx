@@ -16,7 +16,14 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
     const companyDesc = footerContent?.companyDescription || profile.about?.split('.')[0];
     const copyright = footerContent?.copyrightText || (profile.firstName ? `© ${new Date().getFullYear()}. By ${profile.firstName} ${profile.lastName}` : '');
     const quickLinks = footerContent?.quickLinks;
-    const servicesList = footerContent?.servicesList;
+    const pageServices = profile.pageContent?.services?.items;
+    const aboutCards = profile.pageContent?.aboutSection?.cards;
+    const footerServices = footerContent?.servicesList;
+    const servicesList = (pageServices && pageServices.length > 0)
+        ? pageServices.map(s => ({ label: s.title }))
+        : (aboutCards && aboutCards.length > 0)
+            ? aboutCards.map(c => ({ label: c.title }))
+            : footerServices;
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -91,6 +98,32 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                                         loading="lazy"
                                         src={`https://maps.google.com/maps?q=${encodeURIComponent(profile.location)}&output=embed`}
                                     />}
+                                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
+                                        <a
+                                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(profile.location)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '6px',
+                                                padding: '0.35rem 0.9rem',
+                                                borderRadius: '6px',
+                                                border: '1px solid rgba(243,241,241,0.4)',
+                                                color: 'rgba(243,241,241,0.8)',
+                                                fontWeight: 600,
+                                                fontSize: '0.75rem',
+                                                textDecoration: 'none',
+                                                width: '160px',
+                                                transition: 'background 0.2s, color 0.2s',
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#000'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(243,241,241,0.8)'; }}
+                                        >
+                                            Get Our Direction &rarr;
+                                        </a>
+                                    </div>
                                 </>
                             )}
                         </div>
@@ -121,7 +154,6 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                             )}
                         </div>
                     </div>
-
                     {/* Bottom bar */}
                     <div className="ark-footer__bottom">
                         <p className="ark-footer__copy">{copyright}</p>

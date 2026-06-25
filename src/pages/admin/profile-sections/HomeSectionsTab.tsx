@@ -823,9 +823,21 @@ const FollowUsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
                 {videos.map((v, i) => (
                     <div key={i} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.8rem' }}>
-                        <div style={{ minWidth: 0 }}>
-                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{v.title}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>{v.url}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                            <div style={{ width: '120px', height: '68px', borderRadius: '6px', overflow: 'hidden', background: '#000', flexShrink: 0 }}>
+                                <iframe
+                                    src={(() => {
+                                        const match = v.url?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                                        return match ? `https://www.youtube.com/embed/${match[1]}` : v.url;
+                                    })()}
+                                    title={v.title}
+                                    style={{ width: '100%', height: '100%', border: 'none' }}
+                                />
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{v.title}</div>
+                                {v.description && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{v.description}</div>}
+                            </div>
                         </div>
                         <div style={{ display: 'flex', gap: '6px' }}>
                             <button onClick={() => openEdit(i)} className="admin-icon-btn"><FaEdit /></button>

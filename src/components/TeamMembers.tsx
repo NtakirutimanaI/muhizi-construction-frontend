@@ -106,6 +106,29 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
                         />
                     ))}
                 </div>
+
+                <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+                    <a
+                        href="#contact"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '0.65rem 1.5rem',
+                            borderRadius: '8px',
+                            border: '2px solid #000',
+                            color: '#000',
+                            fontWeight: 700,
+                            fontSize: '0.95rem',
+                            textDecoration: 'none',
+                            transition: 'background 0.2s, color 0.2s, border-color 0.2s',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#1B2042'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#1B2042'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000'; e.currentTarget.style.borderColor = '#000'; }}
+                    >
+                        Get In Touch &darr;
+                    </a>
+                </div>
             </div>
         </section>
     );
