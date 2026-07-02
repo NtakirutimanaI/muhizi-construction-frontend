@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -12,6 +12,7 @@ import {
 } from 'react-icons/fa';
 import { useNotification } from '../context/NotificationContext';
 import { profileService, type Profile, type ContactMessage } from '../services/profileService';
+import { sitesService, type Site } from '../services/sitesService';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SIDEBAR_SECTIONS, type Role } from '../config/roles';
 
@@ -71,8 +72,12 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
     const [expandedNav, setExpandedNav] = useState<string[]>(['Messages']);
     const [notifTab, setNotifTab] = useState<string>('all');
 
+    const [projectSites, setProjectSites] = useState<Site[]>([]);
+
     const isOnMessages = location.pathname.startsWith(`${basePath}/messages`);
     const isOnCms = location.pathname.startsWith(`${basePath}/resources`);
+    const isOnProjectDetail = new RegExp(`^${basePath}/projects/[^/]+$`).test(location.pathname);
+    const currentProjectId = isOnProjectDetail ? location.pathname.split('/').pop() : null;
     const notifRef = useRef<HTMLDivElement>(null);
     const addMenuRef = useRef<HTMLDivElement>(null);
     const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -113,6 +118,31 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
         const interval = setInterval(fetchMessages, 60000);
         return () => clearInterval(interval);
     }, []);
+
+    // Fetch sites when on project detail page
+    const fetchProjectSites = useCallback(async (projectId: string) => {
+        try {
+            const res = await sitesService.getByProject(projectId);
+            setProjectSites(res.data || []);
+        } catch { setProjectSites([]); }
+    }, []);
+
+    useEffect(() => {
+        if (currentProjectId) fetchProjectSites(currentProjectId);
+        else setProjectSites([]);
+    }, [currentProjectId, fetchProjectSites]);
+
+    // Listen for sites-updated events
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            if (detail?.projectId && detail.projectId === currentProjectId) {
+                fetchProjectSites(detail.projectId);
+            }
+        };
+        window.addEventListener('sites-updated', handler);
+        return () => window.removeEventListener('sites-updated', handler);
+    }, [currentProjectId, fetchProjectSites]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -712,8 +742,38 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
                 </aside>
             )}
 
+            {/* Sites Sub-Sidebar */}
+            {isOnProjectDetail && (
+                <aside className="admin-subsidebar">
+                    <div style={{ padding: '1.2rem 1rem 0.6rem', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Sites</span>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', background: 'var(--bg-body)', padding: '0.1rem 0.5rem', borderRadius: '8px' }}>{projectSites.length}</span>
+                    </div>
+                    {projectSites.length === 0 ? (
+                        <div style={{ padding: '1rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.78rem', fontStyle: 'italic' }}>
+                            No sites yet
+                        </div>
+                    ) : (
+                        projectSites.map(site => (
+                            <a key={site.id}
+                                href={`#site-${site.id}`}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    const el = document.getElementById(`site-${site.id}`);
+                                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }}
+                                className={`admin-nav-item ${location.hash === `#site-${site.id}` ? 'active' : ''}`}
+                                style={{ margin: '0 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                <FaHardHat size={11} />
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{site.name}</span>
+                            </a>
+                        ))
+                    )}
+                </aside>
+            )}
+
             {/* Content Wrapper */}
-            <div className={`admin-content ${isOnMessages || isOnCms ? 'admin-content--with-subsidebar' : ''}`}>
+            <div className={`admin-content ${isOnMessages || isOnCms || isOnProjectDetail ? 'admin-content--with-subsidebar' : ''}`}>
                 <main className="admin-main">
                     <Outlet context={{ searchQuery }} />
                 </main>
