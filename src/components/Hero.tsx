@@ -26,6 +26,7 @@ const Hero: React.FC<HeroProps> = ({ slides: propSlides, videoUrl }) => {
 
     const heroBackgrounds = [
         { src: videoUrl || '/hero-video.mp4', label: 'Construction' },
+        { src: '/hero-architecture-video.mp4', label: 'Architecture' },
         { src: '/hero-design-video.mp4', label: 'Design' },
     ];
     const [activeVideo, setActiveVideo] = useState(0);
