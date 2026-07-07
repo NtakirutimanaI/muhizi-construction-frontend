@@ -1,28 +1,18 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { FaSignInAlt } from 'react-icons/fa';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Profile } from '../services/profileService';
 
 interface NavbarProps {
     profile?: Profile | null;
 }
 
-const splitChars = (text: string) =>
-    text.split('').map((ch, i) => (
-        <span key={i} className="nav-char" style={{ animationDelay: `${i * 0.06}s` }}>{ch}</span>
-    ));
-
 const Navbar: React.FC<NavbarProps> = ({ profile }) => {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
-    const [phase, setPhase] = useState(0);
-    const [overDark, setOverDark] = useState(true);
     const navRef = useRef<HTMLElement>(null);
 
     const closeMenu = useCallback(() => setMenuOpen(false), []);
 
     const companyName = profile?.company || '';
-    const thinkChars = useMemo(() => splitChars('Design'), []);
-    const buildChars = useMemo(() => splitChars('Build'), []);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -30,37 +20,6 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
         };
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const theme = entry.target.getAttribute('data-nav-theme') || 'dark';
-                    setOverDark(theme === 'dark');
-                }
-            });
-        }, { rootMargin: '-70px 0px -80% 0px' });
-
-        const sections = document.querySelectorAll('[data-nav-theme]');
-        sections.forEach(el => observer.observe(el));
-        return () => observer.disconnect();
-    }, []);
-
-    useEffect(() => {
-        const timers: ReturnType<typeof setTimeout>[] = [];
-        const cycle = () => {
-            timers.push(setTimeout(() => setPhase(1), 7000));
-            timers.push(setTimeout(() => setPhase(2), 9000));
-            timers.push(setTimeout(() => setPhase(1), 16000));
-            timers.push(setTimeout(() => setPhase(0), 18000));
-        };
-        cycle();
-        const repeat = setInterval(cycle, 18000);
-        return () => {
-            timers.forEach(clearTimeout);
-            clearInterval(repeat);
-        };
     }, []);
 
     useEffect(() => {
@@ -79,8 +38,6 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
         return () => document.removeEventListener('click', handleClickOutside);
     }, [menuOpen]);
 
-    const textColor = !scrolled ? '#fff' : overDark ? '#fff' : '#000';
-
     return (
         <nav ref={navRef} className={`navbar ${scrolled ? 'scrolled' : ''}`}
             onMouseLeave={() => setMenuOpen(false)}
@@ -89,18 +46,19 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
                 <div className="navbar-content">
                     <a href="/" className="nav-brand-tag">
                         <img src={profile?.companyLogo || profile?.avatar || '/logo.jpeg'} alt={profile?.company || 'Logo'} className="nav-logo" />
-                        {companyName && <span className="brand-name" style={{ color: textColor }}>{companyName}</span>}
+                        {companyName && <span className="brand-name">{companyName}</span>}
                     </a>
-                    <span className="nav-center-title">
-                        <span className={`nav-title-text ${phase === 0 ? 'fade-in' : 'fade-out'}`} style={{ color: textColor }}>{thinkChars}</span>
-                        <span className={`nav-title-text ${phase === 2 ? 'fade-in' : 'fade-out'}`} style={{ color: textColor }}>{buildChars}</span>
-                    </span>
+                    <div className="nav-links-desktop">
+                        <a href="/#about" className="nav-links-desktop-link">About Us</a>
+                        <a href="/#projects" className="nav-links-desktop-link">Projects</a>
+                        <a href="/#updates" className="nav-links-desktop-link">News</a>
+                        <a href="/#events" className="nav-links-desktop-link">Events</a>
+                        <a href="/#team" className="nav-links-desktop-link">Our Team</a>
+                    </div>
                     <div className="nav-actions">
-                        <a href="/#contact" className="nav-get-in-touch" onClick={closeMenu} style={{ color: textColor, borderColor: textColor }}>Get in Touch &rarr;</a>
-                        <a href="/login" className="nav-login-icon" aria-label="Login" style={{ color: textColor }}>
-                            <FaSignInAlt size={20} />
-                        </a>
-                        <button className="nav-mobile-toggle" onClick={() => setMenuOpen(true)} aria-label="Toggle menu" style={{ color: textColor }}>
+                        <a href="/login" className="nav-login-link" onClick={closeMenu}>Log in</a>
+                        <a href="/#contact" className="nav-signup-btn" onClick={closeMenu}>Get in Touch</a>
+                        <button className="nav-mobile-toggle" onClick={() => setMenuOpen(true)} aria-label="Toggle menu">
                             {menuOpen ? (
                                 <span className="hamburger-close">&times;</span>
                             ) : (
