@@ -1,0 +1,180 @@
+import { useState } from 'react';
+import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaPlus, FaPaperPlane, FaFacebook, FaInstagram, FaLinkedin } from 'react-icons/fa';
+import { profileService, type ContactMessage, type Profile } from '../services/profileService';
+import { useToast } from '../context/ToastContext';
+
+interface ContactProps {
+    profile: Profile;
+}
+
+const Contact: React.FC<ContactProps> = ({ profile }) => {
+    const { showToast } = useToast();
+    const cs = profile.pageContent?.contactSection;
+    const faqContent = profile.pageContent?.faq;
+    const faqItems = faqContent?.items?.map(i => ({ q: i.question, a: i.answer })) || [];
+    const faqHeading = faqContent?.heading;
+    const [localData, setLocalData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: '',
+        company: '',
+    });
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setLocalData({ ...localData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('loading');
+
+        const payload: ContactMessage = {
+            name: `${localData.firstName} ${localData.lastName}`.trim(),
+            email: localData.email,
+            message: localData.message,
+        };
+
+        if (localData.phone && localData.phone.trim()) {
+            payload.phone = localData.phone.trim();
+        }
+        if (localData.subject && localData.subject.trim()) {
+            payload.subject = localData.subject.trim();
+        }
+        if (localData.company && localData.company.trim()) {
+            payload.company = localData.company.trim();
+        }
+
+        try {
+            await profileService.sendContactMessage(payload);
+            setStatus('success');
+            setLocalData({ firstName: '', lastName: '', email: '', phone: '', subject: '', message: '', company: '' });
+            setTimeout(() => setStatus('idle'), 5000);
+        } catch (error: any) {
+            const errMsg = error?.response?.data?.message;
+            const displayMsg = Array.isArray(errMsg) ? errMsg.join('. ') : (errMsg || error?.message || 'Something went wrong');
+            setStatus('error');
+            showToast(displayMsg, 'error');
+            setTimeout(() => setStatus('idle'), 5000);
+        }
+    };
+
+    return (
+        <section data-nav-theme="light" className="section" id="contact" style={{ borderBottom: 'none', padding: '60px 0' }}>
+            <div className="container">
+                <h2 className="ark-section__heading" style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '0.5rem' }}>Are You Interested?</h2>
+                <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '500px' }}>Reach Out From Us By type a mesage or Visit us on Our Location</p>
+
+                {/* Grid: Form + Info */}
+                <div className="ark-contact__grid">
+                    {/* Form Card */}
+                    <div className="ark-contact__card">
+                        <h3 className="ark-contact__card-title">Send us a message</h3>
+                        <p className="ark-contact__card-desc">Fill out the form and we'll get back to you within 24 hours</p>
+                        <form onSubmit={handleSubmit} className="ark-contact__form">
+                            <div className="ark-contact__form-row">
+                                <label>
+                                    First Name *
+                                    <input type="text" name="firstName" required value={localData.firstName} onChange={handleChange} placeholder="John" />
+                                </label>
+                                <label>
+                                    Last Name *
+                                    <input type="text" name="lastName" required value={localData.lastName} onChange={handleChange} placeholder="Doe" />
+                                </label>
+                            </div>
+                            <div className="ark-contact__form-row">
+                                <label>
+                                    Email *
+                                    <input type="email" name="email" required value={localData.email} onChange={handleChange} placeholder="john@example.com" />
+                                </label>
+                                <label>
+                                    Subject
+                                    <input type="text" name="subject" value={localData.subject} onChange={handleChange} placeholder="What's this about?" />
+                                </label>
+                            </div>
+                            <label>
+                                Message *
+                                <textarea name="message" required value={localData.message} onChange={handleChange} rows={5} placeholder="Tell us about your project..." />
+                            </label>
+                            <button type="submit" className="btn-submit" disabled={status === 'loading'} style={{ width: '100%', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                                <FaPaperPlane /> {status === 'loading' ? 'Sending...' : 'Send Message'}
+                            </button>
+                            {status === 'success' && (
+                                <p style={{ color: 'var(--primary)', fontWeight: 600, margin: 0 }}>✅ Message sent successfully!</p>
+                            )}
+                            {status === 'error' && (
+                                <p style={{ color: '#ff5252', fontWeight: 600, margin: 0 }}>❌ Failed to send. Please try again.</p>
+                            )}
+                        </form>
+                    </div>
+
+                    {/* Info Card */}
+                    <div className="ark-contact__card">
+                        <h3 className="ark-contact__card-title">Contact Information</h3>
+                        <p className="ark-contact__card-desc">Reach out through any of these channels</p>
+                        <div className="ark-contact__info-list">
+                            <div className="ark-contact__info-item">
+                                <div className="ark-contact__info-icon"><FaPhone /></div>
+                                <div>
+                                    <h4>Phone</h4>
+                                    <p>{profile.phone}</p>
+                                </div>
+                            </div>
+                            <div className="ark-contact__info-item">
+                                <div className="ark-contact__info-icon"><FaEnvelope /></div>
+                                <div>
+                                    <h4>Email</h4>
+                                    <p>{profile.email}</p>
+                                </div>
+                            </div>
+                            <div className="ark-contact__info-item">
+                                <div className="ark-contact__info-icon"><FaMapMarkerAlt /></div>
+                                <div>
+                                    <h4>Location</h4>
+                                    <p>{profile.location}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="ark-contact__social">
+                            <h4 className="ark-contact__social-title">Follow Us</h4>
+                            <div className="ark-contact__social-links">
+                                {profile.socialLinks?.facebook && <a href={profile.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="Facebook"><FaFacebook /></a>}
+                                {profile.socialLinks?.instagram && <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="Instagram"><FaInstagram /></a>}
+                                {profile.socialLinks?.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="ark-contact__social-link" title="LinkedIn"><FaLinkedin /></a>}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* FAQ */}
+                <div className="ark-contact__faqs">
+                    <h3 className="ark-contact__faqs-title">{faqHeading}</h3>
+                    <div className="ark-contact__faq-list">
+                        {faqItems.map((faq, i) => (
+                            <div
+                                key={i}
+                                className={`ark-contact__faq ${openFaq === i ? 'ark-contact__faq--open' : ''}`}
+                                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                            >
+                                <button className="ark-contact__faq-q">
+                                    {faq.q}
+                                    <span className="ark-contact__faq-icon"><FaPlus size={14} /></span>
+                                </button>
+                                <div className="ark-contact__faq-a">
+                                    <p>{faq.a}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+};
+
+export default Contact;
