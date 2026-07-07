@@ -1,9 +1,9 @@
 import Hero from '../../components/Hero';
 import About from '../../components/About';
 import WhatWeOffer from '../../components/WhatWeOffer';
-import Stats from '../../components/Stats';
 import Experience from '../../components/Experience';
 import Projects from '../../components/Projects';
+import News from '../../components/News';
 import Events from '../../components/Events';
 import TeamMembers from '../../components/TeamMembers';
 import Certifications from '../../components/Certifications';
@@ -34,11 +34,11 @@ const Home = () => {
             <div className="section-divider" />
             <WhatWeOffer heading={pc?.services?.heading} subtitle={pc?.services?.subtitle} items={pc?.services?.items} />
             <div className="section-divider" />
-            <Stats profile={profile} customStats={pc?.aboutStats} />
-            <div className="section-divider" />
             <Experience />
             <div className="section-divider" />
             <Projects profile={profile} />
+            <div className="section-divider" />
+            <News news={pc?.news} />
             <div className="section-divider" />
             <Events events={pc?.events} />
             <div className="section-divider" />

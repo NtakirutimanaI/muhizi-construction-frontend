@@ -1,14 +1,19 @@
 import { motion } from 'framer-motion';
-import { FaCalendarAlt, FaMapMarkerAlt, FaArrowRight } from 'react-icons/fa';
+import { FaCalendarAlt, FaNewspaper } from 'react-icons/fa';
 
-interface EventsProps {
-    events?: Array<{ title: string; date: string; location: string; description: string }>;
+interface NewsItem {
+    title: string;
+    date: string;
+    summary: string;
 }
 
-const Events: React.FC<EventsProps> = ({ events: propEvents }) => {
-    const events = propEvents;
+interface NewsProps {
+    news?: NewsItem[];
+}
+
+const News: React.FC<NewsProps> = ({ news }) => {
     return (
-        <section data-nav-theme="light" className="section section-indicator" id="events">
+        <section data-nav-theme="light" className="section section-indicator" id="news">
             <div className="container">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
@@ -22,14 +27,14 @@ const Events: React.FC<EventsProps> = ({ events: propEvents }) => {
                         animate={{ x: [-20, 20, -20] }}
                         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
                     >
-                        Upcoming
+                        Latest
                     </motion.span>
-                    <h2 className="ark-section__heading">Events</h2>
+                    <h2 className="ark-section__heading">News</h2>
                 </motion.div>
 
-                {events && events.length > 0 ? (
+                {news && news.length > 0 ? (
                     <div className="events-grid">
-                        {events.map((event, i) => (
+                        {news.map((item, i) => (
                             <motion.div
                                 key={i}
                                 className="event-card"
@@ -41,24 +46,21 @@ const Events: React.FC<EventsProps> = ({ events: propEvents }) => {
                                 <div className="event-card-header">
                                     <span className="event-date">
                                         <FaCalendarAlt size={14} />
-                                        {event.date}
+                                        {item.date}
                                     </span>
                                     <span className="event-location">
-                                        <FaMapMarkerAlt size={14} />
-                                        {event.location}
+                                        <FaNewspaper size={14} />
+                                        News
                                     </span>
                                 </div>
-                                <h3 className="event-card-title">{event.title}</h3>
-                                <p className="event-card-desc">{event.description}</p>
-                                <a href="/#contact" className="event-card-cta">
-                                    Register <FaArrowRight size={12} />
-                                </a>
+                                <h3 className="event-card-title">{item.title}</h3>
+                                <p className="event-card-desc">{item.summary}</p>
                             </motion.div>
                         ))}
                     </div>
                 ) : (
                     <p style={{ textAlign: 'center', color: '#666', fontSize: '1.1rem', marginTop: '2rem' }}>
-                        No upcoming events at the moment. Check back later.
+                        No news articles at the moment. Check back later.
                     </p>
                 )}
             </div>
@@ -66,4 +68,4 @@ const Events: React.FC<EventsProps> = ({ events: propEvents }) => {
     );
 };
 
-export default Events;
+export default News;

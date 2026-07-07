@@ -12,6 +12,18 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
 
     const closeMenu = useCallback(() => setMenuOpen(false), []);
 
+    const scrollToSection = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+        const href = e.currentTarget.getAttribute('href');
+        if (!href || !href.startsWith('/#')) return;
+        const id = href.slice(2);
+        const el = document.getElementById(id);
+        if (el) {
+            e.preventDefault();
+            el.scrollIntoView({ behavior: 'smooth' });
+            closeMenu();
+        }
+    }, [closeMenu]);
+
     const companyName = profile?.company || '';
 
     useEffect(() => {
@@ -49,15 +61,15 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
                         {companyName && <span className="brand-name">{companyName}</span>}
                     </a>
                     <div className="nav-links-desktop">
-                        <a href="/#about" className="nav-links-desktop-link">About Us</a>
-                        <a href="/#projects" className="nav-links-desktop-link">Projects</a>
-                        <a href="/#updates" className="nav-links-desktop-link">News</a>
-                        <a href="/#events" className="nav-links-desktop-link">Events</a>
-                        <a href="/#team" className="nav-links-desktop-link">Our Team</a>
+                        <a href="/#about" className="nav-links-desktop-link" onClick={scrollToSection}>About Us</a>
+                        <a href="/#projects" className="nav-links-desktop-link" onClick={scrollToSection}>Projects</a>
+                        <a href="/#news" className="nav-links-desktop-link" onClick={scrollToSection}>News</a>
+                        <a href="/#events" className="nav-links-desktop-link" onClick={scrollToSection}>Events</a>
+                        <a href="/#team" className="nav-links-desktop-link" onClick={scrollToSection}>Our Team</a>
                     </div>
                     <div className="nav-actions">
                         <a href="/login" className="nav-login-link" onClick={closeMenu}>Log in</a>
-                        <a href="/#contact" className="nav-signup-btn" onClick={closeMenu}>Get in Touch</a>
+                        <a href="/#contact" className="nav-signup-btn" onClick={scrollToSection}>Get in Touch</a>
                         <button className="nav-mobile-toggle" onClick={() => setMenuOpen(true)} aria-label="Toggle menu">
                             {menuOpen ? (
                                 <span className="hamburger-close">&times;</span>
@@ -76,13 +88,13 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
                         onMouseEnter={() => setMenuOpen(true)}
                         onMouseLeave={() => setMenuOpen(false)}
                     >
-                        <a href="/#home" className="nav-mobile-link" onClick={closeMenu}>Home</a>
-                        <a href="/#about" className="nav-mobile-link" onClick={closeMenu}>About Us</a>
-                        <a href="/#projects" className="nav-mobile-link" onClick={closeMenu}>Projects</a>
-                        <a href="/#updates" className="nav-mobile-link" onClick={closeMenu}>News</a>
-                        <a href="/#events" className="nav-mobile-link" onClick={closeMenu}>Events</a>
-                        <a href="/#team" className="nav-mobile-link" onClick={closeMenu}>Our Team</a>
-                        <a href="/#contact" className="nav-mobile-link nav-mobile-link--btn" onClick={closeMenu}>Contact Us</a>
+                        <a href="/#home" className="nav-mobile-link" onClick={scrollToSection}>Home</a>
+                        <a href="/#about" className="nav-mobile-link" onClick={scrollToSection}>About Us</a>
+                        <a href="/#projects" className="nav-mobile-link" onClick={scrollToSection}>Projects</a>
+                        <a href="/#news" className="nav-mobile-link" onClick={scrollToSection}>News</a>
+                        <a href="/#events" className="nav-mobile-link" onClick={scrollToSection}>Events</a>
+                        <a href="/#team" className="nav-mobile-link" onClick={scrollToSection}>Our Team</a>
+                        <a href="/#contact" className="nav-mobile-link nav-mobile-link--btn" onClick={scrollToSection}>Contact Us</a>
                     </div>
                 )}
             </div>
