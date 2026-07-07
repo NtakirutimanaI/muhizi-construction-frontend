@@ -24,6 +24,12 @@ const Hero: React.FC<HeroProps> = ({ slides: propSlides, videoUrl }) => {
     const [current, setCurrent] = useState(0);
     const autoTimer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
+    const heroBackgrounds = [
+        { src: videoUrl || '/hero-video.mp4', label: 'Construction' },
+        { src: '/hero-design-video.mp4', label: 'Design' },
+    ];
+    const [activeVideo, setActiveVideo] = useState(0);
+
     const next = useCallback(() => {
         setCurrent((prev) => (prev < slides.length - 1 ? prev + 1 : 0));
     }, [slides.length]);
@@ -34,20 +40,37 @@ const Hero: React.FC<HeroProps> = ({ slides: propSlides, videoUrl }) => {
         return () => clearInterval(autoTimer.current);
     }, [next, slides.length]);
 
+    useEffect(() => {
+        const id = setInterval(() => {
+            setActiveVideo((prev) => (prev + 1) % heroBackgrounds.length);
+        }, 8000);
+        return () => clearInterval(id);
+    }, [heroBackgrounds.length]);
+
     return (
         <section data-nav-theme="dark" className="hero" id="home">
             <div className="hero-video-wrap">
-                <video
-                    className="hero-video-bg"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    poster="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80"
-                >
-                    <source src={videoUrl || '/hero-video.mp4'} type="video/mp4" />
-                </video>
+                {heroBackgrounds.map((bg, i) => (
+                    <video
+                        key={bg.src}
+                        className={`hero-video-bg ${i === activeVideo ? 'is-active' : ''}`}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        poster={i === 0 ? 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80' : undefined}
+                    >
+                        <source src={bg.src} type="video/mp4" />
+                    </video>
+                ))}
                 <div className="hero-overlay" />
+                <div className="hero-video-label-wrap">
+                    {heroBackgrounds.map((bg, i) => (
+                        <span key={bg.label} className={`hero-video-label ${i === activeVideo ? 'is-active' : ''}`}>
+                            {bg.label}
+                        </span>
+                    ))}
+                </div>
                 <div className="container hero-content">
                     <AnimatePresence mode="wait">
                         {slides.length > 0 && <motion.div
