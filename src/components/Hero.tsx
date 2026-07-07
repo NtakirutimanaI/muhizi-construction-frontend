@@ -25,9 +25,9 @@ const Hero: React.FC<HeroProps> = ({ slides: propSlides, videoUrl }) => {
     const autoTimer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
     const heroBackgrounds = [
-        { src: videoUrl || '/hero-video.mp4', label: 'Construction' },
-        { src: '/hero-architecture-video.mp4', label: 'Architecture' },
-        { src: '/hero-design-video.mp4', label: 'Design' },
+        { src: videoUrl || 'https://res.cloudinary.com/dh8e4duii/video/upload/v1783433566/muhizi/hero-construction.mp4', label: 'Construction' },
+        { src: 'https://res.cloudinary.com/dh8e4duii/video/upload/v1783433570/muhizi/hero-architecture.mp4', label: 'Architecture' },
+        { src: 'https://res.cloudinary.com/dh8e4duii/video/upload/v1783433574/muhizi/hero-design.mp4', label: 'Design' },
     ];
     const [activeVideo, setActiveVideo] = useState(0);
 
