@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -52,25 +52,41 @@ import Contracts from './pages/admin/Contracts';
 import ProjectDetail from './pages/admin/ProjectDetail';
 import ProjectProgress from './pages/client/ProjectProgress';
 
-import Loading from './components/Loading';
 import { profileService } from './services/profileService';
 import type { Profile } from './services/profileService';
 import './index.css';
 
+const defaultProfile: Profile = {
+  id: '', firstName: 'MUHIZI', lastName: 'CONSTRUCTION',
+  username: 'muhizi_construction', email: 'info@muhiziconstruction.rw',
+  bio: 'Leading construction company in Rwanda', greeting: 'Welcome',
+  aboutMeTitle: 'About Us', title: 'Real Estate & Construction',
+  location: 'Kigali, Rwanda', phone: '', website: '',
+  avatar: '', cvUrl: '', yearsOfExperience: 6, availableForHire: false,
+  isPublic: true, education: [], about: '', experience: [],
+  skills: { backend: [], frontend: [], databases: [], tools: [] },
+  projects: [], certifications: [], languages: [], teamMembers: [],
+  socialLinks: {}, services: [], createdAt: '', updatedAt: '',
+  pageContent: {
+    heroSlides: [{ title: 'MUHIZI CONSTRUCTION', body: "Building Rwanda's Future", color: 'emerald' }],
+    services: { heading: 'Our Services', items: [] },
+    aboutSection: { heading: 'About Muhizi Construction', subtitle: 'Excellence in construction' },
+    contactSection: { heading: 'Contact Us' },
+  },
+};
+
 function App() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile>(defaultProfile);
+  const [loading, setLoading] = useState(() => !!localStorage.getItem('accessToken'));
 
   useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
     const fetchProfile = async () => {
       try {
-        const data = await profileService.getPublicProfile();
+        const data = await profileService.getMyProfile();
         setProfile(data);
-        // Track this visit
-        profileService.recordVisit({
-          page: window.location.pathname,
-          referrer: document.referrer || undefined,
-        }).catch(() => {});
       } catch (err: any) {
         console.error('Error fetching profile:', err);
       } finally {
@@ -86,19 +102,9 @@ function App() {
   }, []);
 
   if (loading) {
-    return <Loading />;
-  }
-
-  function RouteTracker() {
-    const location = useLocation();
-    useEffect(() => {
-      if (location.pathname.match(/^\/(admin|manager|sitemanager|site-manager|employee|client|managingdirector|directorfinance|siteengineer|engineeringstudio)\b/)) return;
-      profileService.recordVisit({
-        page: location.pathname,
-        referrer: document.referrer || undefined,
-      }).catch(() => {});
-    }, [location]);
-    return null;
+    return <div className="min-h-screen flex items-center justify-center bg-neutral-950">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+    </div>;
   }
 
   return (
@@ -106,7 +112,6 @@ function App() {
       <AuthProvider>
         <ToastProvider>
           <NotificationProvider>
-            <RouteTracker />
             <Routes>
               {/* Public Routes */}
               <Route element={<PublicLayout profile={profile} />}>

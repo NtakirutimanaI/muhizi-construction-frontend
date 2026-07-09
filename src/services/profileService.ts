@@ -85,7 +85,7 @@ export interface Profile {
         imageUrl?: string;
         featured: boolean;
         category?: 'Backend' | 'Frontend' | 'UI/UX' | 'Fullstack' | 'Other';
-        effectiveness?: number; // 0-100
+        effectiveness?: number;
         published?: boolean;
         type?: string;
         role?: string;
@@ -218,14 +218,6 @@ export interface Profile {
 }
 
 export const profileService = {
-    // Get public profile
-    getPublicProfile: async (username?: string): Promise<Profile> => {
-        const response = await api.get('/profile/public', {
-            params: username ? { username } : {},
-        });
-        return response.data;
-    },
-
     // Send contact message
     sendContactMessage: async (message: ContactMessage) => {
         const response = await api.post('/profile/contact', message);
@@ -250,70 +242,10 @@ export const profileService = {
         return response.data;
     },
 
-    // Get admin stats
-    getStats: async (): Promise<{ projects: number; skills: number; messages: number; unreadMessages: number; certifications: number; experience: number; education: number; languages: number; views: number; clients: number }> => {
-        const response = await api.get('/profile/stats');
-        return response.data;
-    },
-
-    // Fetch GitHub Repos
-    getGithubRepos: async (username: string) => {
-        // We use direct fetch here to avoid configured axios interceptors that might send our backend auth token
-        // which GitHub would reject (unless we strip it).
-        const response = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=100`);
-        if (!response.ok) throw new Error('Failed to fetch from GitHub');
-        return response.json();
-    },
-
+    // Mark message as read
     markMessageAsRead: async (messageId: string): Promise<ContactMessage> => {
         const response = await api.post(`/profile/messages/${messageId}/read`);
         return response.data;
-    },
-
-    // Delete a single message
-    deleteContactMessage: async (messageId: string): Promise<void> => {
-        await api.delete(`/profile/messages/${messageId}`);
-    },
-
-    // Admin send message
-    sendAdminMessage: async (dto: { name: string; email: string; phone?: string; company?: string; subject?: string; message: string }): Promise<ContactMessage> => {
-        const response = await api.post('/profile/messages/send', dto);
-        return response.data;
-    },
-
-    // Get inbox messages
-    getInboxMessages: async (): Promise<ContactMessage[]> => {
-        const response = await api.get('/profile/messages/inbox');
-        return response.data;
-    },
-
-    // Get sent messages
-    getSentMessages: async (): Promise<ContactMessage[]> => {
-        const response = await api.get('/profile/messages/sent');
-        return response.data;
-    },
-
-    // Get trash messages
-    getTrashMessages: async (): Promise<ContactMessage[]> => {
-        const response = await api.get('/profile/messages/trash');
-        return response.data;
-    },
-
-    // Move message to trash (soft delete)
-    trashMessage: async (messageId: string): Promise<ContactMessage> => {
-        const response = await api.post(`/profile/messages/${messageId}/trash`);
-        return response.data;
-    },
-
-    // Restore message from trash
-    restoreMessage: async (messageId: string): Promise<ContactMessage> => {
-        const response = await api.post(`/profile/messages/${messageId}/restore`);
-        return response.data;
-    },
-
-    // Permanently delete message
-    permanentDeleteMessage: async (messageId: string): Promise<void> => {
-        await api.delete(`/profile/messages/${messageId}/permanent`);
     },
 
     // Delete all messages
@@ -321,24 +253,10 @@ export const profileService = {
         await api.delete('/profile/messages');
     },
 
-    // ───── Visitor Methods ─────
-
-    recordVisit: async (data?: { name?: string; email?: string; company?: string; location?: string; page?: string; referrer?: string }): Promise<void> => {
-        await api.post('/profile/visit', data || {});
+    // Fetch GitHub Repos
+    getGithubRepos: async (username: string) => {
+        const response = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=100`);
+        if (!response.ok) throw new Error('Failed to fetch from GitHub');
+        return response.json();
     },
-
-    getVisitors: async (page = 1, limit = 20): Promise<{ visitors: any[]; total: number; page: number; limit: number }> => {
-        const response = await api.get(`/profile/visitors?page=${page}&limit=${limit}`);
-        return response.data;
-    },
-
-    getVisitorStats: async (): Promise<{
-        total: number; last30Days: number; last7Days: number; today: number;
-        companies: { company: string; count: number }[];
-        locations: { location: string; count: number }[];
-        pages: { page: string; count: number }[];
-    }> => {
-        const response = await api.get('/profile/visitors/stats');
-        return response.data;
-    }
 };
