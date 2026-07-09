@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { FaEnvelope, FaUser, FaPhone, FaBuilding, FaCheck, FaClock, FaTrash, FaInbox, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight, FaPaperPlane, FaTimes } from 'react-icons/fa';
 import { profileService, type ContactMessage } from '../../services/profileService';
+import { mlService, type LeadScoreResult } from '../../services/mlService';
 import { useToast } from '../../context/ToastContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -23,6 +24,8 @@ const MessagesInbox = () => {
     const [replySubject, setReplySubject] = useState('');
     const [replyMessage, setReplyMessage] = useState('');
     const [sending, setSending] = useState(false);
+    const [leadScore, setLeadScore] = useState<LeadScoreResult | null>(null);
+    const [scoringLead, setScoringLead] = useState(false);
 
     useEffect(() => { loadMessages(); }, []);
 
@@ -70,6 +73,23 @@ const MessagesInbox = () => {
             } catch (error) {
                 console.error('Failed to mark as read:', error);
             }
+        }
+        setLeadScore(null);
+        setScoringLead(true);
+        try {
+            const result = await mlService.scoreLead({
+                name: msg.name,
+                email: msg.email,
+                phone: msg.phone,
+                company: msg.company,
+                subject: msg.subject,
+                message: msg.message,
+            });
+            setLeadScore(result);
+        } catch (error) {
+            console.error('Failed to score lead:', error);
+        } finally {
+            setScoringLead(false);
         }
     };
 
@@ -299,11 +319,28 @@ const MessagesInbox = () => {
 
                 {selectedMessage && (
                     <div className="admin-card" style={{ padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', maxHeight: '520px' }}>
-                        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ padding: '0.2rem 0.75rem', borderRadius: 12, fontSize: '0.7rem', fontWeight: 600, background: !selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? 'rgba(27,32,66,0.12)' : 'rgba(0,128,128,0.12)', color: !selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? '#1B2042' : 'var(--primary-teal)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                                {!selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? <FaClock size={10} /> : <FaCheck size={10} />}
-                                {!selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? 'NEW' : 'READ'}
-                            </span>
+                        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <span style={{ padding: '0.2rem 0.75rem', borderRadius: 12, fontSize: '0.7rem', fontWeight: 600, background: !selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? 'rgba(27,32,66,0.12)' : 'rgba(0,128,128,0.12)', color: !selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? '#1B2042' : 'var(--primary-teal)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                    {!selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? <FaClock size={10} /> : <FaCheck size={10} />}
+                                    {!selectedMessage.status || selectedMessage.status === 'unread' || selectedMessage.status === 'new' ? 'NEW' : 'READ'}
+                                </span>
+                                {scoringLead && (
+                                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Scoring lead...</span>
+                                )}
+                                {!scoringLead && leadScore && (
+                                    <span
+                                        title={leadScore.reasons?.join(' · ')}
+                                        style={{
+                                            padding: '0.2rem 0.75rem', borderRadius: 12, fontSize: '0.7rem', fontWeight: 600,
+                                            background: leadScore.priority === 'high' ? 'rgba(211,47,47,0.12)' : leadScore.priority === 'medium' ? 'rgba(245,158,11,0.14)' : 'rgba(107,114,128,0.12)',
+                                            color: leadScore.priority === 'high' ? '#d32f2f' : leadScore.priority === 'medium' ? '#b45309' : '#6b7280',
+                                        }}
+                                    >
+                                        {leadScore.priority.toUpperCase()} PRIORITY LEAD ({leadScore.lead_score})
+                                    </span>
+                                )}
+                            </div>
                             <button className="admin-btn admin-btn--secondary" onClick={() => handleTrash(selectedMessage.id!)} style={{ padding: '0.3rem 0.7rem', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
                                 <FaTrash size={11} /> Trash
                             </button>

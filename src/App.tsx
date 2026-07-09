@@ -13,6 +13,9 @@ import About from './pages/public/About';
 import Team from './pages/public/Team';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import GoogleCallback from './pages/auth/GoogleCallback';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -131,7 +134,10 @@ function App() {
               <Route element={<PublicLayout profile={profile} />}>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
               </Route>
+              <Route path="/auth/google/callback" element={<GoogleCallback />} />
 
               {/* Admin Routes — shared across all roles under their respective base paths */}
               <Route element={<ProtectedRoute />}>

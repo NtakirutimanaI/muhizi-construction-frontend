@@ -15,7 +15,7 @@ interface AuthContextType {
     user: User | null;
     token: string | null;
     isAuthenticated: boolean;
-    login: (token: string, user: User) => void;
+    login: (token: string, user: User, refreshToken?: string) => void;
     logout: () => void;
     updateUser: (user: Partial<User>) => void;
     loading: boolean;
@@ -50,6 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setUser(mappedUser);
                 } catch {
                     localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
                     localStorage.removeItem('user');
                     setToken(null);
                     setUser(null);
@@ -62,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         init();
     }, []);
 
-    const login = (newToken: string, newUser: any) => {
+    const login = (newToken: string, newUser: any, refreshToken?: string) => {
         const mappedUser: User = {
             id: newUser.id,
             email: newUser.email,
@@ -73,13 +74,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             avatar: newUser.profile?.avatar || newUser.avatar || undefined,
         };
         localStorage.setItem('accessToken', newToken);
+        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
         localStorage.setItem('user', JSON.stringify(mappedUser));
         setToken(newToken);
         setUser(mappedUser);
     };
 
     const logout = () => {
+        authService.logout().catch(() => {});
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         setToken(null);
         setUser(null);
