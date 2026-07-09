@@ -83,13 +83,20 @@ function App() {
     const token = localStorage.getItem('accessToken');
     if (!token) return;
 
-    const fetchProfile = async () => {
+    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    const fetchProfile = async (retriesLeft = 3, delayMs = 1500): Promise<void> => {
       try {
         const data = await profileService.getMyProfile();
         setProfile(data);
+        setLoading(false);
       } catch (err: any) {
+        if (retriesLeft > 0) {
+          console.warn(`Profile fetch failed, retrying in ${delayMs}ms... (${retriesLeft} left)`, err);
+          await sleep(delayMs);
+          return fetchProfile(retriesLeft - 1, delayMs * 2);
+        }
         console.error('Error fetching profile:', err);
-      } finally {
         setLoading(false);
       }
     };
