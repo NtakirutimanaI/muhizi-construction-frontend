@@ -100,6 +100,30 @@ export const ROLE_PATH_MAP: Record<string, string> = {
   [ROLES.CLIENT]: '/client',
 };
 
+export const ROLE_AREA_TITLE: Record<string, string> = {
+  [ROLES.ADMIN]: 'Administrator Area',
+  [ROLES.SITE_MANAGER]: 'Site Manager Area',
+  [ROLES.MANAGER]: 'Manager Area',
+  [ROLES.EMPLOYEE]: 'Employee Area',
+  [ROLES.MANAGING_DIRECTOR]: 'CEO Area',
+  [ROLES.FINANCE_DIRECTOR]: 'Finance Director Area',
+  [ROLES.SITE_ENGINEER]: 'Site Engineer Area',
+  [ROLES.ENGINEERING_STUDIO]: 'Engineering Studio Area',
+  [ROLES.CLIENT]: 'Client Area',
+};
+
+export const ROLE_AREA_BG: Record<string, string> = {
+  [ROLES.ADMIN]: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+  [ROLES.SITE_MANAGER]: 'linear-gradient(135deg, #1B2042, #2a3a6a)',
+  [ROLES.MANAGER]: 'linear-gradient(135deg, #0f3443, #34e89e)',
+  [ROLES.EMPLOYEE]: 'linear-gradient(135deg, #2c3e50, #3498db)',
+  [ROLES.MANAGING_DIRECTOR]: 'linear-gradient(135deg, #4a0e4e, #801336)',
+  [ROLES.FINANCE_DIRECTOR]: 'linear-gradient(135deg, #1B2042, #2a2f5e)',
+  [ROLES.SITE_ENGINEER]: 'linear-gradient(135deg, #e67e22, #f39c12)',
+  [ROLES.ENGINEERING_STUDIO]: 'linear-gradient(135deg, #8e44ad, #9b59b6)',
+  [ROLES.CLIENT]: 'linear-gradient(135deg, #1a5276, #2e86c1)',
+};
+
 export function getRolePath(role: string): string {
   return ROLE_PATH_MAP[role] || '/admin';
 }

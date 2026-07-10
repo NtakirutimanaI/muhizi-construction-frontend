@@ -15,7 +15,7 @@ import { useNotification } from '../context/NotificationContext';
 import { profileService, type Profile, type ContactMessage } from '../services/profileService';
 import { sitesService, type Site } from '../services/sitesService';
 import { AnimatePresence, motion } from 'framer-motion';
-import { SIDEBAR_SECTIONS, type Role } from '../config/roles';
+import { SIDEBAR_SECTIONS, ROLE_AREA_TITLE, ROLE_AREA_BG, type Role } from '../config/roles';
 
 const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -316,16 +316,21 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
                         <FaBars />
                     </button>
                     {/* Brand Logo */}
-                    <Link to="/" className="admin-brand" style={role === 'finance_director' ? { background: 'linear-gradient(135deg, #1B2042 0%, #2a2f5e 100%)', borderRadius: '10px', padding: '0.35rem 0.9rem', margin: '4px 0', border: '1px solid rgba(78, 205, 196, 0.25)', boxShadow: '0 2px 8px rgba(27, 32, 66, 0.2)' } : {}}>
-                        <span style={{
-                            width: '10px', height: '10px',
-                            background: role === 'finance_director' ? '#4ecdc4' : '#fff',
-                            borderRadius: '50%', display: 'inline-block',
-                            boxShadow: role === 'finance_director' ? '0 0 6px rgba(78, 205, 196, 0.5)' : 'none'
-                        }}></span>
-                        <span style={role === 'finance_director' ? { fontWeight: 800, fontSize: '0.85rem', letterSpacing: '0.02em', background: 'linear-gradient(90deg, #fff, #4ecdc4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' } : {}}>
-                            {role === 'finance_director' ? 'Finance Director Area' : 'MUHIZI Panel'}
-                        </span>
+                    <Link to="/" className="admin-brand" style={{
+                        background: ROLE_AREA_BG[role] || 'var(--primary)',
+                        borderRadius: '10px', padding: '0.25rem 0.7rem', margin: '4px 0',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                        textDecoration: 'none',
+                    }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.3 }}>
+                            <span style={{ fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.02em', color: '#fff' }}>
+                                {ROLE_AREA_TITLE[role] || 'MUHIZI Panel'}
+                            </span>
+                            <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>
+                                {user?.firstName || ''} {user?.lastName || ''}
+                            </span>
+                        </div>
                     </Link>
                 </div>
 
