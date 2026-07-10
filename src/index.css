@@ -3806,18 +3806,6 @@ img {
   gap: 0.75rem;
 }
 
-.team-v2__name-bar::before {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: -8px;
-  right: 8px;
-  bottom: 8px;
-  background: #eceef1;
-  border-radius: 999px;
-  z-index: -1;
-}
-
 .team-v2__name-bar h4 {
   margin: 0;
   font-size: 0.95rem;
