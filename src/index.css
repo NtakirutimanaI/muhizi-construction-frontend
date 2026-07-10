@@ -3745,7 +3745,7 @@ img {
 .team-v2__inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(2rem, 5vw, 4rem);
+  gap: clamp(9rem, 2vw, 3rem);
   align-items: start;
   max-width: 1200px;
   margin: 0 auto;
@@ -3759,6 +3759,7 @@ img {
   gap: 1.25rem;
   padding: 12px 0 0 12px;
   max-width: 460px;
+  margin-left: auto;
 }
 
 .team-v2__photo-card {
@@ -3807,18 +3808,28 @@ img {
   gap: 0.75rem;
 }
 
+.team-v2__name-bar > div {
+  min-width: 0;
+}
+
 .team-v2__name-bar h4 {
   margin: 0;
   font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.2;
   color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .team-v2__name-bar p {
   margin: 0.15rem 0 0;
   font-size: 0.74rem;
   color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .team-v2__share {
@@ -4050,7 +4061,7 @@ img {
     grid-template-columns: 1fr;
   }
   .team-v2__photos {
-    max-width: 460px;
+    max-width: 800px;
     margin: 0 auto;
   }
   .team-v2__logos-track {
