@@ -37,7 +37,7 @@ const ClientUpdates = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '0.75rem', color: '#888' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '0.75rem', color: 'var(--text-muted)' }}>
         <FaSpinner className="spin" /> Loading updates...
       </div>
     );
@@ -45,68 +45,59 @@ const ClientUpdates = () => {
 
   return (
     <div>
-      <div style={{
-        background: 'linear-gradient(135deg, #0d9488, #0891b2)',
-        borderRadius: 0, padding: '1.75rem 2rem', marginBottom: '2rem', color: '#fff',
+      <div className="content-card" style={{
+        padding: '1.5rem 2rem', marginBottom: '1.5rem',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <FaClipboardList size={24} />
+          <FaClipboardList size={24} color="var(--primary)" />
           <div>
-            <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>Project Updates</div>
-            <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>{items.length} update{items.length !== 1 ? 's' : ''} available</div>
+            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-main)' }}>Project Updates</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{items.length} update{items.length !== 1 ? 's' : ''} available</div>
           </div>
         </div>
       </div>
 
       {items.length === 0 ? (
-        <div style={{
-          background: '#fff', borderRadius: 0, padding: '3rem', textAlign: 'center',
-          border: '1px solid rgba(13,148,136,0.08)', boxShadow: '0 2px 12px rgba(13,148,136,0.06)',
-        }}>
-          <FaClipboardList size={48} style={{ opacity: 0.2, color: '#0d9488', marginBottom: '1rem' }} />
-          <p style={{ color: '#888', margin: 0 }}>No updates available yet. Check back later.</p>
+        <div className="content-card" style={{ padding: '3rem', textAlign: 'center' }}>
+          <FaClipboardList size={48} style={{ opacity: 0.2, color: 'var(--primary)', marginBottom: '1rem' }} />
+          <p style={{ color: 'var(--text-muted)', margin: 0 }}>No updates available yet. Check back later.</p>
         </div>
       ) : (
         <div style={{ position: 'relative' }}>
           <div style={{
             position: 'absolute', left: '21px', top: 0, bottom: 0, width: '2px',
-            background: 'rgba(13,148,136,0.15)',
+            background: 'rgba(108,48,150,0.15)',
           }} />
           {items.map((item, index) => (
-            <div key={item.id} style={{
-              background: '#fff', borderRadius: 0, padding: '1.25rem 1.5rem',
-              border: '1px solid rgba(13,148,136,0.08)',
-              boxShadow: '0 2px 12px rgba(13,148,136,0.06)',
+            <div key={item.id} className="content-card" style={{
+              padding: '1.25rem 1.5rem',
               display: 'flex', gap: '1.25rem', alignItems: 'flex-start',
-              transition: 'all 0.2s', marginBottom: '1rem', marginLeft: '2.5rem', position: 'relative',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(13,148,136,0.12)'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(13,148,136,0.06)'; }}
-            >
+              marginBottom: '1rem', marginLeft: '2.5rem', position: 'relative',
+            }}>
               <div style={{
                 position: 'absolute', left: '-2.5rem', top: '1.25rem',
-                width: '12px', height: '12px', borderRadius: 0,
-                background: index % 2 === 0 ? '#0d9488' : '#10b981',
-                border: '3px solid #fff', boxShadow: '0 0 0 2px rgba(13,148,136,0.2)',
+                width: '12px', height: '12px', borderRadius: '50%',
+                background: index % 2 === 0 ? '#6c3096' : '#b84c8c',
+                border: '3px solid var(--bg-white)', boxShadow: '0 0 0 2px rgba(108,48,150,0.2)',
               }} />
 
               <div style={{
-                width: '44px', height: '44px', borderRadius: 0, flexShrink: 0,
+                width: '44px', height: '44px', borderRadius: '8px', flexShrink: 0,
                 background: index % 2 === 0
-                  ? 'linear-gradient(135deg, rgba(13,148,136,0.1), rgba(8,145,178,0.1))'
+                  ? 'linear-gradient(135deg, rgba(108,48,150,0.1), rgba(184,76,140,0.1))'
                   : 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(52,211,153,0.1))',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: index % 2 === 0 ? '#0d9488' : '#10b981',
+                color: index % 2 === 0 ? '#6c3096' : '#10b981',
               }}>
                 {index % 2 === 0 ? <FaClock size={18} /> : <FaCheckCircle size={18} />}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1a2e' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>
                     {item.title || 'Update'}
                   </div>
                   {item.date && (
-                    <span style={{ fontSize: '0.7rem', color: '#aaa', fontWeight: 500 }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                       {new Date(item.date).toLocaleDateString('en-US', {
                         year: 'numeric', month: 'short', day: 'numeric',
                       })}
@@ -114,24 +105,22 @@ const ClientUpdates = () => {
                   )}
                 </div>
                 {item.siteName && (
-                  <div style={{ fontSize: '0.8rem', color: '#0d9488', fontWeight: 600, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                     <FaHardHat size={11} />
                     {item.siteName}
                   </div>
                 )}
                 {item.notes && (
-                  <p style={{ margin: '0.35rem 0 0', fontSize: '0.85rem', color: '#666', lineHeight: 1.5 }}>
+                  <p style={{ margin: '0.35rem 0 0', fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                     {item.notes}
                   </p>
                 )}
               </div>
               {item.url && (
                 <img src={item.url} alt="" style={{
-                  width: '80px', height: '80px', borderRadius: 0,
+                  width: '80px', height: '80px', borderRadius: '8px',
                   objectFit: 'cover', flexShrink: 0, cursor: 'pointer',
-                }} onClick={() => window.open(item.url, '_blank')}
-                  onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
-                  onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }} />
+                }} onClick={() => window.open(item.url, '_blank')} />
               )}
             </div>
           ))}
