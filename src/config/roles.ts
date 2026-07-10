@@ -40,7 +40,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/approvals', icon: 'FaCheckDouble', label: 'Approvals', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/approvements', icon: 'FaClipboardCheck', label: 'Approvements', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.PARTNER] },
+            { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.MANAGER] },
             { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
         ],
     },
@@ -72,7 +72,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     {
         label: 'Admin',
         items: [
-            { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.EMPLOYEE, ROLES.SITE_ENGINEER, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO, ROLES.PARTNER] },
+            { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.EMPLOYEE, ROLES.SITE_ENGINEER, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/users', icon: 'FaUsers', label: 'Users', roles: [ROLES.ADMIN] },
             { path: '/admin/permissions', icon: 'FaLock', label: 'Permissions', roles: [ROLES.ADMIN] },
             { path: '/admin/resources', icon: 'FaDatabase', label: 'CMS', roles: [ROLES.ADMIN] },
@@ -85,6 +85,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         label: 'Partner',
         items: [
             { path: '/admin/project-progress', icon: 'FaImage', label: 'Project Progress', roles: [ROLES.PARTNER] },
+            { path: '/admin/updates', icon: 'FaClipboardList', label: 'Updates', roles: [ROLES.PARTNER] },
         ],
     },
     {
@@ -119,7 +120,7 @@ export const ROLE_AREA_TITLE: Record<string, string> = {
   [ROLES.FINANCE_DIRECTOR]: 'Finance Director Area',
   [ROLES.SITE_ENGINEER]: 'Site Engineer Area',
   [ROLES.ENGINEERING_STUDIO]: 'Engineering Studio Area',
-  [ROLES.CLIENT]: 'My Dashboard',
+  [ROLES.CLIENT]: 'My Area',
   [ROLES.PARTNER]: 'Partner Area',
 };
 

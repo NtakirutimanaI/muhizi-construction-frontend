@@ -52,7 +52,9 @@ import StockCategories from './pages/admin/StockCategories';
 import Contracts from './pages/admin/Contracts';
 import ProjectDetail from './pages/admin/ProjectDetail';
 import ProjectProgress from './pages/partner/ProjectProgress';
+import PartnerUpdates from './pages/partner/PartnerUpdates';
 import ClientDashboard from './pages/client-panel/ClientDashboard';
+import ClientProfile from './pages/client-panel/ClientProfile';
 import ClientSites from './pages/client-panel/ClientSites';
 import ClientUpdates from './pages/client-panel/ClientUpdates';
 
@@ -170,6 +172,7 @@ function App() {
                       <Route path="approvals" element={<Approvals />} />
                       <Route path="contracts" element={<Contracts />} />
                       <Route path="project-progress" element={<ProjectProgress />} />
+                      <Route path="updates" element={<PartnerUpdates />} />
                       <Route path="approvements" element={<Approvements />} />
                       <Route path="stock/in" element={<Stock />} />
                       <Route path="stock/out" element={<Stock />} />
@@ -185,7 +188,7 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/client-panel" element={<ClientLayout basePath="/client-panel" />}>
                   <Route index element={<ClientDashboard />} />
-                  <Route path="profile" element={<ProfileManagement />} />
+                  <Route path="profile" element={<ClientProfile />} />
                   <Route path="sites" element={<ClientSites />} />
                   <Route path="updates" element={<ClientUpdates />} />
                 </Route>
