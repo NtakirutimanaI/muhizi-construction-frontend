@@ -41,6 +41,21 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
                             <div key={i} className="team-v2__photo-card">
                                 <div className="team-v2__photo-wrap">
                                     <img src={getImageUrl(member)} alt={member.name} className="team-v2__photo-img" />
+                                    {i === 1 && socials.length > 0 && (
+                                        <div className="team-v2__social-rail">
+                                            {socials.map(({ icon: Icon, href }, si) => (
+                                                <a
+                                                    key={si}
+                                                    href={href}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className={`team-v2__social-btn${si === 2 ? ' team-v2__social-btn--active' : ''}`}
+                                                >
+                                                    <Icon />
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="team-v2__name-bar">
                                     <div>
@@ -53,22 +68,6 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
                                 </div>
                             </div>
                         ))}
-
-                        {socials.length > 0 && featured.length > 1 && (
-                            <div className="team-v2__social-rail">
-                                {socials.map(({ icon: Icon, href }, i) => (
-                                    <a
-                                        key={i}
-                                        href={href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={`team-v2__social-btn${i === 2 ? ' team-v2__social-btn--active' : ''}`}
-                                    >
-                                        <Icon />
-                                    </a>
-                                ))}
-                            </div>
-                        )}
                     </div>
                 )}
 
