@@ -55,7 +55,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                         {/* Brand / About */}
                         <div className="ark-footer__col">
                             <a href="/" className="ark-footer__logo-link">
-                                <img src={profile.companyLogo || profile.avatar || '/logo.jpeg'} alt={profile.company || 'Logo'} className="ark-footer__logo" />
+                                <img src={profile.companyLogo || '/logo.jpeg'} alt={profile.company || 'Logo'} className="ark-footer__logo" />
                             </a>
                             {profile.company && <h4 className="ark-footer__col-title">{profile.company}</h4>}
                             <p className="ark-footer__desc">{companyDesc}</p>

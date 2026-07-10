@@ -57,7 +57,7 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
             <div className="container">
                 <div className="navbar-content">
                     <a href="/" className="nav-brand-tag">
-                        <img src={profile?.companyLogo || profile?.avatar || '/logo.jpeg'} alt={profile?.company || 'Logo'} className="nav-logo" />
+                        <img src={profile?.companyLogo || '/logo.jpeg'} alt={profile?.company || 'Logo'} className="nav-logo" />
                         {companyName && <span className="brand-name">{companyName}</span>}
                     </a>
                     <div className="nav-links-desktop">
