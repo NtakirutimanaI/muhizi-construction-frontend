@@ -5,6 +5,7 @@ import { ToastProvider } from './context/ToastContext';
 import { NotificationProvider } from './context/NotificationContext';
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
+import ClientLayout from './layouts/ClientLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Public Pages
@@ -51,6 +52,9 @@ import StockCategories from './pages/admin/StockCategories';
 import Contracts from './pages/admin/Contracts';
 import ProjectDetail from './pages/admin/ProjectDetail';
 import ProjectProgress from './pages/partner/ProjectProgress';
+import ClientDashboard from './pages/client-panel/ClientDashboard';
+import ClientSites from './pages/client-panel/ClientSites';
+import ClientUpdates from './pages/client-panel/ClientUpdates';
 
 import { profileService } from './services/profileService';
 import type { Profile } from './services/profileService';
@@ -175,6 +179,16 @@ function App() {
                     </Route>
                   );
                 })}
+              </Route>
+
+              {/* Client Panel Route — unique layout */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/client-panel" element={<ClientLayout basePath="/client-panel" />}>
+                  <Route index element={<ClientDashboard />} />
+                  <Route path="profile" element={<ProfileManagement />} />
+                  <Route path="sites" element={<ClientSites />} />
+                  <Route path="updates" element={<ClientUpdates />} />
+                </Route>
               </Route>
 
               {/* Fallback */}

@@ -3,6 +3,7 @@ export const ROLES = {
     SITE_MANAGER: 'site_manager',
     MANAGER: 'manager',
     EMPLOYEE: 'employee',
+    CLIENT: 'client',
     PARTNER: 'partner',
     MANAGING_DIRECTOR: 'managing_director',
     FINANCE_DIRECTOR: 'finance_director',
@@ -86,6 +87,14 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/project-progress', icon: 'FaImage', label: 'Project Progress', roles: [ROLES.PARTNER] },
         ],
     },
+    {
+        label: 'Client',
+        items: [
+            { path: '/admin/profile', icon: 'FaUser', label: 'My Profile', roles: [ROLES.CLIENT] },
+            { path: '/admin/sites', icon: 'FaImage', label: 'Sites', roles: [ROLES.CLIENT] },
+            { path: '/admin/updates', icon: 'FaClipboardList', label: 'Updates', roles: [ROLES.CLIENT] },
+        ],
+    },
 ];
 
 export const ROLE_PATH_MAP: Record<string, string> = {
@@ -97,6 +106,7 @@ export const ROLE_PATH_MAP: Record<string, string> = {
   [ROLES.FINANCE_DIRECTOR]: '/directorfinance',
   [ROLES.SITE_ENGINEER]: '/siteengineer',
   [ROLES.ENGINEERING_STUDIO]: '/engineeringstudio',
+  [ROLES.CLIENT]: '/client-panel',
   [ROLES.PARTNER]: '/partner',
 };
 
@@ -109,6 +119,7 @@ export const ROLE_AREA_TITLE: Record<string, string> = {
   [ROLES.FINANCE_DIRECTOR]: 'Finance Director Area',
   [ROLES.SITE_ENGINEER]: 'Site Engineer Area',
   [ROLES.ENGINEERING_STUDIO]: 'Engineering Studio Area',
+  [ROLES.CLIENT]: 'My Dashboard',
   [ROLES.PARTNER]: 'Partner Area',
 };
 
@@ -121,6 +132,7 @@ export const ROLE_AREA_BG: Record<string, string> = {
   [ROLES.FINANCE_DIRECTOR]: 'linear-gradient(135deg, #1B2042, #2a2f5e)',
   [ROLES.SITE_ENGINEER]: 'linear-gradient(135deg, #e67e22, #f39c12)',
   [ROLES.ENGINEERING_STUDIO]: 'linear-gradient(135deg, #8e44ad, #9b59b6)',
+  [ROLES.CLIENT]: 'linear-gradient(135deg, #6c3096, #b84c8c)',
   [ROLES.PARTNER]: 'linear-gradient(135deg, #0d4f3c, #1a8a6a)',
 };
 
@@ -129,7 +141,7 @@ export function getRolePath(role: string): string {
 }
 
 export function canAccess(path: string, role: string): boolean {
-    const normalizedPath = path.replace(/^\/(admin|manager|sitemanager|site-manager|employee|partner|managingdirector|directorfinance|siteengineer|engineeringstudio)/, '/admin').split('?')[0];
+    const normalizedPath = path.replace(/^\/(admin|manager|sitemanager|site-manager|employee|partner|client-panel|managingdirector|directorfinance|siteengineer|engineeringstudio)/, '/admin').split('?')[0];
     for (const section of SIDEBAR_SECTIONS) {
         for (const item of section.items) {
             if (item.path.split('?')[0] === normalizedPath) {
