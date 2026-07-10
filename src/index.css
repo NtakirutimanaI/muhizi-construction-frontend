@@ -3757,19 +3757,29 @@ img {
   display: flex;
   align-items: flex-start;
   gap: 1.25rem;
+  padding: 12px 0 0 12px;
 }
 
 .team-v2__photo-card {
   position: relative;
   flex: 1;
   min-width: 0;
+  z-index: 1;
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 20px 45px rgba(20, 20, 30, 0.14);
 }
 
-.team-v2__photo-card--raised {
-  margin-top: -1.75rem;
+.team-v2__photo-card::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  right: 12px;
+  bottom: 12px;
+  background: #eceef1;
+  border-radius: 22px;
+  z-index: -1;
 }
 
 .team-v2__photo-img {
@@ -3822,12 +3832,12 @@ img {
 .team-v2__social-rail {
   position: absolute;
   left: 50%;
-  top: 38%;
+  top: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.9rem;
 }
 
 .team-v2__social-btn {
