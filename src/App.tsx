@@ -50,7 +50,7 @@ import Stock from './pages/admin/Stock';
 import StockCategories from './pages/admin/StockCategories';
 import Contracts from './pages/admin/Contracts';
 import ProjectDetail from './pages/admin/ProjectDetail';
-import ProjectProgress from './pages/client/ProjectProgress';
+import ProjectProgress from './pages/partner/ProjectProgress';
 
 import { profileService } from './services/profileService';
 import type { Profile } from './services/profileService';
@@ -128,7 +128,7 @@ function App() {
 
               {/* Admin Routes — shared across all roles under their respective base paths */}
               <Route element={<ProtectedRoute />}>
-                {['admin', 'manager', 'sitemanager', 'site-manager', 'employee', 'client', 'managingdirector', 'directorfinance', 'siteengineer', 'engineeringstudio'].map(base => {
+                {['admin', 'manager', 'sitemanager', 'site-manager', 'employee', 'partner', 'managingdirector', 'directorfinance', 'siteengineer', 'engineeringstudio'].map(base => {
                   const b = `/${base}`;
                   return (
                     <Route key={base} path={b} element={<AdminLayout basePath={b} />}>

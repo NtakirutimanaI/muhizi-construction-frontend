@@ -3,7 +3,7 @@ export const ROLES = {
     SITE_MANAGER: 'site_manager',
     MANAGER: 'manager',
     EMPLOYEE: 'employee',
-    CLIENT: 'client',
+    PARTNER: 'partner',
     MANAGING_DIRECTOR: 'managing_director',
     FINANCE_DIRECTOR: 'finance_director',
     SITE_ENGINEER: 'site_engineer',
@@ -28,18 +28,18 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     {
         label: 'Main',
         items: [
-            { path: '/admin', icon: 'FaChartBar', label: 'Dashboard', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.EMPLOYEE, ROLES.MANAGER, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.CLIENT] },
+            { path: '/admin', icon: 'FaChartBar', label: 'Dashboard', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.EMPLOYEE, ROLES.MANAGER, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.PARTNER] },
         ],
     },
     {
         label: 'Operations',
         items: [
-            { path: '/admin/sites', icon: 'FaProjectDiagram', label: 'Sites', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.ENGINEERING_STUDIO, ROLES.CLIENT] },
+            { path: '/admin/sites', icon: 'FaProjectDiagram', label: 'Sites', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.ENGINEERING_STUDIO, ROLES.PARTNER] },
 
             { path: '/admin/approvals', icon: 'FaCheckDouble', label: 'Approvals', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/approvements', icon: 'FaClipboardCheck', label: 'Approvements', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.CLIENT] },
+            { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.PARTNER] },
             { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
         ],
     },
@@ -71,7 +71,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     {
         label: 'Admin',
         items: [
-            { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.EMPLOYEE, ROLES.SITE_ENGINEER, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO, ROLES.CLIENT] },
+            { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.EMPLOYEE, ROLES.SITE_ENGINEER, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO, ROLES.PARTNER] },
             { path: '/admin/users', icon: 'FaUsers', label: 'Users', roles: [ROLES.ADMIN] },
             { path: '/admin/permissions', icon: 'FaLock', label: 'Permissions', roles: [ROLES.ADMIN] },
             { path: '/admin/resources', icon: 'FaDatabase', label: 'CMS', roles: [ROLES.ADMIN] },
@@ -81,9 +81,9 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         ],
     },
     {
-        label: 'Client',
+        label: 'Partner',
         items: [
-            { path: '/admin/project-progress', icon: 'FaImage', label: 'Project Progress', roles: [ROLES.CLIENT] },
+            { path: '/admin/project-progress', icon: 'FaImage', label: 'Project Progress', roles: [ROLES.PARTNER] },
         ],
     },
 ];
@@ -97,7 +97,7 @@ export const ROLE_PATH_MAP: Record<string, string> = {
   [ROLES.FINANCE_DIRECTOR]: '/directorfinance',
   [ROLES.SITE_ENGINEER]: '/siteengineer',
   [ROLES.ENGINEERING_STUDIO]: '/engineeringstudio',
-  [ROLES.CLIENT]: '/client',
+  [ROLES.PARTNER]: '/partner',
 };
 
 export const ROLE_AREA_TITLE: Record<string, string> = {
@@ -109,7 +109,7 @@ export const ROLE_AREA_TITLE: Record<string, string> = {
   [ROLES.FINANCE_DIRECTOR]: 'Finance Director Area',
   [ROLES.SITE_ENGINEER]: 'Site Engineer Area',
   [ROLES.ENGINEERING_STUDIO]: 'Engineering Studio Area',
-  [ROLES.CLIENT]: 'Client Area',
+  [ROLES.PARTNER]: 'Partner Area',
 };
 
 export const ROLE_AREA_BG: Record<string, string> = {
@@ -121,7 +121,7 @@ export const ROLE_AREA_BG: Record<string, string> = {
   [ROLES.FINANCE_DIRECTOR]: 'linear-gradient(135deg, #1B2042, #2a2f5e)',
   [ROLES.SITE_ENGINEER]: 'linear-gradient(135deg, #e67e22, #f39c12)',
   [ROLES.ENGINEERING_STUDIO]: 'linear-gradient(135deg, #8e44ad, #9b59b6)',
-  [ROLES.CLIENT]: 'linear-gradient(135deg, #1a5276, #2e86c1)',
+  [ROLES.PARTNER]: 'linear-gradient(135deg, #0d4f3c, #1a8a6a)',
 };
 
 export function getRolePath(role: string): string {
@@ -129,7 +129,7 @@ export function getRolePath(role: string): string {
 }
 
 export function canAccess(path: string, role: string): boolean {
-    const normalizedPath = path.replace(/^\/(admin|manager|sitemanager|site-manager|employee|client|managingdirector|directorfinance|siteengineer|engineeringstudio)/, '/admin').split('?')[0];
+    const normalizedPath = path.replace(/^\/(admin|manager|sitemanager|site-manager|employee|partner|managingdirector|directorfinance|siteengineer|engineeringstudio)/, '/admin').split('?')[0];
     for (const section of SIDEBAR_SECTIONS) {
         for (const item of section.items) {
             if (item.path.split('?')[0] === normalizedPath) {
