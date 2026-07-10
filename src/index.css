@@ -3791,16 +3791,15 @@ img {
 
 .team-v2__name-bar {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
   background: #0d0d0d;
   color: #fff;
-  padding: 0.85rem 0.6rem 0.85rem 1rem;
+  border-radius: 14px;
+  padding: 0.8rem 2.3rem 0.8rem 1rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
 }
 
 .team-v2__name-bar h4 {
@@ -3817,8 +3816,12 @@ img {
 }
 
 .team-v2__share {
-  width: 32px;
-  height: 32px;
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: var(--team-accent);
   color: #fff;
@@ -3826,7 +3829,7 @@ img {
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
-  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .team-v2__social-rail {
