@@ -39,7 +39,9 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
                     <div className="team-v2__photos">
                         {featured.map((member, i) => (
                             <div key={i} className="team-v2__photo-card">
-                                <img src={getImageUrl(member)} alt={member.name} className="team-v2__photo-img" />
+                                <div className="team-v2__photo-wrap">
+                                    <img src={getImageUrl(member)} alt={member.name} className="team-v2__photo-img" />
+                                </div>
                                 <div className="team-v2__name-bar">
                                     <div>
                                         <h4>{member.name}</h4>

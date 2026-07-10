@@ -3765,12 +3765,16 @@ img {
   flex: 1;
   min-width: 0;
   z-index: 1;
+}
+
+.team-v2__photo-wrap {
+  position: relative;
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 20px 45px rgba(20, 20, 30, 0.14);
 }
 
-.team-v2__photo-card::before {
+.team-v2__photo-wrap::before {
   content: '';
   position: absolute;
   top: -12px;
@@ -3790,10 +3794,8 @@ img {
 }
 
 .team-v2__name-bar {
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
+  position: relative;
+  margin-top: 14px;
   background: #0d0d0d;
   color: #fff;
   border-radius: 14px;
