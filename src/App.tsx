@@ -80,17 +80,15 @@ const defaultProfile: Profile = {
 
 function App() {
   const [profile, setProfile] = useState<Profile>(defaultProfile);
-  const [loading, setLoading] = useState(() => !!localStorage.getItem('accessToken'));
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) return;
-
     const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
     const fetchProfile = async (retriesLeft = 3, delayMs = 1500): Promise<void> => {
       try {
-        const data = await profileService.getMyProfile();
+        const token = localStorage.getItem('accessToken');
+        const data = token ? await profileService.getMyProfile() : await profileService.getPublicProfile();
         setProfile(data);
         setLoading(false);
       } catch (err: any) {

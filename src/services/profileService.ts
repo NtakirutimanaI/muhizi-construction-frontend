@@ -236,6 +236,12 @@ export const profileService = {
         return response.data;
     },
 
+    // Get public company profile (no auth required — used by the marketing site)
+    getPublicProfile: async (): Promise<Profile> => {
+        const response = await api.get('/profile/public');
+        return response.data;
+    },
+
     // Update profile
     updateProfile: async (data: Partial<Profile>): Promise<Profile> => {
         const response = await api.put('/profile', data);

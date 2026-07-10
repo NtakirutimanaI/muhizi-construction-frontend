@@ -1,11 +1,15 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaShareAlt, FaTwitter, FaInstagram, FaFacebookF, FaLinkedinIn } from 'react-icons/fa';
 import type { Profile } from '../services/profileService';
 
 interface TeamMembersProps {
     profile: Profile;
 }
+
+const TICKER_WORDS = [
+    'Quality Craftsmanship', 'Home Construction', 'Building Design',
+    'Architecture & Building', 'Material Recycling', 'Tools And Equipment', 'Building Construction',
+];
 
 const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
     const members = profile.teamMembers || [];
@@ -13,122 +17,107 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
 
     if (members.length === 0 || !showSection) return null;
 
-    const [current, setCurrent] = useState(0);
-
-    const prev = () => setCurrent((c) => (c === 0 ? members.length - 1 : c - 1));
-    const next = () => setCurrent((c) => (c === members.length - 1 ? 0 : c + 1));
-
-    const getImageUrl = (member: any) => {
+    const getImageUrl = (member: { name: string; imageUrl?: string }) => {
         if (member.imageUrl) return member.imageUrl;
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random&size=300`;
     };
 
-    const getPrevIndex = () => (current === 0 ? members.length - 1 : current - 1);
-    const getNextIndex = () => (current === members.length - 1 ? 0 : current + 1);
+    const featured = members.slice(0, 2);
+    const minis = members.slice(2, 5);
+
+    const socials = [
+        { icon: FaTwitter, href: profile.socialLinks?.twitter },
+        { icon: FaInstagram, href: profile.socialLinks?.instagram },
+        { icon: FaFacebookF, href: profile.socialLinks?.facebook },
+        { icon: FaLinkedinIn, href: profile.socialLinks?.linkedin },
+    ].filter((s): s is { icon: typeof FaTwitter; href: string } => Boolean(s.href));
 
     return (
-        <section data-nav-theme="light" className="section section-indicator" id="team">
-            <div className="container">
-                <motion.span
-                    className="ark-section__sub"
-                    style={{ display: 'inline-block', marginLeft: '30px', color: '#111' }}
-                    animate={{ x: [-20, 20, -20] }}
-                    transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                    Meet Professionals
-                </motion.span>
-                <h2 className="ark-section__heading">Our Team</h2>
-
-                <div className="team-carousel">
-                    <button className="team-carousel__arrow team-carousel__arrow--left" onClick={prev}>
-                        <FaChevronLeft />
-                    </button>
-
-                    <div className="team-carousel__viewport">
-                        <div className="team-carousel__track">
-                            {/* Prev card */}
+        <section data-nav-theme="light" className="section team-v2" id="team">
+            <div className="team-v2__inner">
+                {featured.length > 0 && (
+                    <div className="team-v2__photos">
+                        {featured.map((member, i) => (
                             <div
-                                className="team-carousel__card team-carousel__card--side"
-                                onMouseEnter={() => setCurrent(getPrevIndex())}
+                                key={i}
+                                className={`team-v2__photo-card${i === 1 ? ' team-v2__photo-card--raised' : ''}`}
                             >
-                                <div className="team-carousel__img-wrap">
-                                    <img
-                                        key={`prev-${getPrevIndex()}`}
-                                        src={getImageUrl(members[getPrevIndex()])}
-                                        alt={members[getPrevIndex()].name}
-                                        className="team-carousel__img"
-                                    />
+                                <img src={getImageUrl(member)} alt={member.name} className="team-v2__photo-img" />
+                                <div className="team-v2__name-bar">
+                                    <div>
+                                        <h4>{member.name}</h4>
+                                        <p>{member.role}</p>
+                                    </div>
+                                    <span className="team-v2__share">
+                                        <FaShareAlt />
+                                    </span>
                                 </div>
                             </div>
+                        ))}
 
-                            {/* Center card */}
-                            <div className="team-carousel__card team-carousel__card--center">
-                                <div className="team-carousel__img-wrap">
-                                    <img
-                                        key={`center-${current}`}
-                                        src={getImageUrl(members[current])}
-                                        alt={members[current].name}
-                                        className="team-carousel__img"
-                                    />
-                                </div>
-                                <h3 className="team-carousel__name">{members[current].name}</h3>
-                                <p className="team-carousel__role">{members[current].role}</p>
+                        {socials.length > 0 && featured.length > 1 && (
+                            <div className="team-v2__social-rail">
+                                {socials.map(({ icon: Icon, href }, i) => (
+                                    <a
+                                        key={i}
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`team-v2__social-btn${i === 2 ? ' team-v2__social-btn--active' : ''}`}
+                                    >
+                                        <Icon />
+                                    </a>
+                                ))}
                             </div>
-
-                            {/* Next card */}
-                            <div
-                                className="team-carousel__card team-carousel__card--side"
-                                onMouseEnter={() => setCurrent(getNextIndex())}
-                            >
-                                <div className="team-carousel__img-wrap">
-                                    <img
-                                        key={`next-${getNextIndex()}`}
-                                        src={getImageUrl(members[getNextIndex()])}
-                                        alt={members[getNextIndex()].name}
-                                        className="team-carousel__img"
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                        )}
                     </div>
+                )}
 
-                    <button className="team-carousel__arrow team-carousel__arrow--right" onClick={next}>
-                        <FaChevronRight />
-                    </button>
-                </div>
+                <div className="team-v2__content">
+                    <div className="team-v2__eyebrow">
+                        <span className="team-v2__eyebrow-line" />
+                        OUR EXPERT MEMBER
+                        <span className="team-v2__eyebrow-line" />
+                    </div>
+                    <h2 className="team-v2__heading">You Meet<br />Expert Team</h2>
+                    <p className="team-v2__text">
+                        We are driven to improve the lives of our clients, our employees,
+                        our community through our commitment to leadership.
+                    </p>
 
-                <div className="team-carousel__dots">
-                    {members.map((_, i) => (
-                        <span
-                            key={i}
-                            className={`team-carousel__dot ${i === current ? 'active' : ''}`}
-                            onClick={() => setCurrent(i)}
-                        />
-                    ))}
+                    {minis.length > 0 && (
+                        <div className="team-v2__mini-grid">
+                            {minis.map((member, i) => (
+                                <img
+                                    key={i}
+                                    src={getImageUrl(member)}
+                                    alt={member.name}
+                                    className="team-v2__mini-photo"
+                                    title={member.name}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
+            </div>
 
-                <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-                    <a
-                        href="#contact"
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '0.65rem 1.5rem',
-                            borderRadius: '8px',
-                            border: '2px solid #000',
-                            color: '#000',
-                            fontWeight: 700,
-                            fontSize: '0.95rem',
-                            textDecoration: 'none',
-                            transition: 'background 0.2s, color 0.2s, border-color 0.2s',
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = '#1B2042'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#1B2042'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000'; e.currentTarget.style.borderColor = '#000'; }}
-                    >
-                        Get In Touch &darr;
-                    </a>
-                </div>
+            <div className="team-v2__badge-wrap">
+                <span className="team-v2__badge">We're proud to work with best-in-class clients</span>
+            </div>
+
+            <div className="team-v2__ticker-wrap">
+                <motion.div
+                    className="team-v2__ticker"
+                    animate={{ rotate: -2 }}
+                >
+                    <div className="team-v2__ticker-track">
+                        {[...TICKER_WORDS, ...TICKER_WORDS].map((word, i) => (
+                            <span key={i} className="team-v2__ticker-item">
+                                {word} <span className="team-v2__ticker-dot">*</span>
+                            </span>
+                        ))}
+                    </div>
+                </motion.div>
             </div>
         </section>
     );
