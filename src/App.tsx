@@ -5,6 +5,7 @@ import { ToastProvider } from './context/ToastContext';
 import { NotificationProvider } from './context/NotificationContext';
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
+import ClientLayout from './layouts/ClientLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Public Pages
@@ -53,7 +54,12 @@ import Stock from './pages/admin/Stock';
 import StockCategories from './pages/admin/StockCategories';
 import Contracts from './pages/admin/Contracts';
 import ProjectDetail from './pages/admin/ProjectDetail';
-import ProjectProgress from './pages/client/ProjectProgress';
+import ProjectProgress from './pages/partner/ProjectProgress';
+import PartnerUpdates from './pages/partner/PartnerUpdates';
+import ClientDashboard from './pages/client-panel/ClientDashboard';
+import ClientProfile from './pages/client-panel/ClientProfile';
+import ClientSites from './pages/client-panel/ClientSites';
+import ClientUpdates from './pages/client-panel/ClientUpdates';
 
 import { profileService } from './services/profileService';
 import type { Profile } from './services/profileService';
@@ -139,7 +145,7 @@ function App() {
 
               {/* Admin Routes — shared across all roles under their respective base paths */}
               <Route element={<ProtectedRoute />}>
-                {['admin', 'manager', 'sitemanager', 'site-manager', 'employee', 'client', 'managingdirector', 'directorfinance', 'siteengineer', 'engineeringstudio'].map(base => {
+                {['admin', 'manager', 'sitemanager', 'site-manager', 'employee', 'partner', 'managingdirector', 'directorfinance', 'siteengineer', 'engineeringstudio'].map(base => {
                   const b = `/${base}`;
                   return (
                     <Route key={base} path={b} element={<AdminLayout basePath={b} />}>
@@ -177,6 +183,7 @@ function App() {
                       <Route path="approvals" element={<Approvals />} />
                       <Route path="contracts" element={<Contracts />} />
                       <Route path="project-progress" element={<ProjectProgress />} />
+                      <Route path="updates" element={<PartnerUpdates />} />
                       <Route path="approvements" element={<Approvements />} />
                       <Route path="stock/in" element={<Stock />} />
                       <Route path="stock/out" element={<Stock />} />
@@ -186,6 +193,16 @@ function App() {
                     </Route>
                   );
                 })}
+              </Route>
+
+              {/* Client Panel Route — unique layout */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/client-panel" element={<ClientLayout basePath="/client-panel" />}>
+                  <Route index element={<ClientDashboard />} />
+                  <Route path="profile" element={<ClientProfile />} />
+                  <Route path="sites" element={<ClientSites />} />
+                  <Route path="updates" element={<ClientUpdates />} />
+                </Route>
               </Route>
 
               {/* Fallback */}

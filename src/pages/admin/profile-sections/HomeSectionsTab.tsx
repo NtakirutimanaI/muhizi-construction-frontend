@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaHome, FaConciergeBell, FaCalendarAlt, FaSave, FaPlus, FaEdit, FaTrash, FaTimes, FaYoutube, FaProjectDiagram, FaUsers, FaEnvelope, FaQuestionCircle, FaUpload, FaVideo } from 'react-icons/fa';
+import { FaHome, FaConciergeBell, FaCalendarAlt, FaSave, FaPlus, FaEdit, FaTrash, FaTimes, FaYoutube, FaProjectDiagram, FaUsers, FaEnvelope, FaQuestionCircle, FaUpload, FaVideo, FaBuilding } from 'react-icons/fa';
 import type { Profile } from '../../../services/profileService';
 import { profileService } from '../../../services/profileService';
 import { useToast } from '../../../context/ToastContext';
 import { uploadService } from '../../../services/uploadService';
 
-type HomeTab = 'hero-slides' | 'services' | 'events' | 'follow-us' | 'projects' | 'our-team' | 'get-in-touch' | 'faq';
+type HomeTab = 'hero-slides' | 'services' | 'values-mission-vision' | 'events' | 'follow-us' | 'projects' | 'our-team' | 'get-in-touch' | 'faq';
 
 interface Props {
     profile: Profile;
@@ -17,6 +17,7 @@ interface Props {
 const SUB_TABS: { id: HomeTab; label: string; icon: React.ReactNode }[] = [
     { id: 'hero-slides', label: 'Hero Slides', icon: <FaHome /> },
     { id: 'services', label: 'Services', icon: <FaConciergeBell /> },
+    { id: 'values-mission-vision', label: 'Values, Mission & Vision', icon: <FaBuilding /> },
     { id: 'follow-us', label: 'Follow Us', icon: <FaYoutube /> },
     { id: 'projects', label: 'Projects', icon: <FaProjectDiagram /> },
     { id: 'events', label: 'Events', icon: <FaCalendarAlt /> },
@@ -50,6 +51,7 @@ const HomeSectionsTab: React.FC<Props> = ({ profile, onSave, saving }) => {
                 <motion.div key={subTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
                     {subTab === 'hero-slides' && <HeroSlidesEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'services' && <ServicesSection profile={profile} onSave={onSave} saving={saving} />}
+                    {subTab === 'values-mission-vision' && <ValuesMissionVisionEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'events' && <EventsEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'follow-us' && <FollowUsEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'projects' && <ProjectsEditor profile={profile} onSave={onSave} saving={saving} />}
@@ -609,6 +611,80 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                     }}>{saveMessage}</span>
                 )}
                 <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Services</>}</button>
+            </div>
+        </div>
+    );
+};
+
+/* ───── Values, Mission & Vision Editor ───── */
+const ValuesMissionVisionEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
+    const { showToast } = useToast();
+    const defaultCards = [
+        { title: 'Values', description: 'Integrity, transparency, and accountability form the foundation of everything we do. We uphold the highest ethical standards in every project we undertake.' },
+        { title: 'Mission', description: 'To deliver exceptional construction and real estate solutions that exceed client expectations through innovation, quality craftsmanship, and sustainable practices.' },
+        { title: 'Vision', description: 'To be Rwanda\'s most trusted construction company, shaping communities and building a better future through excellence in infrastructure and property development.' },
+    ];
+    const as = profile.pageContent?.aboutSection || {};
+    const [cards, setCards] = useState<Array<{ title: string; description: string }>>(as?.cards?.length === 3 ? as.cards : defaultCards);
+    const [localSaving, setLocalSaving] = useState(false);
+    const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+    useEffect(() => {
+        const a = profile.pageContent?.aboutSection || {};
+        setCards(a?.cards?.length === 3 ? a.cards : defaultCards);
+    }, [profile.pageContent?.aboutSection]);
+
+    const updateDesc = (i: number, value: string) => {
+        setCards(cards.map((c, idx) => idx === i ? { ...c, description: value } : c));
+    };
+
+    const save = async () => {
+        setLocalSaving(true);
+        setSaveMessage(null);
+        try {
+            const pc = {
+                ...profile.pageContent,
+                aboutSection: { ...as, cards },
+            };
+            await profileService.updateProfile({ pageContent: pc });
+            window.dispatchEvent(new CustomEvent('profile-updated'));
+            setSaveMessage('Values, Mission & Vision saved successfully!');
+            setTimeout(() => setSaveMessage(null), 4000);
+            showToast('Saved successfully!', 'success');
+        } catch (e: any) {
+            const msg = e?.response?.data?.message || e?.message || 'Failed to save';
+            setSaveMessage('Error: ' + msg);
+            setTimeout(() => setSaveMessage(null), 6000);
+            showToast(msg, 'error');
+        } finally {
+            setLocalSaving(false);
+        }
+    };
+
+    const isSaving = saving || localSaving;
+
+    return (
+        <div>
+            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Values, Mission & Vision</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Edit the description text for each card. Titles are fixed.</p>
+                {cards.map((c, i) => (
+                    <div key={i} className="form-group" style={{ marginBottom: '1rem', padding: '0.75rem', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
+                        <label className="form-label" style={{ fontWeight: 700, fontSize: '1rem' }}>{c.title}</label>
+                        <textarea value={c.description} onChange={e => updateDesc(i, e.target.value)} className="form-textarea" rows={4} placeholder={`Enter ${c.title.toLowerCase()} text...`} />
+                    </div>
+                ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '1rem' }}>
+                {saveMessage && (
+                    <span style={{
+                        fontSize: '0.85rem', fontWeight: 600,
+                        color: saveMessage.startsWith('Error') ? '#d32f2f' : '#2e7d32',
+                        background: saveMessage.startsWith('Error') ? '#ffebee' : '#e8f5e9',
+                        padding: '6px 14px', borderRadius: '8px',
+                    }}>{saveMessage}</span>
+                )}
+                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
             </div>
         </div>
     );

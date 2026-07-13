@@ -17,7 +17,13 @@ const ProtectedRoute = () => {
 
     const role = user?.role || '';
     const rolePath = getRolePath(role);
-    if (location.pathname.startsWith(rolePath) && !canAccess(location.pathname, role)) {
+
+    // Always allow the base role path (e.g. /client-panel)
+    if (location.pathname === rolePath) {
+        return <Outlet />;
+    }
+
+    if (!canAccess(location.pathname, role)) {
         return <Navigate to={rolePath} replace />;
     }
 

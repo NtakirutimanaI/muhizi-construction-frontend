@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import api from '../../services/api';
 import { constructionService } from '../../services/constructionService';
 import { sitesService, type Site, type SiteActivity, type SiteRule, type ProjectEvidence, type Approval, type Contract } from '../../services/sitesService';
 import { useToast } from '../../context/ToastContext';
@@ -74,10 +75,8 @@ const ProjectDetail = () => {
         };
         fetch();
 
-        fetch(`/api/approvals/project/${id}`).then(r => r.ok ? r.json() : []).catch(() => [] as Approval[])
-            .then(data => setApprovals(data as Approval[]));
-        fetch(`/api/contracts/project/${id}`).then(r => r.ok ? r.json() : []).catch(() => [] as Contract[])
-            .then(data => setContracts(data as Contract[]));
+        api.get('/approvals').then(r => setApprovals((r.data || []) as Approval[])).catch(() => setApprovals([]));
+        api.get('/contracts').then(r => setContracts((r.data || []) as Contract[])).catch(() => setContracts([]));
     }, [id]);
 
     const handleCreateSite = async () => {
