@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import { FaBuilding, FaRoad, FaHome, FaIndustry, FaTools, FaHardHat } from 'react-icons/fa';
 import Stats from './Stats';
 import type { Profile } from '../services/profileService';
@@ -135,12 +134,6 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                 </div>
 
                 <Stats profile={profile} />
-
-                <div className="about-btn-wrap" style={{ textAlign: 'left', marginTop: '1rem' }}>
-                    <Link to="/about" className="about-btn" style={{ display: 'inline-block', background: 'transparent', color: '#000', padding: '0.75rem 2rem', textDecoration: 'none', fontSize: '1.1rem', fontWeight: 600, border: '1px solid #000', borderRadius: '6px', transition: 'all 0.3s' }}>
-                        About Us &rarr;
-                    </Link>
-                </div>
 
                 <div style={{ marginTop: '1.5rem', padding: '6px 0 0.1rem', textAlign: 'center', background: '#1B2042' }}>
                     <p style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600, margin: 0 }}>

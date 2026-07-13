@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import CountUp from '../../components/CountUp';
 
 const About = () => {
   useEffect(() => {
@@ -8,184 +9,156 @@ const About = () => {
   return (
     <>
       <style>{`
-        .about-page { background: #f8fafc; font-family: var(--font-main); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; min-height: 100vh; }
-        .about-container { width: 100%; background: #ffffff; border-bottom: 1px solid rgba(241,245,249,0.8); box-shadow: 0 25px 50px -12px rgba(226,232,240,0.6); }
-        .top-images { display: grid; grid-template-columns: repeat(5, 1fr); }
-        .top-img-1 { grid-column: span 3; position: relative; height: 14rem; overflow: hidden; }
-        .top-img-2 { grid-column: span 2; position: relative; height: 14rem; overflow: hidden; }
-        .img-label { position: absolute; bottom: 0.75rem; left: 0.75rem; background: rgba(255,255,255,0.85); backdrop-filter: blur(4px); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; color: #334155; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; gap: 0.375rem; }
-        .center-section { padding: 2rem 2rem 1.5rem; }
-        .center-flex { display: flex; align-items: flex-start; gap: 2rem; flex-wrap: wrap; }
-        .card-wrapper { background: transparent; border-radius: 16px; border: 1px solid transparent; padding: 1.5rem; box-shadow: none; max-width: 240px; display: flex; flex-direction: column; gap: 1rem; }
-        .card-inner { background: #fff; border-radius: 12px; padding: 2rem 1.5rem 2.5rem; border: 1px solid #e2e8f0; }
-        .card-img { border-radius: 12px; overflow: hidden; min-height: 200px; width: 300px; max-width: 100%; }
-        .text-section { font-family: var(--font-display); display: flex; gap: 2rem; align-items: flex-start; margin-left: 60px; }
-        .text-heading { margin-top: 0.75rem; }
-        .text-heading h2 { font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 700; color: #0f172a; letter-spacing: -0.02em; line-height: 1.2; font-family: var(--font-display); margin: 0; }
-        .text-desc { color: #64748b; font-size: 0.875rem; margin: 0.15rem 0 0; line-height: 1.5; font-family: var(--font-main); max-width: 480px; }
-        .side-images { display: flex; flex-direction: column; gap: 0.5rem; flex-shrink: 0; }
-        .side-images img { display: block; }
-        .divider { border-top: 1px solid rgba(226,232,240,0.8); margin: 0 2rem; }
-.stats-section { padding: 1.5rem 2rem 2rem; display: flex; justify-content: center; padding-left: calc(2rem + 550px); margin-top: -100px; }
-.stats-card { position: relative; text-align: center; padding: 1.5rem 2rem; background: #000; border-radius: 0; border: 1px solid #000; overflow: hidden; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: auto; }
-        .stats-card img { position: absolute; top: 0; right: 0; width: 100%; height: 50%; object-fit: cover; opacity: 0.25; z-index: 0; }
-        .stats-card .stat-text { position: relative; z-index: 1; }
-        .stats-card .stat-number { font-size: clamp(2.25rem, 5vw, 3rem); font-weight: 700; color: #fff; line-height: 1; font-family: var(--font-display); display: inline-block; border-bottom: 3px solid #fff; padding-bottom: 4px; padding-left: 20px; padding-right: 20px; }
-        .stats-card .stat-label { margin: 0.5rem 0 0; font-size: 0.875rem; color: #ccc; font-weight: 500; text-transform: uppercase; letter-spacing: 0.025em; }
-        .learn-more { display: inline-flex; align-items: center; gap: 0.75rem; border: 1px solid #f97316; background: #f97316; color: #fff; font-weight: 500; padding: 0 0 0 1.75rem; border-radius: 9999px; font-size: 0.875rem; letter-spacing: 0.025em; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .about-page { background: #f4f3f0; font-family: var(--font-main); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; min-height: 100vh; }
+
+        .about-banner { width: 100%; height: 230px; overflow: hidden; }
+        .about-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        .about-ruler {
+          height: 30px;
+          background-color: #f4f3f0;
+          background-image:
+            repeating-linear-gradient(90deg, #cfcdc6 0 1px, transparent 1px 6px),
+            repeating-linear-gradient(90deg, #b3b1a9 0 1px, transparent 1px 26px);
+          background-size: 100% 55%, 100% 100%;
+          background-position: bottom, bottom;
+          background-repeat: repeat-x;
+        }
+
+        .about-content { position: relative; max-width: 1360px; margin: 0 auto; padding: 3.5rem 2.5rem 2rem; overflow: visible; }
+
+        .about-grid { position: relative; z-index: 2; display: grid; grid-template-columns: 220px 1fr 340px; gap: 2.5rem; align-items: start; }
+
+        .about-col-left { display: flex; flex-direction: column; }
+
+        /* House + under-construction composite */
+        .about-composite { position: relative; margin: 1.75rem 0 0 -90px; width: calc(100% + 90px); max-width: 320px; z-index: 1; }
+        .about-composite img { width: 100%; display: block; }
+
+        /* Stat card */
+        .stat-card { background: #fff; border-radius: 14px; padding: 1.75rem 1.5rem; box-shadow: 0 12px 30px rgba(15,18,34,0.07); position: relative; }
+        .stat-card__dot { position: absolute; top: 1.5rem; right: 1.5rem; width: 9px; height: 9px; border-radius: 50%; background: #f97316; }
+        .stat-card__number { font-size: 2.75rem; font-weight: 800; color: #0f1222; font-family: var(--font-display); line-height: 1; }
+        .stat-card__line { width: 60px; height: 2px; background: #0f1222; margin: 1.1rem 0 0.9rem; }
+        .stat-card__title { font-weight: 700; color: #0f1222; font-size: 1rem; margin: 0 0 0.5rem; }
+        .stat-card__desc { color: #6b7280; font-size: 0.85rem; line-height: 1.6; margin: 0; }
+
+        /* Text column */
+        .about-label { display: flex; align-items: center; gap: 0.6rem; color: #f97316; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; margin: 0 0 1rem; }
+        .about-label::before { content: ''; width: 34px; height: 2px; background: #f97316; display: inline-block; }
+        .about-label span { color: #333; }
+        .about-heading { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.1rem, 3.4vw, 2.9rem); line-height: 1.15; color: #101223; margin: 0 0 1.25rem; letter-spacing: -0.01em; }
+        .about-heading .accent { color: #101223; }
+        .about-desc { color: #6b7280; font-size: 0.92rem; line-height: 1.75; max-width: 320px; margin: 0 0 1.75rem; }
+
+        .learn-more { display: inline-flex; align-items: center; gap: 0.75rem; border: 1px solid #f97316; background: #f97316; color: #fff; font-weight: 500; padding: 0 0 0 1.75rem; border-radius: 9999px; font-size: 0.8rem; letter-spacing: 0.08em; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .learn-more:hover { background: #ea580c; border-color: #ea580c; }
-        .learn-more-circle { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #000; flex-shrink: 0; }
-        .footer-section { padding: 1.5rem 2rem; font-size: 0.75rem; color: #94a3b8; }
-        .tailwind-badge { position: fixed; bottom: 1.25rem; right: 1.25rem; background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); color: #64748b; font-size: 11px; padding: 0.375rem 0.75rem; border-radius: 9999px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid rgba(226,232,240,0.6); display: flex; align-items: center; gap: 0.5rem; }
+        .learn-more-circle { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #0f1222; flex-shrink: 0; }
+
+        /* Visual column */
+        .about-visual { position: relative; }
+        .about-visual__house { position: absolute; top: -260px; right: 0; width: 340px; max-width: 100%; z-index: 3; }
+        .about-visual__house img { width: 100%; display: block; border-radius: 10px; filter: drop-shadow(0 25px 30px rgba(15,18,34,0.25)); }
+
+        .global-reach { margin-top: 235px; background: #12121a; border-radius: 10px; padding: 1.6rem 1.6rem 1.75rem; width: 100%; max-width: 230px; color: #fff; position: relative; z-index: 2; }
+        .global-reach__label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; margin: 0; }
+        .global-reach__label::before { content: ''; width: 8px; height: 8px; background: #f97316; display: inline-block; }
+        .global-reach__icon { width: 100%; height: 62px; object-fit: contain; object-position: right center; margin: 0.9rem 0 0.6rem; }
+        .global-reach__divider { width: 45%; height: 1px; background: rgba(255,255,255,0.25); margin-bottom: 0.9rem; }
+        .global-reach__number { font-size: 2.1rem; font-weight: 800; font-family: var(--font-display); color: #fff; line-height: 1; }
+        .global-reach__number .plus { color: #f97316; }
+        .global-reach__caption { color: #9ca3af; font-size: 0.75rem; margin: 0.4rem 0 0; }
+
+        /* Hard-hat line art decoration */
+        .about-hardhat-deco { position: absolute; top: 60px; right: 60px; width: 460px; max-width: 45%; height: auto; z-index: 1; opacity: 0.35; pointer-events: none; }
 
         @media (max-width: 1024px) {
-          .stats-section { padding-left: 2rem; }
-          .text-section { margin-left: 20px; }
-          .side-images img { max-width: 100%; height: auto; }
+          .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+          .about-visual__house { position: relative; top: 0; right: 0; width: 260px; margin: 0 0 1.5rem auto; }
+          .global-reach { margin-top: 0; margin-left: auto; }
+          .about-hardhat-deco { display: none; }
+          .about-composite { margin: 1.75rem auto 0; width: 100%; max-width: 280px; }
         }
 
-        @media (max-width: 768px) {
-          .top-images { grid-template-columns: 1fr; }
-          .top-img-1, .top-img-2 { grid-column: span 1; height: 12rem; }
-          .center-section { padding: 1.5rem 1rem; }
-          .center-flex { flex-direction: column; gap: 1.5rem; }
-          .card-wrapper { max-width: 100%; }
-          .card-img { width: 100%; min-height: 160px; }
-          .text-section { flex-direction: column; gap: 1.5rem; margin-left: 0; }
-          .side-images { width: 100%; }
-          .side-images img { width: 100% !important; max-width: 100%; }
-          .stats-section { padding: 1rem; }
-          .stats-card { min-height: 180px; padding: 2rem 1.5rem; }
-          .divider { margin: 0 1rem; }
-        }
-
-        @media (max-width: 480px) {
-          .top-img-1, .top-img-2 { height: 10rem; }
-          .center-section { padding: 1rem 0.75rem; }
-          .card-inner { padding: 1.5rem 1rem 2rem; }
-          .stats-card { min-height: 150px; padding: 1.5rem 1rem; }
-          .stats-card .stat-number { font-size: 2rem; padding-left: 10px; padding-right: 10px; }
-          .img-label { font-size: 0.65rem; padding: 0.2rem 0.5rem; }
+        @media (max-width: 640px) {
+          .about-banner { height: 150px; }
+          .about-content { padding: 2rem 1.25rem 1.5rem; }
+          .stat-card { max-width: 260px; }
+          .about-desc { max-width: 100%; }
         }
       `}</style>
 
       <section className="about-page">
-        <div className="about-container">
-          {/* TOP ROW: two images */}
-          <div className="top-images">
-            <div className="top-img-1">
-              <img
-                src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                alt="Architectural element detail"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                onError={e => {
-                  const t = e.target as HTMLImageElement;
-                  t.style.display = 'none';
-                  const p = t.parentElement!;
-                  p.style.background = '#eef2ff';
-                  p.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#818cf8;font-size:0.875rem;font-weight:500">element</div>';
-                }}
-              />
-              <div className="img-label">
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fbbf24', display: 'inline-block' }} />
-                ELEMENT · DETAIL
-              </div>
-            </div>
-
-            <div className="top-img-2">
-              <img
-                src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                alt="House design model"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                onError={e => {
-                  const t = e.target as HTMLImageElement;
-                  t.style.display = 'none';
-                  const p = t.parentElement!;
-                  p.style.background = '#dbeafe';
-                  p.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#6366f1;font-size:0.875rem;font-weight:500">house design</div>';
-                }}
-              />
-              <div className="img-label">
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#60a5fa', display: 'inline-block' }} />
-                HOUSE DESIGN · MODEL
-              </div>
-            </div>
-          </div>
-
-          {/* CENTER SECTION */}
-          <div className="center-section">
-            <div className="center-flex">
-              <div className="card-wrapper">
-                <div className="card-inner">
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-                    <span style={{ fontSize: 'clamp(2rem, 5vw, 2.5rem)', fontWeight: 700, color: '#1e293b', letterSpacing: '-0.025em', lineHeight: 1, fontFamily: 'var(--font-display)' }}>250+</span>
-                  </div>
-                  <div style={{ width: '100%', height: '3px', background: '#1e293b', borderRadius: '4px', marginTop: '0.5rem' }} />
-                  <p style={{ color: '#475569', fontSize: '0.8rem', marginTop: '0.35rem', lineHeight: 1.5, marginBottom: 0 }}>
-                    Clients Served<br />
-                    <span style={{ color: '#334155', fontWeight: 500 }}>Over 500 Projects Completed</span> With Care, Precision, And A Focus On Our Clients' Needs.
-                  </p>
-                </div>
-
-                <div className="card-img">
-                  <img src="/img2.png" alt="Project detail" style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }} />
-                </div>
-              </div>
-
-              <div className="text-section">
-                <div>
-                  <span style={{ color: '#1e293b', fontSize: '1.5rem', fontWeight: 800, letterSpacing: '0.02em' }}>—— About Us</span>
-                  <div className="text-heading">
-                    <h2>
-                      Turning Your <br />
-                      Ideas Into <br />
-                      Beautifully <br />
-                      <span style={{ color: '#4f46e5' }}>Crafted Spaces</span>
-                    </h2>
-                  </div>
-                  <p className="text-desc">
-                    We embrace the latest technologies and sustainable practices to create environmentally-friendly and energy-efficient buildings. Our mission is not just to construct structures, but to build communities and spaces where people thrive and prosper.
-                  </p>
-                  <div style={{ marginTop: '1.25rem' }}>
-                    <a href="#" className="learn-more">
-                      LEARN MORE
-                      <span className="learn-more-circle">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(295deg)' }}>
-                          <line x1="5" y1="12" x2="19" y2="12"></line>
-                          <polyline points="12 5 19 12 12 19"></polyline>
-                        </svg>
-                      </span>
-                    </a>
-                  </div>
-                </div>
-                <div className="side-images">
-                  <img src="/img.png" alt="Construction detail" style={{ width: '440px', maxWidth: '100%' }} />
-                  <img src="/small.png" alt="Architecture detail" style={{ width: '320px', maxWidth: '100%' }} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* STATS ROW */}
-          <div className="stats-section">
-            <div className="stats-card">
-              <img src="/house.png" alt="House" />
-              <div className="stat-text">
-                <span className="stat-number">25<span style={{ color: '#f97316' }}>+</span></span>
-                <p className="stat-label">Projects</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="divider" />
-
-          {/* FOOTER */}
-          <div className="footer-section" />
+        <div className="about-banner">
+          <img
+            src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80"
+            alt="Construction site overview"
+          />
         </div>
 
-        <div className="tailwind-badge">
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', display: 'inline-block' }} />
-          <span>tailwind · ready</span>
+        <div className="about-ruler" />
+
+        <div className="about-content">
+          <svg className="about-hardhat-deco" viewBox="0 0 460 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 220 C 120 220, 160 220, 220 140 C 260 90, 300 70, 360 70" stroke="#101223" strokeWidth="1.5" strokeLinecap="round" />
+            <g transform="translate(330,20)" stroke="#101223" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 70 H110" />
+              <path d="M25 70 C25 35, 45 12, 60 12 C 75 12, 95 35, 95 70" />
+              <path d="M60 12 V0" />
+              <path d="M45 45 H75" />
+            </g>
+          </svg>
+
+          <div className="about-grid">
+            <div className="about-col-left">
+              <div className="stat-card">
+                <span className="stat-card__dot" />
+                <div className="stat-card__number"><CountUp to={240} duration={1.6} />+</div>
+                <div className="stat-card__line" />
+                <h3 className="stat-card__title">Projects, Clients Served</h3>
+                <p className="stat-card__desc">Over 500 Projects Completed With Care, Precision, And A Focus On Our Clients' Needs.</p>
+              </div>
+
+              <div className="about-composite">
+                <img src="/img2.png" alt="" />
+              </div>
+            </div>
+
+            <div>
+              <p className="about-label">----- <span>About Us</span></p>
+              <h2 className="about-heading">
+                Turning Your Ideas Into Beautifully Crafted Spaces
+              </h2>
+              <p className="about-desc">
+                We embrace the latest technologies and sustainable practices to create environmentally-friendly and energy-efficient buildings. Our mission is not just to construct structures, but to build communities and spaces where people thrive and prosper.
+              </p>
+              <a href="#services" className="learn-more">
+                LEARN MORE
+                <span className="learn-more-circle">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(-45deg)' }}>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </span>
+              </a>
+            </div>
+
+            <div className="about-visual">
+              <div className="about-visual__house">
+                <img
+                  src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                  alt="Modern house"
+                />
+              </div>
+              <div className="global-reach">
+                <p className="global-reach__label">GLOBAL REACH</p>
+                <img className="global-reach__icon" src="/house.png" alt="" />
+                <div className="global-reach__divider" />
+                <div className="global-reach__number"><CountUp to={85} duration={1.6} /><span className="plus">+</span></div>
+                <p className="global-reach__caption">Offices Worldwide</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </>

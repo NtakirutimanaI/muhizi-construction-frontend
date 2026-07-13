@@ -1,5 +1,6 @@
 import Hero from '../../components/Hero';
 import About from '../../components/About';
+import AboutPage from './About';
 import WhatWeOffer from '../../components/WhatWeOffer';
 import Experience from '../../components/Experience';
 import Projects from '../../components/Projects';
@@ -29,6 +30,8 @@ const Home = () => {
     return (
         <>
             <Hero slides={pc?.heroSlides} videoUrl={pc?.heroVideoUrl} />
+            <div className="section-divider" />
+            <AboutPage />
             <div className="section-divider" />
             <About profile={profile} />
             <div className="section-divider" />
