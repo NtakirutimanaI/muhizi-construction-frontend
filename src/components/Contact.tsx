@@ -79,9 +79,6 @@ const ConstructionIllustration: React.FC = () => (
 const Contact: React.FC<ContactProps> = ({ profile }) => {
     const { showToast } = useToast();
     const contactHeading = profile.pageContent?.contactSection?.heading;
-    const faqContent = profile.pageContent?.faq;
-    const faqItems = faqContent?.items?.map(i => ({ q: i.question, a: i.answer })) || [];
-    const faqHeading = faqContent?.heading;
     const [localData, setLocalData] = useState({
         firstName: '',
         lastName: '',
@@ -92,7 +89,6 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
         company: '',
     });
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-    const [openFaq, setOpenFaq] = useState<number | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setLocalData({ ...localData, [e.target.name]: e.target.value });
@@ -269,32 +265,6 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                     </form>
                 </div>
             </div>
-
-            {/* FAQ Section */}
-            {faqItems.length > 0 && (
-                <div className="contact-v2__faqs">
-                    <h3 className="contact-v2__faqs-title">{faqHeading}</h3>
-                    <div className="contact-v2__faq-list">
-                        {faqItems.map((faq, i) => (
-                            <div
-                                key={i}
-                                className={`contact-v2__faq ${openFaq === i ? 'contact-v2__faq--open' : ''}`}
-                                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                            >
-                                <button className="contact-v2__faq-q">
-                                    {faq.q}
-                                    <span className="contact-v2__faq-icon">
-                                        <FaChevronDown size={12} />
-                                    </span>
-                                </button>
-                                <div className="contact-v2__faq-a">
-                                    <p>{faq.a}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
         </section>
     );
 };
