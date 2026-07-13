@@ -26,7 +26,7 @@ const Register = () => {
         try {
             await authService.register(form);
             const data = await authService.login({ email: form.email, password: form.password });
-            login(data.accessToken, data.user);
+            login(data.accessToken, data.user, data.refreshToken);
             const target = getRolePath(data.user?.role || '');
             navigate(target);
         } catch (err: any) {

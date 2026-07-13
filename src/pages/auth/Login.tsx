@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
+import { API_BASE_URL } from '../../services/api';
 import { motion } from 'framer-motion';
-import { FaLock, FaEnvelope, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
+import { FaLock, FaEnvelope, FaEye, FaEyeSlash, FaArrowLeft, FaGoogle } from 'react-icons/fa';
 import { getRolePath } from '../../config/roles';
 
 const Login = () => {
@@ -28,7 +29,7 @@ const Login = () => {
 
         try {
             const data = await authService.login({ email, password });
-            login(data.accessToken, data.user);
+            login(data.accessToken, data.user, data.refreshToken);
             const target = getRolePath(data.user?.role || '');
             navigate(target);
         } catch (err: any) {
@@ -192,6 +193,11 @@ const Login = () => {
                                     {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
                                 </button>
                             </div>
+                            <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
+                                <Link to="/forgot-password" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', textDecoration: 'none' }}>
+                                    Forgot password?
+                                </Link>
+                            </div>
                         </div>
 
                         <motion.button
@@ -217,6 +223,26 @@ const Login = () => {
                             {isLoading ? 'Signing in...' : 'Sign In'}
                         </motion.button>
                     </form>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '1.5rem 0' }}>
+                        <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
+                        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>OR</span>
+                        <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
+                    </div>
+
+                    <a
+                        href={`${API_BASE_URL}/auth/google`}
+                        style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
+                            padding: '0.85rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.15)',
+                            background: 'rgba(255,255,255,0.06)', color: '#fff', fontWeight: 600, fontSize: '0.9rem',
+                            textDecoration: 'none', transition: 'background 0.2s',
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                    >
+                        <FaGoogle size={15} /> Sign in with Google
+                    </a>
 
                     <div style={{ marginTop: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         <Link to="/register" style={{
