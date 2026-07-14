@@ -25,26 +25,26 @@ const Faq: React.FC<FaqProps> = ({ profile }) => {
             <style>{`
                 .faq-grid { display: grid; grid-template-columns: minmax(280px, 400px) 1fr; gap: 3rem; align-items: start; max-width: 1150px; margin: 0 auto; }
 
-                .faq-eyebrow { display: flex; align-items: center; gap: 0.6rem; color: #f97316; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; margin: 0 0 1rem; }
-                .faq-eyebrow::before { content: ''; width: 30px; height: 2px; background: #f97316; display: inline-block; }
-                .faq-heading { color: #101223; font-size: clamp(1.9rem, 3.2vw, 2.5rem); font-weight: 700; line-height: 1.2; margin: 0 0 1.1rem; }
-                .faq-subtitle { color: #6b7280; font-size: 0.92rem; line-height: 1.7; max-width: 340px; margin: 0 0 3rem; }
+                .faq-eyebrow { display: flex; align-items: center; gap: 0.6rem; color: #D97706; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; margin: 0 0 1rem; }
+                .faq-eyebrow::before { content: ''; width: 30px; height: 2px; background: #D97706; display: inline-block; }
+                .faq-heading { color: #111827; font-size: clamp(1.9rem, 3.2vw, 2.5rem); font-weight: 700; line-height: 1.2; margin: 0 0 1.1rem; }
+                .faq-subtitle { color: #64748B; font-size: 0.92rem; line-height: 1.7; max-width: 340px; margin: 0 0 3rem; }
 
-                .faq-support-card { display: flex; gap: 1rem; align-items: flex-start; border: 1px solid #e9e9ec; border-radius: 14px; padding: 1.1rem; background: #fff; box-shadow: 0 8px 24px rgba(15,18,34,0.06); max-width: 340px; }
-                .faq-support-avatar { width: 56px; height: 56px; border-radius: 10px; background: #101223; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.5rem; flex-shrink: 0; }
-                .faq-support-content h4 { margin: 0 0 0.4rem; font-size: 1rem; font-weight: 700; color: #101223; }
-                .faq-support-content p { margin: 0 0 0.85rem; font-size: 0.82rem; color: #6b7280; line-height: 1.5; }
-                .faq-support-btn { display: inline-block; background: #f97316; color: #fff; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; padding: 0.55rem 1.1rem; border-radius: 9999px; text-decoration: none; transition: background 0.2s ease; }
-                .faq-support-btn:hover { background: #ea580c; }
+                .faq-support-card { display: flex; gap: 1rem; align-items: flex-start; border: 1px solid #DCE3EA; border-radius: 14px; padding: 1.1rem; background: #fff; box-shadow: 0 8px 24px rgba(15,18,34,0.06); max-width: 340px; }
+                .faq-support-avatar { width: 56px; height: 56px; border-radius: 10px; background: #111827; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.5rem; flex-shrink: 0; }
+                .faq-support-content h4 { margin: 0 0 0.4rem; font-size: 1rem; font-weight: 700; color: #111827; }
+                .faq-support-content p { margin: 0 0 0.85rem; font-size: 0.82rem; color: #64748B; line-height: 1.5; }
+                .faq-support-btn { display: inline-block; background: #D97706; color: #fff; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; padding: 0.55rem 1.1rem; border-radius: 9999px; text-decoration: none; transition: background 0.2s ease; }
+                .faq-support-btn:hover { background: #B45309; }
 
                 .faq-list { display: flex; flex-direction: column; gap: 1rem; }
-                .faq-item { border: 1px solid #e9e9ec; border-radius: 16px; background: #fbfbfb; box-shadow: 0 2px 10px rgba(15,18,34,0.04); cursor: pointer; transition: background 0.2s ease, box-shadow 0.2s ease; padding: 1.3rem 1.5rem; }
+                .faq-item { border: 1px solid #DCE3EA; border-radius: 16px; background: #F5F7FA; box-shadow: 0 2px 10px rgba(15,18,34,0.04); cursor: pointer; transition: background 0.2s ease, box-shadow 0.2s ease; padding: 1.3rem 1.5rem; }
                 .faq-item:hover { box-shadow: 0 6px 18px rgba(15,18,34,0.08); }
                 .faq-item--open { background: #ffffff; box-shadow: 0 10px 26px rgba(15,18,34,0.1); }
-                .faq-item__q { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; background: none; border: none; padding: 0; margin: 0; font-size: 1rem; font-weight: 700; color: #101223; text-align: left; cursor: pointer; }
-                .faq-item__icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #f97316; color: #fff; transition: background 0.2s ease, transform 0.2s ease; }
-                .faq-item--open .faq-item__icon { background: #101223; }
-                .faq-item__a { margin: 0.9rem 0 0; color: #6b7280; font-size: 0.9rem; line-height: 1.7; }
+                .faq-item__q { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; background: none; border: none; padding: 0; margin: 0; font-size: 1rem; font-weight: 700; color: #111827; text-align: left; cursor: pointer; }
+                .faq-item__icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #D97706; color: #fff; transition: background 0.2s ease, transform 0.2s ease; }
+                .faq-item--open .faq-item__icon { background: #111827; }
+                .faq-item__a { margin: 0.9rem 0 0; color: #64748B; font-size: 0.9rem; line-height: 1.7; }
 
                 @media (max-width: 900px) {
                     .faq-grid { grid-template-columns: 1fr; }

@@ -20,15 +20,15 @@ const Marquee: React.FC = () => {
                     margin-bottom: 1.5rem;
                     animation: marquee-scroll 34s linear infinite;
                 }
-                .marquee-row--back .solid { color: #101223; }
-                .marquee-row--back .hollow { color: transparent; -webkit-text-stroke: 1.5px #c7c7cc; text-stroke: 1.5px #c7c7cc; }
-                .marquee-row--back .marquee-star { color: #f97316; font-size: 0.6em; }
+                .marquee-row--back .solid { color: #111827; }
+                .marquee-row--back .hollow { color: transparent; -webkit-text-stroke: 1.5px #DCE3EA; text-stroke: 1.5px #DCE3EA; }
+                .marquee-row--back .marquee-star { color: #D97706; font-size: 0.6em; }
 
                 .marquee-ribbon {
                     width: 110%;
                     margin: 0 0 0 -5%;
                     transform: rotate(-3deg);
-                    background: #f97316;
+                    background: #D97706;
                     padding: 1.1rem 0;
                     box-shadow: 0 12px 30px rgba(0,0,0,0.18);
                     overflow: hidden;

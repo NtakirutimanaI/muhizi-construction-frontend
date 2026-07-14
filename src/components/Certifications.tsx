@@ -33,7 +33,7 @@ const Certifications: React.FC<CertificationsProps> = ({ profile }) => {
                             ) : (
                                 <div style={{
                                     width: '56px', height: '56px', borderRadius: '8px',
-                                    background: 'linear-gradient(135deg, var(--primary) 0%, #5fa832 100%)',
+                                    background: 'linear-gradient(135deg, var(--primary) 0%, #D97706 100%)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     fontSize: '1.3rem', color: '#fff', flexShrink: 0,
                                 }}>
