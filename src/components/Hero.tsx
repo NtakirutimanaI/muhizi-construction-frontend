@@ -25,9 +25,9 @@ const Hero: React.FC<HeroProps> = ({ slides: propSlides, videoUrl }) => {
     const autoTimer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
     const heroBackgrounds = [
-        { src: videoUrl || 'https://res.cloudinary.com/dh8e4duii/video/upload/v1783433566/muhizi/hero-construction.mp4', label: 'Construction' },
-        { src: 'https://res.cloudinary.com/dh8e4duii/video/upload/v1783433570/muhizi/hero-architecture.mp4', label: 'Architecture' },
-        { src: 'https://res.cloudinary.com/dh8e4duii/video/upload/v1783433574/muhizi/hero-design.mp4', label: 'Design' },
+        { src: videoUrl || 'https://res.cloudinary.com/dh8e4duii/video/upload/v1783433566/muhizi/hero-construction.mp4' },
+        { src: 'https://res.cloudinary.com/dh8e4duii/video/upload/v1783433570/muhizi/hero-architecture.mp4' },
+        { src: 'https://res.cloudinary.com/dh8e4duii/video/upload/v1783433574/muhizi/hero-design.mp4' },
     ];
     const [activeVideo, setActiveVideo] = useState(0);
 
@@ -65,13 +65,6 @@ const Hero: React.FC<HeroProps> = ({ slides: propSlides, videoUrl }) => {
                     </video>
                 ))}
                 <div className="hero-overlay" />
-                <div className="hero-video-label-wrap">
-                    {heroBackgrounds.map((bg, i) => (
-                        <span key={bg.label} className={`hero-video-label ${i === activeVideo ? 'is-active' : ''}`}>
-                            {bg.label}
-                        </span>
-                    ))}
-                </div>
                 <div className="container hero-content">
                     <AnimatePresence mode="wait">
                         {slides.length > 0 && <motion.div

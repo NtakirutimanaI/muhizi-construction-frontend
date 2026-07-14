@@ -88,7 +88,7 @@ const About = () => {
         }
       `}</style>
 
-      <section className="about-page">
+      <section className="about-page" data-nav-theme="light">
         <div className="about-banner">
           <img
             src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80"

@@ -69,6 +69,13 @@ body {
   background-color: var(--bg-body);
   color: var(--text-main);
   line-height: 1.6;
+}
+
+/* Clears the fixed navbar for routes without a full-bleed hero.
+   Lives on main (not body) so the home page's hero can pull its
+   video up into this space via negative margin without being
+   clipped by html/body/#root's forced overflow-y:auto. */
+.public-main {
   padding-top: var(--nav-offset);
 }
 
@@ -146,12 +153,53 @@ img {
   justify-content: space-between;
   align-items: center;
   position: relative;
-  background-color: #1B2042;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background-color: transparent;
+  border: none;
   border-radius: 999px;
   padding: 0.4rem 0.5rem 0.4rem 1.25rem;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
-  transition: box-shadow 0.3s ease;
+  box-shadow: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Over light (non-video) sections: keep it readable without going back to a solid block */
+.navbar--light .navbar-content {
+  background-color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(27, 32, 66, 0.08);
+  box-shadow: 0 4px 18px rgba(27, 32, 66, 0.08);
+}
+
+.navbar--light .nav-brand-tag,
+.navbar--light .nav-brand-tag .brand-name,
+.navbar--light .nav-links-desktop-link,
+.navbar--light .nav-login-link,
+.navbar--light .nav-signup-btn,
+.navbar--light .nav-mobile-toggle {
+  color: #1B2042;
+}
+
+.navbar--light .nav-links-desktop-link:hover,
+.navbar--light .nav-login-link:hover {
+  color: #000;
+}
+
+.navbar--light .nav-signup-btn {
+  border-color: rgba(27, 32, 66, 0.35);
+}
+
+.navbar--light .nav-signup-btn:hover {
+  background: rgba(27, 32, 66, 0.08);
+  border-color: #1B2042;
+}
+
+.navbar--light .nav-logo {
+  border-color: #1B2042;
+}
+
+.navbar--light .nav-mobile-toggle:hover {
+  color: #000;
+  background: rgba(27, 32, 66, 0.08);
 }
 
 /* Brand/Name Section */
@@ -208,6 +256,7 @@ img {
   text-decoration: none;
   line-height: 0;
   color: #fff;
+  transition: color 0.15s ease;
 }
 
 .nav-brand-tag .brand-name {
@@ -216,6 +265,7 @@ img {
   font-weight: 700;
   letter-spacing: 0.02em;
   white-space: nowrap;
+  transition: color 0.15s ease;
 }
 
 .nav-logo {
@@ -225,6 +275,7 @@ img {
   object-fit: cover;
   border: 2px solid #fff;
   display: block;
+  transition: border-color 0.15s ease;
 }
 .nav-brand-tag:hover {
   color: var(--text-main);
@@ -418,6 +469,9 @@ img {
 @media (max-width: 768px) {
   body {
     --nav-offset: 76px;
+  }
+
+  .public-main {
     padding-top: var(--nav-offset);
   }
 
@@ -455,6 +509,9 @@ img {
 @media (max-width: 576px) {
   body {
     --nav-offset: 72px;
+  }
+
+  .public-main {
     padding-top: var(--nav-offset);
   }
 }
@@ -462,6 +519,9 @@ img {
 @media (max-width: 480px) {
   body {
     --nav-offset: 68px;
+  }
+
+  .public-main {
     padding-top: var(--nav-offset);
   }
 
@@ -490,6 +550,9 @@ img {
 @media (max-width: 400px) {
   body {
     --nav-offset: 64px;
+  }
+
+  .public-main {
     padding-top: var(--nav-offset);
   }
 
@@ -519,6 +582,9 @@ img {
 @media (max-width: 360px) {
   body {
     --nav-offset: 60px;
+  }
+
+  .public-main {
     padding-top: var(--nav-offset);
   }
 
@@ -552,8 +618,9 @@ img {
 .hero-video-wrap {
   position: relative;
   width: 100%;
-  height: calc(100vh - var(--nav-offset));
+  height: 100vh;
   min-height: 420px;
+  margin-top: calc(-1 * var(--nav-offset));
   overflow: hidden;
 }
 
@@ -578,38 +645,6 @@ img {
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
   z-index: 1;
-}
-
-.hero-video-label-wrap {
-  position: absolute;
-  top: 24px;
-  left: 24px;
-  z-index: 3;
-}
-
-.hero-video-label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 1.25rem;
-  background: rgba(27, 32, 66, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 999px;
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.95rem;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translateY(-8px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
-}
-
-.hero-video-label.is-active {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 .hero-content {
@@ -3745,6 +3780,7 @@ img {
 .team-v2__inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
+
   gap: clamp(9rem, 2vw, 3rem);
   align-items: start;
   max-width: 1200px;

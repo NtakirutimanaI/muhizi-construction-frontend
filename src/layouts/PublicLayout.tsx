@@ -29,7 +29,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ profile }) => {
             <div className="scroll-progress">
                 <div className="scroll-progress__fill" style={{ transform: `scaleX(${scrollProgress})`, transformOrigin: 'left center' }} />
             </div>
-            <main className="flex-grow">
+            <main className="flex-grow public-main">
                 <Outlet context={{ profile }} />
             </main>
             <a

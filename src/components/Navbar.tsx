@@ -8,6 +8,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ profile }) => {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [navTheme, setNavTheme] = useState<'light' | 'dark'>('dark');
     const navRef = useRef<HTMLElement>(null);
 
     const closeMenu = useCallback(() => setMenuOpen(false), []);
@@ -35,6 +36,54 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
     }, []);
 
     useEffect(() => {
+        let ticking = false;
+        let probeY = 100;
+
+        // Recomputed only on mount/resize (not per scroll frame) so the hot
+        // scroll path avoids an extra forced style recalculation.
+        const computeProbeY = () => {
+            const navOffset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-offset')) || 90;
+            probeY = navOffset + 10;
+        };
+
+        const updateTheme = () => {
+            ticking = false;
+            const sections = document.querySelectorAll<HTMLElement>('[data-nav-theme]');
+            let matched: 'light' | 'dark' | null = null;
+            sections.forEach((section) => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= probeY && rect.bottom > probeY) {
+                    matched = section.getAttribute('data-nav-theme') === 'light' ? 'light' : 'dark';
+                }
+            });
+            // Between sections (e.g. a margin gap) probeY may not overlap anything;
+            // keep the previous theme rather than snapping back to a default.
+            if (matched) setNavTheme(matched);
+        };
+
+        const onScroll = () => {
+            if (!ticking) {
+                ticking = true;
+                requestAnimationFrame(updateTheme);
+            }
+        };
+
+        const onResize = () => {
+            computeProbeY();
+            updateTheme();
+        };
+
+        computeProbeY();
+        updateTheme();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onResize);
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('resize', onResize);
+        };
+    }, []);
+
+    useEffect(() => {
         if (menuOpen) {
             document.body.style.overflow = '';
         }
@@ -51,7 +100,7 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
     }, [menuOpen]);
 
     return (
-        <nav ref={navRef} className={`navbar ${scrolled ? 'scrolled' : ''}`}
+        <nav ref={navRef} className={`navbar ${scrolled ? 'scrolled' : ''} navbar--${navTheme}`}
             onMouseLeave={() => setMenuOpen(false)}
         >
             <div className="container">
