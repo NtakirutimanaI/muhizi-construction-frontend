@@ -57,7 +57,7 @@ const Events: React.FC<EventsProps> = ({ events: propEvents }) => {
                         ))}
                     </div>
                 ) : (
-                    <p style={{ textAlign: 'center', color: '#666', fontSize: '1.1rem', marginTop: '2rem' }}>
+                    <p style={{ textAlign: 'center', color: '#64748B', fontSize: '1.1rem', marginTop: '2rem' }}>
                         No upcoming events at the moment. Check back later.
                     </p>
                 )}

@@ -10,69 +10,69 @@ interface ContactProps {
 const ConstructionIllustration: React.FC = () => (
     <svg viewBox="0 0 400 380" fill="none" xmlns="http://www.w3.org/2000/svg" className="contact-illustration-svg">
         {/* Isometric ground — line only, no fill */}
-        <path d="M30 320 L200 350 L370 320" stroke="#1B2042" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M30 320 L30 330" stroke="#1B2042" strokeWidth="1" />
-        <path d="M370 320 L370 330" stroke="#1B2042" strokeWidth="1" />
+        <path d="M30 320 L200 350 L370 320" stroke="#16324F" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M30 320 L30 330" stroke="#16324F" strokeWidth="1" />
+        <path d="M370 320 L370 330" stroke="#16324F" strokeWidth="1" />
 
         {/* Main building — isometric block */}
-        <path d="M100 320 L100 170 L200 140 L200 290Z" fill="#1B2042" />
-        <path d="M100 170 L200 140 L280 170 L200 200Z" fill="#262d5a" />
-        <path d="M200 290 L200 140 L280 170 L280 320Z" fill="#141833" />
+        <path d="M100 320 L100 170 L200 140 L200 290Z" fill="#16324F" />
+        <path d="M100 170 L200 140 L280 170 L200 200Z" fill="#2C4C6E" />
+        <path d="M200 290 L200 140 L280 170 L280 320Z" fill="#0F2438" />
 
         {/* Building windows — teal accents */}
-        <rect x="115" y="195" width="16" height="20" rx="2" fill="#4ecdc4" opacity="0.55" />
-        <rect x="140" y="187" width="16" height="20" rx="2" fill="#4ecdc4" opacity="0.4" />
-        <rect x="115" y="230" width="16" height="20" rx="2" fill="#4ecdc4" opacity="0.35" />
-        <rect x="140" y="222" width="16" height="20" rx="2" fill="#1B2042" opacity="0.3" />
-        <rect x="212" y="192" width="16" height="20" rx="2" fill="#4ecdc4" opacity="0.45" />
-        <rect x="237" y="200" width="16" height="20" rx="2" fill="#1B2042" opacity="0.25" />
-        <rect x="212" y="225" width="16" height="20" rx="2" fill="#4ecdc4" opacity="0.3" />
+        <rect x="115" y="195" width="16" height="20" rx="2" fill="#324A5F" opacity="0.55" />
+        <rect x="140" y="187" width="16" height="20" rx="2" fill="#324A5F" opacity="0.4" />
+        <rect x="115" y="230" width="16" height="20" rx="2" fill="#324A5F" opacity="0.35" />
+        <rect x="140" y="222" width="16" height="20" rx="2" fill="#16324F" opacity="0.3" />
+        <rect x="212" y="192" width="16" height="20" rx="2" fill="#324A5F" opacity="0.45" />
+        <rect x="237" y="200" width="16" height="20" rx="2" fill="#16324F" opacity="0.25" />
+        <rect x="212" y="225" width="16" height="20" rx="2" fill="#324A5F" opacity="0.3" />
 
         {/* Second building — under construction, exposed floors */}
         <path d="M225 320 L225 215 L305 195 L305 320Z" fill="#c8ccd6" opacity="0.4" />
         <path d="M225 215 L305 195 L350 210 L270 230Z" fill="#b8bcc8" opacity="0.35" />
         <path d="M270 320 L270 230 L350 210 L350 320Z" fill="#c8ccd6" opacity="0.25" />
-        <line x1="227" y1="248" x2="303" y2="228" stroke="#1B2042" strokeWidth="0.8" strokeDasharray="5 4" opacity="0.3" />
-        <line x1="227" y1="275" x2="303" y2="255" stroke="#1B2042" strokeWidth="0.8" strokeDasharray="5 4" opacity="0.25" />
-        <line x1="272" y1="260" x2="348" y2="238" stroke="#1B2042" strokeWidth="0.8" strokeDasharray="5 4" opacity="0.2" />
+        <line x1="227" y1="248" x2="303" y2="228" stroke="#16324F" strokeWidth="0.8" strokeDasharray="5 4" opacity="0.3" />
+        <line x1="227" y1="275" x2="303" y2="255" stroke="#16324F" strokeWidth="0.8" strokeDasharray="5 4" opacity="0.25" />
+        <line x1="272" y1="260" x2="348" y2="238" stroke="#16324F" strokeWidth="0.8" strokeDasharray="5 4" opacity="0.2" />
 
         {/* Crane — mast, jib, cable */}
-        <line x1="55" y1="320" x2="55" y2="75" stroke="#1B2042" strokeWidth="3.5" />
-        <line x1="55" y1="75" x2="215" y2="75" stroke="#1B2042" strokeWidth="2.5" />
-        <line x1="55" y1="75" x2="25" y2="75" stroke="#1B2042" strokeWidth="2.5" />
+        <line x1="55" y1="320" x2="55" y2="75" stroke="#16324F" strokeWidth="3.5" />
+        <line x1="55" y1="75" x2="215" y2="75" stroke="#16324F" strokeWidth="2.5" />
+        <line x1="55" y1="75" x2="25" y2="75" stroke="#16324F" strokeWidth="2.5" />
         {/* Counterweight */}
-        <rect x="20" y="70" width="10" height="10" rx="2" fill="#1B2042" />
+        <rect x="20" y="70" width="10" height="10" rx="2" fill="#16324F" />
         {/* Diagonal bracing */}
-        <line x1="55" y1="75" x2="55" y2="130" stroke="#1B2042" strokeWidth="1.5" />
-        <line x1="53" y1="95" x2="68" y2="85" stroke="#1B2042" strokeWidth="0.8" />
-        <line x1="53" y1="115" x2="68" y2="105" stroke="#1B2042" strokeWidth="0.8" />
+        <line x1="55" y1="75" x2="55" y2="130" stroke="#16324F" strokeWidth="1.5" />
+        <line x1="53" y1="95" x2="68" y2="85" stroke="#16324F" strokeWidth="0.8" />
+        <line x1="53" y1="115" x2="68" y2="105" stroke="#16324F" strokeWidth="0.8" />
         {/* Cable + load */}
-        <line x1="175" y1="75" x2="175" y2="135" stroke="#1B2042" strokeWidth="1.2" />
-        <rect x="168" y="135" width="14" height="10" rx="2" fill="#1B2042" opacity="0.6" />
+        <line x1="175" y1="75" x2="175" y2="135" stroke="#16324F" strokeWidth="1.2" />
+        <rect x="168" y="135" width="14" height="10" rx="2" fill="#16324F" opacity="0.6" />
         {/* Cab */}
-        <rect x="46" y="298" width="18" height="16" rx="3" fill="#1B2042" />
+        <rect x="46" y="298" width="18" height="16" rx="3" fill="#16324F" />
 
         {/* Worker 1 — hard hat + stick figure */}
-        <circle cx="135" cy="306" r="4.5" fill="#1B2042" />
-        <line x1="135" y1="311" x2="135" y2="328" stroke="#1B2042" strokeWidth="2" />
-        <line x1="135" y1="317" x2="127" y2="324" stroke="#1B2042" strokeWidth="1.8" />
-        <line x1="135" y1="317" x2="143" y2="324" stroke="#1B2042" strokeWidth="1.8" />
+        <circle cx="135" cy="306" r="4.5" fill="#16324F" />
+        <line x1="135" y1="311" x2="135" y2="328" stroke="#16324F" strokeWidth="2" />
+        <line x1="135" y1="317" x2="127" y2="324" stroke="#16324F" strokeWidth="1.8" />
+        <line x1="135" y1="317" x2="143" y2="324" stroke="#16324F" strokeWidth="1.8" />
 
         {/* Worker 2 */}
-        <circle cx="295" cy="306" r="4.5" fill="#1B2042" />
-        <line x1="295" y1="311" x2="295" y2="328" stroke="#1B2042" strokeWidth="2" />
-        <line x1="295" y1="317" x2="287" y2="324" stroke="#1B2042" strokeWidth="1.8" />
-        <line x1="295" y1="317" x2="303" y2="324" stroke="#1B2042" strokeWidth="1.8" />
+        <circle cx="295" cy="306" r="4.5" fill="#16324F" />
+        <line x1="295" y1="311" x2="295" y2="328" stroke="#16324F" strokeWidth="2" />
+        <line x1="295" y1="317" x2="287" y2="324" stroke="#16324F" strokeWidth="1.8" />
+        <line x1="295" y1="317" x2="303" y2="324" stroke="#16324F" strokeWidth="1.8" />
 
         {/* Excavator */}
-        <rect x="308" y="322" width="36" height="13" rx="4" fill="#1B2042" opacity="0.65" />
-        <circle cx="316" cy="338" r="4.5" fill="#1B2042" opacity="0.5" />
-        <circle cx="340" cy="338" r="4.5" fill="#1B2042" opacity="0.5" />
-        <line x1="316" y1="322" x2="298" y2="302" stroke="#1B2042" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+        <rect x="308" y="322" width="36" height="13" rx="4" fill="#16324F" opacity="0.65" />
+        <circle cx="316" cy="338" r="4.5" fill="#16324F" opacity="0.5" />
+        <circle cx="340" cy="338" r="4.5" fill="#16324F" opacity="0.5" />
+        <line x1="316" y1="322" x2="298" y2="302" stroke="#16324F" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
 
         {/* Scattered materials — small blocks */}
-        <rect x="68" y="324" width="16" height="8" rx="1" fill="#1B2042" opacity="0.15" />
-        <rect x="73" y="318" width="10" height="7" rx="1" fill="#1B2042" opacity="0.1" />
+        <rect x="68" y="324" width="16" height="8" rx="1" fill="#16324F" opacity="0.15" />
+        <rect x="73" y="318" width="10" height="7" rx="1" fill="#16324F" opacity="0.1" />
     </svg>
 );
 

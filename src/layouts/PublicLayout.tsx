@@ -24,7 +24,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ profile }) => {
     }, []);
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen public-page">
             <Navbar profile={profile} />
             <div className="scroll-progress">
                 <div className="scroll-progress__fill" style={{ transform: `scaleX(${scrollProgress})`, transformOrigin: 'left center' }} />

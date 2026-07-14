@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaLinkedin, FaFacebook, FaInstagram, FaArrowUp, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
+import { FaLinkedin, FaFacebook, FaInstagram, FaTwitter, FaArrowUp, FaArrowRight, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
 import type { Profile } from '../services/profileService';
 import { subscriberService } from '../services/subscriberService';
 
@@ -49,116 +49,101 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
 
     return (
         <footer data-nav-theme="dark" className="ark-footer">
-            <div className="container">
-                <div className="ark-footer__inner">
-                    <div className="ark-footer__grid">
-                        {/* Brand / About */}
-                        <div className="ark-footer__col">
-                            <a href="/" className="ark-footer__logo-link">
-                                <img src={profile.companyLogo || '/logo.jpeg'} alt={profile.company || 'Logo'} className="ark-footer__logo" />
-                            </a>
-                            {profile.company && <h4 className="ark-footer__col-title">{profile.company}</h4>}
-                            <p className="ark-footer__desc">{companyDesc}</p>
-                            {footerContent?.showSocialLinks !== false && (
-                                <div className="ark-footer__social">
-                                    {profile.socialLinks?.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaLinkedin /></a>}
-                                    {profile.socialLinks?.facebook && <a href={profile.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaFacebook /></a>}
-                                    {profile.socialLinks?.instagram && <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaInstagram /></a>}
-                                </div>
-                            )}
-                        </div>
+            <div className="ark-footer__bg" />
+            <span className="ark-footer__watermark">{profile.company || 'MUHIZI'}</span>
 
-                        {/* Quick Links */}
-                        <div className="ark-footer__col">
-                            <h4 className="ark-footer__col-title">Quick Links</h4>
-                            {quickLinks && quickLinks.length > 0 ? quickLinks.map((link, i) => (
-                                <a key={i} href={link.url} className="ark-footer__nav-link">{link.label}</a>
-                            )) : null}
-                        </div>
+            <div className="container ark-footer__container">
+                {/* Newsletter */}
+                <div className="ark-footer__newsletter">
+                    <div className="ark-footer__newsletter-text">
+                        <h3 className="ark-footer__newsletter-title">Subscribe Newsletter</h3>
+                        <p className="ark-footer__newsletter-sub">Sign up today to get the latest updates &amp; insights</p>
+                    </div>
+                    <div>
+                        <form onSubmit={handleSubscribe} className="ark-footer__subscribe-form">
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter Your Email Address..."
+                                required
+                                className="ark-footer__subscribe-input"
+                            />
+                            <button type="submit" className="ark-footer__subscribe-btn" disabled={subscribing}>
+                                <span className="ark-footer__subscribe-btn-text">{subscribing ? 'Sending...' : 'Subscribe'}</span>
+                                <span className="ark-footer__subscribe-btn-arrow"><FaArrowRight size={12} /></span>
+                            </button>
+                        </form>
+                        {subscribeMsg && (
+                            <p className="ark-footer__subscribe-msg" style={{ color: subscribeMsg.includes('successfully') ? '#16A34A' : '#DC2626' }}>
+                                {subscribeMsg}
+                            </p>
+                        )}
+                    </div>
+                </div>
 
-                        {/* Services */}
-                        <div className="ark-footer__col">
-                            <h4 className="ark-footer__col-title">Services</h4>
-                            {servicesList && servicesList.length > 0 ? servicesList.map((s, i) => (
-                                <span key={i} className="ark-footer__link">{s.label}</span>
-                            )) : null}
-                        </div>
+                <div className="ark-footer__divider" />
 
-                        {/* Contact & Map */}
-                        <div className="ark-footer__col">
-                            <h4 className="ark-footer__col-title">Get in Touch</h4>
-                            {footerContent?.showContactInfo !== false && (
-                                <>
-                                    <a href={`tel:${profile.phone}`} className="ark-footer__phone"><FaPhone size={12} />{profile.phone}</a>
-                                    <a href={`mailto:${profile.email}`} className="ark-footer__phone"><FaEnvelope size={12} />{profile.email}</a>
-                                    <p className="ark-footer__address"><FaMapMarkerAlt size={12} />{profile.location}</p>
-                                    {profile.location && <iframe
-                                        className="ark-footer__map"
-                                        title="Location"
-                                        loading="lazy"
-                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(profile.location)}&output=embed`}
-                                    />}
-                                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
-                                        <a
-                                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(profile.location)}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '6px',
-                                                padding: '0.35rem 0.9rem',
-                                                borderRadius: '6px',
-                                                border: '1px solid rgba(243,241,241,0.4)',
-                                                color: 'rgba(243,241,241,0.8)',
-                                                fontWeight: 600,
-                                                fontSize: '0.75rem',
-                                                textDecoration: 'none',
-                                                width: '160px',
-                                                transition: 'background 0.2s, color 0.2s',
-                                            }}
-                                            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--primary-teal)'; e.currentTarget.style.color = '#000'; }}
-                                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(243,241,241,0.8)'; }}
-                                        >
-                                            Get Our Direction &rarr;
-                                        </a>
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                <div className="ark-footer__grid">
+                    {/* Brand / About */}
+                    <div className="ark-footer__col ark-footer__col--brand">
+                        <a href="/" className="ark-footer__brand-link">
+                            <img src={profile.companyLogo || '/logo.jpeg'} alt={profile.company || 'Logo'} className="ark-footer__logo" />
+                            {profile.company && <span className="ark-footer__brand-name">{profile.company}</span>}
+                        </a>
+                        <p className="ark-footer__desc">{companyDesc}</p>
+                        {footerContent?.showSocialLinks !== false && (
+                            <div className="ark-footer__social">
+                                <span className="ark-footer__social-label">Follow Us:</span>
+                                {profile.socialLinks?.facebook && <a href={profile.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaFacebook /></a>}
+                                {profile.socialLinks?.twitter && <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaTwitter /></a>}
+                                {profile.socialLinks?.instagram && <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaInstagram /></a>}
+                                {profile.socialLinks?.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaLinkedin /></a>}
+                            </div>
+                        )}
                     </div>
 
-                    {/* Subscribe */}
-                    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                        <div className="ark-footer__subscribe" style={{ maxWidth: '28rem', width: '100%' }}>
-                            <span className="ark-footer__subscribe-label">Subscribe to our newsletter</span>
-                            <form onSubmit={handleSubscribe} className="ark-footer__subscribe-form">
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="your@email.com"
-                                    required
-                                    className="ark-footer__subscribe-input"
-                                />
-                                <button type="submit" className="ark-footer__subscribe-btn" disabled={subscribing}>{subscribing ? 'Sending...' : 'Subscribe'}</button>
-                            </form>
-                            {subscribeMsg && (
-                                <p style={{
-                                    marginTop: '0.5rem',
-                                    fontSize: '0.8rem',
-                                    color: subscribeMsg.includes('successfully') ? '#22c55e' : '#ef4444',
-                                    textAlign: 'center',
-                                }}>{subscribeMsg}</p>
-                            )}
-                        </div>
+                    {/* Quick Links */}
+                    <div className="ark-footer__col">
+                        {quickLinks && quickLinks.length > 0 ? quickLinks.map((link, i) => (
+                            <a key={i} href={link.url} className="ark-footer__nav-link">{link.label}</a>
+                        )) : null}
                     </div>
-                    {/* Bottom bar */}
-                    <div className="ark-footer__bottom">
-                        <p className="ark-footer__copy">{copyright}</p>
-                        <p className="ark-footer__copy" style={{ color: 'rgba(243,241,241,0.35)' }}>Powered by <a href="https://mis-frontend-eta.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>MAKE IT SOLUTIONS (MIS)</a></p>
+
+                    {/* Services */}
+                    <div className="ark-footer__col">
+                        {servicesList && servicesList.length > 0 ? servicesList.map((s, i) => (
+                            <span key={i} className="ark-footer__link">{s.label}</span>
+                        )) : null}
                     </div>
+
+                    {/* Contact */}
+                    <div className="ark-footer__col">
+                        {footerContent?.showContactInfo !== false && (
+                            <>
+                                <a href={`tel:${profile.phone}`} className="ark-footer__nav-link"><FaPhone size={11} />{profile.phone}</a>
+                                <a href={`mailto:${profile.email}`} className="ark-footer__nav-link"><FaEnvelope size={11} />{profile.email}</a>
+                                {profile.location && (
+                                    <a
+                                        href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(profile.location)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="ark-footer__nav-link"
+                                    >
+                                        <FaMapMarkerAlt size={11} />{profile.location}
+                                    </a>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Bottom bar */}
+                <div className="ark-footer__bottom">
+                    <p className="ark-footer__copy">{copyright}</p>
+                    <p className="ark-footer__copy ark-footer__copy--muted">
+                        Powered by <a href="https://mis-frontend-eta.vercel.app" target="_blank" rel="noopener noreferrer">MAKE IT SOLUTIONS (MIS)</a>
+                    </p>
                 </div>
             </div>
 
