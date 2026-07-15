@@ -68,10 +68,10 @@ const Jobs: React.FC<JobsProps> = ({ profile }) => {
     return (
         <section className="section jobs" id="jobs">
             <div className="container">
-                <span className="ark-section__sub" style={{ display: 'inline-block', marginLeft: '30px', color: '#111' }}>
+                <span className="ark-section__sub" style={{ display: 'inline-block', marginLeft: '30px' }}>
                     Join Our Team
                 </span>
-                <h2 className="ark-section__heading" style={{ color: '#111' }}>Open Positions</h2>
+                <h2 className="ark-section__heading">Open Positions</h2>
 
                 <div style={{ textAlign: 'right', marginBottom: '1.5rem' }}>
                     <button

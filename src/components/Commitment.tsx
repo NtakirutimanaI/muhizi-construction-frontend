@@ -31,15 +31,15 @@ const Commitment: React.FC = () => {
 
             <div className="container" style={{ position: 'relative', zIndex: 1 }}>
                 <div style={{ textAlign: 'center', maxWidth: '650px', margin: '0 auto 3rem' }}>
-                    <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: '#D97706', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 1rem' }}>
-                        <span style={{ width: '30px', height: '2px', background: '#D97706', display: 'inline-block' }} />
+                    <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: 'var(--accent, #D97706)', fontWeight: 700, fontSize: '0.78rem', letterSpacing: '0.15em', textTransform: 'uppercase', margin: '0 0 1rem' }}>
+                        <span style={{ width: '30px', height: '2px', background: 'var(--accent, #D97706)', display: 'inline-block' }} />
                         Our Commitment
-                        <span style={{ width: '30px', height: '2px', background: '#D97706', display: 'inline-block' }} />
+                        <span style={{ width: '30px', height: '2px', background: 'var(--accent, #D97706)', display: 'inline-block' }} />
                     </p>
-                    <h2 style={{ color: '#111827', fontSize: '2.6rem', fontWeight: 700, margin: '0 0 1rem', lineHeight: 1.15 }}>
+                    <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: 'clamp(1.9rem, 4vw, 2.6rem)', fontWeight: 800, margin: '0 0 1rem', lineHeight: 1.15 }}>
                         What Makes Us Different
                     </h2>
-                    <p style={{ color: '#64748B', fontSize: '1rem', lineHeight: 1.7, margin: 0 }}>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.7, margin: 0 }}>
                         It's not just about constructing buildings; it's about engineering trust, safety, and lasting value into every project we deliver.
                     </p>
                 </div>
@@ -53,12 +53,12 @@ const Commitment: React.FC = () => {
                             style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
                         />
                         <div style={{ padding: '1.5rem 1.6rem 1.7rem' }}>
-                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.1rem' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--accent, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.1rem' }}>
                                 <LuKeyRound style={{ color: '#fff', fontSize: '1.3rem' }} />
                             </div>
-                            <h3 style={{ color: '#111827', fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.9rem' }}>Client-Focused Delivery</h3>
-                            <div style={{ height: '1px', background: '#DCE3EA', margin: '0 0 1rem' }} />
-                            <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.65, margin: 0 }}>
+                            <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.9rem' }}>Client-Focused Delivery</h3>
+                            <div style={{ height: '1px', background: 'var(--border-color)', margin: '0 0 1rem' }} />
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.65, margin: 0 }}>
                                 We prioritize clear communication and transparency, making your construction journey smooth and stress-free.
                             </p>
                         </div>
@@ -78,12 +78,12 @@ const Commitment: React.FC = () => {
                                 padding: '1.6rem 1.7rem 1.8rem',
                             }}
                         >
-                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.1rem' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--accent, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.1rem' }}>
                                 <card.icon style={{ color: '#fff', fontSize: '1.3rem' }} />
                             </div>
-                            <h3 style={{ color: '#111827', fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.9rem', lineHeight: 1.3 }}>{card.title}</h3>
-                            <div style={{ height: '1px', background: '#DCE3EA', margin: '0 0 1rem' }} />
-                            <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.65, margin: 0 }}>{card.description}</p>
+                            <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.9rem', lineHeight: 1.3 }}>{card.title}</h3>
+                            <div style={{ height: '1px', background: 'var(--border-color)', margin: '0 0 1rem' }} />
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.65, margin: 0 }}>{card.description}</p>
                         </div>
                     ))}
 
