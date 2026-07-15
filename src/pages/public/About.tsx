@@ -45,7 +45,7 @@ const About = () => {
 
         /* Text column */
         .about-label { display: flex; align-items: center; gap: 0.6rem; color: #D97706; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; margin: 0 0 1rem; }
-        .about-label::before { content: ''; width: 34px; height: 2px; background: #D97706; display: inline-block; }
+        .about-label::before { content: ''; width: 34px; height: 0; border-top: 2px dashed #D97706; display: inline-block; }
         .about-label span { color: #111827; }
         .about-heading { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.1rem, 3.4vw, 2.9rem); line-height: 1.15; color: #111827; margin: 0 0 1.25rem; letter-spacing: -0.01em; }
         .about-heading .accent { color: #111827; }
@@ -125,7 +125,7 @@ const About = () => {
             </div>
 
             <div>
-              <p className="about-label">----- <span>About Us</span></p>
+              <p className="about-label"><span>About Us</span></p>
               <h2 className="about-heading">
                 Turning Your Ideas Into Beautifully Crafted Spaces
               </h2>

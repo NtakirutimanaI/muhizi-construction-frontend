@@ -32,9 +32,9 @@ const Commitment: React.FC = () => {
             <div className="container" style={{ position: 'relative', zIndex: 1 }}>
                 <div style={{ textAlign: 'center', maxWidth: '650px', margin: '0 auto 3rem' }}>
                     <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: 'var(--accent, #D97706)', fontWeight: 700, fontSize: '0.78rem', letterSpacing: '0.15em', textTransform: 'uppercase', margin: '0 0 1rem' }}>
-                        <span style={{ width: '30px', height: '2px', background: 'var(--accent, #D97706)', display: 'inline-block' }} />
+                        <span style={{ width: '30px', height: '0', borderTop: '2px dashed var(--accent, #D97706)', display: 'inline-block' }} />
                         Our Commitment
-                        <span style={{ width: '30px', height: '2px', background: 'var(--accent, #D97706)', display: 'inline-block' }} />
+                        <span style={{ width: '30px', height: '0', borderTop: '2px dashed var(--accent, #D97706)', display: 'inline-block' }} />
                     </p>
                     <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: 'clamp(1.9rem, 4vw, 2.6rem)', fontWeight: 800, margin: '0 0 1rem', lineHeight: 1.15 }}>
                         What Makes Us Different

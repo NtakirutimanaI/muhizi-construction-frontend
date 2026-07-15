@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LuArrowUpRight, LuChevronDown, LuHeadset } from 'react-icons/lu';
+import { LuChevronDown, LuHeadset } from 'react-icons/lu';
 import type { Profile } from '../services/profileService';
 
 interface FaqProps {
@@ -26,7 +26,7 @@ const Faq: React.FC<FaqProps> = ({ profile }) => {
                 .faq-grid { display: grid; grid-template-columns: minmax(280px, 400px) 1fr; gap: 3rem; align-items: start; max-width: 1150px; margin: 0 auto; }
 
                 .faq-eyebrow { display: flex; align-items: center; gap: 0.75rem; color: var(--accent, #D97706); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase; margin: 0 0 1rem; }
-                .faq-eyebrow::before { content: ''; width: 30px; height: 2px; background: var(--accent, #D97706); display: inline-block; }
+                .faq-eyebrow::before { content: ''; width: 30px; height: 0; border-top: 2px dashed var(--accent, #D97706); display: inline-block; }
                 .faq-heading { font-family: var(--font-display); color: var(--text-main); font-size: clamp(1.9rem, 3.2vw, 2.5rem); font-weight: 800; line-height: 1.2; margin: 0 0 1.1rem; }
                 .faq-subtitle { color: var(--text-muted); font-size: 0.92rem; line-height: 1.7; max-width: 340px; margin: 0 0 3rem; }
 
@@ -42,8 +42,10 @@ const Faq: React.FC<FaqProps> = ({ profile }) => {
                 .faq-item:hover { box-shadow: 0 6px 18px rgba(15,18,34,0.08); }
                 .faq-item--open { background: #ffffff; box-shadow: 0 10px 26px rgba(15,18,34,0.1); }
                 .faq-item__q { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; background: none; border: none; padding: 0; margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-main); text-align: left; cursor: pointer; }
-                .faq-item__icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--accent, #D97706); color: #fff; transition: background 0.2s ease, transform 0.2s ease; }
+                .faq-item__icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--accent, #D97706); color: #fff; transition: background 0.2s ease; }
+                .faq-item__icon svg { transition: transform 0.2s ease; }
                 .faq-item--open .faq-item__icon { background: var(--text-main); }
+                .faq-item--open .faq-item__icon svg { transform: rotate(180deg); }
                 .faq-item__a { margin: 0.9rem 0 0; color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; }
 
                 @media (max-width: 900px) {
@@ -85,7 +87,7 @@ const Faq: React.FC<FaqProps> = ({ profile }) => {
                                     <button type="button" className="faq-item__q">
                                         {item.question}
                                         <span className="faq-item__icon">
-                                            {isOpen ? <LuChevronDown size={16} /> : <LuArrowUpRight size={16} />}
+                                            <LuChevronDown size={16} />
                                         </span>
                                     </button>
                                     {isOpen && <p className="faq-item__a">{item.answer}</p>}

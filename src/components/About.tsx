@@ -33,7 +33,7 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                     <div style={{ display: 'grid', gridTemplateColumns: '280px repeat(3, 1fr)', gap: '1.75rem', maxWidth: '1400px', margin: '0 auto' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                             <p style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--accent, #D97706)', fontWeight: 700, fontSize: '0.78rem', letterSpacing: '0.15em', textTransform: 'uppercase', margin: '0 0 1rem' }}>
-                                <span style={{ width: '34px', height: '2px', background: 'var(--accent, #D97706)', display: 'inline-block' }} />
+                                <span style={{ width: '34px', height: '0', borderTop: '2px dashed var(--accent, #D97706)', display: 'inline-block' }} />
                                 What We Offer
                             </p>
                             <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: 'clamp(1.9rem, 4vw, 2.6rem)', fontWeight: 800, lineHeight: 1.2, margin: '0 0 2rem' }}>

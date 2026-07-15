@@ -1,4 +1,4 @@
-import { LuUserRound, LuMessageCircle, LuArrowUpRight } from 'react-icons/lu';
+import { LuUserRound, LuMessageCircle, LuArrowRight } from 'react-icons/lu';
 
 interface NewsPost {
     title: string;
@@ -45,7 +45,7 @@ const News: React.FC = () => {
                     <a href="#news" className="news-v2__cta">
                         VIEW ALL POST
                         <span className="news-v2__cta-circle">
-                            <LuArrowUpRight />
+                            <LuArrowRight />
                         </span>
                     </a>
                 </div>
