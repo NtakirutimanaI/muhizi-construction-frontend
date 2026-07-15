@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaClock, FaArrowRight, FaChevronDown, FaCheck } from 'react-icons/fa';
+import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaClock, FaChevronDown, FaCheck } from 'react-icons/fa';
 import { profileService, type ContactMessage, type Profile } from '../services/profileService';
 import { useToast } from '../context/ToastContext';
 
@@ -251,9 +251,6 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                         >
                             <span className="contact-v2__submit-text">
                                 {status === 'loading' ? 'SENDING...' : status === 'success' ? <><FaCheck /> SENT</> : 'CONTACT NOW'}
-                            </span>
-                            <span className="contact-v2__submit-arrow">
-                                <FaArrowRight />
                             </span>
                         </button>
                     </form>

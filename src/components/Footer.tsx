@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaLinkedin, FaFacebook, FaInstagram, FaTwitter, FaArrowUp, FaArrowRight, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
+import { FaLinkedin, FaFacebook, FaInstagram, FaTwitter, FaArrowUp, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
 import type { Profile } from '../services/profileService';
 import { subscriberService } from '../services/subscriberService';
 
@@ -71,7 +71,6 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                             />
                             <button type="submit" className="ark-footer__subscribe-btn" disabled={subscribing}>
                                 <span className="ark-footer__subscribe-btn-text">{subscribing ? 'Sending...' : 'Subscribe'}</span>
-                                <span className="ark-footer__subscribe-btn-arrow"><FaArrowRight size={12} /></span>
                             </button>
                         </form>
                         {subscribeMsg && (

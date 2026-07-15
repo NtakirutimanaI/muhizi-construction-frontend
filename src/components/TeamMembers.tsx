@@ -75,7 +75,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
                             <div key={i} className="team-v2__photo-card">
                                 <div className="team-v2__photo-wrap">
                                     <img src={getImageUrl(member)} alt={member.name} className="team-v2__photo-img" />
-                                    {i === 1 && socials.length > 0 && (
+                                    {socials.length > 0 && (
                                         <div className="team-v2__social-rail">
                                             {socials.map(({ icon: Icon, href }, si) => (
                                                 <a
@@ -83,7 +83,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
                                                     href={href}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className={`team-v2__social-btn${si === 2 ? ' team-v2__social-btn--active' : ''}`}
+                                                    className={`team-v2__social-btn${si === (i === 0 ? 3 : 2) ? ' team-v2__social-btn--active' : ''}`}
                                                 >
                                                     <Icon />
                                                 </a>

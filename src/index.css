@@ -2164,9 +2164,8 @@ img {
 .projects-v2__eyebrow-line {
   display: inline-block;
   width: 26px;
-  height: 2px;
-  background: var(--projects-accent);
-  border-radius: 2px;
+  height: 0;
+  border-top: 2px dashed var(--projects-accent);
 }
 
 .projects-v2__heading {
@@ -3538,9 +3537,8 @@ img {
 .contact-v2__eyebrow-line {
   display: inline-block;
   width: 32px;
-  height: 3px;
-  background: var(--accent, #D97706);
-  border-radius: 2px;
+  height: 0;
+  border-top: 2px dashed var(--accent, #D97706);
 }
 
 .contact-v2__heading {
@@ -3796,21 +3794,20 @@ img {
   content: '';
   display: block;
   width: 80px;
-  height: 4px;
-  background: var(--primary);
+  height: 0;
+  border-top: 3px dashed var(--primary);
   margin-top: 0.6rem;
-  border-radius: 2px;
 }
 
 .latest-updates .ark-section__heading::after,
 #resume .ark-section__heading::after,
 #events .ark-section__heading::after,
 #contact .ark-section__heading::after {
-  background: #16324F;
+  border-top-color: #16324F;
 }
 
 .section-offer-dark .ark-section__heading::after {
-  background: #fff;
+  border-top-color: #fff;
 }
 
 /* Section sub-heading / eyebrow (e.g. "About Us", "Our Services") */
@@ -4025,9 +4022,8 @@ img {
 .team-v2__eyebrow-line {
   display: inline-block;
   width: 26px;
-  height: 2px;
-  background: var(--team-accent);
-  border-radius: 2px;
+  height: 0;
+  border-top: 2px dashed var(--team-accent);
 }
 
 .team-v2__heading {
@@ -4808,9 +4804,8 @@ img {
 .news-v2__eyebrow-line {
   display: inline-block;
   width: 30px;
-  height: 2px;
-  background: var(--accent);
-  border-radius: 2px;
+  height: 0;
+  border-top: 2px dashed var(--accent);
 }
 
 .news-v2__heading {
