@@ -113,7 +113,6 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
                         <a href="/#about" className="nav-links-desktop-link" onClick={scrollToSection}>About Us</a>
                         <a href="/#projects" className="nav-links-desktop-link" onClick={scrollToSection}>Projects</a>
                         <a href="/#news" className="nav-links-desktop-link" onClick={scrollToSection}>News</a>
-                        <a href="/#events" className="nav-links-desktop-link" onClick={scrollToSection}>Events</a>
                         <a href="/#team" className="nav-links-desktop-link" onClick={scrollToSection}>Our Team</a>
                     </div>
                     <div className="nav-actions">
@@ -141,7 +140,6 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
                         <a href="/#about" className="nav-mobile-link" onClick={scrollToSection}>About Us</a>
                         <a href="/#projects" className="nav-mobile-link" onClick={scrollToSection}>Projects</a>
                         <a href="/#news" className="nav-mobile-link" onClick={scrollToSection}>News</a>
-                        <a href="/#events" className="nav-mobile-link" onClick={scrollToSection}>Events</a>
                         <a href="/#team" className="nav-mobile-link" onClick={scrollToSection}>Our Team</a>
                         <a href="/#contact" className="nav-mobile-link nav-mobile-link--btn" onClick={scrollToSection}>Contact Us</a>
                     </div>

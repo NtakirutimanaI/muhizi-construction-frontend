@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { FaShareAlt, FaTwitter, FaInstagram, FaFacebookF, FaLinkedinIn } from 'react-icons/fa';
 import type { Profile } from '../services/profileService';
 
@@ -6,9 +5,44 @@ interface TeamMembersProps {
     profile: Profile;
 }
 
-const TICKER_WORDS = [
-    'Quality Craftsmanship', 'Home Construction', 'Building Design',
-    'Architecture & Building', 'Material Recycling', 'Tools And Equipment', 'Building Construction',
+// Placeholder partner marks — swap for real client logos when available.
+const PARTNER_LOGOS = [
+    {
+        name: 'Meridian Group',
+        variant: '',
+        icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18 9 9 0 0 1 0-18Z" fill="currentColor" stroke="none" opacity="0.5" /></svg>
+        ),
+    },
+    {
+        name: 'Gormley & Co',
+        variant: '',
+        icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M3 12 12 5l9 7" /><path d="M5 11v8h14v-8" /><path d="M9 19v-5h6v5" /></svg>
+        ),
+    },
+    {
+        name: 'Urban Land Co',
+        subtitle: 'MODERN & LUXURY LIVING',
+        variant: 'wordmark',
+        icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 3 4 21h5l3-7 3 7h5L12 3Z" /></svg>
+        ),
+    },
+    {
+        name: 'Horizon Homes',
+        variant: '',
+        icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M2 20c2-3 4-3 6 0s4 3 6 0 4-3 6 0" /><path d="M6 13 12 7l6 6" /><path d="M8 20v-6h8v6" /></svg>
+        ),
+    },
+    {
+        name: 'constructline',
+        variant: 'lowercase',
+        icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 2 21 7v10l-9 5-9-5V7l9-5Z" /></svg>
+        ),
+    },
 ];
 
 const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
@@ -103,19 +137,21 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
                 <span className="team-v2__badge">We're proud to work with best-in-class clients</span>
             </div>
 
-            <div className="team-v2__ticker-wrap">
-                <motion.div
-                    className="team-v2__ticker"
-                    animate={{ rotate: -2 }}
-                >
-                    <div className="team-v2__ticker-track">
-                        {[...TICKER_WORDS, ...TICKER_WORDS].map((word, i) => (
-                            <span key={i} className="team-v2__ticker-item">
-                                {word} <span className="team-v2__ticker-dot">*</span>
+            <div className="team-v2__logos">
+                <div className="team-v2__logos-track">
+                    {PARTNER_LOGOS.map((logo, i) => (
+                        <div
+                            key={i}
+                            className={`team-v2__logo${logo.variant ? ` team-v2__logo--${logo.variant}` : ''}`}
+                        >
+                            <span className="team-v2__logo-icon">{logo.icon}</span>
+                            <span className="team-v2__logo-label">
+                                {logo.name}
+                                {logo.subtitle && <small>{logo.subtitle}</small>}
                             </span>
-                        ))}
-                    </div>
-                </motion.div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </section>
     );

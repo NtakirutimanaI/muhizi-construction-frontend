@@ -32,16 +32,16 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                 <div style={{ width: '100vw', margin: '3rem calc(-50vw + 50%) 0', padding: '3rem 3.5rem 4rem', background: '#ffffff' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '280px repeat(3, 1fr)', gap: '1.75rem', maxWidth: '1400px', margin: '0 auto' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <p style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#D97706', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 1rem' }}>
-                                <span style={{ width: '34px', height: '2px', background: '#D97706', display: 'inline-block' }} />
+                            <p style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--accent, #D97706)', fontWeight: 700, fontSize: '0.78rem', letterSpacing: '0.15em', textTransform: 'uppercase', margin: '0 0 1rem' }}>
+                                <span style={{ width: '34px', height: '2px', background: 'var(--accent, #D97706)', display: 'inline-block' }} />
                                 What We Offer
                             </p>
-                            <h2 style={{ color: '#111827', fontSize: '2.2rem', fontWeight: 700, lineHeight: 1.2, margin: '0 0 2rem' }}>
+                            <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: 'clamp(1.9rem, 4vw, 2.6rem)', fontWeight: 800, lineHeight: 1.2, margin: '0 0 2rem' }}>
                                 Driven By Quality, Defined By Results
                             </h2>
-                            <a href="#services" className="learn-more" style={{ background: '#D97706', borderColor: '#D97706', color: '#fff', display: 'inline-flex', alignItems: 'center', gap: '0.75rem', padding: '0 0 0 1.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: 500, letterSpacing: '0.025em', textDecoration: 'none', transition: 'all 0.2s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', width: 'fit-content' }}>
+                            <a href="#services" className="learn-more" style={{ background: 'var(--accent, #D97706)', borderColor: 'var(--accent, #D97706)', color: '#fff', display: 'inline-flex', alignItems: 'center', gap: '0.75rem', padding: '0 0 0 1.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: 500, letterSpacing: '0.025em', textDecoration: 'none', transition: 'all 0.2s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', width: 'fit-content' }}>
                                 VIEW ALL SERVICES
-                                <span className="learn-more-circle" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', background: '#16324F', flexShrink: 0 }}>
+                                <span className="learn-more-circle" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', flexShrink: 0 }}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(295deg)' }}>
                                         <line x1="5" y1="12" x2="19" y2="12"></line>
                                         <polyline points="12 5 19 12 12 19"></polyline>
@@ -72,19 +72,19 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                                                 parent.appendChild(fallbackTxt);
                                             }}
                                         />
-                                        <div style={{ position: 'absolute', bottom: '15px', right: '15px', width: '40px', height: '40px', borderRadius: '50%', background: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                                        <div style={{ position: 'absolute', bottom: '15px', right: '15px', width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
                                             <span style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 700, transform: 'rotate(290deg)', display: 'inline-block' }}>&rarr;</span>
                                         </div>
                                     </div>
                                     <div style={{ padding: '1.5rem 1.6rem 1.7rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.1rem' }}>
                                             <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#FBE8D3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                                <Icon style={{ color: '#D97706', fontSize: '1.2rem' }} />
+                                                <Icon style={{ color: 'var(--accent, #D97706)', fontSize: '1.2rem' }} />
                                             </div>
-                                            <h3 style={{ color: '#111827', fontSize: '1.1rem', fontWeight: 700, margin: 0, lineHeight: 1.3 }}>{item.title}</h3>
+                                            <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: '1.1rem', fontWeight: 700, margin: 0, lineHeight: 1.3 }}>{item.title}</h3>
                                         </div>
-                                        <div style={{ height: '1px', background: '#DCE3EA', margin: '0 0 1rem' }} />
-                                        <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.65, margin: 0 }}>{item.description}</p>
+                                        <div style={{ height: '1px', background: 'var(--border-color)', margin: '0 0 1rem' }} />
+                                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.65, margin: 0 }}>{item.description}</p>
                                     </div>
                                 </div>
                             );

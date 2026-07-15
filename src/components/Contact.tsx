@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaClock, FaFacebook, FaInstagram, FaLinkedin, FaArrowRight, FaChevronDown, FaCheck } from 'react-icons/fa';
+import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaClock, FaArrowRight, FaChevronDown, FaCheck } from 'react-icons/fa';
 import { profileService, type ContactMessage, type Profile } from '../services/profileService';
 import { useToast } from '../context/ToastContext';
 
@@ -176,12 +176,6 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                                 <p>Mon – Fri, 8:00 – 18:00</p>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="contact-v2__social">
-                        {profile.socialLinks?.facebook && <a href={profile.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="contact-v2__social-link" title="Facebook"><FaFacebook /></a>}
-                        {profile.socialLinks?.instagram && <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="contact-v2__social-link" title="Instagram"><FaInstagram /></a>}
-                        {profile.socialLinks?.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="contact-v2__social-link" title="LinkedIn"><FaLinkedin /></a>}
                     </div>
                 </div>
 

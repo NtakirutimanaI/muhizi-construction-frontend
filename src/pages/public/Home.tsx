@@ -5,7 +5,6 @@ import WhatWeOffer from '../../components/WhatWeOffer';
 import Commitment from '../../components/Commitment';
 import Projects from '../../components/Projects';
 import News from '../../components/News';
-import Events from '../../components/Events';
 import TeamMembers from '../../components/TeamMembers';
 import Certifications from '../../components/Certifications';
 import Faq from '../../components/Faq';
@@ -36,12 +35,11 @@ const Home = () => {
             <WhatWeOffer heading={pc?.services?.heading} subtitle={pc?.services?.subtitle} items={pc?.services?.items} />
             <Commitment />
             <Projects profile={profile} />
-            <News news={pc?.news} />
-            <Events events={pc?.events} />
             <TeamMembers profile={profile} />
             <Certifications profile={profile} />
             <Faq profile={profile} />
             <Contact profile={profile} />
+            <News />
         </>
     );
 };
