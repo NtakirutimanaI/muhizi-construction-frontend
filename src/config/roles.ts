@@ -37,9 +37,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         items: [
             { path: '/admin/sites', icon: 'FaProjectDiagram', label: 'Sites', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.ENGINEERING_STUDIO, ROLES.PARTNER] },
 
-            { path: '/admin/approvals', icon: 'FaCheckDouble', label: 'Approvals', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/approvements', icon: 'FaClipboardCheck', label: 'Approvements', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests & Approvals', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.MANAGER] },
             { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
         ],

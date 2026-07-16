@@ -1,32 +1,6 @@
+import { Link } from 'react-router-dom';
 import { LuUserRound, LuMessageCircle, LuArrowRight } from 'react-icons/lu';
-
-interface NewsPost {
-    title: string;
-    date: string;
-    summary: string;
-    image: string;
-}
-
-const NEWS_POSTS: NewsPost[] = [
-    {
-        title: 'A Guide to Hassle-Free Cross-Border Shipping',
-        date: '30 MAY',
-        summary: 'How we plan permits, customs, and logistics so imported materials reach your site on schedule.',
-        image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    },
-    {
-        title: 'Why Timely Delivery Matters: Building Customer Trust',
-        date: '09 JUNE',
-        summary: 'A look at how disciplined scheduling keeps every phase of a build on track and clients confident.',
-        image: 'https://images.unsplash.com/photo-1541976590-713941681591?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    },
-    {
-        title: 'How to Choose the Best Freight Solution for Your Business',
-        date: '23 APRIL',
-        summary: 'Comparing freight options for heavy equipment and materials, and what to weigh before you commit.',
-        image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    },
-];
+import { NEWS_POSTS } from '../data/newsData';
 
 const News: React.FC = () => {
     return (
@@ -42,32 +16,34 @@ const News: React.FC = () => {
                             Latest News Posts<br />And Articles
                         </h2>
                     </div>
-                    <a href="#news" className="news-v2__cta">
+                    <Link to="/news" className="news-v2__cta">
                         VIEW ALL POST
                         <span className="news-v2__cta-circle">
                             <LuArrowRight />
                         </span>
-                    </a>
+                    </Link>
                 </div>
 
                 <div className="news-v2__grid">
-                    {NEWS_POSTS.map((post, i) => (
-                        <article key={i} className="news-v2__card">
-                            <div className="news-v2__image-wrap">
+                    {NEWS_POSTS.slice(0, 3).map((post) => (
+                        <article key={post.slug} className="news-v2__card">
+                            <Link to={`/news/${post.slug}`} className="news-v2__image-wrap">
                                 <img src={post.image} alt={post.title} className="news-v2__image" />
                                 <span className="news-v2__date-badge">{post.date}</span>
-                            </div>
-                            <h3 className="news-v2__title">{post.title}</h3>
+                            </Link>
+                            <h3 className="news-v2__title">
+                                <Link to={`/news/${post.slug}`} className="news-v2__title-link">{post.title}</Link>
+                            </h3>
                             <p className="news-v2__desc">{post.summary}</p>
                             <div className="news-v2__divider" />
                             <div className="news-v2__footer">
                                 <span className="news-v2__meta">
                                     <LuUserRound />
-                                    By Admin
+                                    By {post.author}
                                 </span>
                                 <span className="news-v2__meta">
                                     <LuMessageCircle />
-                                    02 Comments
+                                    {String(post.comments).padStart(2, '0')} Comments
                                 </span>
                             </div>
                         </article>

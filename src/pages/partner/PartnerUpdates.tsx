@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { FaSpinner, FaClipboardList, FaCheckCircle, FaClock, FaHardHat, FaImage, FaVideo, FaCalendarAlt } from 'react-icons/fa';
-import { projectEvidenceService } from '../../services/projectEvidenceService';
-import { sitesService } from '../../services/sitesService';
+import { partnerPortalService } from '../../services/partnerPortalService';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
 import type { Site } from '../../services/sitesService';
+import type { Project } from '../../services/constructionService';
 
 interface EvidenceWithSite extends ProjectEvidence {
   siteName?: string;
@@ -14,14 +14,16 @@ const PartnerUpdates = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      projectEvidenceService.getClientVisible(),
-      sitesService.getAll(),
-    ])
-      .then(([evRes, sitesRes]) => {
-        const evData = (evRes.data || []) as EvidenceWithSite[];
-        const sitesData = (sitesRes.data || []) as Site[];
+    partnerPortalService.getMyProjects()
+      .then(async (projectsRes) => {
+        const projects = (projectsRes.data || []) as Project[];
+        const sitesData = projects.flatMap((p) => (p as any).sites || []) as Site[];
         const siteMap = new Map(sitesData.map(s => [s.id, s.name]));
+
+        const evidenceResults = await Promise.all(
+          projects.map((p) => partnerPortalService.getProjectEvidence(p.id).catch(() => ({ data: [] })))
+        );
+        const evData = evidenceResults.flatMap((r) => (r.data || [])) as EvidenceWithSite[];
         evData.forEach(e => { e.siteName = siteMap.get(e.siteId || e.project) || e.project; });
         evData.sort((a, b) => {
           if (!a.date && !b.date) return 0;

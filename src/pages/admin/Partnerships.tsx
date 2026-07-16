@@ -1,35 +1,85 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaHandshake, FaCheckCircle, FaRegCircle, FaHourglassHalf, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import {
+    FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaHandshake, FaFileExcel, FaFilePdf,
+    FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye, FaCheck, FaBan, FaExclamationTriangle,
+    FaFileUpload, FaFilePdf as FaFileIcon, FaBuilding, FaCoins, FaShieldAlt,
+} from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
-import type { Partnership } from '../../services/constructionService';
+import type { Partnership, Project } from '../../services/constructionService';
+import { uploadService } from '../../services/uploadService';
+import { useToast } from '../../context/ToastContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 interface FormData {
-    companyName: string; contactPerson: string; email: string; phone: string;
-    partnershipType: string; status: string; startDate: string; endDate: string; notes: string;
+    companyName: string; contactPerson: string; email: string; phone: string; address: string;
+    registrationNumber: string; taxId: string;
+    partnershipType: string; status: string;
+    licenseNumber: string; licenseExpiry: string; insuranceExpiry: string;
+    investmentAmount: string; equityPercentage: string; projectId: string;
+    agreementFile: string;
+    startDate: string; endDate: string; notes: string;
 }
 
 const emptyForm: FormData = {
-    companyName: '', contactPerson: '', email: '', phone: '',
-    partnershipType: 'supplier', status: 'active', startDate: '', endDate: '', notes: '',
+    companyName: '', contactPerson: '', email: '', phone: '', address: '',
+    registrationNumber: '', taxId: '',
+    partnershipType: 'supplier', status: 'pending',
+    licenseNumber: '', licenseExpiry: '', insuranceExpiry: '',
+    investmentAmount: '', equityPercentage: '', projectId: '',
+    agreementFile: '',
+    startDate: '', endDate: '', notes: '',
 };
 
 const PAGE_SIZES = [5, 10, 15, 20];
 
+const TYPE_LABELS: Record<string, string> = {
+    supplier: 'Supplier', subcontractor: 'Subcontractor', investor: 'Investor', joint_venture: 'Joint Venture',
+};
+
+const isVendorType = (t: string) => t === 'supplier' || t === 'subcontractor';
+const isCapitalType = (t: string) => t === 'investor' || t === 'joint_venture';
+
+/** Days until a date; negative means already past. */
+const daysUntil = (dateStr?: string): number | null => {
+    if (!dateStr) return null;
+    const diff = new Date(dateStr).getTime() - Date.now();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+};
+
+const complianceFlag = (licenseExpiry?: string, insuranceExpiry?: string): { label: string; color: string } | null => {
+    const checks = [
+        { label: 'License', days: daysUntil(licenseExpiry) },
+        { label: 'Insurance', days: daysUntil(insuranceExpiry) },
+    ].filter(c => c.days !== null) as { label: string; days: number }[];
+    if (!checks.length) return null;
+    const expired = checks.filter(c => c.days < 0);
+    if (expired.length) return { label: `${expired.map(c => c.label).join(' & ')} expired`, color: '#ef4444' };
+    const soon = checks.filter(c => c.days <= 30);
+    if (soon.length) return { label: `${soon.map(c => c.label).join(' & ')} expiring soon`, color: '#f59e0b' };
+    return { label: 'Compliant', color: '#22c55e' };
+};
+
 const Partnerships = () => {
+    const { showToast } = useToast();
     const [data, setData] = useState<Partnership[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Partnership | null>(null);
+    const [viewItem, setViewItem] = useState<Partnership | null>(null);
     const [form, setForm] = useState<FormData>(emptyForm);
+    const [uploading, setUploading] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'active' | 'inactive' | 'rejected'>('all');
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
     const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const fetch = async () => {
         try {
@@ -41,15 +91,22 @@ const Partnerships = () => {
 
     useEffect(() => { fetch(); }, []);
 
+    useEffect(() => {
+        if (showModal && projects.length === 0) {
+            constructionService.getProjects().then(res => setProjects(res.data || [])).catch(() => setProjects([]));
+        }
+    }, [showModal, projects.length]);
+
     const filtered = useMemo(() => {
         const q = search.toLowerCase().trim();
         return data.filter(d => {
+            if (statusFilter !== 'all' && d.status !== statusFilter) return false;
             if (q && !d.companyName.toLowerCase().includes(q) && !(d.contactPerson || '').toLowerCase().includes(q) && !d.partnershipType.toLowerCase().includes(q)) return false;
             if (fromDate && new Date(d.createdAt) < new Date(fromDate)) return false;
             if (toDate) { const end = new Date(toDate); end.setHours(23, 59, 59, 999); if (new Date(d.createdAt) > end) return false; }
             return true;
         });
-    }, [data, search, fromDate, toDate]);
+    }, [data, search, statusFilter, fromDate, toDate]);
 
     const totalPages = pageSize === 0 ? 1 : Math.ceil(filtered.length / pageSize);
     const paginated = useMemo(() => {
@@ -68,7 +125,7 @@ const Partnerships = () => {
         String(i + 1),
         d.companyName,
         d.contactPerson || '—',
-        d.partnershipType.replace('_', ' '),
+        TYPE_LABELS[d.partnershipType] || d.partnershipType,
         d.status,
         d.email || '—',
         d.phone || '—',
@@ -109,10 +166,10 @@ const Partnerships = () => {
             body: tableData,
             startY: 46,
             styles: { fontSize: 8, textColor: '#333' },
-            headStyles: { fillColor: [139, 69, 19], textColor: [255, 255, 255], fontStyle: 'bold' },
+            headStyles: { fillColor: [27, 32, 66], textColor: [255, 255, 255], fontStyle: 'bold' },
             alternateRowStyles: { fillColor: [250, 245, 240] },
             columnStyles: { 0: { cellWidth: 10, halign: 'center' } },
-            didDrawPage: (data: any) => {
+            didDrawPage: () => {
                 doc.setDrawColor(brown);
                 doc.setLineWidth(0.5);
                 doc.line(14, pageH - 20, pageW - 14, pageH - 20);
@@ -187,37 +244,95 @@ const Partnerships = () => {
 
     const stats = useMemo(() => ({
         total: data.length,
-        active: data.filter(d => d.status === 'active').length,
-        inactive: data.filter(d => d.status === 'inactive').length,
         pending: data.filter(d => d.status === 'pending').length,
-        suppliers: data.filter(d => d.partnershipType === 'supplier').length,
-        subcontractors: data.filter(d => d.partnershipType === 'subcontractor').length,
+        active: data.filter(d => d.status === 'active').length,
+        rejected: data.filter(d => d.status === 'rejected').length,
+        investors: data.filter(d => d.partnershipType === 'investor' || d.partnershipType === 'joint_venture').length,
     }), [data]);
 
     const openNew = () => { setEditing(null); setForm(emptyForm); setModalPos(null); setShowModal(true); };
+
     const openEdit = (item: Partnership) => {
         setEditing(item);
         setForm({
             companyName: item.companyName, contactPerson: item.contactPerson || '',
-            email: item.email || '', phone: item.phone || '',
+            email: item.email || '', phone: item.phone || '', address: item.address || '',
+            registrationNumber: item.registrationNumber || '', taxId: item.taxId || '',
             partnershipType: item.partnershipType, status: item.status,
+            licenseNumber: item.licenseNumber || '', licenseExpiry: item.licenseExpiry || '',
+            insuranceExpiry: item.insuranceExpiry || '',
+            investmentAmount: item.investmentAmount ? String(item.investmentAmount) : '',
+            equityPercentage: item.equityPercentage ? String(item.equityPercentage) : '',
+            projectId: item.projectId || '',
+            agreementFile: item.agreementFile || '',
             startDate: item.startDate || '', endDate: item.endDate || '', notes: item.notes || '',
         });
         setModalPos(null);
         setShowModal(true);
     };
 
-    const handleSave = async () => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
         try {
-            if (editing) await constructionService.updatePartnership(editing.id, form);
-            else await constructionService.createPartnership(form);
+            const uploaded = await uploadService.uploadFile(file);
+            setForm(p => ({ ...p, agreementFile: uploaded.secureUrl }));
+            showToast('Agreement document uploaded', 'success');
+        } catch {
+            showToast('Failed to upload document', 'error');
+        } finally {
+            setUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const buildPayload = () => ({
+        ...form,
+        address: form.address || undefined,
+        registrationNumber: form.registrationNumber || undefined,
+        taxId: form.taxId || undefined,
+        licenseNumber: form.licenseNumber || undefined,
+        licenseExpiry: form.licenseExpiry || undefined,
+        insuranceExpiry: form.insuranceExpiry || undefined,
+        investmentAmount: form.investmentAmount ? Number(form.investmentAmount) : undefined,
+        equityPercentage: form.equityPercentage ? Number(form.equityPercentage) : undefined,
+        projectId: form.projectId || undefined,
+        agreementFile: form.agreementFile || undefined,
+        startDate: form.startDate || undefined,
+        endDate: form.endDate || undefined,
+    });
+
+    const handleSave = async () => {
+        if (!form.companyName.trim()) { showToast('Company name is required', 'error'); return; }
+        setSaving(true);
+        try {
+            if (editing) await constructionService.updatePartnership(editing.id, buildPayload());
+            else await constructionService.createPartnership({ ...buildPayload(), status: 'pending' });
+            showToast(editing ? 'Partnership updated' : 'Application registered — pending review', 'success');
             setShowModal(false);
             fetch();
-        } catch (e) { console.error(e); }
+        } catch (e: any) {
+            showToast(e?.response?.data?.message || 'Failed to save', 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const review = async (item: Partnership, decision: 'active' | 'rejected') => {
+        const verb = decision === 'active' ? 'approve' : 'reject';
+        if (!window.confirm(`Do you want to ${verb} the application from "${item.companyName}"?`)) return;
+        try {
+            await constructionService.updatePartnership(item.id, { status: decision });
+            showToast(`Application ${decision === 'active' ? 'approved' : 'rejected'}`, 'success');
+            fetch();
+        } catch {
+            showToast('Failed to update status', 'error');
+        }
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Delete this partnership?')) return;
+        if (!window.confirm('Delete this partnership record?')) return;
         try { await constructionService.deletePartnership(id); fetch(); }
         catch (e) { console.error(e); }
     };
@@ -225,48 +340,44 @@ const Partnerships = () => {
     if (loading) return <div className="admin-page"><div className="inline-spinner">Loading partnerships...</div></div>;
 
     const statusColors: Record<string, string> = {
-        active: '#22c55e', inactive: '#6b7280', pending: '#f59e0b',
+        active: '#22c55e', inactive: '#6b7280', pending: '#f59e0b', rejected: '#ef4444',
     };
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
-                    <FaHandshake style={{ color: 'var(--primary)' }} /> Partnerships
-                </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem', gap: '1rem', flexWrap: 'wrap' }}>
+                <div>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                        <FaHandshake style={{ color: 'var(--primary)' }} /> Partnerships
+                    </h2>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Suppliers, subcontractors, investors and joint-venture applications</span>
+                </div>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.total}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.active}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Active</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.pending}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Pending</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.inactive}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Inactive</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.suppliers}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Suppliers</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.subcontractors}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Subcontract</div>
+                    {([
+                        { key: 'all' as const, label: 'Total', value: stats.total, color: '#1B2042' },
+                        { key: 'pending' as const, label: 'Pending Review', value: stats.pending, color: '#f59e0b' },
+                        { key: 'active' as const, label: 'Active', value: stats.active, color: '#22c55e' },
+                        { key: 'rejected' as const, label: 'Rejected', value: stats.rejected, color: '#ef4444' },
+                    ]).map(s => (
+                        <div key={s.key} className="admin-card" onClick={() => { setStatusFilter(s.key); setPage(1); }} style={{ padding: '0.45rem 2rem', textAlign: 'center', background: s.color, color: '#fff', cursor: 'pointer', opacity: statusFilter === s.key ? 1 : 0.75 }}>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{s.value}</div>
+                            <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>{s.label}</div>
+                        </div>
+                    ))}
+                    <div className="admin-card" style={{ padding: '0.45rem 2rem', textAlign: 'center', background: '#8b5cf6', color: '#fff' }}>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.investors}</div>
+                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Investors/JV</div>
                     </div>
                 </div>
             </div>
 
-            <div className="admin-card">
+            <div className="admin-card" style={{ marginTop: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>All Partnerships</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        {statusFilter === 'all' ? 'All Partnerships' : `${statusFilter.charAt(0).toUpperCase()}${statusFilter.slice(1)} Partnerships`}
+                    </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <input type="text" className="form-input" placeholder="Search company, contact, type..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 400 }} />
+                        <input type="text" className="form-input" placeholder="Search company, contact, type..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 280 }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
                         <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
@@ -276,7 +387,7 @@ const Partnerships = () => {
                             <FaFilePdf /> PDF
                         </button>
                         <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
-                            <FaPlus style={{ marginRight: 6 }} />Add Partnership
+                            <FaPlus style={{ marginRight: 6 }} />Register Partner
                         </button>
                     </div>
                 </div>
@@ -284,41 +395,69 @@ const Partnerships = () => {
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <th>Company</th><th>Contact</th><th>Type</th><th>Status</th><th>Email</th><th>Phone</th><th>Dates</th><th>Actions</th>
+                                <th>Company</th><th>Type</th><th>Status</th><th>Contact</th><th>Compliance</th><th>Investment</th><th>Reviewed By</th><th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {paginated.map(item => (
-                                <tr key={item.id}>
-                                    <td><strong>{item.companyName}</strong></td>
-                                    <td>
-                                        {item.contactPerson && <div>{item.contactPerson}</div>}
-                                        {!item.contactPerson && '—'}
-                                    </td>
-                                    <td style={{ textTransform: 'capitalize' }}>{item.partnershipType.replace('_', ' ')}</td>
-                                    <td>
-                                        <span style={{
-                                            display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
-                                            color: '#fff', background: statusColors[item.status] || '#6b7280',
-                                        }}>{item.status}</span>
-                                    </td>
-                                    <td>{item.email || '—'}</td>
-                                    <td>{item.phone || '—'}</td>
-                                    <td style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                                        {item.startDate ? new Date(item.startDate).toLocaleDateString() : '?'} — {item.endDate ? new Date(item.endDate).toLocaleDateString() : '?'}
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'flex', gap: 6 }}>
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)}><FaEdit /></button>
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)}><FaTrash /></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {data.length === 0 && (
+                            {paginated.map(item => {
+                                const flag = isVendorType(item.partnershipType) ? complianceFlag(item.licenseExpiry, item.insuranceExpiry) : null;
+                                return (
+                                    <tr key={item.id}>
+                                        <td>
+                                            <strong>{item.companyName}</strong>
+                                            {item.project && (
+                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                                                    <FaBuilding size={9} /> {item.project.name}
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td style={{ textTransform: 'capitalize' }}>{TYPE_LABELS[item.partnershipType] || item.partnershipType}</td>
+                                        <td>
+                                            <span style={{
+                                                display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
+                                                color: '#fff', background: statusColors[item.status] || '#6b7280', textTransform: 'capitalize',
+                                            }}>{item.status}</span>
+                                        </td>
+                                        <td style={{ fontSize: '0.82rem' }}>
+                                            {item.contactPerson && <div>{item.contactPerson}</div>}
+                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{item.email || item.phone || '—'}</div>
+                                        </td>
+                                        <td>
+                                            {flag ? (
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', fontWeight: 600, color: flag.color }}>
+                                                    {flag.color !== '#22c55e' && <FaExclamationTriangle size={10} />} {flag.label}
+                                                </span>
+                                            ) : <span style={{ color: 'var(--text-muted)' }}>—</span>}
+                                        </td>
+                                        <td style={{ fontSize: '0.82rem' }}>
+                                            {isCapitalType(item.partnershipType) && item.investmentAmount ? (
+                                                <div>
+                                                    <div style={{ fontWeight: 600 }}>RWF {Number(item.investmentAmount).toLocaleString()}</div>
+                                                    {item.equityPercentage ? <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>{item.equityPercentage}% equity</div> : null}
+                                                </div>
+                                            ) : '—'}
+                                        </td>
+                                        <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{item.reviewedByName || '—'}</td>
+                                        <td>
+                                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => setViewItem(item)} title="View"><FaEye /></button>
+                                                {item.status === 'pending' && (
+                                                    <>
+                                                        <button className="admin-btn" style={{ padding: '0.3rem 0.6rem', background: '#22c55e', borderColor: '#22c55e' }} onClick={() => review(item, 'active')} title="Approve"><FaCheck /></button>
+                                                        <button className="admin-btn" style={{ padding: '0.3rem 0.6rem', background: '#ef4444', borderColor: '#ef4444' }} onClick={() => review(item, 'rejected')} title="Reject"><FaBan /></button>
+                                                    </>
+                                                )}
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)} title="Delete"><FaTrash /></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                            {paginated.length === 0 && (
                                 <tr><td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                                     <FaHandshake size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
-                                    <div>No partnerships found. Click "Add New" to create one.</div>
+                                    <div>No partnerships found. Click "Register Partner" to register a new one.</div>
                                 </td></tr>
                             )}
                         </tbody>
@@ -331,12 +470,7 @@ const Partnerships = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
-                            <select
-                                className="form-select"
-                                style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }}
-                                value={pageSize}
-                                onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}
-                            >
+                            <select className="form-select" style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                                 {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                                 <option value={0}>All</option>
                             </select>
@@ -353,14 +487,22 @@ const Partnerships = () => {
                     </div>
                 </div>
             </div>
+
             {showModal && (
-                <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
+                <div className="admin-modal-overlay" onClick={() => !saving && setShowModal(false)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)', maxWidth: 720 }}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
-                            <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'Add'} Partnership</h3>
+                            <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit Partnership' : 'Register New Partner / Investor'}</h3>
                             <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>
                         </div>
                         <div className="admin-modal-body">
+                            {!editing && (
+                                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 0, marginBottom: '1rem' }}>
+                                    New applications are registered as <strong>Pending</strong> and must be reviewed (Approve/Reject) before becoming active.
+                                </p>
+                            )}
+
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.5rem' }}>Company Information</div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
                                     <label className="form-label">Company Name</label>
@@ -380,14 +522,6 @@ const Partnerships = () => {
                                     <input className="form-input" value={form.contactPerson} onChange={e => setForm(p => ({ ...p, contactPerson: e.target.value }))} placeholder="Full name" />
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Status</label>
-                                    <select className="form-select" value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))}>
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                        <option value="pending">Pending</option>
-                                    </select>
-                                </div>
-                                <div className="form-group">
                                     <label className="form-label">Email</label>
                                     <input type="email" className="form-input" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="contact@company.com" />
                                 </div>
@@ -396,12 +530,95 @@ const Partnerships = () => {
                                     <input className="form-input" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+250 788 000 000" />
                                 </div>
                                 <div className="form-group">
+                                    <label className="form-label">Address</label>
+                                    <input className="form-input" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} placeholder="Business address" />
+                                </div>
+                            </div>
+
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '1.25rem 0 0.5rem' }}>Legal &amp; Compliance</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div className="form-group">
+                                    <label className="form-label">Registration Number</label>
+                                    <input className="form-input" value={form.registrationNumber} onChange={e => setForm(p => ({ ...p, registrationNumber: e.target.value }))} placeholder="RDB registration number" />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Tax ID (TIN)</label>
+                                    <input className="form-input" value={form.taxId} onChange={e => setForm(p => ({ ...p, taxId: e.target.value }))} placeholder="Tax identification number" />
+                                </div>
+                                {isVendorType(form.partnershipType) && (
+                                    <>
+                                        <div className="form-group">
+                                            <label className="form-label"><FaShieldAlt size={10} style={{ marginRight: 4 }} />License Number</label>
+                                            <input className="form-input" value={form.licenseNumber} onChange={e => setForm(p => ({ ...p, licenseNumber: e.target.value }))} placeholder="Trade/contractor license" />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">License Expiry</label>
+                                            <input type="date" className="form-input" value={form.licenseExpiry} onChange={e => setForm(p => ({ ...p, licenseExpiry: e.target.value }))} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Insurance Expiry</label>
+                                            <input type="date" className="form-input" value={form.insuranceExpiry} onChange={e => setForm(p => ({ ...p, insuranceExpiry: e.target.value }))} />
+                                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.25rem 0 0' }}>Liability / workers' comp coverage</p>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {isCapitalType(form.partnershipType) && (
+                                <>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '1.25rem 0 0.5rem' }}><FaCoins size={10} style={{ marginRight: 4 }} />Investment Terms</div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                                        <div className="form-group">
+                                            <label className="form-label">Investment Amount (RWF)</label>
+                                            <input type="number" className="form-input" value={form.investmentAmount} onChange={e => setForm(p => ({ ...p, investmentAmount: e.target.value }))} placeholder="e.g. 50000000" />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Equity Share (%)</label>
+                                            <input type="number" step="0.1" className="form-input" value={form.equityPercentage} onChange={e => setForm(p => ({ ...p, equityPercentage: e.target.value }))} placeholder="e.g. 12.5" />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Linked Project</label>
+                                            <select className="form-select" value={form.projectId} onChange={e => setForm(p => ({ ...p, projectId: e.target.value }))}>
+                                                <option value="">— None —</option>
+                                                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '1.25rem 0 0.5rem' }}>Agreement &amp; Term</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div className="form-group">
                                     <label className="form-label">Start Date</label>
                                     <input type="date" className="form-input" value={form.startDate} onChange={e => setForm(p => ({ ...p, startDate: e.target.value }))} />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">End Date</label>
                                     <input type="date" className="form-input" value={form.endDate} onChange={e => setForm(p => ({ ...p, endDate: e.target.value }))} />
+                                </div>
+                                {editing && (
+                                    <div className="form-group">
+                                        <label className="form-label">Status</label>
+                                        <select className="form-select" value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))}>
+                                            <option value="pending">Pending</option>
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
+                                            <option value="rejected">Rejected</option>
+                                        </select>
+                                    </div>
+                                )}
+                                <div className="form-group">
+                                    <label className="form-label">Agreement Document</label>
+                                    <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".pdf,.doc,.docx,image/*" style={{ display: 'none' }} />
+                                    <button type="button" className="admin-btn admin-btn--secondary" disabled={uploading} onClick={() => fileInputRef.current?.click()} style={{ width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <FaFileUpload /> {uploading ? 'Uploading...' : form.agreementFile ? 'Replace document' : 'Upload document'}
+                                    </button>
+                                    {form.agreementFile && (
+                                        <a href={form.agreementFile} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: '0.35rem', color: 'var(--primary)' }}>
+                                            <FaFileIcon size={10} /> View uploaded document
+                                        </a>
+                                    )}
                                 </div>
                             </div>
                             <div className="form-group" style={{ marginTop: '1rem' }}>
@@ -410,8 +627,60 @@ const Partnerships = () => {
                             </div>
                         </div>
                         <div className="admin-modal-footer">
-                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button className="admin-btn" onClick={handleSave}>Save</button>
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)} disabled={saving}>Cancel</button>
+                            <button className="admin-btn" onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : (editing ? 'Save Changes' : 'Submit Application')}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {viewItem && (
+                <div className="admin-modal-overlay" onClick={() => setViewItem(null)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ position: 'relative', maxWidth: 480, width: '100%', top: 'auto', left: 'auto', transform: 'none', borderRadius: 12 }}>
+                        <div className="admin-modal-header" style={{ padding: '0.9rem 1.1rem' }}>
+                            <h3 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}><FaHandshake style={{ color: 'var(--primary)' }} /> {viewItem.companyName}</h3>
+                            <button onClick={() => setViewItem(null)}><FaTimesIcon /></button>
+                        </div>
+                        <div className="admin-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <span style={{ padding: '2px 10px', borderRadius: 12, fontSize: '0.78rem', fontWeight: 600, color: '#fff', background: statusColors[viewItem.status] || '#6b7280', textTransform: 'capitalize' }}>{viewItem.status}</span>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>{TYPE_LABELS[viewItem.partnershipType] || viewItem.partnershipType}</span>
+                            </div>
+                            {viewItem.contactPerson && <div style={{ fontSize: '0.85rem' }}>{viewItem.contactPerson} {viewItem.email ? `· ${viewItem.email}` : ''} {viewItem.phone ? `· ${viewItem.phone}` : ''}</div>}
+                            {viewItem.address && <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{viewItem.address}</div>}
+                            {(viewItem.registrationNumber || viewItem.taxId) && (
+                                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                    {viewItem.registrationNumber && <>Reg. No: {viewItem.registrationNumber}<br /></>}
+                                    {viewItem.taxId && <>TIN: {viewItem.taxId}</>}
+                                </div>
+                            )}
+                            {isVendorType(viewItem.partnershipType) && (viewItem.licenseNumber || viewItem.insuranceExpiry) && (
+                                <div style={{ background: '#f5f5f5', borderRadius: 8, padding: '0.6rem 0.8rem', fontSize: '0.78rem' }}>
+                                    {viewItem.licenseNumber && <div>License: {viewItem.licenseNumber} {viewItem.licenseExpiry ? `(exp. ${new Date(viewItem.licenseExpiry).toLocaleDateString()})` : ''}</div>}
+                                    {viewItem.insuranceExpiry && <div>Insurance expiry: {new Date(viewItem.insuranceExpiry).toLocaleDateString()}</div>}
+                                    {(() => { const f = complianceFlag(viewItem.licenseExpiry, viewItem.insuranceExpiry); return f ? <div style={{ color: f.color, fontWeight: 600, marginTop: 4 }}>{f.label}</div> : null; })()}
+                                </div>
+                            )}
+                            {isCapitalType(viewItem.partnershipType) && viewItem.investmentAmount && (
+                                <div style={{ background: '#8b5cf610', borderRadius: 8, padding: '0.6rem 0.8rem', fontSize: '0.85rem' }}>
+                                    <strong>RWF {Number(viewItem.investmentAmount).toLocaleString()}</strong>{viewItem.equityPercentage ? ` for ${viewItem.equityPercentage}% equity` : ''}
+                                    {viewItem.project && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>Project: {viewItem.project.name}</div>}
+                                </div>
+                            )}
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                {viewItem.startDate ? new Date(viewItem.startDate).toLocaleDateString() : '?'} — {viewItem.endDate ? new Date(viewItem.endDate).toLocaleDateString() : '?'}
+                            </div>
+                            {viewItem.notes && <div style={{ fontSize: '0.82rem', background: '#f9f9f9', borderRadius: 8, padding: '0.6rem 0.8rem' }}>{viewItem.notes}</div>}
+                            {viewItem.agreementFile && (
+                                <a href={viewItem.agreementFile} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                    <FaFileIcon size={11} /> View agreement document
+                                </a>
+                            )}
+                            {viewItem.reviewedByName && (
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
+                                    Reviewed by {viewItem.reviewedByName}{viewItem.reviewedAt ? ` on ${new Date(viewItem.reviewedAt).toLocaleDateString()}` : ''}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

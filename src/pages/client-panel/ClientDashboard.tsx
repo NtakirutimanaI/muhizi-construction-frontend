@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { FaSpinner, FaImage, FaHardHat, FaClipboardList } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
-import { sitesService } from '../../services/sitesService';
-import { projectEvidenceService } from '../../services/projectEvidenceService';
+import { clientPortalService } from '../../services/clientPortalService';
+import type { Project } from '../../services/constructionService';
 
 const ClientDashboard = () => {
   const { user } = useAuth();
@@ -11,14 +11,16 @@ const ClientDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      sitesService.getAll(),
-      projectEvidenceService.getClientVisible(),
-    ])
-      .then(([sitesRes, evRes]) => {
-        const sites = sitesRes.data || [];
-        const evidence = evRes.data || [];
+    clientPortalService.getMyProjects()
+      .then(async (projectsRes) => {
+        const projects = (projectsRes.data || []) as Project[];
+        const sites = projects.flatMap((p) => (p as any).sites || []);
         setSitesCount(sites.length);
+
+        const evidenceResults = await Promise.all(
+          projects.map((p) => clientPortalService.getProjectEvidence(p.id).catch(() => ({ data: [] })))
+        );
+        const evidence = evidenceResults.flatMap((r) => r.data || []);
         setEvidenceCount(evidence.length);
       })
       .catch(() => {})

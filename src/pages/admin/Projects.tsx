@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaProjectDiagram, FaCheckCircle, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye, FaHardHat, FaMapMarkerAlt, FaUser, FaCalendarAlt } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { sitesService, type Site } from '../../services/sitesService';
+import { authService } from '../../services/authService';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import type { Project } from '../../services/constructionService';
@@ -10,13 +11,18 @@ import type { Project } from '../../services/constructionService';
 interface FormData {
     name: string; description: string; type: string; status: string;
     startDate: string; endDate: string; budget: number | ''; location: string;
-    clientName: string; clientContact: string; progress: number | '';
+    clientName: string; clientContact: string; clientUserId: string; partnerUserId: string; progress: number | '';
+}
+
+interface PortalUserOption {
+    id: string; email: string; username: string; role: string;
+    profile?: { firstName?: string; lastName?: string };
 }
 
 const emptyForm: FormData = {
     name: '', description: '', type: 'construction', status: 'planning',
     startDate: '', endDate: '', budget: '', location: '', clientName: '',
-    clientContact: '', progress: '',
+    clientContact: '', clientUserId: '', partnerUserId: '', progress: '',
 };
 
 const PAGE_SIZES = [5, 10, 15, 20];
@@ -54,6 +60,9 @@ const Projects = () => {
     const [allSites, setAllSites] = useState<Site[]>([]);
     const [filterSiteProjectId, setFilterSiteProjectId] = useState<string | null>(null);
     const [viewProject, setViewProject] = useState<Project | null>(null);
+    const [portalUsers, setPortalUsers] = useState<PortalUserOption[]>([]);
+    const clientUsers = useMemo(() => portalUsers.filter(u => u.role === 'client'), [portalUsers]);
+    const partnerUsers = useMemo(() => portalUsers.filter(u => u.role === 'partner'), [portalUsers]);
 
     useEffect(() => {
         if (createProjectForSite === 'true' && createProjectSiteId) {
@@ -82,6 +91,15 @@ const Projects = () => {
             }).catch(() => setUnlinkedSites([]));
         }
     }, [showModal, editing]);
+
+    // Fetch client/partner accounts once, for the "Link to Client/Partner Account" dropdowns
+    useEffect(() => {
+        if (showModal && portalUsers.length === 0) {
+            authService.getAllUsers()
+                .then((all: any[]) => setPortalUsers(all || []))
+                .catch(() => setPortalUsers([]));
+        }
+    }, [showModal, portalUsers.length]);
 
     const fetch = async () => {
         try {
@@ -180,6 +198,8 @@ const Projects = () => {
                 ...form,
                 startDate: form.startDate || null,
                 endDate: form.endDate || null,
+                clientUserId: form.clientUserId || null,
+                partnerUserId: form.partnerUserId || null,
             };
             if (editing) {
                 await constructionService.updateProject(editing.id, payload);
@@ -345,6 +365,8 @@ const Projects = () => {
                                                     location: item.location || '',
                                                     clientName: (item as any).clientName || '',
                                                     clientContact: (item as any).clientContact || '',
+                                                    clientUserId: (item as any).clientUserId || '',
+                                                    partnerUserId: (item as any).partnerUserId || '',
                                                     progress: item.progress || '',
                                                 });
                                                 setModalPos(null);
@@ -482,6 +504,32 @@ const Projects = () => {
                                     <label className="form-label">Client Contact</label>
                                     <input className="form-input" value={form.clientContact} onChange={e => setForm(p => ({ ...p, clientContact: e.target.value }))} placeholder="Phone or email" />
                                 </div>
+                                <div className="form-group">
+                                    <label className="form-label">Link to Client Account</label>
+                                    <select className="form-select" value={form.clientUserId} onChange={e => setForm(p => ({ ...p, clientUserId: e.target.value }))}>
+                                        <option value="">— Not linked —</option>
+                                        {clientUsers.map(u => {
+                                            const label = `${u.profile?.firstName || ''} ${u.profile?.lastName || ''}`.trim() || u.username;
+                                            return <option key={u.id} value={u.id}>{label} ({u.email})</option>;
+                                        })}
+                                    </select>
+                                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>
+                                        Required for the client to see this project in their client portal dashboard.
+                                    </p>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Link to Partner Account</label>
+                                    <select className="form-select" value={form.partnerUserId} onChange={e => setForm(p => ({ ...p, partnerUserId: e.target.value }))}>
+                                        <option value="">— Not linked —</option>
+                                        {partnerUsers.map(u => {
+                                            const label = `${u.profile?.firstName || ''} ${u.profile?.lastName || ''}`.trim() || u.username;
+                                            return <option key={u.id} value={u.id}>{label} ({u.email})</option>;
+                                        })}
+                                    </select>
+                                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>
+                                        Required for the partner to see this project in their partner portal dashboard.
+                                    </p>
+                                </div>
                             </div>
                             <div className="form-group" style={{ marginTop: '1rem' }}>
                                 <label className="form-label">Description</label>
@@ -572,6 +620,18 @@ const Projects = () => {
                                     <FaUser size={10} /> {viewProject.clientName}{viewProject.clientContact ? ` — ${viewProject.clientContact}` : ''}
                                 </div>
                             )}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', padding: '0.15rem 0', color: viewProject.clientUserId ? '#22c55e' : '#f59e0b' }}>
+                                <FaUser size={10} />
+                                {viewProject.clientUserId
+                                    ? 'Linked to a client portal account'
+                                    : 'Not linked to a client account — won\'t appear in any client portal'}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', padding: '0.15rem 0', color: viewProject.partnerUserId ? '#22c55e' : '#f59e0b' }}>
+                                <FaUser size={10} />
+                                {viewProject.partnerUserId
+                                    ? 'Linked to a partner portal account'
+                                    : 'Not linked to a partner account — won\'t appear in any partner portal'}
+                            </div>
                             <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                                 {viewProject.startDate && <span><FaCalendarAlt size={9} style={{ marginRight: 3 }} />{new Date(viewProject.startDate).toLocaleDateString()}</span>}
                                 {viewProject.endDate && <span>→ {new Date(viewProject.endDate).toLocaleDateString()}</span>}

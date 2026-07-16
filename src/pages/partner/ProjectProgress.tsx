@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaImage, FaVideo, FaSpinner, FaTimes, FaHardHat, FaProjectDiagram, FaMoneyBillWave, FaCheckCircle, FaClock, FaChartBar } from 'react-icons/fa';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { projectEvidenceService } from '../../services/projectEvidenceService';
-import { constructionService } from '../../services/constructionService';
+import { partnerPortalService } from '../../services/partnerPortalService';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
 import type { Project } from '../../services/constructionService';
 
@@ -16,13 +15,14 @@ const ProjectProgress = () => {
     const [filterType, setFilterType] = useState<'all' | 'image' | 'video'>('all');
 
     useEffect(() => {
-        Promise.all([
-            projectEvidenceService.getClientVisible(),
-            constructionService.getProjects(),
-        ])
-            .then(([evRes, projRes]) => {
-                setItems(evRes.data || []);
-                setProjects(projRes.data || []);
+        partnerPortalService.getMyProjects()
+            .then(async (projRes) => {
+                const projectsData = (projRes.data || []) as Project[];
+                setProjects(projectsData);
+                const evidenceResults = await Promise.all(
+                    projectsData.map((p) => partnerPortalService.getProjectEvidence(p.id).catch(() => ({ data: [] })))
+                );
+                setItems(evidenceResults.flatMap((r) => r.data || []));
             })
             .catch(() => { setItems([]); setProjects([]); })
             .finally(() => setLoading(false));

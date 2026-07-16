@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaLock, FaShieldAlt, FaCheck, FaTimes, FaUndo, FaUserShield, FaSpinner, FaUsers } from 'react-icons/fa';
-import { profileService } from '../../services/profileService';
+import { permissionsService } from '../../services/permissionsService';
 import { authService } from '../../services/authService';
 import { useToast } from '../../context/ToastContext';
 
@@ -19,38 +19,37 @@ interface UserData {
 interface PermissionGroup {
     group: string;
     permissions: string[];
+    /** Whether any backend route actually checks this permission yet. False = toggling here has no effect until a route is wired to it. */
+    enforced: boolean;
 }
 
 const PERMISSION_GROUPS: PermissionGroup[] = [
-    { group: 'Profile', permissions: ['profile:read', 'profile:create', 'profile:update', 'profile:delete'] },
-    { group: 'Messages', permissions: ['messages:read', 'messages:create', 'messages:update', 'messages:delete'] },
-    { group: 'Resources', permissions: ['resources:read', 'resources:create', 'resources:update', 'resources:delete'] },
-    { group: 'Notifications', permissions: ['notifications:read', 'notifications:update'] },
-    { group: 'Visitors', permissions: ['visitors:read'] },
-    { group: 'Users', permissions: ['users:read', 'users:create', 'users:update', 'users:delete'] },
-    { group: 'Projects', permissions: ['projects:read', 'projects:create', 'projects:update', 'projects:delete'] },
-    { group: 'Designs', permissions: ['designs:read', 'designs:create', 'designs:update', 'designs:delete'] },
-    { group: 'Partnerships', permissions: ['partnerships:read', 'partnerships:create', 'partnerships:update', 'partnerships:delete'] },
-    { group: 'Employees', permissions: ['employees:read', 'employees:create', 'employees:update', 'employees:delete'] },
-    { group: 'Attendance', permissions: ['attendance:read', 'attendance:create', 'attendance:update'] },
-    { group: 'Payroll', permissions: ['payroll:read', 'payroll:create', 'payroll:update'] },
-    { group: 'Finances', permissions: ['incomes:read', 'incomes:create', 'incomes:update', 'incomes:delete', 'expenses:read', 'expenses:create', 'expenses:update', 'expenses:delete'] },
-    { group: 'Reports', permissions: ['reports:read'] },
-    { group: 'Settings', permissions: ['settings:read', 'settings:update'] },
-    { group: 'ML', permissions: ['ml:read', 'ml:execute'] },
-    { group: 'Audit', permissions: ['audit:read'] },
+    { group: 'Profile', permissions: ['profile:delete'], enforced: true },
+    { group: 'Messages', permissions: ['messages:read', 'messages:update', 'messages:delete'], enforced: true },
+    { group: 'Resources', permissions: ['resources:read', 'resources:create', 'resources:update', 'resources:delete'], enforced: true },
+    { group: 'Notifications', permissions: ['notifications:read', 'notifications:update'], enforced: true },
+    { group: 'Users', permissions: ['users:read', 'users:create', 'users:update', 'users:delete'], enforced: false },
+    { group: 'Projects', permissions: ['projects:read', 'projects:create', 'projects:update', 'projects:delete'], enforced: true },
+    { group: 'Designs', permissions: ['designs:read', 'designs:create', 'designs:update', 'designs:delete'], enforced: true },
+    { group: 'Partnerships', permissions: ['partnerships:read', 'partnerships:create', 'partnerships:update', 'partnerships:delete'], enforced: false },
+    { group: 'Employees', permissions: ['employees:read', 'employees:create', 'employees:update', 'employees:delete'], enforced: false },
+    { group: 'Attendance', permissions: ['attendance:read', 'attendance:create', 'attendance:update'], enforced: false },
+    { group: 'Payroll', permissions: ['payroll:read', 'payroll:create', 'payroll:update'], enforced: true },
+    { group: 'Finances', permissions: ['incomes:read', 'incomes:create', 'incomes:update', 'incomes:delete', 'expenses:read', 'expenses:create', 'expenses:update', 'expenses:delete'], enforced: true },
+    { group: 'Reports', permissions: ['reports:read'], enforced: true },
+    { group: 'Settings', permissions: ['settings:read', 'settings:update'], enforced: false },
+    { group: 'ML', permissions: ['ml:read', 'ml:execute'], enforced: false },
+    { group: 'Audit', permissions: ['audit:read'], enforced: false },
 ];
 
 const DEFAULT_PERMISSIONS: Record<string, string[]> = {
     admin: ['*'],
-    managing_director: ['profile:read', 'messages:read', 'resources:read', 'notifications:read', 'visitors:read'],
-    finance_director: ['profile:read', 'messages:read', 'resources:read', 'notifications:read', 'visitors:read', 'incomes:read', 'incomes:create', 'incomes:update', 'expenses:read', 'expenses:create', 'expenses:update', 'payroll:read', 'reports:read'],
-    site_engineer: ['profile:read', 'profile:update', 'messages:read', 'messages:update', 'resources:read', 'resources:create', 'resources:update', 'notifications:read', 'visitors:read', 'projects:read', 'designs:read'],
-    engineering_studio: ['profile:read', 'messages:read', 'resources:read', 'projects:read', 'designs:read', 'designs:create', 'designs:update'],
-    partner: ['profile:read'],
+    managing_director: ['messages:read', 'resources:read', 'notifications:read'],
+    finance_director: ['messages:read', 'resources:read', 'notifications:read', 'incomes:read', 'incomes:create', 'incomes:update', 'expenses:read', 'expenses:create', 'expenses:update', 'payroll:read', 'reports:read'],
+    site_engineer: ['messages:read', 'messages:update', 'resources:read', 'resources:create', 'resources:update', 'notifications:read', 'projects:read', 'designs:read'],
+    engineering_studio: ['messages:read', 'resources:read', 'projects:read', 'designs:read', 'designs:create', 'designs:update'],
+    partner: [],
 };
-
-const LOCAL_KEY = 'app_permissions';
 
 const roleColors: Record<string, string> = { admin: '#ef4444', managing_director: '#1B2042', finance_director: '#f59e0b', site_engineer: '#22c55e', engineering_studio: '#3b82f6', partner: '#1a8a6a' };
 const roleLabels: Record<string, string> = { admin: 'CEO', managing_director: 'Managing Director', finance_director: 'Finance Director', site_engineer: 'Site Engineer', engineering_studio: 'Engineering Studio', partner: 'Partner' };
@@ -74,45 +73,33 @@ export default function Permissions() {
 
     const allPermissions: string[] = PERMISSION_GROUPS.flatMap(g => g.permissions);
 
-    useEffect(() => {
-        (async () => {
-            setLoading(true);
-            try {
-                const profile = await profileService.getMyProfile();
-                const saved = (profile?.pageContent as any)?.permissions as Record<string, string[]> | undefined;
-                if (saved && typeof saved === 'object') {
-                    const merged: Record<string, string[]> = {};
-                    for (const role of ROLES) {
-                        merged[role] = saved[role] && Array.isArray(saved[role]) ? saved[role] : (DEFAULT_PERMISSIONS[role] || []);
-                    }
-                    setRolePerms(merged);
-                    localStorage.setItem(LOCAL_KEY, JSON.stringify(merged));
-                    return;
-                }
-            } catch { /* ignore */ }
-            try {
-                const local = localStorage.getItem(LOCAL_KEY);
-                if (local) {
-                    const parsed = JSON.parse(local) as Record<string, string[]>;
-                    const merged: Record<string, string[]> = {};
-                    for (const role of ROLES) {
-                        merged[role] = parsed[role] && Array.isArray(parsed[role]) ? parsed[role] : (DEFAULT_PERMISSIONS[role] || []);
-                    }
-                    setRolePerms(merged);
-                    return;
-                }
-            } catch { /* ignore */ }
-            setRolePerms({ ...DEFAULT_PERMISSIONS });
-        })().finally(() => setLoading(false));
-        authService.getAllUsers().then(setUsers).catch(() => showToast('Failed to load users', 'error')).finally(() => setLoadingUsers(false));
-    }, []);
-
-    const persist = useCallback(async (updated: Record<string, string[]>) => {
+    const loadPermissions = useCallback(async () => {
+        setLoading(true);
         try {
-            const profile = await profileService.getMyProfile();
-            await profileService.updateProfile({ pageContent: { ...profile.pageContent, permissions: updated } } as any);
-        } catch { /* ignore */ }
-        localStorage.setItem(LOCAL_KEY, JSON.stringify(updated));
+            const res = await permissionsService.getAll();
+            const rows = res.data || [];
+            const merged: Record<string, string[]> = {};
+            for (const role of ROLES) {
+                merged[role] = rows
+                    .filter(r => r.role === role && r.allowed && r.isActive)
+                    .map(r => `${r.resource}:${r.action}`);
+            }
+            setRolePerms(merged);
+        } catch {
+            showToast('Failed to load permissions', 'error');
+            setRolePerms({ ...DEFAULT_PERMISSIONS });
+        } finally {
+            setLoading(false);
+        }
+    }, [showToast]);
+
+    useEffect(() => {
+        loadPermissions();
+        authService.getAllUsers().then(setUsers).catch(() => showToast('Failed to load users', 'error')).finally(() => setLoadingUsers(false));
+    }, [loadPermissions]);
+
+    const persist = useCallback(async (role: string, actions: string[]) => {
+        await permissionsService.updateByRole(role, actions);
     }, []);
 
     const togglePermission = async (role: string, permission: string) => {
@@ -122,10 +109,13 @@ export default function Permissions() {
         if (!confirm(`Do you want to ${granting ? 'apply' : 'remove'} "${permission}" for "${roleLabels[role]}"?`)) return;
         setSavingPerm(`${role}:${permission}`);
         const updated = granting ? [...current, permission] : current.filter(p => p !== permission);
-        const next = { ...rolePerms, [role]: updated };
-        setRolePerms(next);
-        await persist(next);
-        showToast(`${granting ? 'Granted' : 'Revoked'} "${permission}" for ${roleLabels[role]}`, 'success');
+        try {
+            await persist(role, updated);
+            setRolePerms(prev => ({ ...prev, [role]: updated }));
+            showToast(`${granting ? 'Granted' : 'Revoked'} "${permission}" for ${roleLabels[role]}`, 'success');
+        } catch {
+            showToast('Failed to save permission change', 'error');
+        }
         setSavingPerm(null);
     };
 
@@ -136,10 +126,13 @@ export default function Permissions() {
         setSavingPerm(`${role}:${groupName}`);
         const current = rolePerms[role] || [];
         const updated = grant ? [...new Set([...current, ...groupPerms])] : current.filter(p => !groupPerms.includes(p));
-        const next = { ...rolePerms, [role]: updated };
-        setRolePerms(next);
-        await persist(next);
-        showToast(`${grant ? 'Granted' : 'Revoked'} all "${groupName}" for ${roleLabels[role]}`, 'success');
+        try {
+            await persist(role, updated);
+            setRolePerms(prev => ({ ...prev, [role]: updated }));
+            showToast(`${grant ? 'Granted' : 'Revoked'} all "${groupName}" for ${roleLabels[role]}`, 'success');
+        } catch {
+            showToast('Failed to save permission change', 'error');
+        }
         setSavingPerm(null);
     };
 
@@ -147,10 +140,14 @@ export default function Permissions() {
         if (role === 'admin') return;
         if (!confirm(`Do you want to ${grant ? 'grant all permissions to' : 'revoke all permissions from'} "${roleLabels[role]}"?`)) return;
         setSavingPerm(`${role}:all`);
-        const next = { ...rolePerms, [role]: grant ? [...allPermissions] : [] };
-        setRolePerms(next);
-        await persist(next);
-        showToast(`${grant ? 'Granted' : 'Revoked'} all permissions for ${roleLabels[role]}`, 'success');
+        const updated = grant ? [...allPermissions] : [];
+        try {
+            await persist(role, updated);
+            setRolePerms(prev => ({ ...prev, [role]: updated }));
+            showToast(`${grant ? 'Granted' : 'Revoked'} all permissions for ${roleLabels[role]}`, 'success');
+        } catch {
+            showToast('Failed to save permission change', 'error');
+        }
         setSavingPerm(null);
     };
 
@@ -158,14 +155,14 @@ export default function Permissions() {
         if (!confirm('Reset all permissions to factory defaults?')) return;
         setSavingPerm('reset');
         try {
-            const profile = await profileService.getMyProfile();
-            const pc = { ...profile.pageContent } as any;
-            delete pc.permissions;
-            await profileService.updateProfile({ pageContent: pc } as any);
-            localStorage.removeItem(LOCAL_KEY);
-        } catch { /* ignore */ }
-        setRolePerms({ ...DEFAULT_PERMISSIONS });
-        showToast('Permissions reset to defaults', 'success');
+            await Promise.all(
+                ROLES.filter(role => role !== 'admin').map(role => persist(role, DEFAULT_PERMISSIONS[role] || []))
+            );
+            await loadPermissions();
+            showToast('Permissions reset to defaults', 'success');
+        } catch {
+            showToast('Failed to reset permissions', 'error');
+        }
         setSavingPerm(null);
     };
 
@@ -235,6 +232,11 @@ export default function Permissions() {
             <tr key={g.group}>
                 <td style={{ fontWeight: 600, cursor: 'pointer', position: 'sticky', left: 0, background: 'var(--bg-card)', zIndex: 1, borderBottom: exp ? 'none' : undefined }} onClick={() => toggleGroup(g.group)}>
                     <span style={{ marginRight: '0.3rem', opacity: 0.5 }}>{exp ? '▼' : '▶'}</span> {g.group} ({g.permissions.length})
+                    {!g.enforced && (
+                        <span title="No backend route checks this permission yet — toggling it here has no effect until one is wired up." style={{ marginLeft: '0.5rem', fontSize: '0.6rem', fontWeight: 700, padding: '0.05rem 0.4rem', borderRadius: '6px', background: 'rgba(245,158,11,0.15)', color: '#f59e0b', verticalAlign: 'middle' }}>
+                            NOT YET ENFORCED
+                        </span>
+                    )}
                 </td>
                 {cells}
             </tr>
