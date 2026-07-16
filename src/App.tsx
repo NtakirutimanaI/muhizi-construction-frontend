@@ -12,6 +12,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/public/Home';
 import About from './pages/public/About';
 import Team from './pages/public/Team';
+import NewsList from './pages/public/NewsList';
+import NewsArticle from './pages/public/NewsArticle';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
@@ -47,9 +49,7 @@ import MaterialRequests from './pages/admin/MaterialRequests';
 import ProjectEvidence from './pages/admin/ProjectEvidence';
 import SiteRules from './pages/admin/SiteRules';
 import EmployeeAssignments from './pages/admin/EmployeeAssignments';
-import Approvals from './pages/admin/Approvals';
 import Requests from './pages/admin/Requests';
-import Approvements from './pages/admin/Approvements';
 import Stock from './pages/admin/Stock';
 import StockCategories from './pages/admin/StockCategories';
 import Contracts from './pages/admin/Contracts';
@@ -132,6 +132,8 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/team" element={<Team />} />
+                <Route path="/news" element={<NewsList />} />
+                <Route path="/news/:slug" element={<NewsArticle />} />
               </Route>
 
               {/* Auth Routes */}
@@ -180,11 +182,11 @@ function App() {
                       <Route path="requests" element={<Requests />} />
                       <Route path="project-evidence" element={<ProjectEvidence />} />
                       <Route path="site-rules" element={<SiteRules />} />
-                      <Route path="approvals" element={<Approvals />} />
+                      <Route path="approvals" element={<Navigate to="../requests" replace />} />
                       <Route path="contracts" element={<Contracts />} />
                       <Route path="project-progress" element={<ProjectProgress />} />
                       <Route path="updates" element={<PartnerUpdates />} />
-                      <Route path="approvements" element={<Approvements />} />
+                      <Route path="approvements" element={<Navigate to="../requests" replace />} />
                       <Route path="stock/in" element={<Stock />} />
                       <Route path="stock/out" element={<Stock />} />
                       <Route path="stock/categories" element={<StockCategories />} />

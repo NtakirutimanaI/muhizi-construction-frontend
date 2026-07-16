@@ -13,6 +13,8 @@ export interface Project {
     location?: string;
     clientName?: string;
     clientContact?: string;
+    clientUserId?: string;
+    partnerUserId?: string;
     progress: number;
     images?: string[];
     documents?: { name: string; url: string }[];
@@ -41,12 +43,25 @@ export interface Partnership {
     contactPerson?: string;
     email?: string;
     phone?: string;
+    address?: string;
+    registrationNumber?: string;
+    taxId?: string;
     partnershipType: 'supplier' | 'subcontractor' | 'investor' | 'joint_venture';
-    status: 'active' | 'inactive' | 'pending';
+    status: 'pending' | 'active' | 'inactive' | 'rejected';
+    licenseNumber?: string;
+    licenseExpiry?: string;
+    insuranceExpiry?: string;
+    investmentAmount?: number;
+    equityPercentage?: number;
+    projectId?: string;
+    project?: { id: string; name: string };
     agreementFile?: string;
     startDate?: string;
     endDate?: string;
     notes?: string;
+    reviewedById?: string;
+    reviewedByName?: string;
+    reviewedAt?: string;
     createdAt: string;
 }
 

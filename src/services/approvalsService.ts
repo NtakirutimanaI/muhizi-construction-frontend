@@ -5,12 +5,15 @@ export interface Approval {
     type: 'material' | 'money';
     title: string;
     requester: string;
+    requesterId?: string;
     amount?: number;
     items?: { name: string; qty: number; unit: string }[];
     description: string;
     status: 'pending' | 'approved' | 'rejected';
     requestedAt: string;
     reviewedAt?: string;
+    reviewedById?: string;
+    reviewedByName?: string;
 }
 
 const baseUrl = '/approvals';

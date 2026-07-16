@@ -9,6 +9,7 @@ export interface ProjectEvidence {
     date: string;
     notes: string;
     approvedForClient?: boolean;
+    siteId?: string;
 }
 
 const baseUrl = '/project-evidence';

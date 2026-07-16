@@ -4,7 +4,7 @@ import {
     FaTruck, FaDollarSign, FaEye, FaChevronLeft,
     FaChevronRight, FaSpinner, FaSearch, FaFilter,
     FaThumbsUp, FaThumbsDown, FaBoxes, FaMoneyBillWave,
-    FaBuilding, FaUser, FaCheckCircle
+    FaBuilding, FaUser, FaCheckCircle, FaCheckDouble, FaPlus
 } from 'react-icons/fa';
 import { materialRequestsService } from '../../services/materialRequestsService';
 import { approvalsService } from '../../services/approvalsService';
@@ -19,6 +19,7 @@ interface UnifiedRequest {
     source: 'material' | 'general';
     title: string;
     requester: string;
+    reviewer: string;
     type: 'material' | 'money';
     details: string;
     detailsRaw: string | number;
@@ -39,6 +40,13 @@ const safeBadge = (status: string) => {
     return map[status] || { color: '#6b7280', bg: '#6b728018' };
 };
 
+const emptyFundForm = () => ({
+    title: '',
+    description: '',
+    amount: undefined as number | undefined,
+    requestedAt: new Date().toISOString().split('T')[0],
+});
+
 const Requests = () => {
     const { showToast } = useToast();
     const [requests, setRequests] = useState<UnifiedRequest[]>([]);
@@ -50,12 +58,16 @@ const Requests = () => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [showCreate, setShowCreate] = useState(false);
+    const [fundForm, setFundForm] = useState(emptyFundForm());
+    const [saving, setSaving] = useState(false);
 
     const toUnified = (r: MaterialRequest): UnifiedRequest => ({
         id: r.id,
         source: 'material',
         title: `${r.material} — ${r.project}`,
         requester: r.createdByName || 'Unknown',
+        reviewer: r.approvedByName || '—',
         type: 'material',
         details: r.totalCost > 0
             ? `RWF ${Number(r.totalCost).toLocaleString()}`
@@ -63,7 +75,7 @@ const Requests = () => {
         detailsRaw: r.totalCost > 0 ? r.totalCost : r.quantity,
         date: r.date || r.createdAt?.split('T')[0] || '',
         status: r.status === 'delivered' ? 'approved' : r.status as UnifiedStatus,
-        reviewedAt: r.approvedAt,
+        reviewedAt: r.approvedAt ? new Date(r.approvedAt).toISOString().split('T')[0] : undefined,
         raw: r,
     });
 
@@ -72,6 +84,7 @@ const Requests = () => {
         source: 'general',
         title: r.title,
         requester: r.requester.split('(')[0].trim(),
+        reviewer: r.reviewedByName || '—',
         type: r.type,
         details: r.type === 'material'
             ? `${r.items?.reduce((s, i) => s + i.qty, 0) || 0} items`
@@ -83,9 +96,9 @@ const Requests = () => {
         raw: r,
     });
 
-    useEffect(() => {
+    const load = () => {
         setLoading(true);
-        Promise.all([
+        return Promise.all([
             materialRequestsService.getAll().catch(() => ({ data: [] })),
             approvalsService.getAll().catch(() => ({ data: [] })),
         ])
@@ -95,7 +108,9 @@ const Requests = () => {
                 setRequests([...material, ...general]);
             })
             .finally(() => setLoading(false));
-    }, []);
+    };
+
+    useEffect(() => { load(); }, []);
 
     const stats = useMemo(() => ({
         total: requests.length,
@@ -113,10 +128,15 @@ const Requests = () => {
             arr = arr.filter(r =>
                 r.title.toLowerCase().includes(q) ||
                 r.requester.toLowerCase().includes(q) ||
+                r.reviewer.toLowerCase().includes(q) ||
                 r.details.toLowerCase().includes(q)
             );
         }
-        return arr.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return arr.sort((a, b) => {
+            const da = a.reviewedAt || a.date;
+            const db = b.reviewedAt || b.date;
+            return new Date(db).getTime() - new Date(da).getTime();
+        });
     }, [requests, filter, search, typeFilter]);
 
     const totalPages = pageSize ? Math.ceil(filtered.length / pageSize) : 1;
@@ -135,7 +155,7 @@ const Requests = () => {
             } else {
                 await approvalsService.update(req.id, { status: 'approved', reviewedAt: new Date().toISOString().split('T')[0] });
             }
-            setRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: 'approved', reviewedAt: new Date().toISOString().split('T')[0] } : r));
+            await load();
             showToast('Request approved', 'success');
         } catch {
             showToast('Failed to approve', 'error');
@@ -151,12 +171,40 @@ const Requests = () => {
             } else {
                 await approvalsService.update(req.id, { status: 'rejected', reviewedAt: new Date().toISOString().split('T')[0] });
             }
-            setRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: 'rejected', reviewedAt: new Date().toISOString().split('T')[0] } : r));
+            await load();
             showToast('Request rejected', 'success');
         } catch {
             showToast('Failed to reject', 'error');
         }
         setActionLoading(null);
+    };
+
+    const createFundRequest = () => {
+        if (!fundForm.title.trim() || !fundForm.description.trim() || !fundForm.requestedAt) {
+            showToast('Fill in title, description and date', 'error');
+            return;
+        }
+        if (!fundForm.amount || fundForm.amount <= 0) {
+            showToast('Enter a valid amount', 'error');
+            return;
+        }
+        setSaving(true);
+        approvalsService.create({
+            type: 'money',
+            title: fundForm.title,
+            description: fundForm.description,
+            amount: fundForm.amount,
+            status: 'pending',
+            requestedAt: fundForm.requestedAt,
+        } as Partial<Approval>)
+            .then(async () => {
+                showToast('Fund request submitted', 'success');
+                setShowCreate(false);
+                setFundForm(emptyFundForm());
+                await load();
+            })
+            .catch(() => showToast('Failed to submit request', 'error'))
+            .finally(() => setSaving(false));
     };
 
     if (loading) return (
@@ -172,11 +220,15 @@ const Requests = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
                 <div>
                     <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: 0, marginBottom: '0.2rem' }}>
-                        <FaClipboardList style={{ color: 'var(--primary)' }} /> Requests
+                        <FaClipboardList style={{ color: 'var(--primary)' }} /> Requests &amp; Approvals
                     </h2>
-                    <span style={{ fontSize: '0.8rem', color: '#999' }}>Site engineer requests awaiting review</span>
+                    <span style={{ fontSize: '0.8rem', color: '#999' }}>Material requests and fund/expense requests awaiting or already reviewed</span>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <button onClick={() => { setFundForm(emptyFundForm()); setShowCreate(true); }}
+                        style={{ padding: '0.5rem 0.9rem', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <FaPlus size={10} /> New Fund Request
+                    </button>
                     {([
                         { key: 'pending' as const, label: 'Pending', color: '#f59e0b' },
                         { key: 'approved' as const, label: 'Approved', color: '#22c55e' },
@@ -201,7 +253,7 @@ const Requests = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', flex: 1 }}>
                         <div style={{ position: 'relative', flex: 1, minWidth: 220, maxWidth: 360 }}>
                             <FaSearch size={12} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#bbb' }} />
-                            <input type="text" className="form-input" placeholder="Search title, requester..." value={search}
+                            <input type="text" className="form-input" placeholder="Search title, requester, reviewer..." value={search}
                                 onChange={e => { setSearch(e.target.value); setPage(1); }}
                                 style={{ padding: '0.4rem 0.5rem 0.4rem 28px', fontSize: '0.8rem', width: '100%' }} />
                         </div>
@@ -209,7 +261,7 @@ const Requests = () => {
                             {([
                                 { key: 'all' as const, label: 'All', icon: null },
                                 { key: 'material' as const, label: 'Material', icon: <FaTruck size={10} /> },
-                                { key: 'money' as const, label: 'Money', icon: <FaMoneyBillWave size={10} /> },
+                                { key: 'money' as const, label: 'Fund', icon: <FaMoneyBillWave size={10} /> },
                             ]).map(t => (
                                 <button key={t.key} onClick={() => { setTypeFilter(t.key); setPage(1); }}
                                     style={{
@@ -248,6 +300,7 @@ const Requests = () => {
                                 <th style={{ width: 28 }}><FaFilter size={10} /></th>
                                 <th>Request</th>
                                 <th>Requester</th>
+                                <th>Reviewer</th>
                                 <th>Details</th>
                                 <th>Date</th>
                                 <th>Status</th>
@@ -273,10 +326,7 @@ const Requests = () => {
                                         <td>
                                             <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-main)' }}>{req.title}</div>
                                             <div style={{ fontSize: '0.7rem', color: '#999', marginTop: 2 }}>
-                                                {req.source === 'material' ? 'Material Request' : 'General Approval'}
-                                                {req.source === 'material' && (req.raw as MaterialRequest).approvedByName && (
-                                                    <span> &middot; Approved by {(req.raw as MaterialRequest).approvedByName}</span>
-                                                )}
+                                                {req.source === 'material' ? 'Material Request' : 'Fund Request'}
                                             </div>
                                         </td>
                                         <td style={{ fontSize: '0.82rem' }}>
@@ -284,10 +334,19 @@ const Requests = () => {
                                                 <FaUser size={10} style={{ color: '#bbb' }} /> {req.requester}
                                             </span>
                                         </td>
+                                        <td style={{ fontSize: '0.82rem' }}>
+                                            {req.reviewer !== '—' ? (
+                                                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                    <FaCheckDouble size={10} style={{ color: '#22c55e' }} /> {req.reviewer}
+                                                </span>
+                                            ) : (
+                                                <span style={{ color: '#bbb' }}>—</span>
+                                            )}
+                                        </td>
                                         <td style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--primary)' }}>
                                             {req.details}
                                         </td>
-                                        <td style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', color: '#999' }}>{req.date}</td>
+                                        <td style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', color: '#999' }}>{req.reviewedAt || req.date}</td>
                                         <td>
                                             <span style={{
                                                 display: 'inline-flex', alignItems: 'center', gap: 4,
@@ -358,10 +417,10 @@ const Requests = () => {
                             })}
                             {!paginated.length && (
                                 <tr>
-                                    <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#999' }}>
+                                    <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#999' }}>
                                         <FaClipboardList size={36} style={{ opacity: 0.25, marginBottom: 10 }} />
                                         <div style={{ fontSize: '0.95rem' }}>No {filter !== 'all' ? filter : ''} requests found</div>
-                                        <span style={{ fontSize: '0.8rem' }}>All requests from site engineers will appear here</span>
+                                        <span style={{ fontSize: '0.8rem' }}>Material and fund requests will appear here</span>
                                     </td>
                                 </tr>
                             )}
@@ -418,13 +477,16 @@ const Requests = () => {
                                         {viewItem.type === 'material' ? <FaBoxes size={13} /> : <FaMoneyBillWave size={13} />}
                                     </span>
                                     <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                        {viewItem.source === 'material' ? 'Material Request' : 'General Approval'}
+                                        {viewItem.source === 'material' ? 'Material Request' : 'Fund Request'}
                                     </span>
                                 </div>
                                 <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{viewItem.title}</h3>
-                                <span style={{ fontSize: '0.85rem', color: '#999', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                                    <FaUser size={10} /> {viewItem.requester}
-                                </span>
+                                <div style={{ display: 'flex', gap: '1.5rem', marginTop: 6, fontSize: '0.82rem', color: '#999' }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><FaUser size={10} /> {viewItem.requester}</span>
+                                    {viewItem.reviewer !== '—' && (
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><FaCheckDouble size={10} style={{ color: '#22c55e' }} /> {viewItem.reviewer}</span>
+                                    )}
+                                </div>
                             </div>
                             <span style={{
                                 display: 'inline-flex', alignItems: 'center', gap: 4,
@@ -466,6 +528,20 @@ const Requests = () => {
                             </div>
                         </div>
 
+                        {viewItem.status !== 'pending' && (
+                            <div style={{
+                                background: viewItem.status === 'approved' ? '#22c55e10' : '#ef444410',
+                                borderRadius: 8, padding: '0.7rem 1rem', marginBottom: '1rem',
+                                borderLeft: `3px solid ${viewItem.status === 'approved' ? '#22c55e' : '#ef4444'}`,
+                                display: 'flex', alignItems: 'center', gap: 8,
+                            }}>
+                                {viewItem.status === 'approved' ? <FaCheckCircle size={16} style={{ color: '#22c55e', flexShrink: 0 }} /> : <FaTimesCircle size={16} style={{ color: '#ef4444', flexShrink: 0 }} />}
+                                <span style={{ fontSize: '0.85rem' }}>
+                                    This request was <strong>{viewItem.status}</strong>{viewItem.reviewer !== '—' ? ` by ${viewItem.reviewer}` : ''}{viewItem.reviewedAt ? ` on ${viewItem.reviewedAt}` : ''}
+                                </span>
+                            </div>
+                        )}
+
                         {viewItem.source === 'material' && (() => {
                             const mr = viewItem.raw as MaterialRequest;
                             const showCost = mr.unitPrice > 0 || mr.totalCost > 0;
@@ -504,12 +580,6 @@ const Requests = () => {
                                             <div style={{ fontSize: '0.82rem' }}>{mr.notes}</div>
                                         </div>
                                     )}
-                                    {mr.approvedByName && (
-                                        <div style={{ background: '#22c55e10', borderRadius: 8, padding: '0.6rem 0.8rem', marginTop: '0.5rem', borderLeft: '3px solid #22c55e' }}>
-                                            <FaCheckCircle size={12} style={{ color: '#22c55e', marginRight: 6 }} />
-                                            <span style={{ fontSize: '0.82rem' }}>Approved by <strong>{mr.approvedByName}</strong></span>
-                                        </div>
-                                    )}
                                 </div>
                             );
                         })()}
@@ -522,21 +592,7 @@ const Requests = () => {
                                     <div style={{ background: '#f5f5f5', borderRadius: 8, padding: '0.7rem 0.8rem', fontSize: '0.85rem', lineHeight: 1.5 }}>
                                         {ga.description}
                                     </div>
-                                    {ga.type === 'material' && ga.items?.length ? (
-                                        <div style={{ marginTop: '0.75rem' }}>
-                                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#555', marginBottom: 6 }}>Items</div>
-                                            {ga.items.map((item, i) => (
-                                                <div key={i} style={{
-                                                    display: 'flex', justifyContent: 'space-between',
-                                                    padding: '0.45rem 0.7rem', background: '#f5f5f5',
-                                                    borderRadius: 8, marginTop: 4,
-                                                }}>
-                                                    <span style={{ fontSize: '0.85rem' }}>{item.name}</span>
-                                                    <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{item.qty} {item.unit}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : ga.type === 'money' && ga.amount ? (
+                                    {ga.type === 'money' && ga.amount ? (
                                         <div style={{ marginTop: '0.75rem', background: '#22c55e10', borderRadius: 10, padding: '0.8rem 1rem', textAlign: 'center' }}>
                                             <div style={{ fontSize: '0.7rem', color: '#999', textTransform: 'uppercase', marginBottom: 4 }}>Amount</div>
                                             <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#22c55e' }}>RWF {ga.amount.toLocaleString()}</div>
@@ -578,6 +634,42 @@ const Requests = () => {
                                     </button>
                                 </>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showCreate && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => !saving && setShowCreate(false)}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }} />
+                    <div onClick={e => e.stopPropagation()} className="admin-modal" style={{ position: 'relative', padding: '2rem', maxWidth: '500px', width: '100%', maxHeight: '85vh', overflowY: 'auto', borderRadius: 12 }}>
+                        <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: 8 }}><FaMoneyBillWave style={{ color: 'var(--primary)' }} size={16} /> New Fund Request</h3>
+                        <p style={{ fontSize: '0.8rem', color: '#999', marginTop: '-0.5rem', marginBottom: '1rem' }}>
+                            For material requisitions use the dedicated Material Requests page — this form is for fund/expense advances only.
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                            <div>
+                                <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Title</label>
+                                <input type="text" className="form-input" value={fundForm.title} onChange={e => setFundForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Worker Transport Advance" style={{ width: '100%', padding: '0.45rem' }} />
+                            </div>
+                            <div>
+                                <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Description</label>
+                                <textarea className="form-input" value={fundForm.description} onChange={e => setFundForm(p => ({ ...p, description: e.target.value }))} rows={3} style={{ width: '100%', padding: '0.45rem', resize: 'vertical' }} />
+                            </div>
+                            <div>
+                                <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Amount (RWF)</label>
+                                <input type="number" className="form-input" value={fundForm.amount || ''} onChange={e => setFundForm(p => ({ ...p, amount: e.target.value === '' ? undefined : Number(e.target.value) }))} style={{ width: '100%', padding: '0.45rem' }} />
+                            </div>
+                            <div>
+                                <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Date Needed</label>
+                                <input type="date" className="form-input" value={fundForm.requestedAt} onChange={e => setFundForm(p => ({ ...p, requestedAt: e.target.value }))} style={{ width: '100%', padding: '0.45rem' }} />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
+                            <button onClick={() => setShowCreate(false)} disabled={saving} style={{ padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+                            <button onClick={createFundRequest} disabled={saving} style={{ padding: '0.4rem 1.2rem', borderRadius: '6px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                                {saving ? <><FaSpinner className="spin" /> Submitting...</> : 'Submit'}
+                            </button>
                         </div>
                     </div>
                 </div>
