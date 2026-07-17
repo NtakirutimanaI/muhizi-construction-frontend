@@ -35,9 +35,11 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     {
         label: 'Operations',
         items: [
-            { path: '/admin/sites', icon: 'FaProjectDiagram', label: 'Sites', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.ENGINEERING_STUDIO, ROLES.PARTNER] },
+            { path: '/admin/sites', icon: 'FaProjectDiagram', label: 'Sites', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.ENGINEERING_STUDIO, ROLES.PARTNER, ROLES.MANAGING_DIRECTOR] },
 
             { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests & Approvals', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER] },
+            { path: '/admin/engineering-submissions', icon: 'FaDraftingCompass', label: 'Engineering Submissions', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/daily-reports', icon: 'FaClipboardCheck', label: 'Daily Reports', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.MANAGER] },
             // Site safety/operating rules apply to everyone on the platform, not just operations roles.
             { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.EMPLOYEE, ROLES.CLIENT, ROLES.PARTNER] },
@@ -48,11 +50,13 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         items: [
             // Admin's HR view is intentionally limited to the employee registry itself
             // (who they are, what they're paid) — day-to-day attendance, payroll runs, and
-            // contracts are operational detail owned by Managing Director / Finance Director.
-            { path: '/admin/employees', icon: 'FaUserTie', label: 'Employees', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/attendance', icon: 'FaClipboardList', label: 'Attendance', roles: [ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
-            { path: '/admin/payroll', icon: 'FaMoneyBillWave', label: 'Payroll', roles: [ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/contracts', icon: 'FaFileAlt', label: 'Contracts', roles: [ROLES.MANAGING_DIRECTOR] },
+            // contracts are operational detail owned by Site Engineer / Finance Director.
+            // Managing Director does not have an HR role in this org — they own Operations
+            // (stock, material requests, engineering-submission review, site oversight).
+            { path: '/admin/employees', icon: 'FaUserTie', label: 'Employees', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR] },
+            { path: '/admin/attendance', icon: 'FaClipboardList', label: 'Attendance', roles: [ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/payroll', icon: 'FaMoneyBillWave', label: 'Payroll', roles: [ROLES.FINANCE_DIRECTOR] },
+            { path: '/admin/contracts', icon: 'FaFileAlt', label: 'Contracts', roles: [ROLES.FINANCE_DIRECTOR] },
         ],
     },
     {
@@ -60,7 +64,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         items: [
             { path: '/admin/incomes', icon: 'FaArrowUp', label: 'Incomes', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/expenses', icon: 'FaArrowDown', label: 'Expenses', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/stock/in', icon: 'FaBoxes', label: 'Stock', roles: [ROLES.FINANCE_DIRECTOR] },
+            { path: '/admin/stock/in', icon: 'FaBoxes', label: 'Stock', roles: [ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/reports', icon: 'FaChartPie', label: 'Reports', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
         ],
     },

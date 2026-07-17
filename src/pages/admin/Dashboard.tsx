@@ -272,7 +272,8 @@ const AdminDashboard = () => {
             )}
 
             {/* Sites & Projects — omitted for executive roles (managing_director, finance_director,
-                site_engineer, engineering_studio, client) since they have no access to /projects or /sites */}
+                site_engineer, engineering_studio, client); they get role-specific KPI cards above
+                instead, and can still drill into the full Sites page via the sidebar. */}
             {showSitesAndProjects && (
                 <div className="content-card" style={{ padding: '1.5rem', marginTop: '1.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>

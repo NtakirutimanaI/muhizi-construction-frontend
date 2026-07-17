@@ -4,12 +4,13 @@ import {
     FaWarehouse, FaPlus, FaTrash, FaEdit, FaTimes, FaSpinner,
     FaChevronLeft, FaChevronRight, FaSearch, FaExclamationTriangle,
     FaArrowDown, FaArrowUp, FaBoxes, FaChartBar, FaListUl, FaTag,
-    FaCheckCircle, FaExclamationCircle, FaChartPie, FaChartLine,
+    FaCheckCircle, FaExclamationCircle, FaChartPie, FaChartLine, FaCamera, FaUpload,
 } from 'react-icons/fa';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { stockService } from '../../services/stockService';
 import type { Stock } from '../../services/stockService';
 import { categoriesService, type Category } from '../../services/categoriesService';
+import { uploadService } from '../../services/uploadService';
 import { useToast } from '../../context/ToastContext';
 
 const PAGE_SIZES = [5, 10, 15, 20];
@@ -33,6 +34,7 @@ const emptyForm = () => ({
     item: '', category: '', type: 'in' as 'in' | 'out',
     quantity: '' as any, unit: 'pieces', unitPrice: '' as any,
     date: new Date().toISOString().split('T')[0], time: '', reference: '', notes: '',
+    evidenceUrls: [] as string[],
 });
 
 type ViewMode = 'summary' | 'transactions';
@@ -62,6 +64,11 @@ const StockPage = () => {
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [saving, setSaving] = useState(false);
     const [dbCategories, setDbCategories] = useState<CategoryOption[]>([]);
+    const [uploadingEvidence, setUploadingEvidence] = useState(false);
+    const [viewEvidence, setViewEvidence] = useState<string[] | null>(null);
+    const [showNewCategory, setShowNewCategory] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [creatingCategory, setCreatingCategory] = useState(false);
 
     useEffect(() => {
         if (outletCtx.searchQuery) {
@@ -200,6 +207,8 @@ const StockPage = () => {
         return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b)).slice(-6);
     }, [entries]);
 
+    const categoryLabel = (v: string) => dbCategories.find(c => c.value === v)?.label || v.replace(/_/g, ' ');
+
     const categoryTotals = useMemo(() => {
         const map = new Map<string, number>();
         for (const e of entries) {
@@ -209,7 +218,7 @@ const StockPage = () => {
         return Array.from(map.entries())
             .map(([name, value]) => ({ name: categoryLabel(name), value }))
             .sort((a, b) => b.value - a.value);
-    }, [entries]);
+    }, [entries, dbCategories]);
 
     const PIE_COLORS = ['#4ecdc4', '#ff5252', '#1B2042', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
@@ -234,9 +243,47 @@ const StockPage = () => {
             item: e.item, category: e.category, type: e.type,
             quantity: e.quantity, unit: e.unit, unitPrice: e.unitPrice,
             date: e.date, time: e.time || '', reference: e.reference || '', notes: e.notes || '',
+            evidenceUrls: e.evidenceUrls || [],
         });
         setFormErrors({});
         setShowModal(true);
+    };
+
+    const handleEvidenceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+        setUploadingEvidence(true);
+        try {
+            const results = await Promise.all(Array.from(files).map(f => uploadService.uploadFile(f).then(r => r.secureUrl)));
+            setForm(p => ({ ...p, evidenceUrls: [...p.evidenceUrls, ...results] }));
+        } catch (err: any) {
+            showToast(err?.response?.data?.message || 'Failed to upload evidence', 'error');
+        } finally {
+            setUploadingEvidence(false);
+        }
+    };
+
+    const removeEvidence = (idx: number) => {
+        setForm(p => ({ ...p, evidenceUrls: p.evidenceUrls.filter((_, i) => i !== idx) }));
+    };
+
+    const openNewCategory = () => { setNewCategoryName(''); setShowNewCategory(true); };
+    const closeNewCategory = () => { if (!creatingCategory) { setShowNewCategory(false); setNewCategoryName(''); } };
+    const createCategory = async () => {
+        if (!newCategoryName.trim()) { showToast('Category name is required', 'error'); return; }
+        setCreatingCategory(true);
+        try {
+            const created = await categoriesService.create({ value: newCategoryName.trim() });
+            await loadCategories();
+            setForm(p => ({ ...p, category: created?.data?.value || newCategoryName.trim() }));
+            showToast('Category created', 'success');
+            setShowNewCategory(false);
+            setNewCategoryName('');
+        } catch (err: any) {
+            showToast(err?.response?.data?.message || 'Failed to create category', 'error');
+        } finally {
+            setCreatingCategory(false);
+        }
     };
 
     const save = async () => {
@@ -276,8 +323,6 @@ const StockPage = () => {
             showToast('Failed to delete', 'error');
         }
     };
-
-    const categoryLabel = (v: string) => dbCategories.find(c => c.value === v)?.label || v.replace(/_/g, ' ');
 
     const dynamicCategories = useMemo(() => {
         const cats = new Set(entries.map(e => e.category));
@@ -658,6 +703,14 @@ const StockPage = () => {
                                         <td style={{ fontSize: '0.75rem', color: '#999' }}>{entry.reference || '—'}</td>
                                         <td>
                                             <div style={{ display: 'flex', gap: 4 }}>
+                                                {entry.evidenceUrls && entry.evidenceUrls.length > 0 && (
+                                                    <button onClick={() => setViewEvidence(entry.evidenceUrls!)} title={`${entry.evidenceUrls.length} evidence photo(s)`}
+                                                        style={{
+                                                            padding: '0.2rem 0.4rem', borderRadius: 4,
+                                                            border: '1px solid #ddd', background: 'transparent',
+                                                            cursor: 'pointer', color: 'var(--primary)', fontSize: '0.7rem',
+                                                        }}><FaCamera size={10} /></button>
+                                                )}
                                                 <button onClick={() => openEdit(entry)}
                                                     style={{
                                                         padding: '0.2rem 0.4rem', borderRadius: 4,
@@ -743,17 +796,7 @@ const StockPage = () => {
                                             {dbCategories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                                         </select>
                                         {form.type === 'in' && (
-                                            <button onClick={async () => {
-                                                const name = prompt('Enter new category name:');
-                                                if (!name || !name.trim()) return;
-                                                try {
-                                                    await categoriesService.create({ value: name.trim() });
-                                                    await loadCategories();
-                                                    showToast('Category created', 'success');
-                                                } catch (err: any) {
-                                                    showToast(err?.response?.data?.message || 'Failed to create category', 'error');
-                                                }
-                                            }}
+                                            <button onClick={openNewCategory}
                                                 title="Create new category"
                                                 style={{
                                                     padding: '0.3rem 0.6rem', borderRadius: 6, border: '1px dashed var(--primary)',
@@ -811,12 +854,84 @@ const StockPage = () => {
                                     <label className="form-label">Notes</label>
                                     <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="form-textarea" rows={2} placeholder="Optional notes" />
                                 </div>
+                                <div style={{ gridColumn: 'span 2' }} className="form-group">
+                                    <label className="form-label">Evidence (delivery note, goods photo, receipt)</label>
+                                    <input id="stock-evidence-input" type="file" accept="image/*" multiple onChange={handleEvidenceUpload} style={{ display: 'none' }} />
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
+                                        {form.evidenceUrls.map((url, idx) => (
+                                            <div key={idx} style={{ position: 'relative', width: 64, height: 64, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                                                <img src={url} alt={`evidence ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                <button type="button" onClick={() => removeEvidence(idx)} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: 18, height: 18, fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button type="button" onClick={() => document.getElementById('stock-evidence-input')?.click()} disabled={uploadingEvidence}
+                                        style={{
+                                            padding: '0.4rem 0.8rem', borderRadius: 6, border: '1px dashed var(--primary)',
+                                            background: 'transparent', color: 'var(--primary)', cursor: 'pointer',
+                                            fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6,
+                                        }}>
+                                        <FaUpload size={10} /> {uploadingEvidence ? 'Uploading...' : 'Upload photo evidence'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div className="admin-modal-footer">
                             <button className="admin-btn admin-btn--secondary" onClick={closeModal} disabled={saving}>Cancel</button>
-                            <button className="admin-btn" onClick={save} disabled={saving}>
+                            <button className="admin-btn" onClick={save} disabled={saving || uploadingEvidence}>
                                 {saving ? <><FaSpinner className="spin" /> Saving...</> : (editing ? 'Update' : `${form.type === 'out' ? 'Add Stock Out' : 'Add Stock In'}`)}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* EVIDENCE LIGHTBOX */}
+            {viewEvidence && (
+                <div className="admin-modal-overlay" onClick={() => setViewEvidence(null)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 560 }}>
+                        <div className="admin-modal-header">
+                            <h3><FaCamera style={{ marginRight: 8 }} />Stock Evidence</h3>
+                            <button onClick={() => setViewEvidence(null)}><FaTimes /></button>
+                        </div>
+                        <div className="admin-modal-body">
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
+                                {viewEvidence.map((url, idx) => (
+                                    <a key={idx} href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                                        <img src={url} alt={`evidence ${idx + 1}`} style={{ width: '100%', height: 140, objectFit: 'cover', display: 'block' }} />
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* NEW CATEGORY MODAL */}
+            {showNewCategory && (
+                <div className="admin-modal-overlay" onClick={closeNewCategory}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 400 }}>
+                        <div className="admin-modal-header">
+                            <h3><FaTag style={{ marginRight: 8 }} />New Category</h3>
+                            <button onClick={closeNewCategory}><FaTimes /></button>
+                        </div>
+                        <div className="admin-modal-body">
+                            <div className="form-group">
+                                <label className="form-label">Category Name</label>
+                                <input
+                                    autoFocus
+                                    value={newCategoryName}
+                                    onChange={e => setNewCategoryName(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') createCategory(); }}
+                                    className="form-input"
+                                    placeholder="e.g. Electrical Supplies"
+                                />
+                            </div>
+                        </div>
+                        <div className="admin-modal-footer">
+                            <button className="admin-btn admin-btn--secondary" onClick={closeNewCategory} disabled={creatingCategory}>Cancel</button>
+                            <button className="admin-btn" onClick={createCategory} disabled={creatingCategory}>
+                                {creatingCategory ? <><FaSpinner className="spin" /> Creating...</> : 'Create Category'}
                             </button>
                         </div>
                     </div>

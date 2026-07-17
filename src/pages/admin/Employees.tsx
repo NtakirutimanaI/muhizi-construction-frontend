@@ -34,9 +34,9 @@ const Employees = () => {
     // Admin views the employee registry read-only — registration and edits belong to
     // the field/HR roles (Site Manager, Site Engineer) who actually onboard workers.
     const canManage = user?.role !== 'admin';
-    // Contract terms are Finance/Managing Director's domain — Admin sees them as a
+    // Contract terms are Finance Director's domain — Admin sees them as a
     // read-only report on the employee's profile, matching the backend guard.
-    const canSeeContracts = user?.role === 'admin' || user?.role === 'managing_director' || user?.role === 'finance_director';
+    const canSeeContracts = user?.role === 'admin' || user?.role === 'finance_director';
     const [data, setData] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
