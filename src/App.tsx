@@ -47,6 +47,8 @@ import ProjectEvidence from './pages/admin/ProjectEvidence';
 import SiteRules from './pages/admin/SiteRules';
 import EmployeeAssignments from './pages/admin/EmployeeAssignments';
 import Requests from './pages/admin/Requests';
+import EngineeringSubmissions from './pages/admin/EngineeringSubmissions';
+import DailyReports from './pages/admin/DailyReports';
 import Stock from './pages/admin/Stock';
 import StockCategories from './pages/admin/StockCategories';
 import Contracts from './pages/admin/Contracts';
@@ -174,6 +176,8 @@ function App() {
                       <Route path="site-activities" element={<SiteActivities />} />
                       <Route path="material-requests" element={<MaterialRequests />} />
                       <Route path="requests" element={<Requests />} />
+                      <Route path="engineering-submissions" element={<EngineeringSubmissions />} />
+                      <Route path="daily-reports" element={<DailyReports />} />
                       <Route path="project-evidence" element={<ProjectEvidence />} />
                       <Route path="site-rules" element={<SiteRules />} />
                       <Route path="approvals" element={<Navigate to="../requests" replace />} />

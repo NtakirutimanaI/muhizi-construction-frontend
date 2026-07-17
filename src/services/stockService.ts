@@ -12,6 +12,7 @@ export interface Stock {
     date: string;
     reference: string;
     notes: string;
+    evidenceUrls?: string[];
     createdById?: string;
     createdByName?: string;
     createdAt: string;
