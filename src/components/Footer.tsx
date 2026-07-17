@@ -15,6 +15,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
     const footerContent = profile.pageContent?.footer;
     const companyDesc = footerContent?.companyDescription || profile.about?.split('.')[0];
     const copyright = footerContent?.copyrightText || (profile.firstName ? `© ${new Date().getFullYear()}. By ${profile.firstName} ${profile.lastName}` : '');
+    const poweredBy = profile.poweredBy;
     const quickLinks = footerContent?.quickLinks;
     const pageServices = profile.pageContent?.services?.items;
     const aboutCards = profile.pageContent?.aboutSection?.cards;
@@ -35,7 +36,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
         setSubscribing(true);
         setSubscribeMsg('');
         try {
-            await subscriberService.subscribe({ email: email.trim(), source: 'footer' });
+            await subscriberService.subscribe({ email: email.trim() });
             setSubscribeMsg('Subscribed successfully!');
             setEmail('');
         } catch (err: any) {
@@ -140,9 +141,9 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                 {/* Bottom bar */}
                 <div className="ark-footer__bottom">
                     <p className="ark-footer__copy">{copyright}</p>
-                    <p className="ark-footer__copy ark-footer__copy--muted">
-                        Powered by <a href="https://mis-frontend-eta.vercel.app" target="_blank" rel="noopener noreferrer">MAKE IT SOLUTIONS (MIS)</a>
-                    </p>
+                    {poweredBy && (
+                        <p className="ark-footer__copy ark-footer__copy--muted">{poweredBy}</p>
+                    )}
                 </div>
             </div>
 

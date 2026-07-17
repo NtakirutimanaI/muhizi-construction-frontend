@@ -104,8 +104,6 @@ const MaterialRequests = () => {
         delivered: requests.filter(r => r.status === 'delivered').length,
     }), [requests]);
 
-    const canDownload = (fromDate && toDate) || search.trim().length > 0;
-
     const tableData = useMemo(() => filtered.map((r, i) => [
         String(i + 1),
         r.project,
@@ -354,10 +352,10 @@ const MaterialRequests = () => {
                         <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                             <FaPlus /> New Request
                         </button>
-                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} title="Export to Excel" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 3, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 3, opacity: 1 }}>
                             <FaFileExcel />
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} title="Export to PDF" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 3, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 3, opacity: 1 }}>
                             <FaFilePdf />
                         </button>
                     </div>

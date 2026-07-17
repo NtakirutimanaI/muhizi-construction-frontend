@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
-import { FaShareAlt, FaDribbble, FaTwitter, FaFacebookF } from 'react-icons/fa';
+import { FaShareAlt, FaTwitter, FaLinkedinIn, FaFacebookF, FaInstagram } from 'react-icons/fa';
 import type { Profile } from '../../services/profileService';
 
 const Team = () => {
     const { profile } = useOutletContext<{ profile: Profile | null }>();
     const members = profile?.teamMembers || [];
+    const brands = profile?.pageContent?.teamSection?.brands || [];
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -64,14 +65,23 @@ const Team = () => {
                     )}
 
                     {/* Social rail floating between cards */}
-                    {card1 && card2 && (
-                        <div className="team-v2__social-rail">
-                            <a href="#" className="team-v2__social-btn" title="Dribbble"><FaDribbble /></a>
-                            <a href="#" className="team-v2__social-btn" title="Twitter"><FaTwitter /></a>
-                            <a href="#" className="team-v2__social-btn team-v2__social-btn--active" title="Share"><FaShareAlt /></a>
-                            <a href="#" className="team-v2__social-btn" title="Facebook"><FaFacebookF /></a>
-                        </div>
-                    )}
+                    {card1 && card2 && (() => {
+                        const links = card1.socialLinks || card2.socialLinks || profile?.socialLinks || {};
+                        const rail = [
+                            { icon: FaTwitter, href: links.twitter, title: 'Twitter' },
+                            { icon: FaLinkedinIn, href: links.linkedin, title: 'LinkedIn' },
+                            { icon: FaFacebookF, href: links.facebook, title: 'Facebook' },
+                            { icon: FaInstagram, href: links.instagram, title: 'Instagram' },
+                        ].filter((s): s is { icon: typeof FaTwitter; href: string; title: string } => Boolean(s.href));
+                        if (rail.length === 0) return null;
+                        return (
+                            <div className="team-v2__social-rail">
+                                {rail.map(({ icon: Icon, href, title }, i) => (
+                                    <a key={title} href={href} target="_blank" rel="noopener noreferrer" className={`team-v2__social-btn${i === 0 ? ' team-v2__social-btn--active' : ''}`} title={title}><Icon /></a>
+                                ))}
+                            </div>
+                        );
+                    })()}
                 </div>
 
                 {/* Right: Text content */}
@@ -105,56 +115,30 @@ const Team = () => {
                 </motion.div>
             </div>
 
-            {/* Client logos row */}
-            <div className="team-v2__logos">
-                <div className="team-v2__logos-track">
-                    {/* Logo 1: Engineer silhouette */}
-                    <div className="team-v2__logo">
-                        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="20" cy="14" r="7" stroke="#888" strokeWidth="1.5" />
-                            <path d="M8 36c0-6.627 5.373-12 12-12s12 5.373 12 12" stroke="#888" strokeWidth="1.5" />
-                        </svg>
+            {brands.length > 0 && (
+                <>
+                    {/* Client logos row */}
+                    <div className="team-v2__logos">
+                        <div className="team-v2__logos-track">
+                            {brands.map((brand, i) => (
+                                <div key={i} className="team-v2__logo team-v2__logo--wordmark">
+                                    {brand.logoUrl && (
+                                        <span className="team-v2__logo-icon"><img src={brand.logoUrl} alt={brand.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} /></span>
+                                    )}
+                                    <span>{brand.name}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                    {/* Logo 2: GORMLEY CONSTRUCTION */}
-                    <div className="team-v2__logo team-v2__logo--wordmark">
-                        <svg viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="team-v2__logo-icon">
-                            <path d="M12 2L2 10h20L12 2z" stroke="#888" strokeWidth="1.2" />
-                            <rect x="8" y="10" width="8" height="6" stroke="#888" strokeWidth="1.2" />
-                        </svg>
-                        <span>GORMLEY<br /><small>CONSTRUCTION</small></span>
-                    </div>
-                    {/* Logo 3: WUTAMALAND */}
-                    <div className="team-v2__logo team-v2__logo--wordmark">
-                        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="team-v2__logo-icon">
-                            <rect x="3" y="6" width="14" height="12" stroke="#888" strokeWidth="1.2" />
-                            <path d="M10 2L3 6h14L10 2z" stroke="#888" strokeWidth="1.2" />
-                        </svg>
-                        <span>WUTAMALAND<br /><small>MODERN & LUXURY LIVING</small></span>
-                    </div>
-                    {/* Logo 4: Double roof swoosh */}
-                    <div className="team-v2__logo">
-                        <svg viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 20L14 8l10 12" stroke="#888" strokeWidth="1.5" strokeLinecap="round" />
-                            <path d="M16 20L26 8l10 12" stroke="#888" strokeWidth="1.5" strokeLinecap="round" />
-                        </svg>
-                    </div>
-                    {/* Logo 5: constructionline */}
-                    <div className="team-v2__logo team-v2__logo--wordmark team-v2__logo--lowercase">
-                        <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="team-v2__logo-icon">
-                            <path d="M9 1l7.5 4.5v7L9 17l-7.5-4.5v-7L9 1z" stroke="#888" strokeWidth="1.2" />
-                            <circle cx="9" cy="9" r="2" stroke="#888" strokeWidth="1" />
-                        </svg>
-                        <span>constructionline</span>
-                    </div>
-                </div>
-            </div>
 
-            {/* Badge pill */}
-            <div className="team-v2__badge-wrap">
-                <div className="team-v2__badge">
-                    WE'RE PROUD TO PARTNER WITH BEST-IN-CLASS CLIENTS.
-                </div>
-            </div>
+                    {/* Badge pill */}
+                    <div className="team-v2__badge-wrap">
+                        <div className="team-v2__badge">
+                            WE'RE PROUD TO PARTNER WITH BEST-IN-CLASS CLIENTS.
+                        </div>
+                    </div>
+                </>
+            )}
         </section>
     );
 };

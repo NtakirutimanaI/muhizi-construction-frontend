@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-    FaCog, FaPaintBrush, FaLock, FaEye, FaEyeSlash, FaBell,
-    FaUser, FaGlobe, FaShieldAlt, FaTrash, FaDownload, FaSync, FaCheckCircle,
-    FaServer, FaEnvelope, FaKey
+    FaCog, FaLock, FaUser, FaShieldAlt, FaBell, FaEyeSlash, FaGlobe
 } from 'react-icons/fa';
 import { authService } from '../../services/authService';
 import { profileService } from '../../services/profileService';
@@ -14,7 +12,6 @@ const Settings = () => {
     const { user } = useAuth();
     const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
-    const [deleting, setDeleting] = useState(false);
     const [profile, setProfile] = useState<any>(null);
     const [activeTab, setActiveTab] = useState('general');
 
@@ -27,14 +24,8 @@ const Settings = () => {
 
     // Settings state
     const [settings, setSettings] = useState({
-        siteTitle: 'MIS - Make It Solutions',
-        enableAnimations: true,
-        enableNotifications: true,
-        isPublic: true,
-        allowMessages: true,
-        showViews: true,
         maintenanceMode: false,
-        availableForHire: true
+        enableNotifications: true,
     });
 
     useEffect(() => {
@@ -45,19 +36,13 @@ const Settings = () => {
         try {
             const data = await profileService.getMyProfile();
             setProfile(data);
-            setSettings(prev => ({
-                ...prev,
-                isPublic: data.isPublic !== false,
-                allowMessages: data.allowMessages !== false,
-                showViews: data.showViews !== false,
+            setSettings({
                 maintenanceMode: data.maintenanceMode || false,
-                availableForHire: data.availableForHire !== false,
-                enableAnimations: data.preferences?.enableAnimations !== false,
                 enableNotifications: data.preferences?.enableNotifications !== false,
-            }));
+            });
         } catch (error) {
             console.error('Failed to load profile', error);
-            showToast('Failed to load profile settings', 'error');
+            showToast('Failed to load settings', 'error');
         }
     };
 
@@ -107,31 +92,19 @@ const Settings = () => {
         }
     };
 
-    const handleSettingToggle = async (key: string, value: boolean) => {
+    const handleSettingToggle = async (key: 'maintenanceMode' | 'enableNotifications', value: boolean) => {
         // Optimistic update
         setSettings(prev => ({ ...prev, [key]: value }));
 
         try {
-            const updateData: any = {};
+            const updateData: any = key === 'enableNotifications'
+                ? { preferences: { ...profile?.preferences, enableNotifications: value } }
+                : { maintenanceMode: value };
 
-            // Map simple boolean fields
-            if (['isPublic', 'allowMessages', 'showViews', 'maintenanceMode', 'availableForHire'].includes(key)) {
-                updateData[key] = value;
-            }
-            // Map preferences fields
-            else if (['enableAnimations', 'enableNotifications'].includes(key)) {
-                updateData.preferences = {
-                    ...profile?.preferences,
-                    [key]: value
-                };
-            }
-
-            if (Object.keys(updateData).length > 0) {
-                const updatedProfile = await profileService.updateProfile(updateData);
-                setProfile(updatedProfile);
-                window.dispatchEvent(new CustomEvent('profile-updated'));
-                showToast('Setting updated successfully', 'success');
-            }
+            const updatedProfile = await profileService.updateProfile(updateData);
+            setProfile(updatedProfile);
+            window.dispatchEvent(new CustomEvent('profile-updated'));
+            showToast('Setting updated successfully', 'success');
         } catch (error) {
             showToast('Failed to update setting', 'error');
             // Revert on error
@@ -139,25 +112,10 @@ const Settings = () => {
         }
     };
 
-    const clearCache = () => {
-        const token = localStorage.getItem('accessToken');
-        const userData = localStorage.getItem('user');
-
-        localStorage.clear();
-        sessionStorage.clear();
-
-        if (token) localStorage.setItem('accessToken', token);
-        if (userData) localStorage.setItem('user', userData);
-
-        showToast('Local cache cleared successfully', 'success');
-    };
-
     const tabs = [
         { id: 'general', label: 'General', icon: <FaCog /> },
         { id: 'security', label: 'Security', icon: <FaLock /> },
-        { id: 'privacy', label: 'Privacy', icon: <FaShieldAlt /> },
-        { id: 'appearance', label: 'Appearance', icon: <FaPaintBrush /> },
-        { id: 'advanced', label: 'Advanced', icon: <FaServer /> },
+        { id: 'notifications', label: 'Notifications', icon: <FaBell /> },
     ];
 
     return (
@@ -166,7 +124,7 @@ const Settings = () => {
                 <div>
                     <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }}>Settings</h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '0.25rem' }}>
-                        Manage your portfolio settings, security, and preferences.
+                        Manage your account security and the public site's availability.
                     </p>
                 </div>
             </div>
@@ -227,40 +185,20 @@ const Settings = () => {
                         </div>
                     </div>
 
-                    {/* Portfolio Settings */}
+                    {/* Site Visibility */}
                     <div className="content-card" style={{ padding: '0.6rem' }}>
                         <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            <FaGlobe style={{ color: 'var(--primary)' }} /> Portfolio Settings
+                            <FaGlobe style={{ color: 'var(--primary)' }} /> Public Site
                         </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            <SettingToggle
-                                icon={settings.isPublic ? <FaEye /> : <FaEyeSlash />}
-                                label="Portfolio Visibility"
-                                description="Make your portfolio visible"
-                                checked={settings.isPublic}
-                                onChange={(val) => handleSettingToggle('isPublic', val)}
-                                color="var(--primary-teal)"
-                                compact
-                            />
-                            <SettingToggle
-                                icon={<FaEnvelope />}
-                                label="Allow Contact Messages"
-                                description="Enable visitors to message you"
-                                checked={settings.allowMessages}
-                                onChange={(val) => handleSettingToggle('allowMessages', val)}
-                                color="var(--primary)"
-                                compact
-                            />
-                            <SettingToggle
-                                icon={<FaEye />}
-                                label="Show View Count"
-                                description="Display profile view count"
-                                checked={settings.showViews}
-                                onChange={(val) => handleSettingToggle('showViews', val)}
-                                color="#667eea"
-                                compact
-                            />
-                        </div>
+                        <SettingToggle
+                            icon={<FaEyeSlash />}
+                            label="Maintenance Mode"
+                            description="Temporarily hide the public website from visitors while you work on it. Logged-in staff can still browse it and can always reach the login page."
+                            checked={settings.maintenanceMode}
+                            onChange={(val) => handleSettingToggle('maintenanceMode', val)}
+                            color="var(--primary-red)"
+                            compact
+                        />
                     </div>
                 </motion.div>
             )}
@@ -319,26 +257,11 @@ const Settings = () => {
                             </button>
                         </form>
                     </div>
-
-                    {/* Session Management */}
-                    <div className="content-card" style={{ padding: '0.6rem' }}>
-                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            <FaKey style={{ color: 'var(--primary)' }} /> Session Management
-                        </h3>
-                        <div style={{ padding: '0.5rem', background: 'var(--bg-body)', borderRadius: '6px' }}>
-                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
-                                Current session started: <strong>{new Date().toLocaleString()}</strong>
-                            </p>
-                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                Active sessions: <strong>1</strong>
-                            </p>
-                        </div>
-                    </div>
                 </motion.div>
             )}
 
-            {/* Privacy Tab */}
-            {activeTab === 'privacy' && (
+            {/* Notifications Tab */}
+            {activeTab === 'notifications' && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -346,138 +269,17 @@ const Settings = () => {
                 >
                     <div className="content-card" style={{ padding: '0.6rem' }}>
                         <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            <FaShieldAlt style={{ color: 'var(--primary)' }} /> Privacy Controls
+                            <FaShieldAlt style={{ color: 'var(--primary)' }} /> Notification Preferences
                         </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            <SettingToggle
-                                icon={<FaBell />}
-                                label="Email Notifications"
-                                description="Receive email notifications"
-                                checked={settings.enableNotifications}
-                                onChange={(val) => handleSettingToggle('enableNotifications', val)}
-                                color="var(--primary)"
-                                compact
-                            />
-                            <div style={{ padding: '0.5rem', background: 'rgba(27,32,66,0.04)', border: '1px solid var(--primary)', borderRadius: '6px' }}>
-                                <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.3rem', color: 'var(--primary)' }}>
-                                    Data Management
-                                </h4>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
-                                    Export or delete your data. This action cannot be undone.
-                                </p>
-                                <button
-                                    className="btn-primary"
-                                    style={{ background: 'var(--primary)', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                                    onClick={() => showToast('Export functionality coming soon', 'info')}
-                                >
-                                    <FaDownload /> Export Data
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
-            )}
-
-            {/* Appearance Tab */}
-            {activeTab === 'appearance' && (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', maxWidth: '830px', margin: '0 auto' }}
-                >
-                    <div className="content-card" style={{ padding: '0.6rem' }}>
-                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            <FaPaintBrush style={{ color: 'var(--primary)' }} /> UI Preferences
-                        </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            <SettingToggle
-                                icon={<FaCheckCircle />}
-                                label="Enable Animations"
-                                description="Show smooth transitions"
-                                checked={settings.enableAnimations}
-                                onChange={(val) => handleSettingToggle('enableAnimations', val)}
-                                color="var(--primary-teal)"
-                                compact
-                            />
-                        </div>
-                    </div>
-                </motion.div>
-            )}
-
-            {/* Advanced Tab */}
-            {activeTab === 'advanced' && (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', maxWidth: '830px', margin: '0 auto' }}
-                >
-                    <div className="content-card" style={{ padding: '0.6rem' }}>
-                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            <FaServer style={{ color: 'var(--primary)' }} /> System Configuration
-                        </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            <SettingToggle
-                                icon={<FaUser />}
-                                label="Available for Hire"
-                                description="Show 'Available for hire' badge"
-                                checked={settings.availableForHire}
-                                onChange={(val) => handleSettingToggle('availableForHire', val)}
-                                color="var(--primary)"
-                                compact
-                            />
-                            <SettingToggle
-                                icon={<FaCog />}
-                                label="Maintenance Mode"
-                                description="Hide portfolio from public"
-                                checked={settings.maintenanceMode}
-                                onChange={(val) => handleSettingToggle('maintenanceMode', val)}
-                                color="var(--primary-red)"
-                                compact
-                            />
-
-                            <div style={{ padding: '0.5rem', background: 'var(--bg-body)', border: '1px solid var(--border-color)', borderRadius: '6px', marginTop: '0.3rem' }}>
-                                <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.3rem' }}>System Actions</h4>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                                    <button
-                                        className="btn-primary"
-                                        style={{ background: 'var(--primary)', width: '100%', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                                        onClick={clearCache}
-                                    >
-                                        <FaSync /> Clear Local Cache
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Danger Zone */}
-                    <div className="content-card" style={{ padding: '0.6rem', border: '1.5px solid var(--primary-red)' }}>
-                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--primary-red)' }}>
-                            <FaTrash /> Danger Zone
-                        </h3>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
-                            Irreversible actions. Please be careful.
-                        </p>
-                        <button
-                            className="btn-primary"
-                            style={{ background: 'var(--primary-red)', width: '100%', padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
-                            disabled={deleting}
-                            onClick={async () => {
-                                if (deleting) return;
-                                if (!confirm('Are you sure you want to delete all messages? This cannot be undone.')) return;
-                                setDeleting(true);
-                                try {
-                                    await profileService.deleteAllMessages();
-                                    showToast('All messages deleted', 'success');
-                                } catch (error) {
-                                    showToast('Failed to delete messages', 'error');
-                                } finally {
-                                    setDeleting(false);
-                                }
-                            }}
-                        >
-                            {deleting ? 'Deleting...' : <><FaTrash /> Delete All Messages</>}
-                        </button>
+                        <SettingToggle
+                            icon={<FaBell />}
+                            label="In-App Notifications"
+                            description="Receive in-app notifications for activity relevant to your account"
+                            checked={settings.enableNotifications}
+                            onChange={(val) => handleSettingToggle('enableNotifications', val)}
+                            color="var(--primary)"
+                            compact
+                        />
                     </div>
                 </motion.div>
             )}

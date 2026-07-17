@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaHome, FaConciergeBell, FaCalendarAlt, FaSave, FaPlus, FaEdit, FaTrash, FaTimes, FaYoutube, FaProjectDiagram, FaUsers, FaEnvelope, FaQuestionCircle, FaUpload, FaVideo, FaBuilding } from 'react-icons/fa';
+import { FaHome, FaConciergeBell, FaSave, FaPlus, FaEdit, FaTrash, FaTimes, FaEnvelope, FaQuestionCircle, FaUpload, FaVideo, FaGem } from 'react-icons/fa';
 import type { Profile } from '../../../services/profileService';
 import { profileService } from '../../../services/profileService';
 import { useToast } from '../../../context/ToastContext';
 import { uploadService } from '../../../services/uploadService';
 
-type HomeTab = 'hero-slides' | 'services' | 'values-mission-vision' | 'events' | 'follow-us' | 'projects' | 'our-team' | 'get-in-touch' | 'faq';
+// Projects and Team each have their own dedicated top-level CMS tab already
+// (ProjectsTab.tsx / TeamTab.tsx) — no nested duplicate here, so there's only
+// ever one place that writes profile.projects / profile.teamMembers.
+type HomeTab = 'hero-slides' | 'services' | 'commitment' | 'get-in-touch' | 'faq';
 
 interface Props {
     profile: Profile;
@@ -17,11 +20,7 @@ interface Props {
 const SUB_TABS: { id: HomeTab; label: string; icon: React.ReactNode }[] = [
     { id: 'hero-slides', label: 'Hero Slides', icon: <FaHome /> },
     { id: 'services', label: 'Services', icon: <FaConciergeBell /> },
-    { id: 'values-mission-vision', label: 'Values, Mission & Vision', icon: <FaBuilding /> },
-    { id: 'follow-us', label: 'Follow Us', icon: <FaYoutube /> },
-    { id: 'projects', label: 'Projects', icon: <FaProjectDiagram /> },
-    { id: 'events', label: 'Events', icon: <FaCalendarAlt /> },
-    { id: 'our-team', label: 'Our Team', icon: <FaUsers /> },
+    { id: 'commitment', label: 'What Makes Us Different', icon: <FaGem /> },
     { id: 'get-in-touch', label: 'Get in Touch', icon: <FaEnvelope /> },
     { id: 'faq', label: 'FAQ', icon: <FaQuestionCircle /> },
 ];
@@ -50,12 +49,8 @@ const HomeSectionsTab: React.FC<Props> = ({ profile, onSave, saving }) => {
             <AnimatePresence mode="wait">
                 <motion.div key={subTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }}>
                     {subTab === 'hero-slides' && <HeroSlidesEditor profile={profile} onSave={onSave} saving={saving} />}
-                    {subTab === 'services' && <ServicesSection profile={profile} onSave={onSave} saving={saving} />}
-                    {subTab === 'values-mission-vision' && <ValuesMissionVisionEditor profile={profile} onSave={onSave} saving={saving} />}
-                    {subTab === 'events' && <EventsEditor profile={profile} onSave={onSave} saving={saving} />}
-                    {subTab === 'follow-us' && <FollowUsEditor profile={profile} onSave={onSave} saving={saving} />}
-                    {subTab === 'projects' && <ProjectsEditor profile={profile} onSave={onSave} saving={saving} />}
-                    {subTab === 'our-team' && <OurTeamEditor profile={profile} onSave={onSave} saving={saving} />}
+                    {subTab === 'services' && <ServicesEditor profile={profile} onSave={onSave} saving={saving} />}
+                    {subTab === 'commitment' && <CommitmentEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'get-in-touch' && <GetInTouchEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'faq' && <FaqEditor profile={profile} onSave={onSave} saving={saving} />}
                 </motion.div>
@@ -236,178 +231,6 @@ const HeroSlidesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
 };
 
 /* ───── Services Section (Top / Bottom sub-tabs) ───── */
-type ServicesSubTab = 'top-service' | 'bottom-services';
-
-const SERVICES_SUB_TABS: { id: ServicesSubTab; label: string }[] = [
-    { id: 'top-service', label: 'Top - Service' },
-    { id: 'bottom-services', label: 'Bottom - Services' },
-];
-
-const ServicesSection: React.FC<Props> = (props) => {
-    const [svcTab, setSvcTab] = useState<ServicesSubTab>('top-service');
-
-    return (
-        <div>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem' }}>
-                {SERVICES_SUB_TABS.map(t => (
-                    <button key={t.id} onClick={() => setSvcTab(t.id)}
-                        style={{
-                            padding: '0.3rem 0.7rem', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 600,
-                            whiteSpace: 'nowrap', border: 'none', cursor: 'pointer',
-                            background: svcTab === t.id ? 'var(--text-main)' : 'transparent',
-                            color: svcTab === t.id ? 'var(--bg-body)' : 'var(--text-muted)',
-                        }}
-                    >
-                        {t.label}
-                    </button>
-                ))}
-            </div>
-            {svcTab === 'top-service' && <TopServiceEditor {...props} />}
-            {svcTab === 'bottom-services' && <ServicesEditor {...props} />}
-        </div>
-    );
-};
-
-/* ───── Top Service Editor ───── */
-const TopServiceEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
-    const { showToast } = useToast();
-    const as = profile.pageContent?.aboutSection || {};
-    const [sectionHeading, setSectionHeading] = useState(as?.heading || '');
-    const [sectionSubtitle, setSectionSubtitle] = useState(as?.subtitle || '');
-    const [cards, setCards] = useState<Array<{ title: string; description: string }>>(as?.cards || []);
-    const [editingIndex, setEditingIndex] = useState<number | null>(null);
-    const [form, setForm] = useState<{ title: string; description: string } | null>(null);
-    const [localSaving, setLocalSaving] = useState(false);
-    const [saveMessage, setSaveMessage] = useState<string | null>(null);
-
-    useEffect(() => {
-        const a = profile.pageContent?.aboutSection || {};
-        setSectionHeading(a?.heading || '');
-        setSectionSubtitle(a?.subtitle || '');
-        setCards(a?.cards || []);
-    }, [profile.pageContent?.aboutSection]);
-
-    const save = async () => {
-        setLocalSaving(true);
-        setSaveMessage(null);
-        try {
-            const pc = {
-                ...profile.pageContent,
-                aboutSection: { heading: sectionHeading, subtitle: sectionSubtitle, cards },
-            };
-            await profileService.updateProfile({ pageContent: pc });
-            window.dispatchEvent(new CustomEvent('profile-updated'));
-            setSaveMessage('Top service saved successfully!');
-            setTimeout(() => setSaveMessage(null), 4000);
-            showToast('Top service saved successfully!', 'success');
-        } catch (e: any) {
-            const msg = e?.response?.data?.message || e?.message || 'Failed to save';
-            setSaveMessage('Error: ' + msg);
-            setTimeout(() => setSaveMessage(null), 6000);
-            showToast(msg, 'error');
-        } finally {
-            setLocalSaving(false);
-        }
-    };
-
-    const openNew = () => { setEditingIndex(-1); setForm({ title: '', description: '' }); };
-    const openEdit = (i: number) => { setEditingIndex(i); setForm({ ...cards[i] }); };
-    const cancel = () => { setEditingIndex(null); setForm(null); };
-
-    const handleSaveItem = () => {
-        if (!form) return;
-        const updated = [...cards];
-        if (editingIndex === -1) updated.push(form);
-        else if (editingIndex !== null) updated[editingIndex] = form;
-        setCards(updated);
-        cancel();
-    };
-
-    const handleDelete = (i: number) => {
-        if (!window.confirm('Delete this card?')) return;
-        setCards(cards.filter((_, idx) => idx !== i));
-    };
-
-    const isSaving = saving || localSaving;
-
-    return (
-        <div>
-            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Section Settings</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>These fields control the Overview section heading, subtitle, and service cards on the home page.</p>
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                    <label className="form-label">Section Heading</label>
-                    <input value={sectionHeading} onChange={e => setSectionHeading(e.target.value)} className="form-input" placeholder="Section heading" />
-                </div>
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                    <label className="form-label">Section Subtitle</label>
-                    <textarea value={sectionSubtitle} onChange={e => setSectionSubtitle(e.target.value)} className="form-textarea" rows={2} placeholder="Section subtitle" />
-                </div>
-            </div>
-
-            <div className="content-card" style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                    <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Service Cards ({cards.length})</h3>
-                    <button onClick={openNew} disabled={editingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add Card</button>
-                </div>
-
-                <AnimatePresence>
-                    {editingIndex !== null && form && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                            className="content-card" style={{ marginBottom: '1rem', padding: '1rem', border: '2px solid var(--primary)' }}
-                        >
-                            <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>{editingIndex === -1 ? 'New Card' : 'Edit Card'}</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                                <div className="form-group">
-                                    <label className="form-label">Title</label>
-                                    <input value={form.title} onChange={e => setForm(p => ({ ...p!, title: e.target.value }))} className="form-input" placeholder="Card title" />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">Description</label>
-                                    <input value={form.description} onChange={e => setForm(p => ({ ...p!, description: e.target.value }))} className="form-input" placeholder="Card description" />
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                                <button onClick={cancel} className="admin-icon-btn" style={{ fontSize: '0.85rem', width: 'auto', padding: '0.4rem 0.8rem' }}>Cancel</button>
-                                <button onClick={handleSaveItem} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}><FaSave /> Save Card</button>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {cards.map((c, i) => (
-                        <div key={i} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.8rem' }}>
-                            <div>
-                                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{c.title}</div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{c.description}</div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                                <button onClick={() => openEdit(i)} className="admin-icon-btn"><FaEdit /></button>
-                                <button onClick={() => handleDelete(i)} className="admin-icon-btn" style={{ color: 'var(--primary-red)' }}><FaTrash /></button>
-                            </div>
-                        </div>
-                    ))}
-                    {cards.length === 0 && (
-                        <div style={{ padding: '1.5rem', textAlign: 'center', border: '2px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>No cards yet. Click "Add Card" above.</div>
-                    )}
-                </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', marginTop: '1rem' }}>
-                {saveMessage && (
-                    <span style={{
-                        fontSize: '0.85rem', fontWeight: 600,
-                        color: saveMessage.startsWith('Error') ? '#d32f2f' : '#2e7d32',
-                        background: saveMessage.startsWith('Error') ? '#ffebee' : '#e8f5e9',
-                        padding: '6px 14px', borderRadius: '8px',
-                    }}>{saveMessage}</span>
-                )}
-                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Top Service</>}</button>
-            </div>
-        </div>
-    );
-};
 
 /* ───── Services Editor (Bottom Services) ───── */
 interface ServiceItemForm { title: string; description: string; tags: string; color: string; images: string[]; }
@@ -616,46 +439,66 @@ const ServicesEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     );
 };
 
-/* ───── Values, Mission & Vision Editor ───── */
-const ValuesMissionVisionEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
+
+/* ───── "What Makes Us Different" (Commitment) Editor ───── */
+interface CommitmentForm {
+    anchorImage: string;
+    anchorTitle: string;
+    anchorDescription: string;
+    cards: { title: string; description: string }[];
+    imageCardImage: string;
+}
+
+const CommitmentEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const { showToast } = useToast();
-    const defaultCards = [
-        { title: 'Values', description: 'Integrity, transparency, and accountability form the foundation of everything we do. We uphold the highest ethical standards in every project we undertake.' },
-        { title: 'Mission', description: 'To deliver exceptional construction and real estate solutions that exceed client expectations through innovation, quality craftsmanship, and sustainable practices.' },
-        { title: 'Vision', description: 'To be Rwanda\'s most trusted construction company, shaping communities and building a better future through excellence in infrastructure and property development.' },
-    ];
-    const as = profile.pageContent?.aboutSection || {};
-    const [cards, setCards] = useState<Array<{ title: string; description: string }>>(as?.cards?.length === 3 ? as.cards : defaultCards);
+    const buildForm = (p: Profile): CommitmentForm => {
+        const c = p.pageContent?.commitment;
+        const cards = [0, 1, 2].map(i => c?.cards?.[i] || { title: '', description: '' });
+        return {
+            anchorImage: c?.anchorImage || '',
+            anchorTitle: c?.anchorTitle || '',
+            anchorDescription: c?.anchorDescription || '',
+            cards,
+            imageCardImage: c?.imageCardImage || '',
+        };
+    };
+    const [form, setForm] = useState<CommitmentForm>(buildForm(profile));
     const [localSaving, setLocalSaving] = useState(false);
-    const [saveMessage, setSaveMessage] = useState<string | null>(null);
+    const [uploadingAnchor, setUploadingAnchor] = useState(false);
+    const [uploadingImageCard, setUploadingImageCard] = useState(false);
+    const anchorFileRef = useRef<HTMLInputElement>(null);
+    const imageCardFileRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        const a = profile.pageContent?.aboutSection || {};
-        setCards(a?.cards?.length === 3 ? a.cards : defaultCards);
-    }, [profile.pageContent?.aboutSection]);
+        setForm(buildForm(profile));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [profile.pageContent?.commitment]);
 
-    const updateDesc = (i: number, value: string) => {
-        setCards(cards.map((c, idx) => idx === i ? { ...c, description: value } : c));
+    const uploadTo = async (file: File, key: 'anchorImage' | 'imageCardImage', setUploading: (b: boolean) => void) => {
+        if (file.size > 2 * 1024 * 1024) { showToast('Image must be smaller than 2MB', 'error'); return; }
+        setUploading(true);
+        try {
+            const uploaded = await uploadService.uploadFile(file);
+            setForm(p => ({ ...p, [key]: uploaded.secureUrl }));
+        } catch (e: any) {
+            showToast(e?.response?.data?.message || e?.message || 'Failed to upload image', 'error');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const updateCard = (i: number, field: 'title' | 'description', value: string) => {
+        setForm(p => ({ ...p, cards: p.cards.map((c, idx) => idx === i ? { ...c, [field]: value } : c) }));
     };
 
     const save = async () => {
         setLocalSaving(true);
-        setSaveMessage(null);
         try {
-            const pc = {
-                ...profile.pageContent,
-                aboutSection: { ...as, cards },
-            };
-            await profileService.updateProfile({ pageContent: pc });
-            window.dispatchEvent(new CustomEvent('profile-updated'));
-            setSaveMessage('Values, Mission & Vision saved successfully!');
-            setTimeout(() => setSaveMessage(null), 4000);
-            showToast('Saved successfully!', 'success');
+            const pc = { ...(profile.pageContent || {}), commitment: form };
+            await onSave({ pageContent: pc });
+            showToast('"What Makes Us Different" section saved!', 'success');
         } catch (e: any) {
-            const msg = e?.response?.data?.message || e?.message || 'Failed to save';
-            setSaveMessage('Error: ' + msg);
-            setTimeout(() => setSaveMessage(null), 6000);
-            showToast(msg, 'error');
+            showToast(e?.response?.data?.message || e?.message || 'Failed to save', 'error');
         } finally {
             setLocalSaving(false);
         }
@@ -665,579 +508,81 @@ const ValuesMissionVisionEditor: React.FC<Props> = ({ profile, onSave, saving })
 
     return (
         <div>
-            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Values, Mission & Vision</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Edit the description text for each card. Titles are fixed.</p>
-                {cards.map((c, i) => (
-                    <div key={i} className="form-group" style={{ marginBottom: '1rem', padding: '0.75rem', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
-                        <label className="form-label" style={{ fontWeight: 700, fontSize: '1rem' }}>{c.title}</label>
-                        <textarea value={c.description} onChange={e => updateDesc(i, e.target.value)} className="form-textarea" rows={4} placeholder={`Enter ${c.title.toLowerCase()} text...`} />
-                    </div>
-                ))}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '1rem' }}>
-                {saveMessage && (
-                    <span style={{
-                        fontSize: '0.85rem', fontWeight: 600,
-                        color: saveMessage.startsWith('Error') ? '#d32f2f' : '#2e7d32',
-                        background: saveMessage.startsWith('Error') ? '#ffebee' : '#e8f5e9',
-                        padding: '6px 14px', borderRadius: '8px',
-                    }}>{saveMessage}</span>
-                )}
-                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
-            </div>
-        </div>
-    );
-};
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                Controls the "What Makes Us Different" section on the homepage — the large image card, the two image-backed cards, and the image-only card.
+            </p>
 
-/* ───── Events Editor ───── */
-const EventsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
-    const [events, setEvents] = useState(profile.pageContent?.events || []);
-    const [editingIndex, setEditingIndex] = useState<number | null>(null);
-    const [form, setForm] = useState<any>(null);
-    const [localSaving, setLocalSaving] = useState(false);
-
-    useEffect(() => { setEvents(profile.pageContent?.events || []); }, [profile.pageContent?.events]);
-
-    const save = async (updated: any[]) => {
-        setLocalSaving(true);
-        const pc = { ...profile.pageContent, events: updated };
-        await onSave({ pageContent: pc });
-        setLocalSaving(false);
-    };
-
-    const openNew = () => { setEditingIndex(-1); setForm({ title: '', date: '', location: '', description: '' }); };
-    const openEdit = (i: number) => { setEditingIndex(i); setForm({ ...events[i] }); };
-    const cancel = () => { setEditingIndex(null); };
-
-    const handleSave = async () => {
-        const updated = [...events];
-        if (editingIndex === -1) updated.push(form);
-        else if (editingIndex !== null) updated[editingIndex] = form;
-        await save(updated);
-        cancel();
-    };
-
-    const handleDelete = async (i: number) => {
-        if (!window.confirm('Delete this event?')) return;
-        await save(events.filter((_, idx) => idx !== i));
-    };
-
-    const isSaving = saving || localSaving;
-
-    return (
-        <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Events ({events.length})</h3>
-                <button onClick={openNew} disabled={editingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add Event</button>
-            </div>
-            <AnimatePresence>
-                {editingIndex !== null && form && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                        className="content-card" style={{ marginBottom: '1rem', padding: '1rem', border: '2px solid var(--primary)' }}
-                    >
-                        <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>{editingIndex === -1 ? 'New Event' : 'Edit Event'}</h4>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">Title</label>
-                            <input value={form.title} onChange={e => setForm((p: any) => ({ ...p, title: e.target.value }))} className="form-input" placeholder="Event title" />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                            <div className="form-group">
-                                <label className="form-label">Date</label>
-                                <input value={form.date} onChange={e => setForm((p: any) => ({ ...p, date: e.target.value }))} className="form-input" placeholder="e.g. 15 Aug 2026" />
+            <div className="content-card" style={{ padding: '1rem', marginBottom: '1rem' }}>
+                <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Large Card (with photo)</h4>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Image</label>
+                    <input ref={anchorFileRef} type="file" accept="image/*" style={{ display: 'none' }}
+                        onChange={e => { const f = e.target.files?.[0]; if (f) uploadTo(f, 'anchorImage', setUploadingAnchor); }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        {form.anchorImage ? (
+                            <div style={{ width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '2px solid var(--border-color)', flexShrink: 0 }}>
+                                <img src={form.anchorImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Location</label>
-                                <input value={form.location} onChange={e => setForm((p: any) => ({ ...p, location: e.target.value }))} className="form-input" placeholder="e.g. Kigali, Rwanda" />
-                            </div>
-                        </div>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">Description</label>
-                            <textarea value={form.description} onChange={e => setForm((p: any) => ({ ...p, description: e.target.value }))} className="form-textarea" rows={2} placeholder="Event description" />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                            <button onClick={cancel} className="admin-icon-btn" style={{ fontSize: '0.85rem', width: 'auto', padding: '0.4rem 0.8rem' }}>Cancel</button>
-                            <button onClick={handleSave} className="btn-primary" disabled={isSaving} style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {events.map((e, i) => (
-                    <div key={i} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.8rem' }}>
-                        <div style={{ minWidth: 0 }}>
-                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{e.title}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{e.date} — {e.location}</div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                            <button onClick={() => openEdit(i)} className="admin-icon-btn"><FaEdit /></button>
-                            <button onClick={() => handleDelete(i)} className="admin-icon-btn" style={{ color: 'var(--primary-red)' }}><FaTrash /></button>
-                        </div>
-                    </div>
-                ))}
-                {events.length === 0 && (
-                    <div style={{ padding: '2rem', textAlign: 'center', border: '2px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-muted)' }}>No events yet.</div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-/* ───── Follow Us / Experience Editor ───── */
-const FollowUsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
-    const fu = profile.pageContent?.followUs;
-    const [heading, setHeading] = useState(fu?.heading || '');
-    const [subtitle, setSubtitle] = useState(fu?.subtitle || '');
-    const [youtubeUrl, setYoutubeUrl] = useState(fu?.youtubeUrl || '');
-    const [yearsOfExperience, setYearsOfExperience] = useState(profile.yearsOfExperience || 0);
-    const [viewMoreText, setViewMoreText] = useState(fu?.viewMoreText || '');
-    const [viewMoreUrl, setViewMoreUrl] = useState(fu?.viewMoreUrl || '');
-    const [videos, setVideos] = useState(fu?.videos || []);
-    const [editingIndex, setEditingIndex] = useState<number | null>(null);
-    const [form, setForm] = useState<any>(null);
-    const [localSaving, setLocalSaving] = useState(false);
-
-    useEffect(() => {
-        const d = profile.pageContent?.followUs;
-        setHeading(d?.heading || '');
-        setSubtitle(d?.subtitle || '');
-        setYoutubeUrl(d?.youtubeUrl || '');
-        setViewMoreText(d?.viewMoreText || '');
-        setViewMoreUrl(d?.viewMoreUrl || '');
-        setYearsOfExperience(profile.yearsOfExperience || 0);
-        setVideos(d?.videos || []);
-    }, [profile.pageContent?.followUs, profile.yearsOfExperience]);
-
-    const save = async () => {
-        setLocalSaving(true);
-        const pc = { ...profile.pageContent, followUs: { heading, subtitle, youtubeUrl, videos, viewMoreText, viewMoreUrl } };
-        await onSave({ pageContent: pc, yearsOfExperience } as any);
-        setLocalSaving(false);
-    };
-
-    const openNew = () => { setEditingIndex(-1); setForm({ url: '', title: '', description: '' }); };
-    const openEdit = (i: number) => { setEditingIndex(i); setForm({ ...videos[i] }); };
-    const cancel = () => { setEditingIndex(null); };
-
-    const handleSaveVideo = async () => {
-        if (!form) return;
-        const updated = [...videos];
-        if (editingIndex === -1) updated.push(form);
-        else if (editingIndex !== null) updated[editingIndex] = form;
-        setVideos(updated);
-        cancel();
-    };
-
-    const handleDeleteVideo = (i: number) => {
-        if (!window.confirm('Delete this video?')) return;
-        setVideos(videos.filter((_, idx) => idx !== i));
-    };
-
-    const isSaving = saving || localSaving;
-
-    return (
-        <div>
-            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Follow Us / Experience</h3>
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                    <label className="form-label">Section Heading</label>
-                    <input value={heading} onChange={e => setHeading(e.target.value)} className="form-input" placeholder="Section heading" />
-                </div>
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                    <label className="form-label">Subtitle</label>
-                    <input value={subtitle} onChange={e => setSubtitle(e.target.value)} className="form-input" placeholder="Section subtitle" />
-                </div>
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                    <label className="form-label">Years of Experience</label>
-                    <input type="number" value={yearsOfExperience || ''} onChange={e => setYearsOfExperience(e.target.value === '' ? '' : parseInt(e.target.value) || '')} className="form-input" placeholder="e.g. 10" />
-                </div>
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                    <label className="form-label">Main YouTube URL</label>
-                    <input value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} className="form-input" placeholder="YouTube embed URL" />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div className="form-group">
-                        <label className="form-label">View More Text</label>
-                        <input value={viewMoreText} onChange={e => setViewMoreText(e.target.value)} className="form-input" placeholder="View more text" />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">View More URL</label>
-                        <input value={viewMoreUrl} onChange={e => setViewMoreUrl(e.target.value)} className="form-input" placeholder="View more URL" />
+                        ) : (
+                            <div style={{ width: 80, height: 80, borderRadius: 8, border: '2px dashed var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem', flexShrink: 0 }}>Default</div>
+                        )}
+                        <button type="button" onClick={() => anchorFileRef.current?.click()} disabled={uploadingAnchor} className="admin-icon-btn" style={{ width: 'auto', padding: '0.5rem 1rem', gap: '8px', border: '1px solid var(--border-color)' }}>
+                            <FaUpload /> {uploadingAnchor ? 'Uploading...' : form.anchorImage ? 'Replace' : 'Upload'}
+                        </button>
+                        {form.anchorImage && (
+                            <button type="button" onClick={() => setForm(p => ({ ...p, anchorImage: '' }))} className="admin-icon-btn" style={{ width: 'auto', padding: '0.5rem 1rem' }}><FaTimes /> Remove</button>
+                        )}
                     </div>
                 </div>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Title</label>
+                    <input value={form.anchorTitle} onChange={e => setForm(p => ({ ...p, anchorTitle: e.target.value }))} className="form-input" placeholder="Client-Focused Delivery" />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Description</label>
+                    <textarea value={form.anchorDescription} onChange={e => setForm(p => ({ ...p, anchorDescription: e.target.value }))} className="form-textarea" rows={2} placeholder="We prioritize clear communication..." />
+                </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Videos ({videos.length})</h3>
-                <button onClick={openNew} disabled={editingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add Video</button>
-            </div>
-            <AnimatePresence>
-                {editingIndex !== null && form && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                        className="content-card" style={{ marginBottom: '1rem', padding: '1rem', border: '2px solid var(--primary)' }}
-                    >
-                        <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>{editingIndex === -1 ? 'New Video' : 'Edit Video'}</h4>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">YouTube Embed URL</label>
-                            <input value={form.url} onChange={e => setForm((p: any) => ({ ...p, url: e.target.value }))} className="form-input" placeholder="https://www.youtube.com/embed/..." />
+            <div className="content-card" style={{ padding: '1rem', marginBottom: '1rem' }}>
+                <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Three Text Cards</h4>
+                {form.cards.map((card, i) => (
+                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: i < 2 ? '0.75rem' : 0, paddingBottom: i < 2 ? '0.75rem' : 0, borderBottom: i < 2 ? '1px solid var(--border-color)' : 'none' }}>
+                        <div className="form-group">
+                            <label className="form-label">Card {i + 1} Title</label>
+                            <input value={card.title} onChange={e => updateCard(i, 'title', e.target.value)} className="form-input" />
                         </div>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">Title</label>
-                            <input value={form.title} onChange={e => setForm((p: any) => ({ ...p, title: e.target.value }))} className="form-input" placeholder="Video title" />
-                        </div>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">Description</label>
-                            <input value={form.description} onChange={e => setForm((p: any) => ({ ...p, description: e.target.value }))} className="form-input" placeholder="Short video description" />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                            <button onClick={cancel} className="admin-icon-btn" style={{ fontSize: '0.85rem', width: 'auto', padding: '0.4rem 0.8rem' }}>Cancel</button>
-                            <button onClick={handleSaveVideo} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}><FaSave /> Save</button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
-                {videos.map((v, i) => (
-                    <div key={i} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.8rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                            <div style={{ width: '120px', height: '68px', borderRadius: '6px', overflow: 'hidden', background: '#000', flexShrink: 0 }}>
-                                <iframe
-                                    src={(() => {
-                                        const match = v.url?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-                                        return match ? `https://www.youtube.com/embed/${match[1]}` : v.url;
-                                    })()}
-                                    title={v.title}
-                                    style={{ width: '100%', height: '100%', border: 'none' }}
-                                />
-                            </div>
-                            <div style={{ minWidth: 0 }}>
-                                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{v.title}</div>
-                                {v.description && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{v.description}</div>}
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                            <button onClick={() => openEdit(i)} className="admin-icon-btn"><FaEdit /></button>
-                            <button onClick={() => handleDeleteVideo(i)} className="admin-icon-btn" style={{ color: 'var(--primary-red)' }}><FaTrash /></button>
+                        <div className="form-group">
+                            <label className="form-label">Card {i + 1} Description</label>
+                            <input value={card.description} onChange={e => updateCard(i, 'description', e.target.value)} className="form-input" />
                         </div>
                     </div>
                 ))}
             </div>
+
+            <div className="content-card" style={{ padding: '1rem', marginBottom: '1rem' }}>
+                <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Image-Only Card</h4>
+                <input ref={imageCardFileRef} type="file" accept="image/*" style={{ display: 'none' }}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) uploadTo(f, 'imageCardImage', setUploadingImageCard); }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {form.imageCardImage ? (
+                        <div style={{ width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '2px solid var(--border-color)', flexShrink: 0 }}>
+                            <img src={form.imageCardImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                    ) : (
+                        <div style={{ width: 80, height: 80, borderRadius: 8, border: '2px dashed var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem', flexShrink: 0 }}>Default</div>
+                    )}
+                    <button type="button" onClick={() => imageCardFileRef.current?.click()} disabled={uploadingImageCard} className="admin-icon-btn" style={{ width: 'auto', padding: '0.5rem 1rem', gap: '8px', border: '1px solid var(--border-color)' }}>
+                        <FaUpload /> {uploadingImageCard ? 'Uploading...' : form.imageCardImage ? 'Replace' : 'Upload'}
+                    </button>
+                    {form.imageCardImage && (
+                        <button type="button" onClick={() => setForm(p => ({ ...p, imageCardImage: '' }))} className="admin-icon-btn" style={{ width: 'auto', padding: '0.5rem 1rem' }}><FaTimes /> Remove</button>
+                    )}
+                </div>
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Follow Us</>}</button>
-            </div>
-        </div>
-    );
-};
-
-/* ───── Projects Editor (inline) ───── */
-const ProjectsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
-    const [projects, setProjects] = useState(profile.projects || []);
-    const [editingIndex, setEditingIndex] = useState<number | null>(null);
-    const [form, setForm] = useState<any>(null);
-    const [localSaving, setLocalSaving] = useState(false);
-    const [uploading, setUploading] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => { setProjects(profile.projects || []); }, [profile.projects]);
-
-    const save = async (updated: any[]) => {
-        setLocalSaving(true);
-        await onSave({ projects: updated } as any);
-        setLocalSaving(false);
-    };
-
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setUploading(true);
-        setUploadProgress(0);
-        try {
-            const uploaded = await uploadService.uploadFile(file, (pct) => setUploadProgress(pct));
-            setForm((p: any) => ({ ...p, imageUrl: uploaded.secureUrl }));
-        } catch {
-            alert('Failed to upload image');
-        } finally {
-            setUploading(false);
-        }
-    };
-
-    const openNew = () => { setEditingIndex(-1); setForm({ name: '', description: '', technologies: [], url: '', imageUrl: '', featured: false }); };
-    const openEdit = (i: number) => { setEditingIndex(i); setForm({ ...projects[i], technologies: [...(projects[i].technologies || [])] }); };
-    const cancel = () => { setEditingIndex(null); };
-
-    const handleSave = async () => {
-        const updated = [...projects];
-        if (editingIndex === -1) updated.push(form);
-        else if (editingIndex !== null) updated[editingIndex] = form;
-        await save(updated);
-        cancel();
-    };
-
-    const handleDelete = async (i: number) => {
-        if (!window.confirm('Delete this project?')) return;
-        await save(projects.filter((_, idx) => idx !== i));
-    };
-
-    const isSaving = saving || localSaving;
-
-    const ps = profile.pageContent?.projectsSection;
-    const [sectionHeading, setSectionHeading] = useState(ps?.heading || '');
-    const [sectionSubtitle, setSectionSubtitle] = useState(ps?.subtitle || '');
-
-    useEffect(() => {
-        const d = profile.pageContent?.projectsSection;
-        setSectionHeading(d?.heading || '');
-        setSectionSubtitle(d?.subtitle || '');
-    }, [profile.pageContent?.projectsSection]);
-
-    const saveSection = async () => {
-        setLocalSaving(true);
-        const pc = { ...profile.pageContent, projectsSection: { heading: sectionHeading, subtitle: sectionSubtitle } };
-        await onSave({ pageContent: pc } as any);
-        setLocalSaving(false);
-    };
-
-    return (
-        <div>
-            <div className="content-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem' }}>Projects Section Settings</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div className="form-group">
-                        <label className="form-label">Heading</label>
-                        <input value={sectionHeading} onChange={e => setSectionHeading(e.target.value)} className="form-input" placeholder="Featured Projects" />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">Subtitle</label>
-                        <input value={sectionSubtitle} onChange={e => setSectionSubtitle(e.target.value)} className="form-input" placeholder="Some of our recent work" />
-                    </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
-                    <button onClick={saveSection} disabled={isSaving} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>{isSaving ? 'Saving...' : <><FaSave /> Save Section</>}</button>
-                </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Project Items ({projects.length})</h3>
-                <button onClick={openNew} disabled={editingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add</button>
-            </div>
-            <AnimatePresence>
-                {editingIndex !== null && form && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                        className="content-card" style={{ marginBottom: '1rem', padding: '1rem', border: '2px solid var(--primary)' }}
-                    >
-                        <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>{editingIndex === -1 ? 'New Project' : 'Edit Project'}</h4>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">Name</label>
-                            <input value={form.name} onChange={e => setForm((p: any) => ({ ...p, name: e.target.value }))} className="form-input" placeholder="Project name" />
-                        </div>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">Description</label>
-                            <textarea value={form.description} onChange={e => setForm((p: any) => ({ ...p, description: e.target.value }))} className="form-textarea" rows={3} placeholder="Project description" />
-                        </div>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">Image</label>
-                            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                {form.imageUrl && (
-                                    <div style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-color)', flexShrink: 0 }}>
-                                        <img src={form.imageUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        <button type="button" onClick={() => setForm((p: any) => ({ ...p, imageUrl: '' }))} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: 20, height: 20, fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
-                                    </div>
-                                )}
-                                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>
-                                    {uploading ? 'Uploading...' : <><FaUpload /> {form.imageUrl ? 'Replace Image' : 'Upload Image'}</>}
-                                </button>
-                                {uploading && (
-                                    <div style={{ flex: 1, minWidth: 120 }}>
-                                        <div style={{ height: 8, background: 'var(--border-color)', borderRadius: 4, overflow: 'hidden' }}>
-                                            <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'var(--primary)', borderRadius: 4, transition: 'width 0.3s' }} />
-                                        </div>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2, textAlign: 'center' }}>{uploadProgress}%</div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">Live URL</label>
-                            <input value={form.url || ''} onChange={e => setForm((p: any) => ({ ...p, url: e.target.value }))} className="form-input" placeholder="https://example.com" />
-                        </div>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">Technologies (comma separated)</label>
-                            <input value={Array.isArray(form.technologies) ? form.technologies.join(', ') : form.technologies || ''} onChange={e => setForm((p: any) => ({ ...p, technologies: e.target.value.split(',').map((t: string) => t.trim()).filter(Boolean) }))} className="form-input" placeholder="e.g. React, TypeScript, Node.js" />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                            <button onClick={cancel} className="admin-icon-btn" style={{ fontSize: '0.85rem', width: 'auto', padding: '0.4rem 0.8rem' }}>Cancel</button>
-                            <button onClick={handleSave} className="btn-primary" disabled={isSaving} style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {projects.map((p, i) => (
-                    <div key={i} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.8rem' }}>
-                        <div style={{ minWidth: 0 }}>
-                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{p.name}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>{p.description}</div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                            <button onClick={() => openEdit(i)} className="admin-icon-btn"><FaEdit /></button>
-                            <button onClick={() => handleDelete(i)} className="admin-icon-btn" style={{ color: 'var(--primary-red)' }}><FaTrash /></button>
-                        </div>
-                    </div>
-                ))}
-                {projects.length === 0 && (
-                    <div style={{ padding: '2rem', textAlign: 'center', border: '2px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-muted)' }}>No projects yet.</div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-/* ───── Our Team Editor (inline) ───── */
-const OurTeamEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
-    const [members, setMembers] = useState(profile.teamMembers || []);
-    const [visible, setVisible] = useState(profile.pageContent?.showTeamSection !== false);
-    const [editingIndex, setEditingIndex] = useState<number | null>(null);
-    const [form, setForm] = useState<any>(null);
-    const [localSaving, setLocalSaving] = useState(false);
-    const [uploading, setUploading] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        setMembers(profile.teamMembers || []);
-        setVisible(profile.pageContent?.showTeamSection !== false);
-    }, [profile.teamMembers, profile.pageContent?.showTeamSection]);
-
-    const save = async (updated: any[]) => {
-        setLocalSaving(true);
-        const pc = { ...profile.pageContent, showTeamSection: visible };
-        await onSave({ teamMembers: updated, pageContent: pc } as any);
-        setLocalSaving(false);
-    };
-
-    const toggleVisibility = async () => {
-        const next = !visible;
-        setVisible(next);
-        setLocalSaving(true);
-        const pc = { ...profile.pageContent, showTeamSection: next };
-        await onSave({ pageContent: pc } as any);
-        setLocalSaving(false);
-    };
-
-    const openNew = () => { setEditingIndex(-1); setForm({ name: '', role: '', imageUrl: '' }); };
-    const openEdit = (i: number) => { setEditingIndex(i); setForm({ ...members[i] }); };
-    const cancel = () => { setEditingIndex(null); };
-
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        if (file.size > 2 * 1024 * 1024) {
-            alert('Image must be smaller than 2MB');
-            return;
-        }
-        setUploading(true);
-        try {
-            const uploaded = await uploadService.uploadFile(file);
-            setForm((p: any) => ({ ...p, imageUrl: uploaded.secureUrl }));
-        } catch {
-            alert('Failed to upload image');
-        } finally {
-            setUploading(false);
-        }
-    };
-
-    const handleSave = async () => {
-        const updated = [...members];
-        if (editingIndex === -1) updated.push(form);
-        else if (editingIndex !== null) updated[editingIndex] = form;
-        await save(updated);
-        cancel();
-    };
-
-    const handleDelete = async (i: number) => {
-        if (!window.confirm('Delete this member?')) return;
-        await save(members.filter((_, idx) => idx !== i));
-    };
-
-    const isSaving = saving || localSaving || uploading;
-
-    return (
-        <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Team Members ({members.length})</h3>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                        <input type="checkbox" checked={visible} onChange={toggleVisibility} disabled={saving || localSaving || uploading} style={{ width: 16, height: 16, cursor: 'pointer' }} />
-                        Visible on website
-                    </label>
-                    <button onClick={openNew} disabled={editingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add</button>
-                </div>
-            </div>
-            <AnimatePresence>
-                {editingIndex !== null && form && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                        className="content-card" style={{ marginBottom: '1rem', padding: '1rem', border: '2px solid var(--primary)' }}
-                    >
-                        <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>{editingIndex === -1 ? 'New Member' : 'Edit Member'}</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                            <div className="form-group">
-                                <label className="form-label">Name</label>
-                                <input value={form.name} onChange={e => setForm((p: any) => ({ ...p, name: e.target.value }))} className="form-input" placeholder="Full name" />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Role</label>
-                                <input value={form.role} onChange={e => setForm((p: any) => ({ ...p, role: e.target.value }))} className="form-input" placeholder="e.g. Project Manager" />
-                            </div>
-                        </div>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label className="form-label">Photo</label>
-                            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                {form.imageUrl ? (
-                                    <div style={{ width: '70px', height: '70px', borderRadius: '8px', overflow: 'hidden', border: '2px solid var(--border-color)', flexShrink: 0 }}>
-                                        <img src={form.imageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    </div>
-                                ) : (
-                                    <div style={{ width: '70px', height: '70px', borderRadius: '8px', border: '2px dashed var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem', flexShrink: 0 }}>
-                                        No image
-                                    </div>
-                                )}
-                                <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }} disabled={uploading}>
-                                    {uploading ? 'Uploading...' : 'Choose File'}
-                                </button>
-                                {form.imageUrl && (
-                                    <button type="button" onClick={() => setForm((p: any) => ({ ...p, imageUrl: '' }))} className="admin-icon-btn" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>
-                                        <FaTimes /> Remove
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                            <button onClick={cancel} className="admin-icon-btn" style={{ fontSize: '0.85rem', width: 'auto', padding: '0.4rem 0.8rem' }}>Cancel</button>
-                            <button onClick={handleSave} className="btn-primary" disabled={isSaving} style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {members.map((m, i) => (
-                    <div key={i} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.8rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {m.imageUrl && <img src={m.imageUrl} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
-                            <div>
-                                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{m.name}</div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{m.role}</div>
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                            <button onClick={() => openEdit(i)} className="admin-icon-btn"><FaEdit /></button>
-                            <button onClick={() => handleDelete(i)} className="admin-icon-btn" style={{ color: 'var(--primary-red)' }}><FaTrash /></button>
-                        </div>
-                    </div>
-                ))}
-                {members.length === 0 && (
-                    <div style={{ padding: '2rem', textAlign: 'center', border: '2px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-muted)' }}>No team members yet.</div>
-                )}
+                <button onClick={save} disabled={isSaving || uploadingAnchor || uploadingImageCard} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
             </div>
         </div>
     );
@@ -1247,25 +592,23 @@ const OurTeamEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
 const GetInTouchEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const cs = profile.pageContent?.contactSection;
     const [heading, setHeading] = useState(cs?.heading || '');
-    const [subtitle, setSubtitle] = useState(cs?.subtitle || '');
     const [phone, setPhone] = useState(profile.phone || '');
     const [email, setEmail] = useState(profile.email || '');
-    const [address, setAddress] = useState(profile.address || '');
+    const [location, setLocation] = useState(profile.location || '');
     const [localSaving, setLocalSaving] = useState(false);
 
     useEffect(() => {
         const d = profile.pageContent?.contactSection;
         setHeading(d?.heading || '');
-        setSubtitle(d?.subtitle || '');
         setPhone(profile.phone || '');
         setEmail(profile.email || '');
-        setAddress(profile.address || '');
-    }, [profile.pageContent?.contactSection, profile.phone, profile.email, profile.address]);
+        setLocation(profile.location || '');
+    }, [profile.pageContent?.contactSection, profile.phone, profile.email, profile.location]);
 
     const save = async () => {
         setLocalSaving(true);
-        const pc = { ...profile.pageContent, contactSection: { heading, subtitle } };
-        await onSave({ pageContent: pc, phone, email, address } as any);
+        const pc = { ...profile.pageContent, contactSection: { heading } };
+        await onSave({ pageContent: pc, phone, email, location } as any);
         setLocalSaving(false);
     };
 
@@ -1278,10 +621,6 @@ const GetInTouchEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                 <label className="form-label">Section Heading</label>
                 <input value={heading} onChange={e => setHeading(e.target.value)} className="form-input" placeholder="Get In Touch" />
             </div>
-            <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                <label className="form-label">Section Subtitle</label>
-                <textarea value={subtitle} onChange={e => setSubtitle(e.target.value)} className="form-textarea" rows={2} placeholder="Have a project in mind? Reach out to us today." />
-            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
                 <div className="form-group">
                     <label className="form-label">Phone</label>
@@ -1293,8 +632,8 @@ const GetInTouchEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                 </div>
             </div>
             <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label">Address</label>
-                <input value={address} onChange={e => setAddress(e.target.value)} className="form-input" placeholder="Kigali, Rwanda" />
+                <label className="form-label">Location</label>
+                <input value={location} onChange={e => setLocation(e.target.value)} className="form-input" placeholder="Kigali, Rwanda" />
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Contact Info</>}</button>

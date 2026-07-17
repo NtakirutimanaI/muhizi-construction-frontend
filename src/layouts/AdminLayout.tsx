@@ -9,7 +9,7 @@ import {
     FaMoneyBillWave, FaArrowUp, FaArrowDown, FaChartPie, FaHistory, FaBrain,
     FaInbox, FaPaperPlane, FaArchive, FaLock, FaHardHat, FaTruck, FaCamera, FaGavel,
     FaCheckDouble, FaFileAlt, FaImage, FaHome, FaInfoCircle, FaTag,
-    FaBoxes, FaSpinner, FaClock
+    FaBoxes, FaSpinner, FaClock, FaCertificate, FaNewspaper
 } from 'react-icons/fa';
 import { useNotification } from '../context/NotificationContext';
 import { profileService, type Profile, type ContactMessage } from '../services/profileService';
@@ -849,6 +849,30 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
                         onClick={() => setMobileMenuOpen(false)}
                         style={{ margin: '0 0.5rem' }}>
                         <FaInfoCircle /> <span>About-Sections</span>
+                    </Link>
+                    <Link to={`${basePath}/resources?tab=projects`}
+                        className={`admin-nav-item ${location.pathname.startsWith(`${basePath}/resources`) && new URLSearchParams(location.search).get('tab') === 'projects' ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaProjectDiagram /> <span>Projects</span>
+                    </Link>
+                    <Link to={`${basePath}/resources?tab=team`}
+                        className={`admin-nav-item ${location.pathname.startsWith(`${basePath}/resources`) && new URLSearchParams(location.search).get('tab') === 'team' ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaUsers /> <span>Team</span>
+                    </Link>
+                    <Link to={`${basePath}/resources?tab=news`}
+                        className={`admin-nav-item ${location.pathname.startsWith(`${basePath}/resources`) && new URLSearchParams(location.search).get('tab') === 'news' ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaNewspaper /> <span>News</span>
+                    </Link>
+                    <Link to={`${basePath}/resources?tab=certifications`}
+                        className={`admin-nav-item ${location.pathname.startsWith(`${basePath}/resources`) && new URLSearchParams(location.search).get('tab') === 'certifications' ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaCertificate /> <span>Certifications</span>
                     </Link>
                     <Link to={`${basePath}/resources?tab=footer`}
                         className={`admin-nav-item ${location.pathname.startsWith(`${basePath}/resources`) && new URLSearchParams(location.search).get('tab') === 'footer' ? 'active' : ''}`}

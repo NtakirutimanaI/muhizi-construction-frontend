@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import {
-    FaCog, FaHome, FaInfoCircle, FaSave, FaCopyright,
+    FaHome, FaInfoCircle, FaSave, FaCopyright,
     FaPlus, FaEdit, FaTrash, FaCode,
     FaProjectDiagram, FaUsers, FaUser, FaPhone, FaEnvelope, FaLink, FaUpload,
-    FaTag, FaCertificate
+    FaTag, FaCertificate, FaNewspaper
 } from 'react-icons/fa';
 import { profileService } from '../../services/profileService';
 import type { Profile } from '../../services/profileService';
@@ -17,16 +17,17 @@ import ProjectsTab from './profile-sections/ProjectsTab';
 import TeamTab from './profile-sections/TeamTab';
 import GeneralTab from './profile-sections/GeneralTab';
 import CertificationsTab from './profile-sections/CertificationsTab';
+import NewsTab from './profile-sections/NewsTab';
 
-type SectionId = 'home-sections' | 'about-sections' | 'footer' | 'brand' | 'settings' | 'projects' | 'team' | 'certifications' | 'general';
+type SectionId = 'home-sections' | 'about-sections' | 'footer' | 'brand' | 'projects' | 'team' | 'news' | 'certifications' | 'general';
 
 const SECTION_ICONS: Record<string, React.ReactNode> = {
     'home-sections': <FaHome />, 'about-sections': <FaInfoCircle />,
-    footer: <FaCopyright />, brand: <FaTag />, settings: <FaCog />, projects: <FaProjectDiagram />,
-    team: <FaUsers />, certifications: <FaCertificate />, general: <FaUser />,
+    footer: <FaCopyright />, brand: <FaTag />, projects: <FaProjectDiagram />,
+    team: <FaUsers />, news: <FaNewspaper />, certifications: <FaCertificate />, general: <FaUser />,
 };
 
-const SECTIONS: SectionId[] = ['home-sections', 'about-sections', 'projects', 'team', 'certifications', 'footer', 'brand', 'settings', 'general'];
+const SECTIONS: SectionId[] = ['home-sections', 'about-sections', 'projects', 'team', 'news', 'certifications', 'footer', 'brand', 'general'];
 
 const emptyP: Profile = {
     id: '', firstName: '', lastName: '', username: '', email: '', bio: '', greeting: '', aboutMeTitle: '', title: '',
@@ -78,13 +79,13 @@ const Resources = () => {
 
     const renderSection = () => {
         switch (filter) {
-            case 'settings': return <SettingsEditor profile={profile} onSave={saveProfile} saving={saving} />;
             case 'home-sections': return <HomeSectionsTab profile={profile} onSave={saveProfile} saving={saving} />;
             case 'about-sections': return <AboutSectionsTab profile={profile} onSave={saveProfile} saving={saving} />;
             case 'footer': return <FooterEditor profile={profile} onSave={saveProfile} saving={saving} />;
             case 'brand': return <BrandEditor profile={profile} onSave={saveProfile} saving={saving} />;
             case 'projects': return <ProjectsTab profile={profile} onUpdate={setProfile} searchQuery={searchQuery} />;
             case 'team': return <TeamTab profile={profile} onUpdate={setProfile} />;
+            case 'news': return <NewsTab profile={profile} onUpdate={setProfile} />;
             case 'certifications': return <CertificationsTab profile={profile} onUpdate={setProfile} />;
             case 'general': return <GeneralTab profile={profile} onUpdate={setProfile} />;
         }
@@ -114,57 +115,6 @@ const Resources = () => {
     );
 };
 
-/* ───── Settings Editor ───── */
-const SettingsEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (u: Partial<Profile>) => Promise<void>; saving: boolean }) => {
-    const [form, setForm] = useState({ website: profile.website || '', yearsOfExperience: profile.yearsOfExperience || 0, availableForHire: profile.availableForHire, isPublic: profile.isPublic ?? true, socialLinks: { ...(profile.socialLinks || {}) } });
-    const [localSaving, setLocalSaving] = useState(false);
-
-    useEffect(() => { setForm({ website: profile.website || '', yearsOfExperience: profile.yearsOfExperience || 0, availableForHire: profile.availableForHire, isPublic: profile.isPublic ?? true, socialLinks: { ...(profile.socialLinks || {}) } }); }, [profile]);
-
-    const handleSave = async () => { setLocalSaving(true); await onSave(form); setLocalSaving(false); };
-    const isSaving = saving || localSaving;
-
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div className="content-card" style={{ padding: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Profile Settings</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                    <div className="form-group"><label className="form-label">Website</label><input value={form.website} onChange={e => setForm(p => ({ ...p, website: e.target.value }))} className="form-input" placeholder="https://example.com" /></div>
-                    <div className="form-group"><label className="form-label">Years of Experience</label><input type="number" value={form.yearsOfExperience || ''} onChange={e => setForm(p => ({ ...p, yearsOfExperience: e.target.value === '' ? '' : parseInt(e.target.value) || '' }))} className="form-input" placeholder="e.g. 10" /></div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="form-group">
-                        <label className="form-label">Available for Hire</label>
-                        <select value={String(form.availableForHire)} onChange={e => setForm(p => ({ ...p, availableForHire: e.target.value === 'true' }))} className="form-select">
-                            <option value="true">Available</option><option value="false">Not Available</option>
-                        </select>
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">Profile Visibility</label>
-                        <select value={String(form.isPublic)} onChange={e => setForm(p => ({ ...p, isPublic: e.target.value === 'true' }))} className="form-select">
-                            <option value="true">Public</option><option value="false">Private</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div className="content-card" style={{ padding: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Social Links</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
-                                    {['github', 'linkedin', 'twitter', 'facebook', 'instagram'].map(k => (
-                                        <div className="form-group" key={k}><label className="form-label" style={{ textTransform: 'capitalize' }}>{k}</label>
-                                            <input value={form.socialLinks[k] || ''} onChange={e => setForm(p => ({ ...p, socialLinks: { ...p.socialLinks, [k]: e.target.value } }))} className="form-input" placeholder={`${k.charAt(0).toUpperCase() + k.slice(1)} URL`} />
-                                        </div>
-                                    ))}
-                                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <button onClick={handleSave} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Settings</>}</button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
 /* ───── Footer Editor ───── */
 const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (u: Partial<Profile>) => Promise<void>; saving: boolean }) => {
     const fc = profile.pageContent?.footer;
@@ -177,7 +127,7 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
         githubUrl: profile.socialLinks?.github || '',
         facebookUrl: profile.socialLinks?.facebook || '',
         instagramUrl: profile.socialLinks?.instagram || '',
-        poweredByText: profile.poweredBy || 'Powered and secured by MIS',
+        poweredByText: profile.poweredBy || '',
         companyDescription: fc?.companyDescription || '',
         copyrightText: fc?.copyrightText || '',
         showSocialLinks: fc?.showSocialLinks !== false,
@@ -201,7 +151,7 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
             githubUrl: profile.socialLinks?.github || '',
             facebookUrl: profile.socialLinks?.facebook || '',
             instagramUrl: profile.socialLinks?.instagram || '',
-            poweredByText: profile.poweredBy || 'Powered and secured by MIS',
+            poweredByText: profile.poweredBy || '',
             companyDescription: f?.companyDescription || '',
             copyrightText: f?.copyrightText || '',
             showSocialLinks: f?.showSocialLinks !== false,
@@ -389,7 +339,8 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
                     </div>
                     <div className="form-group">
                         <label className="form-label">Powered By Text</label>
-                        <input type="text" name="poweredByText" className="form-input" value={form.poweredByText} onChange={handleChange} placeholder="Powered and secured by..." />
+                        <input type="text" name="poweredByText" className="form-input" value={form.poweredByText} onChange={handleChange} placeholder="Powered by Muhizi Construction" />
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>Shown under the copyright line in the site footer. Leave empty to hide.</p>
                     </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>

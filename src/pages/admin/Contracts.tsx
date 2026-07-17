@@ -116,6 +116,7 @@ const Contracts = () => {
         try {
             await contractsService.create({
                 title: createForm.title,
+                employeeId: createForm.employeeId || undefined,
                 employeeName: createEmployee ? `${createEmployee.firstName} ${createEmployee.lastName}` : '',
                 department: createEmployee?.department || '',
                 type: createForm.type.toLowerCase().replace(' ', '_') as Contract['type'],
@@ -147,6 +148,7 @@ const Contracts = () => {
             }
             const payload = {
                 title: form.title,
+                employeeId: form.employeeId || undefined,
                 employeeName: selectedEmployee ? `${selectedEmployee.firstName} ${selectedEmployee.lastName}` : '',
                 department: selectedEmployee?.department || '',
                 type: form.type.toLowerCase().replace(' ', '_') as Contract['type'],

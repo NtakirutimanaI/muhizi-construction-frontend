@@ -14,6 +14,7 @@ import About from './pages/public/About';
 import Team from './pages/public/Team';
 import NewsList from './pages/public/NewsList';
 import NewsArticle from './pages/public/NewsArticle';
+import Unsubscribe from './pages/public/Unsubscribe';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
@@ -23,14 +24,12 @@ import GoogleCallback from './pages/auth/GoogleCallback';
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
 import ProfileManagement from './pages/admin/ProfileManagement';
-import ApiDocs from './pages/admin/ApiDocs';
 import Subscribers from './pages/admin/Subscribers';
 import MessagesInbox from './pages/admin/MessagesInbox';
 import MessagesSent from './pages/admin/MessagesSent';
 import MessagesTrash from './pages/admin/MessagesTrash';
 import Resources from './pages/admin/Resources';
 import Users from './pages/admin/Users';
-import Permissions from './pages/admin/Permissions';
 import Settings from './pages/admin/Settings';
 import Projects from './pages/admin/Projects';
 import Designs from './pages/admin/Designs';
@@ -41,8 +40,6 @@ import Payroll from './pages/admin/Payroll';
 import Incomes from './pages/admin/Incomes';
 import Expenses from './pages/admin/Expenses';
 import Reports from './pages/admin/Reports';
-import AuditLogs from './pages/admin/AuditLogs';
-import MlInsights from './pages/admin/MlInsights';
 import SalaryHistory from './pages/admin/SalaryHistory';
 import SiteActivities from './pages/admin/SiteActivities';
 import MaterialRequests from './pages/admin/MaterialRequests';
@@ -134,6 +131,7 @@ function App() {
                 <Route path="/team" element={<Team />} />
                 <Route path="/news" element={<NewsList />} />
                 <Route path="/news/:slug" element={<NewsArticle />} />
+                <Route path="/unsubscribe/:id" element={<Unsubscribe />} />
               </Route>
 
               {/* Auth Routes */}
@@ -153,7 +151,6 @@ function App() {
                     <Route key={base} path={b} element={<AdminLayout basePath={b} />}>
                       <Route index element={<AdminDashboard />} />
                       <Route path="profile" element={<ProfileManagement />} />
-                      <Route path="api-docs" element={<ApiDocs />} />
                       <Route path="subscribers" element={<Subscribers />} />
                       <Route path="messages" element={<Navigate to={`${b}/messages/inbox`} replace />} />
                       <Route path="messages/inbox" element={<MessagesInbox />} />
@@ -161,7 +158,6 @@ function App() {
                       <Route path="messages/trash" element={<MessagesTrash />} />
                       <Route path="resources" element={<Resources />} />
                       <Route path="users" element={<Users />} />
-                      <Route path="permissions" element={<Permissions />} />
                       <Route path="settings" element={<Settings />} />
                       <Route path="sites" element={<Projects />} />
                       <Route path="projects" element={<Navigate to="../sites" replace />} />
@@ -174,8 +170,6 @@ function App() {
                       <Route path="incomes" element={<Incomes />} />
                       <Route path="expenses" element={<Expenses />} />
                       <Route path="reports" element={<Reports />} />
-                      <Route path="audit-logs" element={<AuditLogs />} />
-                      <Route path="ml-insights" element={<MlInsights />} />
                       <Route path="salary-history" element={<SalaryHistory />} />
                       <Route path="site-activities" element={<SiteActivities />} />
                       <Route path="material-requests" element={<MaterialRequests />} />

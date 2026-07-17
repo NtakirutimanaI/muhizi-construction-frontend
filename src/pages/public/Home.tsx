@@ -33,13 +33,13 @@ const Home = () => {
             <AboutPage />
             <About profile={profile} />
             <WhatWeOffer heading={pc?.services?.heading} subtitle={pc?.services?.subtitle} items={pc?.services?.items} />
-            <Commitment />
+            <Commitment profile={profile} />
             <Projects profile={profile} />
             <TeamMembers profile={profile} />
             <Certifications profile={profile} />
             <Faq profile={profile} />
             <Contact profile={profile} />
-            <News />
+            <News profile={profile} />
         </>
     );
 };

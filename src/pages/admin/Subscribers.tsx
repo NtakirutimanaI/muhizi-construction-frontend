@@ -60,20 +60,14 @@ const Subscribers = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Delete this subscriber?')) return;
+        if (!confirm('Permanently delete this subscriber? This cannot be undone.')) return;
         try {
             await subscriberService.remove(id);
             setSubscribers(prev => prev.filter(s => s.id !== id));
-            showToast('Subscriber deleted', 'success');
+            showToast('Subscriber permanently deleted', 'success');
         } catch {
             showToast('Failed to delete', 'error');
         }
-    };
-
-    const scoreColor = (score: number) => {
-        if (score >= 60) return '#22c55e';
-        if (score >= 20) return '#f59e0b';
-        return '#ef4444';
     };
 
     const handleSendUpdate = async () => {
@@ -145,7 +139,7 @@ const Subscribers = () => {
             </div>
 
             <div className="admin-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <span style={{ fontSize: '0.85rem', color: 'gray' }}>Newsletter Subscribers</span>
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <input type="text" className="form-input" placeholder="Search email..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 250 }} />
@@ -157,13 +151,16 @@ const Subscribers = () => {
                         ))}
                     </div>
                 </div>
+                <p style={{ fontSize: '0.72rem', color: 'gray', margin: '0 0 0.6rem' }}>
+                    Inactive subscribers are skipped in broadcasts. Delete is only available after deactivating.
+                </p>
                 <div style={{ overflowX: 'auto' }}>
                     <table className="admin-table">
                         <thead><tr>
                             <th style={{ width: 40 }}>
                                 <input type="checkbox" checked={paginated.length > 0 && selectedIds.size === paginated.length} onChange={toggleSelectAll} style={{ cursor: 'pointer' }} />
                             </th>
-                            <th>Email</th><th>Status</th><th>ML Score</th><th>Category</th><th>Source</th><th>Subscribed</th><th>Actions</th>
+                            <th>Email</th><th>Status</th><th>Subscribed</th><th>Actions</th>
                         </tr></thead>
                         <tbody>
                             {paginated.map(s => (
@@ -171,9 +168,6 @@ const Subscribers = () => {
                                     <td><input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelect(s.id)} style={{ cursor: 'pointer' }} /></td>
                                     <td><strong>{s.email}</strong></td>
                                     <td><span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '10px', background: s.isActive ? '#22c55e20' : '#6b728020', color: s.isActive ? '#22c55e' : '#6b7280' }}>{s.isActive ? 'Active' : 'Inactive'}</span></td>
-                                    <td><span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '10px', background: `${scoreColor(s.mlScore)}20`, color: scoreColor(s.mlScore) }}>{s.mlScore}</span></td>
-                                    <td style={{ textTransform: 'capitalize' }}>{s.mlCategory || '-'}</td>
-                                    <td>{s.source || '-'}</td>
                                     <td>{new Date(s.subscribedAt).toLocaleDateString()}</td>
                                     <td><div style={{ display: 'flex', gap: '0.25rem' }}>
                                         <button onClick={() => handleToggle(s)}
@@ -181,13 +175,15 @@ const Subscribers = () => {
                                             {s.isActive ? 'Deactivate' : 'Activate'}
                                         </button>
                                         <button onClick={() => handleDelete(s.id)}
-                                            style={{ padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer', color: '#ef4444' }}>
+                                            disabled={s.isActive}
+                                            title={s.isActive ? 'Deactivate first to enable delete' : 'Delete permanently'}
+                                            style={{ padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid #ddd', background: 'transparent', cursor: s.isActive ? 'not-allowed' : 'pointer', color: s.isActive ? '#ccc' : '#ef4444' }}>
                                             <FaTrash size={11} />
                                         </button>
                                     </div></td>
                                 </tr>
                             ))}
-                            {!paginated.length && <tr><td colSpan={8} style={{ padding: '2rem', textAlign: 'center', color: 'gray' }}>{search ? 'No match' : 'No subscribers yet.'}</td></tr>}
+                            {!paginated.length && <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'gray' }}>{search ? 'No match' : 'No subscribers yet.'}</td></tr>}
                         </tbody>
                     </table>
                 </div>

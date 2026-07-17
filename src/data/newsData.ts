@@ -126,3 +126,11 @@ export const NEWS_POSTS: NewsPost[] = [
 export function getNewsPostBySlug(slug: string): NewsPost | undefined {
     return NEWS_POSTS.find((post) => post.slug === slug);
 }
+
+export function slugify(title: string): string {
+    return title
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '') || 'post';
+}

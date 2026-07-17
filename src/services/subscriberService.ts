@@ -4,16 +4,12 @@ export interface Subscriber {
     id: string;
     email: string;
     isActive: boolean;
-    source: string;
-    mlScore: number;
-    mlCategory: string;
     subscribedAt: string;
     updatedAt: string;
 }
 
 export interface CreateSubscriberDto {
     email: string;
-    source?: string;
 }
 
 export interface SendUpdateDto {
@@ -41,13 +37,17 @@ export const subscriberService = {
         return res.data;
     },
 
-    async update(id: string, dto: Partial<Pick<Subscriber, 'isActive' | 'mlScore' | 'mlCategory'>>): Promise<Subscriber> {
+    async update(id: string, dto: Partial<Pick<Subscriber, 'isActive'>>): Promise<Subscriber> {
         const res = await api.patch(`${BASE}/${id}`, dto);
         return res.data;
     },
 
     async remove(id: string): Promise<void> {
         await api.delete(`${BASE}/${id}`);
+    },
+
+    async unsubscribe(id: string): Promise<void> {
+        await api.post(`${BASE}/${id}/unsubscribe`);
     },
 
     async sendUpdate(dto: SendUpdateDto): Promise<{ sent: number; total: number }> {

@@ -1,10 +1,19 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaUsers, FaUserCheck, FaUserTimes, FaDollarSign, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import {
+    FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaUsers, FaUserCheck, FaUserTimes, FaDollarSign,
+    FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye, FaIdCard, FaLock, FaFileAlt, FaSpinner,
+} from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
+import { contractsService, type Contract } from '../../services/contractsService';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import type { Employee } from '../../services/hrService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
+const CONTRACT_STATUS_COLORS: Record<string, string> = {
+    active: '#22c55e', expiring_soon: '#f59e0b', expired: '#ef4444', draft: '#6b7280',
+};
 
 interface FormData {
     firstName: string; lastName: string; email: string; phone: string;
@@ -21,11 +30,21 @@ const PAGE_SIZES = [5, 10, 15, 20];
 
 const Employees = () => {
     const { showToast } = useToast();
+    const { user } = useAuth();
+    // Admin views the employee registry read-only — registration and edits belong to
+    // the field/HR roles (Site Manager, Site Engineer) who actually onboard workers.
+    const canManage = user?.role !== 'admin';
+    // Contract terms are Finance/Managing Director's domain — Admin sees them as a
+    // read-only report on the employee's profile, matching the backend guard.
+    const canSeeContracts = user?.role === 'admin' || user?.role === 'managing_director' || user?.role === 'finance_director';
     const [data, setData] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Employee | null>(null);
     const [form, setForm] = useState<FormData>(emptyForm);
+    const [viewItem, setViewItem] = useState<Employee | null>(null);
+    const [viewContracts, setViewContracts] = useState<Contract[] | null>(null);
+    const [viewContractsLoading, setViewContractsLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
@@ -64,8 +83,6 @@ const Employees = () => {
     useEffect(() => {
         if (page > totalPages) setPage(totalPages || 1);
     }, [totalPages, page]);
-
-    const canDownload = (fromDate && toDate) || search.trim().length > 0;
 
     const tableData = useMemo(() => filtered.map((d, i) => [
         String(i + 1),
@@ -207,11 +224,24 @@ const Employees = () => {
         setShowModal(true);
     };
 
+    const openView = (item: Employee) => {
+        setViewItem(item);
+        setViewContracts(null);
+        if (canSeeContracts) {
+            setViewContractsLoading(true);
+            contractsService.getByEmployee(item.id)
+                .then(res => setViewContracts(res.data || []))
+                .catch(() => setViewContracts([]))
+                .finally(() => setViewContractsLoading(false));
+        }
+    };
+
     const handleSave = async () => {
         try {
             const payload = {
                 ...form,
                 hireDate: form.hireDate || null,
+                salary: form.salary === '' ? 0 : form.salary,
             };
             if (editing) {
                 await hrService.updateEmployee(editing.id, payload);
@@ -223,9 +253,8 @@ const Employees = () => {
             setShowModal(false);
             fetch();
         } catch (e: any) {
-            console.error('SAVE ERROR', e);
-            const errData = e?.response?.data;
-            const errMsg = errData ? JSON.stringify(errData) : (e?.message || 'Unknown error');
+            const message = e?.response?.data?.message;
+            const errMsg = Array.isArray(message) ? message.join('. ') : (typeof message === 'string' ? message : 'Failed to save employee');
             showToast(errMsg, 'error');
         }
     };
@@ -279,15 +308,17 @@ const Employees = () => {
                         <input type="text" className="form-input" placeholder="Search name, email, department..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 400 }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
-                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
                             <FaFileExcel /> Excel
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
                             <FaFilePdf /> PDF
                         </button>
-                        <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
-                            <FaPlus style={{ marginRight: 6 }} />Add Employee
-                        </button>
+                        {canManage && (
+                            <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
+                                <FaPlus style={{ marginRight: 6 }} />Add Employee
+                            </button>
+                        )}
                     </div>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
@@ -300,7 +331,13 @@ const Employees = () => {
                         <tbody>
                             {paginated.map(item => (
                                 <tr key={item.id}>
-                                    <td><strong>{item.firstName} {item.lastName}</strong></td>
+                                    <td>
+                                        <strong style={{ cursor: 'pointer' }} onClick={() => openView(item)}
+                                            onMouseEnter={e => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.textDecoration = 'underline'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.color = ''; e.currentTarget.style.textDecoration = 'none'; }}>
+                                            {item.firstName} {item.lastName}
+                                        </strong>
+                                    </td>
                                     <td>{item.email}</td>
                                     <td style={{ textTransform: 'capitalize' }}>{item.department}</td>
                                     <td>{item.position || '—'}</td>
@@ -313,8 +350,13 @@ const Employees = () => {
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', gap: 6 }}>
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)}><FaEdit /></button>
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)}><FaTrash /></button>
+                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openView(item)} title="View full profile"><FaEye /></button>
+                                            {canManage && (
+                                                <>
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)} title="Delete"><FaTrash /></button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -322,7 +364,7 @@ const Employees = () => {
                             {data.length === 0 && (
                                 <tr><td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                                     <FaUsers size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
-                                    <div>No employees found. Click "Add Employee" to create one.</div>
+                                    <div>{canManage ? 'No employees found. Click "Add Employee" to create one.' : 'No employees registered yet.'}</div>
                                 </td></tr>
                             )}
                         </tbody>
@@ -376,7 +418,14 @@ const Employees = () => {
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Email</label>
-                                    <input type="email" className="form-input" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="email@company.com" />
+                                    <input type="email" className="form-input" value={form.email} disabled={!!editing}
+                                        onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="email@company.com"
+                                        style={editing ? { opacity: 0.6, cursor: 'not-allowed' } : undefined} />
+                                    {editing && (
+                                        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.25rem 0 0' }}>
+                                            Locked after registration — it's how attendance, payroll and assignment history are matched to this employee.
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Phone</label>
@@ -417,6 +466,133 @@ const Employees = () => {
                     </div>
                 </div>
             )}
+
+            {viewItem && (() => {
+                const initials = `${viewItem.firstName?.[0] || ''}${viewItem.lastName?.[0] || ''}`.toUpperCase();
+                const field = (label: string, value: React.ReactNode, locked?: boolean) => (
+                    <div>
+                        <div style={{ fontSize: '0.65rem', color: '#999', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            {label} {locked && <FaLock size={8} title="Locked after registration" />}
+                        </div>
+                        <div style={{ fontSize: '0.85rem' }}>{value || '—'}</div>
+                    </div>
+                );
+                return (
+                    <div className="admin-modal-overlay" onClick={() => setViewItem(null)}>
+                        <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 620, maxHeight: '85vh', overflowY: 'auto', borderRadius: 12 }}>
+                            <div className="admin-modal-header" style={{ padding: '1rem 1.25rem' }}>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.05rem' }}>
+                                    <FaUsers style={{ color: 'var(--primary)' }} /> Employee Profile
+                                </h3>
+                                <button onClick={() => setViewItem(null)}><FaTimesIcon /></button>
+                            </div>
+                            <div className="admin-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                                    <div style={{
+                                        width: 52, height: 52, borderRadius: '50%', background: 'var(--primary)', color: '#fff',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem', fontWeight: 700, flexShrink: 0,
+                                    }}>{initials || <FaUsers />}</div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>{viewItem.firstName} {viewItem.lastName}</div>
+                                        <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                                            {viewItem.position || 'No position set'} · <span style={{ textTransform: 'capitalize' }}>{viewItem.department}</span>
+                                        </div>
+                                    </div>
+                                    <span style={{
+                                        display: 'inline-block', padding: '3px 12px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600,
+                                        color: '#fff', background: statusColors[viewItem.status] || '#6b7280', textTransform: 'capitalize',
+                                    }}>{viewItem.status}</span>
+                                </div>
+
+                                <div style={{ background: '#1B204210', borderRadius: 10, padding: '0.85rem 1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <FaDollarSign size={12} /> Pay
+                                    </span>
+                                    <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>RWF {viewItem.salary?.toLocaleString() || '0'}</span>
+                                </div>
+
+                                <div>
+                                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <FaIdCard size={11} /> Registration Details
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', background: '#f9f9f9', borderRadius: 8, padding: '0.75rem 0.9rem' }}>
+                                        {field('Email', viewItem.email, true)}
+                                        {field('Phone', viewItem.phone)}
+                                        {field('National ID', viewItem.nationalId, !!viewItem.nationalId)}
+                                        {field('Address', viewItem.address)}
+                                        {field('Gender', viewItem.gender && <span style={{ textTransform: 'capitalize' }}>{viewItem.gender}</span>)}
+                                        {field('Marital Status', viewItem.maritalStatus && <span style={{ textTransform: 'capitalize' }}>{viewItem.maritalStatus}</span>)}
+                                        {field('Education', viewItem.educationLevel)}
+                                        {field('Emergency Contact', viewItem.emergencyContact)}
+                                        {field('Hire Date', viewItem.hireDate && new Date(viewItem.hireDate).toLocaleDateString())}
+                                        {field('Department', <span style={{ textTransform: 'capitalize' }}>{viewItem.department}</span>)}
+                                    </div>
+                                </div>
+
+                                {canSeeContracts && (
+                                    <div>
+                                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <FaFileAlt size={11} /> Contracts
+                                        </div>
+                                        {viewContractsLoading ? (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.75rem', color: '#999', fontSize: '0.8rem' }}>
+                                                <FaSpinner className="spin" /> Loading contracts...
+                                            </div>
+                                        ) : !viewContracts || viewContracts.length === 0 ? (
+                                            <div style={{ fontSize: '0.8rem', color: '#999' }}>No contracts on file for this employee.</div>
+                                        ) : (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                                {viewContracts.map(c => (
+                                                    <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f9f9f9', borderRadius: 8, padding: '0.55rem 0.8rem', fontSize: '0.82rem' }}>
+                                                        <div>
+                                                            <strong>{c.title}</strong>
+                                                            <div style={{ fontSize: '0.72rem', color: '#999', textTransform: 'capitalize' }}>
+                                                                {c.type.replace('_', ' ')} · {c.startDate}{c.endDate ? ` to ${c.endDate}` : ''}
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                            <span style={{
+                                                                fontSize: '0.7rem', fontWeight: 600, padding: '2px 10px', borderRadius: 10,
+                                                                color: '#fff', background: CONTRACT_STATUS_COLORS[c.status] || '#6b7280', textTransform: 'capitalize',
+                                                            }}>{c.status.replace('_', ' ')}</span>
+                                                            {c.fileUrl && (
+                                                                <a href={c.fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center' }} title="View document">
+                                                                    <FaFileAlt size={12} />
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {viewItem.documents && viewItem.documents.length > 0 && (
+                                    <div>
+                                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <FaFileAlt size={11} /> Documents
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                            {viewItem.documents.map((d, i) => (
+                                                <a key={i} href={d.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>{d.name}</a>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="admin-modal-footer">
+                                <button className="admin-btn admin-btn--secondary" onClick={() => setViewItem(null)}>Close</button>
+                                {canManage && (
+                                    <button className="admin-btn" onClick={() => { const item = viewItem; setViewItem(null); openEdit(item); }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <FaEdit size={11} /> Edit
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
         </div>
     );
 };

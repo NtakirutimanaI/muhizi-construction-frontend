@@ -39,6 +39,7 @@ export interface Design {
 
 export interface Partnership {
     id: string;
+    entityKind: 'company' | 'individual';
     companyName: string;
     contactPerson?: string;
     email?: string;
@@ -46,7 +47,8 @@ export interface Partnership {
     address?: string;
     registrationNumber?: string;
     taxId?: string;
-    partnershipType: 'supplier' | 'subcontractor' | 'investor' | 'joint_venture';
+    partnershipType: 'supplier' | 'subcontractor' | 'investor' | 'joint_venture' | 'other';
+    otherTypeDescription?: string;
     status: 'pending' | 'active' | 'inactive' | 'rejected';
     licenseNumber?: string;
     licenseExpiry?: string;

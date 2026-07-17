@@ -1,7 +1,12 @@
 import { useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import CountUp from '../../components/CountUp';
+import type { Profile } from '../../services/profileService';
 
 const About = () => {
+  const outlet = useOutletContext<{ profile: Profile | null } | undefined>();
+  const ap = outlet?.profile?.pageContent?.aboutPage;
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -113,10 +118,10 @@ const About = () => {
             <div className="about-col-left">
               <div className="stat-card">
                 <span className="stat-card__dot" />
-                <div className="stat-card__number"><CountUp to={240} duration={1.6} />+</div>
+                <div className="stat-card__number"><CountUp to={ap?.statNumber ?? 240} duration={1.6} />{ap?.statSuffix ?? '+'}</div>
                 <div className="stat-card__line" />
-                <h3 className="stat-card__title">Projects, Clients Served</h3>
-                <p className="stat-card__desc">Over 500 Projects Completed With Care, Precision, And A Focus On Our Clients' Needs.</p>
+                <h3 className="stat-card__title">{ap?.statTitle || 'Projects, Clients Served'}</h3>
+                <p className="stat-card__desc">{ap?.statDescription || "Over 500 Projects Completed With Care, Precision, And A Focus On Our Clients' Needs."}</p>
               </div>
 
               <div className="about-composite">
@@ -127,10 +132,10 @@ const About = () => {
             <div>
               <p className="about-label"><span>About Us</span></p>
               <h2 className="about-heading">
-                Turning Your Ideas Into Beautifully Crafted Spaces
+                {ap?.heading || 'Turning Your Ideas Into Beautifully Crafted Spaces'}
               </h2>
               <p className="about-desc">
-                We embrace the latest technologies and sustainable practices to create environmentally-friendly and energy-efficient buildings. Our mission is not just to construct structures, but to build communities and spaces where people thrive and prosper.
+                {ap?.description || "We embrace the latest technologies and sustainable practices to create environmentally-friendly and energy-efficient buildings. Our mission is not just to construct structures, but to build communities and spaces where people thrive and prosper."}
               </p>
               <a href="#services" className="learn-more">
                 LEARN MORE
@@ -154,8 +159,8 @@ const About = () => {
                 <p className="global-reach__label">GLOBAL REACH</p>
                 <img className="global-reach__icon" src="/house.png" alt="" />
                 <div className="global-reach__divider" />
-                <div className="global-reach__number"><CountUp to={85} duration={1.6} /><span className="plus">+</span></div>
-                <p className="global-reach__caption">Offices Worldwide</p>
+                <div className="global-reach__number"><CountUp to={ap?.globalReachNumber ?? 85} duration={1.6} /><span className="plus">{ap?.globalReachSuffix ?? '+'}</span></div>
+                <p className="global-reach__caption">{ap?.globalReachCaption || 'Offices Worldwide'}</p>
               </div>
             </div>
           </div>

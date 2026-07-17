@@ -50,7 +50,7 @@ const Projects: React.FC<ProjectsProps> = ({ profile }) => {
                                         <h3 className="projects-v2__title">{project.name}</h3>
                                         <div className="projects-v2__location">
                                             <FaMapMarkerAlt />
-                                            <span>{project.type || project.role || profile.location}</span>
+                                            <span>{project.location || project.type || project.role || profile.location}</span>
                                         </div>
                                         {linkUrl && (
                                             <a

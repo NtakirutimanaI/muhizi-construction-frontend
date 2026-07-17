@@ -117,6 +117,7 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ profile, onUpdate, searchQuer
             url: '',
             githubUrl: '',
             imageUrl: '',
+            location: '',
             featured: false,
             category: 'Other',
             effectiveness: 0,
@@ -354,6 +355,20 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ profile, onUpdate, searchQuer
                                     placeholder="e.g., Lead Developer, Solo Developer"
                                 />
                             </div>
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '1rem' }}>
+                            <label className="form-label">Location</label>
+                            <input
+                                name="location"
+                                value={editForm.location || ''}
+                                onChange={handleFormChange}
+                                className="form-input"
+                                placeholder="e.g., Kigali, Rwanda"
+                            />
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
+                                Shown under the project name on the public site.
+                            </p>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>

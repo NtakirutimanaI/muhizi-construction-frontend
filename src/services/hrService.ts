@@ -13,6 +13,10 @@ export interface Employee {
     status: 'active' | 'inactive' | 'terminated';
     avatar?: string;
     address?: string;
+    gender?: string;
+    maritalStatus?: string;
+    nationalId?: string;
+    educationLevel?: string;
     emergencyContact?: string;
     documents?: { name: string; url: string }[];
     createdAt: string;

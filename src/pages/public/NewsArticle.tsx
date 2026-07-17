@@ -1,11 +1,14 @@
 import { useEffect } from 'react';
-import { Link, useParams, Navigate } from 'react-router-dom';
+import { Link, useParams, Navigate, useOutletContext } from 'react-router-dom';
 import { LuUserRound, LuMessageCircle, LuClock, LuArrowLeft, LuArrowRight, LuCalendarDays } from 'react-icons/lu';
-import { NEWS_POSTS, getNewsPostBySlug } from '../../data/newsData';
+import { NEWS_POSTS } from '../../data/newsData';
+import type { Profile } from '../../services/profileService';
 
 const NewsArticle = () => {
   const { slug } = useParams<{ slug: string }>();
-  const post = slug ? getNewsPostBySlug(slug) : undefined;
+  const outlet = useOutletContext<{ profile: Profile | null } | undefined>();
+  const posts = outlet?.profile?.pageContent?.news && outlet.profile.pageContent.news.length > 0 ? outlet.profile.pageContent.news : NEWS_POSTS;
+  const post = slug ? posts.find((p) => p.slug === slug) : undefined;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -15,11 +18,11 @@ const NewsArticle = () => {
     return <Navigate to="/news" replace />;
   }
 
-  const currentIndex = NEWS_POSTS.findIndex((p) => p.slug === post.slug);
-  const related = NEWS_POSTS.filter((p) => p.slug !== post.slug && p.category === post.category).slice(0, 3);
-  const fallbackRelated = related.length > 0 ? related : NEWS_POSTS.filter((p) => p.slug !== post.slug).slice(0, 3);
-  const prevPost = NEWS_POSTS[currentIndex - 1];
-  const nextPost = NEWS_POSTS[currentIndex + 1];
+  const currentIndex = posts.findIndex((p) => p.slug === post.slug);
+  const related = posts.filter((p) => p.slug !== post.slug && p.category === post.category).slice(0, 3);
+  const fallbackRelated = related.length > 0 ? related : posts.filter((p) => p.slug !== post.slug).slice(0, 3);
+  const prevPost = posts[currentIndex - 1];
+  const nextPost = posts[currentIndex + 1];
 
   return (
     <>
