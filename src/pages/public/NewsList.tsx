@@ -1,20 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 import { LuUserRound, LuMessageCircle, LuArrowRight, LuClock } from 'react-icons/lu';
 import { NEWS_POSTS } from '../../data/newsData';
+import type { Profile } from '../../services/profileService';
 
 const NewsList = () => {
+  const outlet = useOutletContext<{ profile: Profile | null } | undefined>();
+  const posts = outlet?.profile?.pageContent?.news && outlet.profile.pageContent.news.length > 0 ? outlet.profile.pageContent.news : NEWS_POSTS;
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   const categories = useMemo(
-    () => ['All', ...Array.from(new Set(NEWS_POSTS.map((p) => p.category)))],
-    []
+    () => ['All', ...Array.from(new Set(posts.map((p) => p.category)))],
+    [posts]
   );
   const [activeCategory, setActiveCategory] = useState('All');
 
-  const [featured, ...rest] = NEWS_POSTS;
+  const [featured, ...rest] = posts;
   const filtered =
     activeCategory === 'All'
       ? rest

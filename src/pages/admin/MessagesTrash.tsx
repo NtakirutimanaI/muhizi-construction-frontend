@@ -72,8 +72,6 @@ const MessagesTrash = () => {
 
     useEffect(() => { if (page > totalPages) setPage(totalPages || 1); }, [totalPages, page]);
 
-    const canDownload = (fromDate && toDate) || search.trim().length > 0;
-
     const formatDate = (dateString: string) => new Date(dateString).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
     const tableData = useMemo(() => filtered.map((m, i) => [
@@ -153,10 +151,10 @@ const MessagesTrash = () => {
                         <input type="text" className="form-input" placeholder="Search name, email, subject..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 280 }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 130 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 130 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
-                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: 1 }}>
                             <FaFileExcel /> Excel
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: 1 }}>
                             <FaFilePdf /> PDF
                         </button>
                     </div>

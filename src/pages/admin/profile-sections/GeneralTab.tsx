@@ -71,13 +71,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ profile, onUpdate }) => {
                 firstName: formData.firstName,
                 lastName: formData.lastName,
                 avatar: formData.avatar,
-                title: formData.title,
-                bio: formData.bio,
                 about: formData.about,
-                greeting: formData.greeting,
-                aboutMeTitle: formData.aboutMeTitle,
-                location: formData.location,
-                role: formData.role,
             };
 
             const updated = await profileService.updateProfile(updateData);
@@ -185,74 +179,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ profile, onUpdate }) => {
                         />
                     </div>
                     <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.75rem' }}>Title</label>
-                        <input
-                            name="title"
-                            value={formData.title}
-                            onChange={handleChange}
-                            className="form-input"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
-                            placeholder="e.g. Developer"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.75rem' }}>Role</label>
-                        <input
-                            name="role"
-                            value={formData.role || ''}
-                            onChange={handleChange}
-                            className="form-input"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
-                            placeholder="e.g. CEO"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.75rem' }}>Location</label>
-                        <input
-                            name="location"
-                            value={formData.location || ''}
-                            onChange={handleChange}
-                            className="form-input"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
-                            placeholder="Kigali, Rwanda"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.75rem' }}>Greeting</label>
-                        <input
-                            name="greeting"
-                            value={formData.greeting || ''}
-                            onChange={handleChange}
-                            className="form-input"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
-                            placeholder="Hi, I'm"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.75rem' }}>About Me Title</label>
-                        <input
-                            name="aboutMeTitle"
-                            value={formData.aboutMeTitle || ''}
-                            onChange={handleChange}
-                            className="form-input"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
-                            placeholder="About Me"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.75rem' }}>Bio</label>
-                        <textarea
-                            name="bio"
-                            value={formData.bio || ''}
-                            onChange={handleChange}
-                            className="form-textarea"
-                            rows={3}
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
-                            placeholder="Short bio / tagline"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.75rem' }}>About</label>
+                        <label className="form-label" style={{ fontSize: '0.75rem' }}>About <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(first sentence shows in the site footer)</span></label>
                         <textarea
                             name="about"
                             value={formData.about || ''}

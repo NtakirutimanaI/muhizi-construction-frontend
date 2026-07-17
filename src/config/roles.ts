@@ -37,18 +37,22 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         items: [
             { path: '/admin/sites', icon: 'FaProjectDiagram', label: 'Sites', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.ENGINEERING_STUDIO, ROLES.PARTNER] },
 
-            { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests & Approvals', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests & Approvals', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER] },
             { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.MANAGER] },
-            { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
+            // Site safety/operating rules apply to everyone on the platform, not just operations roles.
+            { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.EMPLOYEE, ROLES.CLIENT, ROLES.PARTNER] },
         ],
     },
     {
         label: 'HR',
         items: [
+            // Admin's HR view is intentionally limited to the employee registry itself
+            // (who they are, what they're paid) — day-to-day attendance, payroll runs, and
+            // contracts are operational detail owned by Managing Director / Finance Director.
             { path: '/admin/employees', icon: 'FaUserTie', label: 'Employees', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/attendance', icon: 'FaClipboardList', label: 'Attendance', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
-            { path: '/admin/payroll', icon: 'FaMoneyBillWave', label: 'Payroll', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/contracts', icon: 'FaFileAlt', label: 'Contracts', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/attendance', icon: 'FaClipboardList', label: 'Attendance', roles: [ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/payroll', icon: 'FaMoneyBillWave', label: 'Payroll', roles: [ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/contracts', icon: 'FaFileAlt', label: 'Contracts', roles: [ROLES.MANAGING_DIRECTOR] },
         ],
     },
     {
@@ -61,21 +65,12 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         ],
     },
     {
-        label: 'Insights',
-        items: [
-            { path: '/admin/audit-logs', icon: 'FaHistory', label: 'Audit Logs', roles: [ROLES.ADMIN] },
-            { path: '/admin/ml-insights', icon: 'FaBrain', label: 'ML Insights', roles: [ROLES.ADMIN] },
-        ],
-    },
-    {
         label: 'Admin',
         items: [
             { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.EMPLOYEE, ROLES.SITE_ENGINEER, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/users', icon: 'FaUsers', label: 'Users', roles: [ROLES.ADMIN] },
-            { path: '/admin/permissions', icon: 'FaLock', label: 'Permissions', roles: [ROLES.ADMIN] },
             { path: '/admin/resources', icon: 'FaDatabase', label: 'CMS', roles: [ROLES.ADMIN] },
             { path: '/admin/subscribers', icon: 'FaEnvelope', label: 'Subscribers', roles: [ROLES.ADMIN] },
-            { path: '/admin/api-docs', icon: 'FaBook', label: 'API Docs', roles: [ROLES.ADMIN] },
             { path: '/admin/settings', icon: 'FaCog', label: 'Settings', roles: [ROLES.ADMIN] },
         ],
     },

@@ -1,34 +1,49 @@
 import { useState, useRef } from 'react';
-import { FaPlus, FaTrash, FaEdit, FaTimes, FaSave, FaUsers } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEdit, FaTimes, FaSave, FaUsers, FaTwitter, FaLinkedin, FaFacebook, FaInstagram } from 'react-icons/fa';
 import type { Profile } from '../../../services/profileService';
 import { profileService } from '../../../services/profileService';
 import { uploadService } from '../../../services/uploadService';
+import { useToast } from '../../../context/ToastContext';
 
 interface TeamTabProps {
     profile: Profile;
     onUpdate: (updatedProfile: Profile) => void;
 }
 
+const EMPTY_FORM = { name: '', role: '', imageUrl: '', socialLinks: { twitter: '', linkedin: '', facebook: '', instagram: '' } };
+
 const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
+    const { showToast } = useToast();
     const [members, setMembers] = useState(profile.teamMembers || []);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
-    const [editForm, setEditForm] = useState({ name: '', role: '', imageUrl: '' });
+    const [editForm, setEditForm] = useState(EMPTY_FORM);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
 
     const startNew = () => {
         setEditingIndex(-1);
-        setEditForm({ name: '', role: '', imageUrl: '' });
+        setEditForm(EMPTY_FORM);
     };
 
     const startEdit = (index: number) => {
         setEditingIndex(index);
-        setEditForm({ name: members[index].name, role: members[index].role || '', imageUrl: members[index].imageUrl || '' });
+        const m = members[index];
+        setEditForm({
+            name: m.name,
+            role: m.role || '',
+            imageUrl: m.imageUrl || '',
+            socialLinks: {
+                twitter: m.socialLinks?.twitter || '',
+                linkedin: m.socialLinks?.linkedin || '',
+                facebook: m.socialLinks?.facebook || '',
+                instagram: m.socialLinks?.instagram || '',
+            },
+        });
     };
 
     const cancelEdit = () => {
         setEditingIndex(null);
-        setEditForm({ name: '', role: '', imageUrl: '' });
+        setEditForm(EMPTY_FORM);
     };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,11 +52,74 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
         setEditForm({ ...editForm, [e.target.name]: e.target.value });
     };
 
+    const handleSocialChange = (platform: keyof typeof EMPTY_FORM.socialLinks, value: string) => {
+        setEditForm(prev => ({ ...prev, socialLinks: { ...prev.socialLinks, [platform]: value } }));
+    };
+
+    const [brands, setBrands] = useState(profile.pageContent?.teamSection?.brands || []);
+    const [editingBrandIndex, setEditingBrandIndex] = useState<number | null>(null);
+    const [brandForm, setBrandForm] = useState({ name: '', logoUrl: '' });
+    const [brandSaving, setBrandSaving] = useState(false);
+    const [brandUploading, setBrandUploading] = useState(false);
+    const brandFileRef = useRef<HTMLInputElement>(null);
+
+    const startNewBrand = () => { setEditingBrandIndex(-1); setBrandForm({ name: '', logoUrl: '' }); };
+    const startEditBrand = (i: number) => { setEditingBrandIndex(i); setBrandForm({ ...brands[i] }); };
+    const cancelBrandEdit = () => { setEditingBrandIndex(null); setBrandForm({ name: '', logoUrl: '' }); };
+
+    const handleBrandLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) { showToast('Image must be smaller than 2MB', 'error'); return; }
+        setBrandUploading(true);
+        try {
+            const uploaded = await uploadService.uploadFile(file);
+            setBrandForm(prev => ({ ...prev, logoUrl: uploaded.secureUrl }));
+        } catch {
+            showToast('Failed to upload logo', 'error');
+        } finally {
+            setBrandUploading(false);
+        }
+    };
+
+    const saveBrands = async (updated: typeof brands) => {
+        setBrandSaving(true);
+        try {
+            const pc = { ...(profile.pageContent || {}), teamSection: { ...(profile.pageContent?.teamSection || {}), brands: updated } };
+            const result = await profileService.updateProfile({ pageContent: pc });
+            setBrands(result.pageContent?.teamSection?.brands || []);
+            onUpdate(result);
+            showToast('Client brands saved', 'success');
+        } catch (error: any) {
+            console.error('Failed to save brands', error);
+            showToast(error?.response?.data?.message || error?.message || 'Failed to save', 'error');
+        } finally {
+            setBrandSaving(false);
+        }
+    };
+
+    const saveBrandItem = async () => {
+        if (!brandForm.name.trim()) { showToast('Brand name is required', 'error'); return; }
+        const updated = [...brands];
+        if (editingBrandIndex === -1) updated.push(brandForm);
+        else if (editingBrandIndex !== null) updated[editingBrandIndex] = brandForm;
+        setBrands(updated);
+        await saveBrands(updated);
+        cancelBrandEdit();
+    };
+
+    const deleteBrand = async (i: number) => {
+        if (!window.confirm('Remove this brand?')) return;
+        const updated = brands.filter((_, idx) => idx !== i);
+        setBrands(updated);
+        await saveBrands(updated);
+    };
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         if (file.size > 2 * 1024 * 1024) {
-            alert('Image must be smaller than 2MB');
+            showToast('Image must be smaller than 2MB', 'error');
             return;
         }
         setUploading(true);
@@ -49,7 +127,7 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
             const uploaded = await uploadService.uploadFile(file);
             setEditForm(prev => ({ ...prev, imageUrl: uploaded.secureUrl }));
         } catch {
-            alert('Failed to upload image');
+            showToast('Failed to upload image', 'error');
         } finally {
             setUploading(false);
         }
@@ -57,25 +135,32 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
 
     const saveMember = async () => {
         if (!editForm.name.trim()) {
-            alert('Name is required');
+            showToast('Name is required', 'error');
             return;
         }
         setLoading(true);
+        const socialLinks = Object.fromEntries(Object.entries(editForm.socialLinks).filter(([, v]) => v.trim())) as Record<string, string>;
+        const memberToSave = {
+            name: editForm.name,
+            role: editForm.role,
+            imageUrl: editForm.imageUrl,
+            ...(Object.keys(socialLinks).length > 0 ? { socialLinks } : {}),
+        };
         let updatedMembers = [...members];
         if (editingIndex === -1) {
-            updatedMembers.push(editForm);
+            updatedMembers.push(memberToSave);
         } else if (editingIndex !== null) {
-            updatedMembers[editingIndex] = editForm;
+            updatedMembers[editingIndex] = memberToSave;
         }
         try {
             const result = await profileService.updateProfile({ teamMembers: updatedMembers });
             setMembers(result.teamMembers || []);
             onUpdate(result);
             cancelEdit();
-            alert('✅ Team member saved');
-        } catch (error) {
+            showToast('Team member saved', 'success');
+        } catch (error: any) {
             console.error('Failed to save team member', error);
-            alert('❌ Failed to save');
+            showToast(error?.response?.data?.message || error?.message || 'Failed to save', 'error');
         } finally {
             setLoading(false);
         }
@@ -89,10 +174,10 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
             const result = await profileService.updateProfile({ teamMembers: updatedMembers });
             setMembers(result.teamMembers || []);
             onUpdate(result);
-            alert('✅ Team member deleted');
-        } catch (error) {
+            showToast('Team member deleted', 'success');
+        } catch (error: any) {
             console.error('Failed to delete', error);
-            alert('❌ Failed to delete');
+            showToast(error?.response?.data?.message || error?.message || 'Failed to delete', 'error');
         } finally {
             setLoading(false);
         }
@@ -151,6 +236,27 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
                                 )}
                             </div>
                         </div>
+                        <div className="form-group">
+                            <label className="form-label">Social Media</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <FaTwitter style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                                    <input value={editForm.socialLinks.twitter} onChange={e => handleSocialChange('twitter', e.target.value)} className="form-input" placeholder="Twitter / X URL" />
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <FaLinkedin style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                                    <input value={editForm.socialLinks.linkedin} onChange={e => handleSocialChange('linkedin', e.target.value)} className="form-input" placeholder="LinkedIn URL" />
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <FaFacebook style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                                    <input value={editForm.socialLinks.facebook} onChange={e => handleSocialChange('facebook', e.target.value)} className="form-input" placeholder="Facebook URL" />
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <FaInstagram style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                                    <input value={editForm.socialLinks.instagram} onChange={e => handleSocialChange('instagram', e.target.value)} className="form-input" placeholder="Instagram URL" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1rem' }}>
                         <button onClick={cancelEdit} className="admin-icon-btn" style={{ fontSize: '0.9rem', width: 'auto', padding: '0.5rem 1rem' }} disabled={loading}>Cancel</button>
@@ -190,6 +296,75 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
                         </div>
                     </div>
                 ))}
+            </div>
+
+            {/* Client Brands */}
+            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <div>
+                        <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Client Brands ({brands.length})</h3>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>The "we're proud to work with best-in-class clients" logo strip shown under the team section.</p>
+                    </div>
+                    <button onClick={startNewBrand} disabled={editingBrandIndex !== null} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>
+                        <FaPlus /> Add Brand
+                    </button>
+                </div>
+
+                {editingBrandIndex !== null && (
+                    <div className="content-card" style={{ border: '2px solid var(--primary)', padding: '1rem', marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                            <h4 style={{ fontWeight: 700 }}>{editingBrandIndex === -1 ? 'New Brand' : 'Edit Brand'}</h4>
+                            <button onClick={cancelBrandEdit} style={{ color: 'var(--text-muted)' }}><FaTimes /></button>
+                        </div>
+                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                            <label className="form-label">Brand Name</label>
+                            <input value={brandForm.name} onChange={e => setBrandForm(p => ({ ...p, name: e.target.value }))} className="form-input" placeholder="e.g., Meridian Group" />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Logo (optional — shown as text if left empty)</label>
+                            <input ref={brandFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleBrandLogoUpload} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                {brandForm.logoUrl ? (
+                                    <div style={{ width: 60, height: 60, borderRadius: 8, overflow: 'hidden', border: '2px solid var(--border-color)', flexShrink: 0, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <img src={brandForm.logoUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                    </div>
+                                ) : (
+                                    <div style={{ width: 60, height: 60, borderRadius: 8, border: '2px dashed var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.7rem', flexShrink: 0 }}>No logo</div>
+                                )}
+                                <button type="button" onClick={() => brandFileRef.current?.click()} disabled={brandUploading} className="admin-icon-btn" style={{ width: 'auto', padding: '0.5rem 1rem', gap: '8px', border: '1px solid var(--border-color)' }}>
+                                    {brandUploading ? 'Uploading...' : brandForm.logoUrl ? 'Replace Logo' : 'Upload Logo'}
+                                </button>
+                                {brandForm.logoUrl && (
+                                    <button type="button" onClick={() => setBrandForm(p => ({ ...p, logoUrl: '' }))} className="admin-icon-btn" style={{ width: 'auto', padding: '0.5rem 1rem' }}><FaTimes /> Remove</button>
+                                )}
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1rem' }}>
+                            <button onClick={cancelBrandEdit} className="admin-icon-btn" style={{ fontSize: '0.85rem', width: 'auto', padding: '0.4rem 0.8rem' }}>Cancel</button>
+                            <button onClick={saveBrandItem} disabled={brandSaving || brandUploading} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>
+                                {brandSaving ? 'Saving...' : <><FaSave /> Save Brand</>}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    {brands.length === 0 && (
+                        <div style={{ padding: '1.25rem', textAlign: 'center', border: '2px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>No client brands yet.</div>
+                    )}
+                    {brands.map((brand, i) => (
+                        <div key={i} className="content-card" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.6rem 0.8rem' }}>
+                            <div style={{ width: 36, height: 36, borderRadius: 6, overflow: 'hidden', flexShrink: 0, background: 'var(--bg-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                                {brand.logoUrl ? <img src={brand.logoUrl} alt={brand.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} /> : brand.name.charAt(0)}
+                            </div>
+                            <div style={{ flex: 1, fontWeight: 600, fontSize: '0.9rem' }}>{brand.name}</div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                                <button onClick={() => startEditBrand(i)} className="admin-icon-btn" title="Edit"><FaEdit /></button>
+                                <button onClick={() => deleteBrand(i)} className="admin-icon-btn" style={{ color: 'var(--primary-red)' }} title="Delete"><FaTrash /></button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

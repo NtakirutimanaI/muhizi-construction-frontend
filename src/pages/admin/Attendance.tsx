@@ -207,8 +207,6 @@ const AttendancePage = () => {
         if (page > totalPages) setPage(totalPages || 1);
     }, [totalPages, page]);
 
-    const canDownload = !!dailyDate;
-
     const employeeMap = useMemo(() => {
         const map: Record<string, string> = {};
         employees.forEach(e => { map[e.id] = `${e.firstName} ${e.lastName}`; });
@@ -364,8 +362,6 @@ const AttendancePage = () => {
         catch { showToast('Failed to delete', 'error'); }
     };
 
-
-
     const handleBatchSave = async () => {
         if (!selectedProjectId || !selectedDate) return;
         try {
@@ -449,10 +445,10 @@ const AttendancePage = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
-                <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
                     <FaFileExcel /> Excel
                 </button>
-                <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
                     <FaFilePdf /> PDF
                 </button>
             </div>
@@ -476,8 +472,6 @@ const AttendancePage = () => {
                 </div>
 
             </div>
-
-
 
             {batchData.length > 0 && (
                 <div className="admin-card" style={{ marginBottom: '1rem' }}>

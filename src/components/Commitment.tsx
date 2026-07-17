@@ -1,12 +1,29 @@
 import { LuKeyRound, LuHandshake, LuGem, LuWorkflow } from 'react-icons/lu';
+import type { Profile } from '../services/profileService';
 
-const TEXT_CARDS = [
-    { title: 'Expertise You Can Trust', description: 'Our licensed engineers and skilled crews bring decades of hands-on experience to every site.', icon: LuHandshake, gridColumn: '2', gridRow: '1', tiltClass: 'commitment-card--tilt-a' },
-    { title: 'Built for Long-Term Value', description: 'Every project we deliver is built with quality materials and vision, designed to last for generations.', icon: LuGem, gridColumn: '3', gridRow: '1', tiltClass: 'commitment-card--tilt-b' },
-    { title: 'Hassle-Free Process', description: 'Our project managers guide you through every step with clear timelines, updates, and dedicated support.', icon: LuWorkflow, gridColumn: '2', gridRow: '2', tiltClass: 'commitment-card--tilt-c' },
+const CARD_ICONS = [LuHandshake, LuGem, LuWorkflow];
+const DEFAULT_CARDS = [
+    { title: 'Expertise You Can Trust', description: 'Our licensed engineers and skilled crews bring decades of hands-on experience to every site.' },
+    { title: 'Built for Long-Term Value', description: 'Every project we deliver is built with quality materials and vision, designed to last for generations.' },
+    { title: 'Hassle-Free Process', description: 'Our project managers guide you through every step with clear timelines, updates, and dedicated support.' },
 ];
+const GRID_SLOTS = [
+    { gridColumn: '2', gridRow: '1', tiltClass: 'commitment-card--tilt-a' },
+    { gridColumn: '3', gridRow: '1', tiltClass: 'commitment-card--tilt-b' },
+    { gridColumn: '2', gridRow: '2', tiltClass: 'commitment-card--tilt-c' },
+];
+const DEFAULT_ANCHOR_IMAGE = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+const DEFAULT_IMAGE_CARD_IMAGE = 'https://images.unsplash.com/photo-1486718448742-163732cd1544?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
 
-const Commitment: React.FC = () => {
+interface CommitmentProps {
+    profile?: Profile | null;
+}
+
+const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
+    const c = profile?.pageContent?.commitment;
+    const cards = c?.cards && c.cards.length > 0 ? c.cards : DEFAULT_CARDS;
+    const textCards = GRID_SLOTS.map((slot, i) => ({ ...slot, ...cards[i], icon: CARD_ICONS[i % CARD_ICONS.length] })).filter(card => card.title);
+
     return (
         <section data-nav-theme="light" className="section section-indicator" id="commitment" style={{ background: '#F5F7FA', position: 'relative', overflow: 'hidden' }}>
             <style>{`
@@ -48,7 +65,7 @@ const Commitment: React.FC = () => {
                     {/* Tall image + caption card */}
                     <div className="commitment-card commitment-card--anchor" style={{ gridColumn: '1', gridRow: '1 / 3', borderRadius: '16px', overflow: 'hidden', background: '#fff', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 10px 30px rgba(15,18,34,0.08)', display: 'flex', flexDirection: 'column' }}>
                         <img
-                            src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                            src={c?.anchorImage || DEFAULT_ANCHOR_IMAGE}
                             alt="Modern residential development"
                             style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
                         />
@@ -56,15 +73,15 @@ const Commitment: React.FC = () => {
                             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--accent, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.1rem' }}>
                                 <LuKeyRound style={{ color: '#fff', fontSize: '1.3rem' }} />
                             </div>
-                            <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.9rem' }}>Client-Focused Delivery</h3>
+                            <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.9rem' }}>{c?.anchorTitle || 'Client-Focused Delivery'}</h3>
                             <div style={{ height: '1px', background: 'var(--border-color)', margin: '0 0 1rem' }} />
                             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.65, margin: 0 }}>
-                                We prioritize clear communication and transparency, making your construction journey smooth and stress-free.
+                                {c?.anchorDescription || 'We prioritize clear communication and transparency, making your construction journey smooth and stress-free.'}
                             </p>
                         </div>
                     </div>
 
-                    {TEXT_CARDS.map((card, i) => (
+                    {textCards.map((card, i) => (
                         <div
                             key={i}
                             className={`commitment-card ${card.tiltClass}`}
@@ -90,7 +107,7 @@ const Commitment: React.FC = () => {
                     {/* Image-only card */}
                     <div className="commitment-card commitment-card--tilt-d" style={{ gridColumn: '3', gridRow: '2', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 10px 30px rgba(15,18,34,0.08)' }}>
                         <img
-                            src="https://images.unsplash.com/photo-1486718448742-163732cd1544?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                            src={c?.imageCardImage || DEFAULT_IMAGE_CARD_IMAGE}
                             alt="Contemporary building exterior"
                             style={{ width: '100%', height: '280px', objectFit: 'cover', display: 'block' }}
                         />

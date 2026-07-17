@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom';
 import { LuUserRound, LuMessageCircle, LuArrowRight } from 'react-icons/lu';
 import { NEWS_POSTS } from '../data/newsData';
+import type { Profile } from '../services/profileService';
 
-const News: React.FC = () => {
+interface NewsProps {
+    profile?: Profile | null;
+}
+
+const News: React.FC<NewsProps> = ({ profile }) => {
+    const posts = profile?.pageContent?.news && profile.pageContent.news.length > 0 ? profile.pageContent.news : NEWS_POSTS;
+
     return (
         <section data-nav-theme="light" className="section section-indicator" id="news">
             <div className="container">
@@ -25,7 +32,7 @@ const News: React.FC = () => {
                 </div>
 
                 <div className="news-v2__grid">
-                    {NEWS_POSTS.slice(0, 3).map((post) => (
+                    {posts.slice(0, 3).map((post) => (
                         <article key={post.slug} className="news-v2__card">
                             <Link to={`/news/${post.slug}`} className="news-v2__image-wrap">
                                 <img src={post.image} alt={post.title} className="news-v2__image" />

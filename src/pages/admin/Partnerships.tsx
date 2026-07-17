@@ -12,9 +12,10 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 interface FormData {
+    entityKind: string;
     companyName: string; contactPerson: string; email: string; phone: string; address: string;
     registrationNumber: string; taxId: string;
-    partnershipType: string; status: string;
+    partnershipType: string; otherTypeDescription: string; status: string;
     licenseNumber: string; licenseExpiry: string; insuranceExpiry: string;
     investmentAmount: string; equityPercentage: string; projectId: string;
     agreementFile: string;
@@ -22,9 +23,10 @@ interface FormData {
 }
 
 const emptyForm: FormData = {
+    entityKind: 'company',
     companyName: '', contactPerson: '', email: '', phone: '', address: '',
     registrationNumber: '', taxId: '',
-    partnershipType: 'supplier', status: 'pending',
+    partnershipType: 'supplier', otherTypeDescription: '', status: 'active',
     licenseNumber: '', licenseExpiry: '', insuranceExpiry: '',
     investmentAmount: '', equityPercentage: '', projectId: '',
     agreementFile: '',
@@ -34,11 +36,19 @@ const emptyForm: FormData = {
 const PAGE_SIZES = [5, 10, 15, 20];
 
 const TYPE_LABELS: Record<string, string> = {
-    supplier: 'Supplier', subcontractor: 'Subcontractor', investor: 'Investor', joint_venture: 'Joint Venture',
+    supplier: 'Supplier', subcontractor: 'Subcontractor', investor: 'Investor', joint_venture: 'Joint Venture', other: 'Other',
 };
 
 const isVendorType = (t: string) => t === 'supplier' || t === 'subcontractor';
 const isCapitalType = (t: string) => t === 'investor' || t === 'joint_venture';
+
+/** NestJS validation errors arrive as string[]; render them as one readable sentence instead of raw concatenated text. */
+const extractErrorMessage = (e: any, fallback: string): string => {
+    const message = e?.response?.data?.message;
+    if (Array.isArray(message)) return message.join('. ');
+    if (typeof message === 'string') return message;
+    return fallback;
+};
 
 /** Days until a date; negative means already past. */
 const daysUntil = (dateStr?: string): number | null => {
@@ -119,13 +129,12 @@ const Partnerships = () => {
         if (page > totalPages) setPage(totalPages || 1);
     }, [totalPages, page]);
 
-    const canDownload = (fromDate && toDate) || search.trim().length > 0;
-
     const tableData = useMemo(() => filtered.map((d, i) => [
         String(i + 1),
         d.companyName,
+        d.entityKind === 'individual' ? 'Individual' : 'Company',
         d.contactPerson || '—',
-        TYPE_LABELS[d.partnershipType] || d.partnershipType,
+        d.partnershipType === 'other' && d.otherTypeDescription ? d.otherTypeDescription : (TYPE_LABELS[d.partnershipType] || d.partnershipType),
         d.status,
         d.email || '—',
         d.phone || '—',
@@ -162,7 +171,7 @@ const Partnerships = () => {
         doc.text(`Generated: ${today}${fromDate && toDate ? ` | Period: ${fromDate} to ${toDate}` : ''}`, pageW - 14, titleY, { align: 'right' });
 
         autoTable(doc, {
-            head: [['#', 'Company', 'Contact', 'Type', 'Status', 'Email', 'Phone', 'Start Date']],
+            head: [['#', 'Company', 'Entity', 'Contact', 'Type', 'Status', 'Email', 'Phone', 'Start Date']],
             body: tableData,
             startY: 46,
             styles: { fontSize: 8, textColor: '#333' },
@@ -187,7 +196,7 @@ const Partnerships = () => {
         const brown = '#1B2042';
         const today = new Date().toLocaleDateString();
         const period = fromDate && toDate ? `Period: ${fromDate} to ${toDate}` : '';
-        const headers = ['#', 'Company', 'Contact', 'Type', 'Status', 'Email', 'Phone', 'Start Date'];
+        const headers = ['#', 'Company', 'Entity', 'Contact', 'Type', 'Status', 'Email', 'Phone', 'Start Date'];
         const rows = tableData.map(r => `<tr>${r.map(c => `<td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${c}</td>`).join('')}</tr>`).join('');
 
         const html = `
@@ -255,10 +264,11 @@ const Partnerships = () => {
     const openEdit = (item: Partnership) => {
         setEditing(item);
         setForm({
+            entityKind: item.entityKind || 'company',
             companyName: item.companyName, contactPerson: item.contactPerson || '',
             email: item.email || '', phone: item.phone || '', address: item.address || '',
             registrationNumber: item.registrationNumber || '', taxId: item.taxId || '',
-            partnershipType: item.partnershipType, status: item.status,
+            partnershipType: item.partnershipType, otherTypeDescription: item.otherTypeDescription || '', status: item.status,
             licenseNumber: item.licenseNumber || '', licenseExpiry: item.licenseExpiry || '',
             insuranceExpiry: item.insuranceExpiry || '',
             investmentAmount: item.investmentAmount ? String(item.investmentAmount) : '',
@@ -292,6 +302,7 @@ const Partnerships = () => {
         address: form.address || undefined,
         registrationNumber: form.registrationNumber || undefined,
         taxId: form.taxId || undefined,
+        otherTypeDescription: form.partnershipType === 'other' ? (form.otherTypeDescription || undefined) : undefined,
         licenseNumber: form.licenseNumber || undefined,
         licenseExpiry: form.licenseExpiry || undefined,
         insuranceExpiry: form.insuranceExpiry || undefined,
@@ -304,16 +315,23 @@ const Partnerships = () => {
     });
 
     const handleSave = async () => {
-        if (!form.companyName.trim()) { showToast('Company name is required', 'error'); return; }
+        if (!form.companyName.trim()) {
+            showToast(form.entityKind === 'individual' ? 'Full name is required' : 'Company name is required', 'error');
+            return;
+        }
+        if (form.partnershipType === 'other' && !form.otherTypeDescription.trim()) {
+            showToast('Describe the partnership type', 'error');
+            return;
+        }
         setSaving(true);
         try {
             if (editing) await constructionService.updatePartnership(editing.id, buildPayload());
-            else await constructionService.createPartnership({ ...buildPayload(), status: 'pending' });
-            showToast(editing ? 'Partnership updated' : 'Application registered — pending review', 'success');
+            else await constructionService.createPartnership({ ...buildPayload(), status: 'active' });
+            showToast(editing ? 'Partnership updated' : 'Partner registered', 'success');
             setShowModal(false);
             fetch();
         } catch (e: any) {
-            showToast(e?.response?.data?.message || 'Failed to save', 'error');
+            showToast(extractErrorMessage(e, 'Failed to save'), 'error');
         } finally {
             setSaving(false);
         }
@@ -321,7 +339,7 @@ const Partnerships = () => {
 
     const review = async (item: Partnership, decision: 'active' | 'rejected') => {
         const verb = decision === 'active' ? 'approve' : 'reject';
-        if (!window.confirm(`Do you want to ${verb} the application from "${item.companyName}"?`)) return;
+        if (!window.confirm(`Do you want to ${verb} the record for "${item.companyName}"?`)) return;
         try {
             await constructionService.updatePartnership(item.id, { status: decision });
             showToast(`Application ${decision === 'active' ? 'approved' : 'rejected'}`, 'success');
@@ -350,7 +368,7 @@ const Partnerships = () => {
                     <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
                         <FaHandshake style={{ color: 'var(--primary)' }} /> Partnerships
                     </h2>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Suppliers, subcontractors, investors and joint-venture applications</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Suppliers, subcontractors, investors and joint-venture partners</span>
                 </div>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                     {([
@@ -380,10 +398,10 @@ const Partnerships = () => {
                         <input type="text" className="form-input" placeholder="Search company, contact, type..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 280 }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
-                        <button className="admin-btn" onClick={downloadExcel} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
                             <FaFileExcel /> Excel
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} disabled={!canDownload} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: canDownload ? 1 : 0.5 }}>
+                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
                             <FaFilePdf /> PDF
                         </button>
                         <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
@@ -405,13 +423,16 @@ const Partnerships = () => {
                                     <tr key={item.id}>
                                         <td>
                                             <strong>{item.companyName}</strong>
+                                            {item.entityKind === 'individual' && (
+                                                <span style={{ marginLeft: 6, fontSize: '0.68rem', color: 'var(--text-muted)' }}>(Individual)</span>
+                                            )}
                                             {item.project && (
                                                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
                                                     <FaBuilding size={9} /> {item.project.name}
                                                 </div>
                                             )}
                                         </td>
-                                        <td style={{ textTransform: 'capitalize' }}>{TYPE_LABELS[item.partnershipType] || item.partnershipType}</td>
+                                        <td style={{ textTransform: 'capitalize' }}>{item.partnershipType === 'other' && item.otherTypeDescription ? item.otherTypeDescription : (TYPE_LABELS[item.partnershipType] || item.partnershipType)}</td>
                                         <td>
                                             <span style={{
                                                 display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
@@ -498,15 +519,32 @@ const Partnerships = () => {
                         <div className="admin-modal-body">
                             {!editing && (
                                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 0, marginBottom: '1rem' }}>
-                                    New applications are registered as <strong>Pending</strong> and must be reviewed (Approve/Reject) before becoming active.
+                                    Registering saves the partner as <strong>Active</strong> immediately. Set Status to Pending below if this record still needs review before it's active.
                                 </p>
                             )}
 
                             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.5rem' }}>Company Information</div>
+                            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                <label className="form-label">Partner Is</label>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    {(['company', 'individual'] as const).map(kind => (
+                                        <button type="button" key={kind}
+                                            onClick={() => setForm(p => ({ ...p, entityKind: kind }))}
+                                            style={{
+                                                padding: '0.4rem 1rem', borderRadius: 6, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600,
+                                                border: form.entityKind === kind ? '1px solid var(--primary)' : '1px solid #ddd',
+                                                background: form.entityKind === kind ? 'var(--primary)' : 'transparent',
+                                                color: form.entityKind === kind ? '#fff' : 'var(--text-main)',
+                                            }}>
+                                            {kind === 'company' ? 'Company' : 'Individual'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
-                                    <label className="form-label">Company Name</label>
-                                    <input className="form-input" value={form.companyName} onChange={e => setForm(p => ({ ...p, companyName: e.target.value }))} placeholder="Company name" />
+                                    <label className="form-label">{form.entityKind === 'individual' ? 'Full Name' : 'Company Name'}</label>
+                                    <input className="form-input" value={form.companyName} onChange={e => setForm(p => ({ ...p, companyName: e.target.value }))} placeholder={form.entityKind === 'individual' ? 'Full name' : 'Company name'} />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Partnership Type</label>
@@ -515,8 +553,15 @@ const Partnerships = () => {
                                         <option value="subcontractor">Subcontractor</option>
                                         <option value="investor">Investor</option>
                                         <option value="joint_venture">Joint Venture</option>
+                                        <option value="other">Other</option>
                                     </select>
                                 </div>
+                                {form.partnershipType === 'other' && (
+                                    <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                                        <label className="form-label">Describe the Partnership Type</label>
+                                        <input className="form-input" value={form.otherTypeDescription} onChange={e => setForm(p => ({ ...p, otherTypeDescription: e.target.value }))} placeholder="e.g. Landowner, Consultant, Donor" />
+                                    </div>
+                                )}
                                 <div className="form-group">
                                     <label className="form-label">Contact Person</label>
                                     <input className="form-input" value={form.contactPerson} onChange={e => setForm(p => ({ ...p, contactPerson: e.target.value }))} placeholder="Full name" />
@@ -538,8 +583,8 @@ const Partnerships = () => {
                             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '1.25rem 0 0.5rem' }}>Legal &amp; Compliance</div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
-                                    <label className="form-label">Registration Number</label>
-                                    <input className="form-input" value={form.registrationNumber} onChange={e => setForm(p => ({ ...p, registrationNumber: e.target.value }))} placeholder="RDB registration number" />
+                                    <label className="form-label">{form.entityKind === 'individual' ? 'National ID' : 'Registration Number'}</label>
+                                    <input className="form-input" value={form.registrationNumber} onChange={e => setForm(p => ({ ...p, registrationNumber: e.target.value }))} placeholder={form.entityKind === 'individual' ? 'National ID number' : 'RDB registration number'} />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Tax ID (TIN)</label>
@@ -628,7 +673,7 @@ const Partnerships = () => {
                         </div>
                         <div className="admin-modal-footer">
                             <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)} disabled={saving}>Cancel</button>
-                            <button className="admin-btn" onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : (editing ? 'Save Changes' : 'Submit Application')}</button>
+                            <button className="admin-btn" onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : (editing ? 'Save Changes' : 'Register Partner')}</button>
                         </div>
                     </div>
                 </div>
@@ -636,7 +681,7 @@ const Partnerships = () => {
 
             {viewItem && (
                 <div className="admin-modal-overlay" onClick={() => setViewItem(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ position: 'relative', maxWidth: 480, width: '100%', top: 'auto', left: 'auto', transform: 'none', borderRadius: 12 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 480, borderRadius: 12 }}>
                         <div className="admin-modal-header" style={{ padding: '0.9rem 1.1rem' }}>
                             <h3 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}><FaHandshake style={{ color: 'var(--primary)' }} /> {viewItem.companyName}</h3>
                             <button onClick={() => setViewItem(null)}><FaTimesIcon /></button>
@@ -644,7 +689,10 @@ const Partnerships = () => {
                         <div className="admin-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                                 <span style={{ padding: '2px 10px', borderRadius: 12, fontSize: '0.78rem', fontWeight: 600, color: '#fff', background: statusColors[viewItem.status] || '#6b7280', textTransform: 'capitalize' }}>{viewItem.status}</span>
-                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>{TYPE_LABELS[viewItem.partnershipType] || viewItem.partnershipType}</span>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>{viewItem.partnershipType === 'other' && viewItem.otherTypeDescription ? viewItem.otherTypeDescription : (TYPE_LABELS[viewItem.partnershipType] || viewItem.partnershipType)}</span>
+                                {viewItem.entityKind === 'individual' && (
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>· Individual</span>
+                                )}
                             </div>
                             {viewItem.contactPerson && <div style={{ fontSize: '0.85rem' }}>{viewItem.contactPerson} {viewItem.email ? `· ${viewItem.email}` : ''} {viewItem.phone ? `· ${viewItem.phone}` : ''}</div>}
                             {viewItem.address && <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{viewItem.address}</div>}

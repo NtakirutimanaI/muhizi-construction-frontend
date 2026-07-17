@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { FaFileExcel, FaFilePdf, FaArrowUp, FaArrowDown, FaBalanceScale } from 'react-icons/fa';
+import { FaFileExcel, FaFilePdf, FaArrowUp, FaArrowDown, FaBalanceScale, FaListUl, FaUserEdit } from 'react-icons/fa';
 import { financeService } from '../../services/financeService';
-import type { MonthlyReport, YearlyReport } from '../../services/financeService';
+import type { MonthlyReport, YearlyReport, ReportTransaction } from '../../services/financeService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -15,6 +15,9 @@ const Reports = () => {
     const [monthly, setMonthly] = useState<MonthlyReport | null>(null);
     const [yearly, setYearly] = useState<YearlyReport | null>(null);
     const [loading, setLoading] = useState(false);
+
+    const active = view === 'monthly' ? monthly : yearly;
+    const transactions: ReportTransaction[] = active?.transactions || [];
 
     const fetchMonthly = async () => {
         setLoading(true);
@@ -133,6 +136,28 @@ const Reports = () => {
             }
         }
 
+        if (transactions.length > 0) {
+            const y = (doc as any).lastAutoTable.finalY + 8;
+            doc.setFontSize(11); doc.setTextColor(brown); doc.setFont('helvetica', 'bold');
+            doc.text('Transaction Detail', 14, y);
+            autoTable(doc, {
+                head: [['Date', 'Type', 'Description', 'Category', 'Party', 'Recorded By', 'Amount']],
+                body: transactions.map(t => [
+                    new Date(t.date).toLocaleDateString(),
+                    t.type,
+                    t.description,
+                    t.category.replace(/_/g, ' '),
+                    t.party || '—',
+                    t.recordedByName || 'Unattributed',
+                    `${t.type === 'income' ? '+' : '-'} RWF ${t.amount.toLocaleString()}`,
+                ]),
+                startY: y + 4,
+                styles: { fontSize: 7, textColor: '#333' },
+                headStyles: { fillColor: [139, 69, 19], textColor: [255, 255, 255], fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [250, 245, 240] },
+            });
+        }
+
         const pageH = doc.internal.pageSize.getHeight();
         doc.setDrawColor(brown); doc.setLineWidth(0.5); doc.line(14, pageH - 20, pageW - 14, pageH - 20);
         doc.setFontSize(8); doc.setTextColor(brown); doc.setFont('helvetica', 'normal');
@@ -167,6 +192,30 @@ const Reports = () => {
                 <tr><td style="padding:4px 8px;border:1px solid #ccc;font-size:11px;font-weight:bold">Net Profit</td><td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">RWF ${yearly.netProfit.toLocaleString()}</td></tr>
                 <tr style="background:lightgray"><th style="padding:6px 8px;border:1px solid #ccc;font-size:11px">Month</th><th style="padding:6px 8px;border:1px solid #ccc;font-size:11px">Income</th><th style="padding:6px 8px;border:1px solid #ccc;font-size:11px">Expense</th><th style="padding:6px 8px;border:1px solid #ccc;font-size:11px">Net</th></tr>
                 ${yearly.monthlyData.map(m => `<tr><td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${MONTHS[m.month - 1]}</td><td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">RWF ${m.income.toLocaleString()}</td><td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">RWF ${m.expense.toLocaleString()}</td><td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">RWF ${(m.income - m.expense).toLocaleString()}</td></tr>`).join('')}
+            `;
+        }
+
+        if (transactions.length > 0) {
+            rows += `
+                <tr style="background:${brown};color:#fff"><th colspan="7" style="padding:6px 8px;border:1px solid ${brown};font-size:11px">Transaction Detail</th></tr>
+                <tr style="background:lightgray">
+                    <th style="padding:6px 8px;border:1px solid #ccc;font-size:11px">Date</th>
+                    <th style="padding:6px 8px;border:1px solid #ccc;font-size:11px">Type</th>
+                    <th style="padding:6px 8px;border:1px solid #ccc;font-size:11px">Description</th>
+                    <th style="padding:6px 8px;border:1px solid #ccc;font-size:11px">Category</th>
+                    <th style="padding:6px 8px;border:1px solid #ccc;font-size:11px">Party</th>
+                    <th style="padding:6px 8px;border:1px solid #ccc;font-size:11px">Recorded By</th>
+                    <th style="padding:6px 8px;border:1px solid #ccc;font-size:11px">Amount</th>
+                </tr>
+                ${transactions.map(t => `<tr>
+                    <td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${new Date(t.date).toLocaleDateString()}</td>
+                    <td style="padding:4px 8px;border:1px solid #ccc;font-size:11px;text-transform:capitalize">${t.type}</td>
+                    <td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${t.description}</td>
+                    <td style="padding:4px 8px;border:1px solid #ccc;font-size:11px;text-transform:capitalize">${t.category.replace(/_/g, ' ')}</td>
+                    <td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${t.party || '—'}</td>
+                    <td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${t.recordedByName || 'Unattributed'}</td>
+                    <td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${t.type === 'income' ? '+' : '-'} RWF ${t.amount.toLocaleString()}</td>
+                </tr>`).join('')}
             `;
         }
 
@@ -214,11 +263,11 @@ const Reports = () => {
                             <option key={y} value={y}>{y}</option>
                         ))}
                     </select>
-                    <button onClick={downloadExcel} disabled={!monthly && !yearly}
+                    <button onClick={downloadExcel} disabled={!monthly && !yearly} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence"
                         style={{ padding: '0.4rem 0.9rem', fontSize: '0.8rem', fontWeight: 600, border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', background: 'transparent', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: 6, opacity: monthly || yearly ? 1 : 0.5 }}>
                         <FaFileExcel style={{ color: '#22c55e' }} /> Excel
                     </button>
-                    <button onClick={downloadPDF} disabled={!monthly && !yearly}
+                    <button onClick={downloadPDF} disabled={!monthly && !yearly} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence"
                         style={{ padding: '0.4rem 0.9rem', fontSize: '0.8rem', fontWeight: 600, border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', background: 'transparent', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: 6, opacity: monthly || yearly ? 1 : 0.5 }}>
                         <FaFilePdf style={{ color: '#ef4444' }} /> PDF
                     </button>
@@ -324,6 +373,54 @@ const Reports = () => {
                                 </div>
                             </div>
                         ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No data</p>}
+                    </div>
+                </>
+            )}
+
+            {!loading && active && (
+                <>
+                    <div className="content-card" style={{ padding: '1.25rem', marginTop: '1.5rem' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <FaListUl /> Transaction Detail ({transactions.length})
+                        </h3>
+                        {transactions.length === 0 ? (
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No transactions recorded for this period.</p>
+                        ) : (
+                            <div style={{ overflowX: 'auto' }}>
+                                <table className="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th><th>Type</th><th>Description</th><th>Category</th><th>Party</th>
+                                            <th><FaUserEdit style={{ marginRight: 4 }} />Recorded By</th><th style={{ textAlign: 'right' }}>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {transactions.map(t => (
+                                            <tr key={`${t.type}-${t.id}`}>
+                                                <td style={{ whiteSpace: 'nowrap' }}>{new Date(t.date).toLocaleDateString()}</td>
+                                                <td>
+                                                    <span style={{
+                                                        display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', fontWeight: 600,
+                                                        padding: '2px 8px', borderRadius: 10, textTransform: 'capitalize',
+                                                        color: t.type === 'income' ? '#22c55e' : '#ef4444',
+                                                        background: t.type === 'income' ? '#22c55e18' : '#ef444418',
+                                                    }}>
+                                                        {t.type === 'income' ? <FaArrowUp size={9} /> : <FaArrowDown size={9} />} {t.type}
+                                                    </span>
+                                                </td>
+                                                <td>{t.description}</td>
+                                                <td style={{ textTransform: 'capitalize' }}>{t.category.replace(/_/g, ' ')}</td>
+                                                <td>{t.party || '—'}</td>
+                                                <td>{t.recordedByName || <span style={{ color: 'var(--text-muted)' }}>Unattributed</span>}</td>
+                                                <td style={{ textAlign: 'right', fontWeight: 700, color: t.type === 'income' ? '#22c55e' : '#ef4444', whiteSpace: 'nowrap' }}>
+                                                    {t.type === 'income' ? '+' : '−'} RWF {t.amount.toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 </>
             )}

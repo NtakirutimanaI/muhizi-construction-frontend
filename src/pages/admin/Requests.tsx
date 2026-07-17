@@ -11,6 +11,7 @@ import { approvalsService } from '../../services/approvalsService';
 import type { MaterialRequest } from '../../services/materialRequestsService';
 import type { Approval } from '../../services/approvalsService';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 
 type UnifiedStatus = 'pending' | 'approved' | 'rejected';
 
@@ -49,6 +50,12 @@ const emptyFundForm = () => ({
 
 const Requests = () => {
     const { showToast } = useToast();
+    const { user } = useAuth();
+    const role = user?.role || '';
+    // Admin is the top of the reporting chain (reports only to the Client) and is the sole
+    // approver below — it cannot also submit fund requests, or it would be approving itself.
+    const canSubmitFundRequest = role === 'managing_director' || role === 'site_engineer';
+    const canReviewFundRequest = role === 'admin';
     const [requests, setRequests] = useState<UnifiedRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<UnifiedStatus | 'all'>('pending');
@@ -225,10 +232,12 @@ const Requests = () => {
                     <span style={{ fontSize: '0.8rem', color: '#999' }}>Material requests and fund/expense requests awaiting or already reviewed</span>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <button onClick={() => { setFundForm(emptyFundForm()); setShowCreate(true); }}
-                        style={{ padding: '0.5rem 0.9rem', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <FaPlus size={10} /> New Fund Request
-                    </button>
+                    {canSubmitFundRequest && (
+                        <button onClick={() => { setFundForm(emptyFundForm()); setShowCreate(true); }}
+                            style={{ padding: '0.5rem 0.9rem', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <FaPlus size={10} /> New Fund Request
+                        </button>
+                    )}
                     {([
                         { key: 'pending' as const, label: 'Pending', color: '#f59e0b' },
                         { key: 'approved' as const, label: 'Approved', color: '#22c55e' },
@@ -310,6 +319,7 @@ const Requests = () => {
                         <tbody>
                             {paginated.map(req => {
                                 const badge = safeBadge(req.status);
+                                const canAct = req.type === 'material' || canReviewFundRequest;
                                 return (
                                     <tr key={req.id} style={{ opacity: req.status !== 'pending' ? 0.7 : 1 }}>
                                         <td>
@@ -376,7 +386,7 @@ const Requests = () => {
                                                     onMouseLeave={e => { e.currentTarget.style.borderColor = '#ddd'; e.currentTarget.style.color = '#666'; }}>
                                                     <FaEye size={11} /> View
                                                 </button>
-                                                {req.status === 'pending' && (
+                                                {req.status === 'pending' && canAct && (
                                                     <>
                                                         <button onClick={() => handleApprove(req)}
                                                             disabled={actionLoading === req.id}
@@ -608,7 +618,7 @@ const Requests = () => {
                                     padding: '0.4rem 1.2rem', borderRadius: 7, border: '1px solid #ddd',
                                     background: 'transparent', cursor: 'pointer', fontSize: '0.82rem',
                                 }}>Close</button>
-                            {viewItem.status === 'pending' && (
+                            {viewItem.status === 'pending' && (viewItem.type === 'material' || canReviewFundRequest) && (
                                 <>
                                     <button onClick={() => { handleApprove(viewItem); setViewItem(null); }}
                                         style={{
@@ -645,7 +655,7 @@ const Requests = () => {
                     <div onClick={e => e.stopPropagation()} className="admin-modal" style={{ position: 'relative', padding: '2rem', maxWidth: '500px', width: '100%', maxHeight: '85vh', overflowY: 'auto', borderRadius: 12 }}>
                         <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: 8 }}><FaMoneyBillWave style={{ color: 'var(--primary)' }} size={16} /> New Fund Request</h3>
                         <p style={{ fontSize: '0.8rem', color: '#999', marginTop: '-0.5rem', marginBottom: '1rem' }}>
-                            For material requisitions use the dedicated Material Requests page — this form is for fund/expense advances only.
+                            This is submitted to Admin for review. For material requisitions use the dedicated Material Requests page — this form is for fund/expense advances only.
                         </p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                             <div>
