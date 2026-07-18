@@ -265,14 +265,14 @@ img {
 }
 .navbar--dark-bg .nav-links-desktop-link:hover,
 .navbar--dark-bg .nav-login-link:hover {
-  color: var(--accent, #D97706);
+  color: #fff;
 }
 .navbar--dark-bg .nav-signup-btn {
   border-color: rgba(255, 255, 255, 0.3);
 }
 .navbar--dark-bg .nav-signup-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: #fff;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.3);
 }
 .navbar--dark-bg .nav-logo {
   border-color: rgba(255, 255, 255, 0.3);
