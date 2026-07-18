@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
-    FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaUsers, FaUserCheck, FaUserTimes, FaDollarSign,
+    FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaUsers, FaDollarSign,
     FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye, FaIdCard, FaLock, FaFileAlt, FaSpinner,
+    FaCamera, FaUpload, FaFileSignature, FaExclamationTriangle, FaDownload, FaUserTie, FaHeartbeat, FaGraduationCap,
 } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
 import { contractsService, type Contract } from '../../services/contractsService';
+import { uploadService } from '../../services/uploadService';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import type { Employee } from '../../services/hrService';
@@ -15,36 +17,68 @@ const CONTRACT_STATUS_COLORS: Record<string, string> = {
     active: '#22c55e', expiring_soon: '#f59e0b', expired: '#ef4444', draft: '#6b7280',
 };
 
+/** NestJS validation errors arrive as string[]; render them as one readable sentence instead of raw concatenated text. */
+const extractErrorMessage = (e: any, fallback: string): string => {
+    const message = e?.response?.data?.message;
+    if (Array.isArray(message)) return message.join('. ');
+    if (typeof message === 'string') return message;
+    return fallback;
+};
+
 interface FormData {
     firstName: string; lastName: string; email: string; phone: string;
+    gender: string; maritalStatus: string; nationalId: string; educationLevel: string;
+    address: string; emergencyContact: string;
     position: string; department: string; hireDate: string; salary: number | ''; status: string;
+    avatar: string;
+    documents: { name: string; url: string }[];
 }
 
 const emptyForm: FormData = {
     firstName: '', lastName: '', email: '', phone: '',
+    gender: '', maritalStatus: '', nationalId: '', educationLevel: '',
+    address: '', emergencyContact: '',
     position: '', department: 'construction', hireDate: '', salary: '', status: 'active',
+    avatar: '', documents: [],
 };
 
 const DEPARTMENTS = ['construction', 'engineering', 'design', 'finance', 'hr', 'admin', 'sales', 'marketing', 'logistics', 'safety'];
+const GENDERS = ['male', 'female', 'other'];
+const MARITAL_STATUSES = ['single', 'married', 'divorced', 'widowed'];
+const EDUCATION_LEVELS = ['Primary', 'Secondary', 'Vocational / Trade Certificate', 'Diploma', "Bachelor's Degree", "Master's Degree", 'Doctorate'];
+const DOCUMENT_TYPES = ['CV / Resume', 'National ID Copy', 'Certificate / License', 'Academic Transcript', 'Other'];
+const CONTRACT_TYPES = ['Permanent', 'Fixed Term', 'Internship', 'Contractor'];
 const PAGE_SIZES = [5, 10, 15, 20];
+
+interface ContractFormData {
+    title: string; type: string; startDate: string; endDate: string;
+}
+const emptyContractForm: ContractFormData = { title: '', type: 'Permanent', startDate: '', endDate: '' };
 
 const Employees = () => {
     const { showToast } = useToast();
     const { user } = useAuth();
-    // Admin views the employee registry read-only — registration and edits belong to
-    // the field/HR roles (Site Manager, Site Engineer) who actually onboard workers.
-    const canManage = user?.role !== 'admin';
-    // Contract terms are Finance Director's domain — Admin sees them as a
-    // read-only report on the employee's profile, matching the backend guard.
-    const canSeeContracts = user?.role === 'admin' || user?.role === 'finance_director';
+    const role = user?.role || '';
+    // Matches the backend RolesGuard's effective roles (including the Finance Director →
+    // Site Manager alias) — only these roles can actually write, so only these see the
+    // manage affordances. Admin's registry view is deliberately read-only.
+    const canManage = role === 'site_manager' || role === 'site_engineer' || role === 'finance_director';
+    // Contract terms are Finance Director's domain (backend: @Roles(FINANCE_DIRECTOR) on
+    // write). Admin sees them as a read-only report on the employee's profile.
+    const canSeeContracts = role === 'admin' || role === 'finance_director';
+    const canManageContracts = role === 'finance_director';
+
     const [data, setData] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Employee | null>(null);
     const [form, setForm] = useState<FormData>(emptyForm);
+    const [saving, setSaving] = useState(false);
     const [viewItem, setViewItem] = useState<Employee | null>(null);
     const [viewContracts, setViewContracts] = useState<Contract[] | null>(null);
     const [viewContractsLoading, setViewContractsLoading] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
+    const [deleting, setDeleting] = useState(false);
     const [search, setSearch] = useState('');
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
@@ -52,6 +86,18 @@ const Employees = () => {
     const [pageSize, setPageSize] = useState(10);
     const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
     const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
+
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const [uploadingDoc, setUploadingDoc] = useState(false);
+    const [docType, setDocType] = useState(DOCUMENT_TYPES[0]);
+    const avatarInputRef = useRef<HTMLInputElement>(null);
+    const docInputRef = useRef<HTMLInputElement>(null);
+
+    const [contractModal, setContractModal] = useState(false);
+    const [contractForm, setContractForm] = useState<ContractFormData>(emptyContractForm);
+    const [contractFile, setContractFile] = useState<File | null>(null);
+    const [savingContract, setSavingContract] = useState(false);
+    const contractFileInputRef = useRef<HTMLInputElement>(null);
 
     const fetch = async () => {
         try {
@@ -217,52 +263,166 @@ const Employees = () => {
         setEditing(item);
         setForm({
             firstName: item.firstName, lastName: item.lastName, email: item.email,
-            phone: item.phone || '', position: item.position || '', department: item.department,
+            phone: item.phone || '', gender: item.gender || '', maritalStatus: item.maritalStatus || '',
+            nationalId: item.nationalId || '', educationLevel: item.educationLevel || '',
+            address: item.address || '', emergencyContact: item.emergencyContact || '',
+            position: item.position || '', department: item.department,
             hireDate: item.hireDate || '', salary: item.salary ? Number(item.salary) : '', status: item.status,
+            avatar: item.avatar || '', documents: item.documents || [],
         });
         setModalPos(null);
         setShowModal(true);
     };
 
+    const loadContracts = (employeeId: string) => {
+        setViewContractsLoading(true);
+        return contractsService.getByEmployee(employeeId)
+            .then(res => setViewContracts(res.data || []))
+            .catch(() => setViewContracts([]))
+            .finally(() => setViewContractsLoading(false));
+    };
+
     const openView = (item: Employee) => {
         setViewItem(item);
         setViewContracts(null);
-        if (canSeeContracts) {
-            setViewContractsLoading(true);
-            contractsService.getByEmployee(item.id)
-                .then(res => setViewContracts(res.data || []))
-                .catch(() => setViewContracts([]))
-                .finally(() => setViewContractsLoading(false));
-        }
+        if (canSeeContracts) loadContracts(item.id);
     };
 
     const handleSave = async () => {
+        if (!form.firstName.trim() || !form.lastName.trim()) {
+            showToast('First and last name are required', 'error');
+            return;
+        }
+        if (!form.email.trim()) {
+            showToast('Email is required', 'error');
+            return;
+        }
+        setSaving(true);
         try {
             const payload = {
-                ...form,
+                firstName: form.firstName.trim(),
+                lastName: form.lastName.trim(),
+                email: form.email.trim(),
+                phone: form.phone || undefined,
+                gender: form.gender || undefined,
+                maritalStatus: form.maritalStatus || undefined,
+                nationalId: form.nationalId || undefined,
+                educationLevel: form.educationLevel || undefined,
+                address: form.address || undefined,
+                emergencyContact: form.emergencyContact || undefined,
+                position: form.position || undefined,
+                department: form.department,
                 hireDate: form.hireDate || null,
                 salary: form.salary === '' ? 0 : form.salary,
+                status: form.status,
+                avatar: form.avatar || undefined,
+                documents: form.documents,
             };
             if (editing) {
                 await hrService.updateEmployee(editing.id, payload);
                 showToast('Employee updated successfully', 'success');
             } else {
                 await hrService.createEmployee(payload);
-                showToast('Employee created successfully', 'success');
+                showToast('Employee registered successfully', 'success');
             }
             setShowModal(false);
             fetch();
         } catch (e: any) {
-            const message = e?.response?.data?.message;
-            const errMsg = Array.isArray(message) ? message.join('. ') : (typeof message === 'string' ? message : 'Failed to save employee');
-            showToast(errMsg, 'error');
+            showToast(extractErrorMessage(e, 'Failed to save employee'), 'error');
+        } finally {
+            setSaving(false);
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm('Delete this employee?')) return;
-        try { await hrService.deleteEmployee(id); fetch(); }
-        catch (e) { console.error(e); }
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        setDeleting(true);
+        try {
+            await hrService.deleteEmployee(deleteTarget.id);
+            showToast('Employee removed', 'success');
+            setDeleteTarget(null);
+            fetch();
+        } catch (e) {
+            showToast(extractErrorMessage(e, 'Failed to delete employee'), 'error');
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploadingAvatar(true);
+        try {
+            const uploaded = await uploadService.uploadFile(file);
+            setForm(p => ({ ...p, avatar: uploaded.secureUrl }));
+        } catch {
+            showToast('Failed to upload photo', 'error');
+        } finally {
+            setUploadingAvatar(false);
+            if (avatarInputRef.current) avatarInputRef.current.value = '';
+        }
+    };
+
+    const handleDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploadingDoc(true);
+        try {
+            const uploaded = await uploadService.uploadFile(file);
+            setForm(p => ({ ...p, documents: [...p.documents, { name: `${docType} — ${uploaded.originalFilename || file.name}`, url: uploaded.secureUrl }] }));
+            showToast('Document uploaded', 'success');
+        } catch {
+            showToast('Failed to upload document', 'error');
+        } finally {
+            setUploadingDoc(false);
+            if (docInputRef.current) docInputRef.current.value = '';
+        }
+    };
+
+    const removeDoc = (idx: number) => setForm(p => ({ ...p, documents: p.documents.filter((_, i) => i !== idx) }));
+
+    const openContractModal = () => {
+        setContractForm(emptyContractForm);
+        setContractFile(null);
+        setContractModal(true);
+    };
+
+    const handleCreateContract = async () => {
+        if (!viewItem) return;
+        if (!contractForm.title.trim() || !contractForm.startDate) {
+            showToast('Contract title and start date are required', 'error');
+            return;
+        }
+        setSavingContract(true);
+        try {
+            let fileUrl: string | undefined;
+            let fileSize: string | undefined;
+            if (contractFile) {
+                const uploaded = await uploadService.uploadFile(contractFile);
+                fileUrl = uploaded.secureUrl;
+                fileSize = uploaded.bytes ? `${(uploaded.bytes / 1024).toFixed(1)} KB` : undefined;
+            }
+            await contractsService.create({
+                title: contractForm.title.trim(),
+                employeeId: viewItem.id,
+                employeeName: `${viewItem.firstName} ${viewItem.lastName}`,
+                department: viewItem.department,
+                type: contractForm.type.toLowerCase().replace(' ', '_') as Contract['type'],
+                startDate: contractForm.startDate,
+                endDate: contractForm.endDate || undefined,
+                status: 'active',
+                fileUrl,
+                fileSize,
+            });
+            showToast('Contract added to employee record', 'success');
+            setContractModal(false);
+            loadContracts(viewItem.id);
+        } catch (e) {
+            showToast(extractErrorMessage(e, 'Failed to save contract'), 'error');
+        } finally {
+            setSavingContract(false);
+        }
     };
 
     if (loading) return <div className="admin-page"><div className="inline-spinner">Loading employees...</div></div>;
@@ -332,11 +492,20 @@ const Employees = () => {
                             {paginated.map(item => (
                                 <tr key={item.id}>
                                     <td>
-                                        <strong style={{ cursor: 'pointer' }} onClick={() => openView(item)}
-                                            onMouseEnter={e => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.textDecoration = 'underline'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.color = ''; e.currentTarget.style.textDecoration = 'none'; }}>
-                                            {item.firstName} {item.lastName}
-                                        </strong>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            {item.avatar ? (
+                                                <img src={item.avatar} alt="" style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                                            ) : (
+                                                <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>
+                                                    {(item.firstName?.[0] || '') + (item.lastName?.[0] || '')}
+                                                </div>
+                                            )}
+                                            <strong style={{ cursor: 'pointer' }} onClick={() => openView(item)}
+                                                onMouseEnter={e => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.textDecoration = 'underline'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.color = ''; e.currentTarget.style.textDecoration = 'none'; }}>
+                                                {item.firstName} {item.lastName}
+                                            </strong>
+                                        </div>
                                     </td>
                                     <td>{item.email}</td>
                                     <td style={{ textTransform: 'capitalize' }}>{item.department}</td>
@@ -354,7 +523,7 @@ const Employees = () => {
                                             {canManage && (
                                                 <>
                                                     <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
-                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)} title="Delete"><FaTrash /></button>
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => setDeleteTarget(item)} title="Delete"><FaTrash /></button>
                                                 </>
                                             )}
                                         </div>
@@ -399,14 +568,38 @@ const Employees = () => {
                     </div>
                 </div>
             </div>
+
             {showModal && (
-                <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
+                <div className="admin-modal-overlay" onClick={() => !saving && setShowModal(false)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)', maxWidth: 700, maxHeight: '88vh', overflowY: 'auto' }}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
-                            <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'Add'} Employee</h3>
-                            <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>
+                            <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'Register New'} Employee</h3>
+                            <button onClick={() => !saving && setShowModal(false)}><FaTimesIcon /></button>
                         </div>
                         <div className="admin-modal-body">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                                <div style={{ position: 'relative', flexShrink: 0 }}>
+                                    {form.avatar ? (
+                                        <img src={form.avatar} alt="" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border-color)' }} />
+                                    ) : (
+                                        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', fontWeight: 700 }}>
+                                            {(form.firstName?.[0] || '') + (form.lastName?.[0] || '') || <FaUsers />}
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    <input ref={avatarInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarUpload} />
+                                    <button type="button" className="admin-btn admin-btn--secondary" style={{ padding: '0.35rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}
+                                        onClick={() => avatarInputRef.current?.click()} disabled={uploadingAvatar}>
+                                        {uploadingAvatar ? <FaSpinner className="spin" size={11} /> : <FaCamera size={11} />} {form.avatar ? 'Change Photo' : 'Upload Photo'}
+                                    </button>
+                                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>Passport-style photo for the employee ID and profile.</p>
+                                </div>
+                            </div>
+
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '1.1rem 0 0.5rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <FaIdCard size={11} /> Personal Information
+                            </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
                                     <label className="form-label">First Name</label>
@@ -415,6 +608,52 @@ const Employees = () => {
                                 <div className="form-group">
                                     <label className="form-label">Last Name</label>
                                     <input className="form-input" value={form.lastName} onChange={e => setForm(p => ({ ...p, lastName: e.target.value }))} placeholder="Last name" />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Gender</label>
+                                    <select className="form-select" value={form.gender} onChange={e => setForm(p => ({ ...p, gender: e.target.value }))}>
+                                        <option value="">Not specified</option>
+                                        {GENDERS.map(g => <option key={g} value={g}>{g.charAt(0).toUpperCase() + g.slice(1)}</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Marital Status</label>
+                                    <select className="form-select" value={form.maritalStatus} onChange={e => setForm(p => ({ ...p, maritalStatus: e.target.value }))}>
+                                        <option value="">Not specified</option>
+                                        {MARITAL_STATUSES.map(m => <option key={m} value={m}>{m.charAt(0).toUpperCase() + m.slice(1)}</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">National ID / Passport No.</label>
+                                    <input className="form-input" value={form.nationalId} disabled={!!(editing && editing.nationalId)}
+                                        onChange={e => setForm(p => ({ ...p, nationalId: e.target.value }))} placeholder="1198000123456789"
+                                        style={editing && editing.nationalId ? { opacity: 0.6, cursor: 'not-allowed' } : undefined} />
+                                    {editing && editing.nationalId && (
+                                        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.25rem 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                            <FaLock size={8} /> Locked after registration
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Education Level</label>
+                                    <select className="form-select" value={form.educationLevel} onChange={e => setForm(p => ({ ...p, educationLevel: e.target.value }))}>
+                                        <option value="">Not specified</option>
+                                        {EDUCATION_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                                    <label className="form-label">Residential Address</label>
+                                    <input className="form-input" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} placeholder="e.g. Kicukiro, Kigali, Rwanda" />
+                                </div>
+                            </div>
+
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '1.25rem 0 0.5rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <FaHeartbeat size={11} /> Contact &amp; Emergency
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div className="form-group">
+                                    <label className="form-label">Phone</label>
+                                    <input className="form-input" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+250 788 000 000" />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Email</label>
@@ -427,13 +666,19 @@ const Employees = () => {
                                         </p>
                                     )}
                                 </div>
-                                <div className="form-group">
-                                    <label className="form-label">Phone</label>
-                                    <input className="form-input" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+250 788 000 000" />
+                                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                                    <label className="form-label">Emergency Contact</label>
+                                    <input className="form-input" value={form.emergencyContact} onChange={e => setForm(p => ({ ...p, emergencyContact: e.target.value }))} placeholder="Name — Relationship — Phone number" />
                                 </div>
+                            </div>
+
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '1.25rem 0 0.5rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <FaUserTie size={11} /> Employment Details
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
-                                    <label className="form-label">Position</label>
-                                    <input className="form-input" value={form.position} onChange={e => setForm(p => ({ ...p, position: e.target.value }))} placeholder="Job title" />
+                                    <label className="form-label">Position / Trade</label>
+                                    <input className="form-input" value={form.position} onChange={e => setForm(p => ({ ...p, position: e.target.value }))} placeholder="e.g. Site Foreman, Mason, Electrician" />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Department</label>
@@ -458,10 +703,38 @@ const Employees = () => {
                                     </select>
                                 </div>
                             </div>
+
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '1.25rem 0 0.5rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <FaGraduationCap size={11} /> Documents (CV, ID, Certificates)
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <select className="form-select" value={docType} onChange={e => setDocType(e.target.value)} style={{ maxWidth: 220 }}>
+                                    {DOCUMENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                </select>
+                                <input ref={docInputRef} type="file" style={{ display: 'none' }} onChange={handleDocUpload} />
+                                <button type="button" className="admin-btn admin-btn--secondary" style={{ padding: '0.4rem 0.9rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}
+                                    onClick={() => docInputRef.current?.click()} disabled={uploadingDoc}>
+                                    {uploadingDoc ? <FaSpinner className="spin" size={11} /> : <FaUpload size={11} />} Upload
+                                </button>
+                            </div>
+                            {form.documents.length > 0 && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: '0.6rem' }}>
+                                    {form.documents.map((d, i) => (
+                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-body)', borderRadius: 8, padding: '0.4rem 0.7rem', fontSize: '0.8rem' }}>
+                                            <a href={d.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                <FaFileAlt size={11} /> {d.name}
+                                            </a>
+                                            <button type="button" onClick={() => removeDoc(i)} title="Remove" style={{ background: 'none', border: 'none', color: 'var(--primary-red)', cursor: 'pointer', flexShrink: 0, marginLeft: 8 }}>
+                                                <FaTimesIcon size={11} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         <div className="admin-modal-footer">
-                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button className="admin-btn" onClick={handleSave}>Save</button>
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)} disabled={saving}>Cancel</button>
+                            <button className="admin-btn" onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : (editing ? 'Save Changes' : 'Register Employee')}</button>
                         </div>
                     </div>
                 </div>
@@ -479,7 +752,7 @@ const Employees = () => {
                 );
                 return (
                     <div className="admin-modal-overlay" onClick={() => setViewItem(null)}>
-                        <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 620, maxHeight: '85vh', overflowY: 'auto', borderRadius: 12 }}>
+                        <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 640, maxHeight: '85vh', overflowY: 'auto', borderRadius: 12 }}>
                             <div className="admin-modal-header" style={{ padding: '1rem 1.25rem' }}>
                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.05rem' }}>
                                     <FaUsers style={{ color: 'var(--primary)' }} /> Employee Profile
@@ -488,10 +761,14 @@ const Employees = () => {
                             </div>
                             <div className="admin-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                                    <div style={{
-                                        width: 52, height: 52, borderRadius: '50%', background: 'var(--primary)', color: '#fff',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem', fontWeight: 700, flexShrink: 0,
-                                    }}>{initials || <FaUsers />}</div>
+                                    {viewItem.avatar ? (
+                                        <img src={viewItem.avatar} alt="" style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid var(--border-color)' }} />
+                                    ) : (
+                                        <div style={{
+                                            width: 52, height: 52, borderRadius: '50%', background: 'var(--primary)', color: '#fff',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem', fontWeight: 700, flexShrink: 0,
+                                        }}>{initials || <FaUsers />}</div>
+                                    )}
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>{viewItem.firstName} {viewItem.lastName}</div>
                                         <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
@@ -531,8 +808,15 @@ const Employees = () => {
 
                                 {canSeeContracts && (
                                     <div>
-                                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                            <FaFileAlt size={11} /> Contracts
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                <FaFileAlt size={11} /> Contracts
+                                            </div>
+                                            {canManageContracts && (
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.6rem', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 4 }} onClick={openContractModal}>
+                                                    <FaPlus size={9} /> Add Contract
+                                                </button>
+                                            )}
                                         </div>
                                         {viewContractsLoading ? (
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.75rem', color: '#999', fontSize: '0.8rem' }}>
@@ -557,7 +841,7 @@ const Employees = () => {
                                                             }}>{c.status.replace('_', ' ')}</span>
                                                             {c.fileUrl && (
                                                                 <a href={c.fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center' }} title="View document">
-                                                                    <FaFileAlt size={12} />
+                                                                    <FaDownload size={12} />
                                                                 </a>
                                                             )}
                                                         </div>
@@ -593,6 +877,94 @@ const Employees = () => {
                     </div>
                 );
             })()}
+
+            {contractModal && viewItem && (
+                <div className="admin-modal-overlay" onClick={() => !savingContract && setContractModal(false)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 480, borderRadius: 12 }}>
+                        <div className="admin-modal-header" style={{ padding: '0.9rem 1.1rem' }}>
+                            <h3 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <FaFileSignature style={{ color: 'var(--primary)' }} /> Add Contract — {viewItem.firstName} {viewItem.lastName}
+                            </h3>
+                            <button onClick={() => !savingContract && setContractModal(false)}><FaTimesIcon /></button>
+                        </div>
+                        <div className="admin-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div className="form-group">
+                                <label className="form-label">Contract Title</label>
+                                <input className="form-input" placeholder="e.g. Employment Contract — Site Foreman" value={contractForm.title}
+                                    onChange={e => setContractForm(p => ({ ...p, title: e.target.value }))} />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                <div className="form-group">
+                                    <label className="form-label">Type</label>
+                                    <select className="form-select" value={contractForm.type} onChange={e => setContractForm(p => ({ ...p, type: e.target.value }))}>
+                                        {CONTRACT_TYPES.map(t => <option key={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Start Date</label>
+                                    <input type="date" className="form-input" value={contractForm.startDate} onChange={e => setContractForm(p => ({ ...p, startDate: e.target.value }))} />
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">End Date <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span></label>
+                                <input type="date" className="form-input" min={contractForm.startDate || undefined} value={contractForm.endDate} onChange={e => setContractForm(p => ({ ...p, endDate: e.target.value }))} />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Contract File <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span></label>
+                                <input ref={contractFileInputRef} type="file" accept=".pdf,application/pdf" style={{ display: 'none' }} onChange={e => setContractFile(e.target.files?.[0] || null)} />
+                                <div onClick={() => contractFileInputRef.current?.click()}
+                                    style={{ border: '2px dashed var(--border-color)', borderRadius: 10, padding: '0.85rem', textAlign: 'center', cursor: 'pointer' }}>
+                                    {contractFile ? (
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                                            <FaFilePdf size={16} style={{ color: '#ef4444' }} />
+                                            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{contractFile.name}</span>
+                                        </div>
+                                    ) : (
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                            <FaUpload size={12} /> Click to attach a PDF
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="admin-modal-footer">
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setContractModal(false)} disabled={savingContract}>Cancel</button>
+                            <button className="admin-btn" onClick={handleCreateContract} disabled={savingContract}>
+                                {savingContract ? 'Saving...' : 'Save Contract'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {deleteTarget && (
+                <div className="admin-modal-overlay" onClick={() => !deleting && setDeleteTarget(null)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 420, borderRadius: 12 }}>
+                        <div className="admin-modal-header" style={{ padding: '0.9rem 1.1rem' }}>
+                            <h3 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <FaExclamationTriangle style={{ color: 'var(--primary-red)' }} /> Remove Employee
+                            </h3>
+                            <button onClick={() => !deleting && setDeleteTarget(null)}><FaTimesIcon /></button>
+                        </div>
+                        <div className="admin-modal-body">
+                            <p style={{ fontSize: '0.88rem', margin: 0 }}>
+                                Permanently delete the record for <strong>{deleteTarget.firstName} {deleteTarget.lastName}</strong>? This cannot be undone.
+                            </p>
+                        </div>
+                        <div className="admin-modal-footer">
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</button>
+                            <button
+                                className="admin-btn"
+                                style={{ background: 'var(--primary-red)', borderColor: 'var(--primary-red)' }}
+                                onClick={handleDelete}
+                                disabled={deleting}
+                            >
+                                {deleting ? 'Deleting...' : 'Delete Employee'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

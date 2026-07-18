@@ -9,6 +9,7 @@ export interface SiteRule {
     order: number;
     isActive: boolean;
     createdAt: string;
+    updatedAt: string;
 }
 
 const baseUrl = '/site-rules';

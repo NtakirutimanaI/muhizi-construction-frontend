@@ -88,6 +88,8 @@ const Partnerships = () => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<Partnership | null>(null);
+    const [deleting, setDeleting] = useState(false);
     const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -323,6 +325,10 @@ const Partnerships = () => {
             showToast('Describe the partnership type', 'error');
             return;
         }
+        if (form.startDate && form.endDate && form.endDate < form.startDate) {
+            showToast('End date cannot be before start date', 'error');
+            return;
+        }
         setSaving(true);
         try {
             if (editing) await constructionService.updatePartnership(editing.id, buildPayload());
@@ -349,10 +355,19 @@ const Partnerships = () => {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm('Delete this partnership record?')) return;
-        try { await constructionService.deletePartnership(id); fetch(); }
-        catch (e) { console.error(e); }
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        setDeleting(true);
+        try {
+            await constructionService.deletePartnership(deleteTarget.id);
+            showToast('Partnership record deleted', 'success');
+            setDeleteTarget(null);
+            fetch();
+        } catch (e) {
+            showToast(extractErrorMessage(e, 'Failed to delete partnership record'), 'error');
+        } finally {
+            setDeleting(false);
+        }
     };
 
     if (loading) return <div className="admin-page"><div className="inline-spinner">Loading partnerships...</div></div>;
@@ -469,7 +484,7 @@ const Partnerships = () => {
                                                     </>
                                                 )}
                                                 <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)} title="Delete"><FaTrash /></button>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => setDeleteTarget(item)} title="Delete"><FaTrash /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -640,7 +655,7 @@ const Partnerships = () => {
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">End Date</label>
-                                    <input type="date" className="form-input" value={form.endDate} onChange={e => setForm(p => ({ ...p, endDate: e.target.value }))} />
+                                    <input type="date" className="form-input" min={form.startDate || undefined} value={form.endDate} onChange={e => setForm(p => ({ ...p, endDate: e.target.value }))} />
                                 </div>
                                 {editing && (
                                     <div className="form-group">
@@ -729,6 +744,35 @@ const Partnerships = () => {
                                     Reviewed by {viewItem.reviewedByName}{viewItem.reviewedAt ? ` on ${new Date(viewItem.reviewedAt).toLocaleDateString()}` : ''}
                                 </div>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {deleteTarget && (
+                <div className="admin-modal-overlay" onClick={() => !deleting && setDeleteTarget(null)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 420, borderRadius: 12 }}>
+                        <div className="admin-modal-header" style={{ padding: '0.9rem 1.1rem' }}>
+                            <h3 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <FaExclamationTriangle style={{ color: 'var(--primary-red)' }} /> Delete Partnership Record
+                            </h3>
+                            <button onClick={() => !deleting && setDeleteTarget(null)}><FaTimesIcon /></button>
+                        </div>
+                        <div className="admin-modal-body">
+                            <p style={{ fontSize: '0.88rem', margin: 0 }}>
+                                Are you sure you want to permanently delete the record for <strong>{deleteTarget.companyName}</strong>? This action cannot be undone.
+                            </p>
+                        </div>
+                        <div className="admin-modal-footer">
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</button>
+                            <button
+                                className="admin-btn"
+                                style={{ background: 'var(--primary-red)', borderColor: 'var(--primary-red)' }}
+                                onClick={handleDelete}
+                                disabled={deleting}
+                            >
+                                {deleting ? 'Deleting...' : 'Delete Record'}
+                            </button>
                         </div>
                     </div>
                 </div>
