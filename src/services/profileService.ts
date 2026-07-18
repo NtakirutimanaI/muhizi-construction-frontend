@@ -267,6 +267,12 @@ export const profileService = {
         return response.data;
     },
 
+    // Alias used by inbox pages
+    getInboxMessages: async (): Promise<ContactMessage[]> => {
+        const response = await api.get('/profile/messages');
+        return response.data;
+    },
+
     // Get authenticated user profile
     getMyProfile: async (): Promise<Profile> => {
         const response = await api.get('/profile');
