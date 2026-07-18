@@ -61,10 +61,15 @@ const VisionMissionValues: React.FC = () => {
 
     const goToContact = useCallback(() => {
         navigate('/');
-        setTimeout(() => {
+        const tryScroll = (attempts = 0) => {
             const el = document.getElementById('contact');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }, 300);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            } else if (attempts < 20) {
+                setTimeout(() => tryScroll(attempts + 1), 100);
+            }
+        };
+        setTimeout(() => tryScroll(), 200);
     }, [navigate]);
 
     useEffect(() => {
