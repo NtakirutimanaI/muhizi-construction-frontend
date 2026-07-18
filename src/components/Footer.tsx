@@ -136,7 +136,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                                 </a>
                                 <div style={{ marginTop: '0.75rem', borderRadius: 0, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', width: '100%', maxWidth: '220px' }}>
                                     <iframe
-                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3987.5!2d29.22!3d-1.95!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMuKwNTcnMDAuMCJTIDI5wrAxMzEyLjAiRcKwNTQnNDguMCJZ!5e0!3m2!1sen!2srw!4v1"
+                                        src="https://maps.google.com/maps?q=COSMOS+Nyamirambo+Nyarugenge+Kigali+Rwanda&t=&z=15&ie=UTF8&iwloc=&output=embed"
                                         width="100%"
                                         height="130"
                                         style={{ border: 0, display: 'block' }}
