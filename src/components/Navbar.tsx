@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { Profile } from '../services/profileService';
 
 interface NavbarProps {
@@ -14,6 +14,7 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
     const [navTheme, setNavTheme] = useState<'light' | 'dark'>('dark');
     const navRef = useRef<HTMLElement>(null);
     const location = useLocation();
+    const navigate = useNavigate();
     const isDarkBgRoute = DARK_BG_ROUTES.includes(location.pathname);
 
     const closeMenu = useCallback(() => setMenuOpen(false), []);
@@ -23,12 +24,24 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
         if (!href || !href.startsWith('/#')) return;
         const id = href.slice(2);
         const el = document.getElementById(id);
+        closeMenu();
         if (el) {
             e.preventDefault();
             el.scrollIntoView({ behavior: 'smooth' });
-            closeMenu();
+        } else if (location.pathname !== '/') {
+            e.preventDefault();
+            navigate('/');
+            const tryScroll = (attempts = 0) => {
+                const target = document.getElementById(id);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                } else if (attempts < 20) {
+                    setTimeout(() => tryScroll(attempts + 1), 100);
+                }
+            };
+            setTimeout(() => tryScroll(), 200);
         }
-    }, [closeMenu]);
+    }, [closeMenu, location.pathname, navigate]);
 
     const companyName = profile?.company || '';
 
