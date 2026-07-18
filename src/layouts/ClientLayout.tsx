@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaUser, FaImage, FaClipboardList, FaSignOutAlt, FaBars, FaSun, FaMoon, FaCamera } from 'react-icons/fa';
+import { FaUser, FaImage, FaClipboardList, FaSignOutAlt, FaBars, FaSun, FaMoon, FaCamera, FaGavel } from 'react-icons/fa';
 import { useToast } from '../context/ToastContext';
 import { ROLE_AREA_TITLE, ROLE_AREA_BG, type Role } from '../config/roles';
 import { uploadService } from '../services/uploadService';
@@ -11,18 +11,21 @@ const NAV_ITEMS = [
   { path: '/profile', icon: <FaUser />, label: 'My Profile' },
   { path: '/sites', icon: <FaImage />, label: 'Sites' },
   { path: '/updates', icon: <FaClipboardList />, label: 'Updates' },
+  { path: '/site-rules', icon: <FaGavel />, label: 'Site Rules' },
 ];
 
 const SECTION_LABELS: Record<string, string> = {
   '/profile': 'My Profile',
   '/sites': 'Sites',
   '/updates': 'Updates',
+  '/site-rules': 'Site Rules',
 };
 
 const SECTION_ICONS: Record<string, React.ReactNode> = {
   '/profile': <FaUser size={14} />,
   '/sites': <FaImage size={14} />,
   '/updates': <FaClipboardList size={14} />,
+  '/site-rules': <FaGavel size={14} />,
 };
 
 const ClientLayout = ({ basePath = '/client-panel' }: { basePath?: string }) => {
@@ -159,12 +162,14 @@ const ClientLayout = ({ basePath = '/client-panel' }: { basePath?: string }) => 
       {/* Content */}
       <div className="admin-content">
         <main className="admin-main">
-          <div style={{ marginBottom: '1rem' }}>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {sectionIcon && <span style={{ color: 'var(--primary)' }}>{sectionIcon}</span>}
-              {sectionLabel}
-            </h1>
-          </div>
+          {currentPath !== '/site-rules' && (
+            <div style={{ marginBottom: '1rem' }}>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {sectionIcon && <span style={{ color: 'var(--primary)' }}>{sectionIcon}</span>}
+                {sectionLabel}
+              </h1>
+            </div>
+          )}
           <Outlet />
         </main>
       </div>

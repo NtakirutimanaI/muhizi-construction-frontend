@@ -51,7 +51,6 @@ import EngineeringSubmissions from './pages/admin/EngineeringSubmissions';
 import DailyReports from './pages/admin/DailyReports';
 import Stock from './pages/admin/Stock';
 import StockCategories from './pages/admin/StockCategories';
-import Contracts from './pages/admin/Contracts';
 import ProjectDetail from './pages/admin/ProjectDetail';
 import ProjectProgress from './pages/partner/ProjectProgress';
 import PartnerUpdates from './pages/partner/PartnerUpdates';
@@ -181,7 +180,7 @@ function App() {
                       <Route path="project-evidence" element={<ProjectEvidence />} />
                       <Route path="site-rules" element={<SiteRules />} />
                       <Route path="approvals" element={<Navigate to="../requests" replace />} />
-                      <Route path="contracts" element={<Contracts />} />
+                      <Route path="contracts" element={<Navigate to="../employees" replace />} />
                       <Route path="project-progress" element={<ProjectProgress />} />
                       <Route path="updates" element={<PartnerUpdates />} />
                       <Route path="approvements" element={<Navigate to="../requests" replace />} />
@@ -202,6 +201,7 @@ function App() {
                   <Route path="profile" element={<ClientProfile />} />
                   <Route path="sites" element={<ClientSites />} />
                   <Route path="updates" element={<ClientUpdates />} />
+                  <Route path="site-rules" element={<SiteRules />} />
                 </Route>
               </Route>
 

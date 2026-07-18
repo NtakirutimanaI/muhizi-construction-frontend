@@ -53,10 +53,13 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             // contracts are operational detail owned by Site Engineer / Finance Director.
             // Managing Director does not have an HR role in this org — they own Operations
             // (stock, material requests, engineering-submission review, site oversight).
+            // Finance Director's Employees view is the single source of truth for hiring —
+            // full profile, documents/CV, and contracts all live on the employee record
+            // itself (see Employees.tsx), so there's no separate Contracts nav item and no
+            // day-to-day Attendance clutter (that's an operational concern, not Finance's).
             { path: '/admin/employees', icon: 'FaUserTie', label: 'Employees', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR] },
-            { path: '/admin/attendance', icon: 'FaClipboardList', label: 'Attendance', roles: [ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/attendance', icon: 'FaClipboardList', label: 'Attendance', roles: [ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/payroll', icon: 'FaMoneyBillWave', label: 'Payroll', roles: [ROLES.FINANCE_DIRECTOR] },
-            { path: '/admin/contracts', icon: 'FaFileAlt', label: 'Contracts', roles: [ROLES.FINANCE_DIRECTOR] },
         ],
     },
     {

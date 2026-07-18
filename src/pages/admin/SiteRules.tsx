@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { siteRulesService, type SiteRule } from '../../services/siteRulesService';
 import {
     FaClock, FaHardHat, FaMoneyCheckAlt, FaLock, FaListAlt, FaExclamationTriangle,
     FaPhone, FaBullhorn, FaCheckCircle, FaRegNewspaper, FaClipboardCheck,
-    FaTimes, FaExpandAlt, FaGavel, FaEdit, FaTrash, FaPlus, FaCog, FaSave
+    FaTimes, FaExpandAlt, FaGavel, FaEdit, FaTrash, FaPlus, FaCog, FaSave, FaEyeSlash
 } from 'react-icons/fa';
+
+/** NestJS validation errors arrive as string[]; render them as one readable sentence instead of raw concatenated text. */
+const extractErrorMessage = (e: any, fallback: string): string => {
+    const message = e?.response?.data?.message;
+    if (Array.isArray(message)) return message.join('. ');
+    if (typeof message === 'string') return message;
+    return fallback;
+};
 
 const iconMap: Record<string, React.ReactNode> = {
     FaClock: <FaClock size={16} />, FaHardHat: <FaHardHat size={16} />,
@@ -24,14 +34,18 @@ interface FormData {
     pinColor: string;
     items: string;
     order: number;
+    isActive: boolean;
 }
 
-const emptyForm: FormData = { title: '', iconName: 'FaBullhorn', pinColor: '#e74c3c', items: '', order: 0 };
+const emptyForm: FormData = { title: '', iconName: 'FaBullhorn', pinColor: '#e74c3c', items: '', order: 0, isActive: true };
 
 const SiteRules = () => {
     const { user } = useAuth();
+    const { showToast } = useToast();
     const role = user?.role || '';
-    const canManage = role === 'admin' || role === 'site_engineer';
+    // Matches backend RolesGuard: admin + site_manager may create/edit, delete is admin-only.
+    const canManage = role === 'admin' || role === 'site_manager';
+    const canDelete = role === 'admin';
 
     const [rules, setRules] = useState<SiteRule[]>([]);
     const [loading, setLoading] = useState(true);
@@ -39,13 +53,18 @@ const SiteRules = () => {
     const [selectedRule, setSelectedRule] = useState<SiteRule | null>(null);
     const [formModal, setFormModal] = useState<{ open: boolean; edit?: SiteRule }>({ open: false });
     const [form, setForm] = useState<FormData>(emptyForm);
+    const [saving, setSaving] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<SiteRule | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     const fetchRules = async () => {
         try {
             const ep = canManage && manageMode ? siteRulesService.getAllAdmin : siteRulesService.getAll;
             const res = await ep();
             setRules(res.data || []);
-        } catch { /* keep current */ } finally { setLoading(false); }
+        } catch {
+            showToast('Failed to load site rules', 'error');
+        } finally { setLoading(false); }
     };
 
     useEffect(() => { fetchRules(); }, [manageMode]);
@@ -57,6 +76,7 @@ const SiteRules = () => {
             pinColor: rule.pinColor || '#e74c3c',
             items: rule.items.join('\n'),
             order: rule.order,
+            isActive: rule.isActive,
         });
         setFormModal({ open: true, edit: rule });
     };
@@ -67,30 +87,62 @@ const SiteRules = () => {
     };
 
     const handleSave = async () => {
+        if (!form.title.trim()) {
+            showToast('Give this notice a title', 'error');
+            return;
+        }
+        const items = form.items.split('\n').map(s => s.trim()).filter(Boolean);
+        if (items.length === 0) {
+            showToast('Add at least one rule item', 'error');
+            return;
+        }
         const payload = {
-            title: form.title,
+            title: form.title.trim(),
             iconName: form.iconName,
             pinColor: form.pinColor,
-            items: form.items.split('\n').map(s => s.trim()).filter(Boolean),
+            items,
             order: form.order,
+            isActive: form.isActive,
         };
-        if (formModal.edit) {
-            await siteRulesService.update(formModal.edit.id, payload);
-        } else {
-            await siteRulesService.create(payload);
+        setSaving(true);
+        try {
+            if (formModal.edit) {
+                await siteRulesService.update(formModal.edit.id, payload);
+                showToast('Notice updated', 'success');
+            } else {
+                await siteRulesService.create(payload);
+                showToast(form.isActive ? 'Notice published to the board' : 'Notice saved as draft', 'success');
+            }
+            setFormModal({ open: false });
+            fetchRules();
+        } catch (e) {
+            showToast(extractErrorMessage(e, 'Failed to save notice'), 'error');
+        } finally {
+            setSaving(false);
         }
-        setFormModal({ open: false });
-        fetchRules();
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm('Delete this notice permanently?')) return;
-        await siteRulesService.delete(id);
-        fetchRules();
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        setDeleting(true);
+        try {
+            await siteRulesService.delete(deleteTarget.id);
+            showToast('Notice removed from the board', 'success');
+            setDeleteTarget(null);
+            fetchRules();
+        } catch (e) {
+            showToast(extractErrorMessage(e, 'Failed to delete notice'), 'error');
+        } finally {
+            setDeleting(false);
+        }
     };
 
-    const totalItems = rules.reduce((sum, r) => sum + r.items.length, 0);
-    const postedDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const totalItems = rules.filter(r => r.isActive).reduce((sum, r) => sum + r.items.length, 0);
+    const lastUpdated = rules.reduce<Date | null>((latest, r) => {
+        const d = new Date(r.updatedAt || r.createdAt);
+        return !latest || d > latest ? d : latest;
+    }, null);
+    const lastUpdatedLabel = lastUpdated ? lastUpdated.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
 
     return (
         <div>
@@ -161,7 +213,7 @@ const SiteRules = () => {
                         {[
                             { value: rules.length, label: 'Rule Categories', icon: <FaRegNewspaper size={14} /> },
                             { value: totalItems, label: 'Total Regulations', icon: <FaClipboardCheck size={14} /> },
-                            { value: postedDate.split(',')[0], label: 'Last Updated', icon: <FaClock size={14} /> },
+                            { value: lastUpdatedLabel, label: 'Last Updated', icon: <FaClock size={14} /> },
                             { value: manageMode ? 'Manage Mode' : 'Active', label: 'Board Status', icon: <FaCheckCircle size={14} /> },
                         ].map((stat, i) => (
                             <div key={i} style={{
@@ -227,16 +279,31 @@ const SiteRules = () => {
                                         <FaExpandAlt />
                                     </div>
 
+                                    {manageMode && !section.isActive && (
+                                        <div style={{
+                                            position: 'absolute', top: '6px', left: '8px', zIndex: 5,
+                                            background: '#f39c12', color: '#1B2042', fontSize: '0.55rem', fontWeight: 800,
+                                            padding: '2px 7px', borderRadius: '10px', textTransform: 'uppercase', letterSpacing: '0.04em',
+                                            display: 'flex', alignItems: 'center', gap: '3px',
+                                        }}>
+                                            <FaEyeSlash size={8} /> Draft
+                                        </div>
+                                    )}
+
                                     {manageMode && (
-                                        <div style={{ position: 'absolute', top: '6px', left: '8px', display: 'flex', gap: '4px', zIndex: 5 }}>
+                                        <div style={{ position: 'absolute', top: '6px', right: '26px', display: 'flex', gap: '4px', zIndex: 5 }}>
                                             <button onClick={(e) => { e.stopPropagation(); openEdit(section); }}
+                                                title="Edit"
                                                 style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '4px', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer', fontSize: '0.6rem' }}>
                                                 <FaEdit />
                                             </button>
-                                            <button onClick={(e) => { e.stopPropagation(); handleDelete(section.id); }}
-                                                style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '4px', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', cursor: 'pointer', fontSize: '0.6rem' }}>
-                                                <FaTrash />
-                                            </button>
+                                            {canDelete && (
+                                                <button onClick={(e) => { e.stopPropagation(); setDeleteTarget(section); }}
+                                                    title="Delete"
+                                                    style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '4px', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', cursor: 'pointer', fontSize: '0.6rem' }}>
+                                                    <FaTrash />
+                                                </button>
+                                            )}
                                         </div>
                                     )}
 
@@ -292,7 +359,7 @@ const SiteRules = () => {
                                     }}>
                                         <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>Notice #{idx + 1}</span>
                                         <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>
-                                            {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                            {new Date(section.updatedAt || section.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                         </span>
                                     </div>
                                 </div>
@@ -328,7 +395,7 @@ const SiteRules = () => {
                 </div>
             </div>
 
-            {selectedRule && (
+            {selectedRule && createPortal(
                 <div
                     style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}
                     onClick={() => setSelectedRule(null)}
@@ -369,20 +436,21 @@ const SiteRules = () => {
 
                         <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.5 }}>
                             <span>Notice Board — Muhizi Construction</span>
-                            <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            <span>Updated {new Date(selectedRule.updatedAt || selectedRule.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
-            {formModal.open && (
+            {formModal.open && createPortal(
                 <div
                     style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}
                     onClick={() => setFormModal({ open: false })}
                 >
                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }} />
                     <div onClick={(e) => e.stopPropagation()} style={{
-                        position: 'relative', background: 'var(--bg-card)', borderRadius: '16px',
+                        position: 'relative', background: 'var(--bg-white)', borderRadius: '16px',
                         padding: '2rem', maxWidth: '560px', width: '100%', maxHeight: '85vh', overflowY: 'auto',
                         boxShadow: '0 24px 64px rgba(0,0,0,0.3)', border: '1px solid var(--border-color)',
                     }}>
@@ -428,20 +496,76 @@ const SiteRules = () => {
                                     rows={7}
                                     style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.85rem', resize: 'vertical', fontFamily: 'inherit' }} />
                             </div>
+
+                            <div style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem',
+                                padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)',
+                            }}>
+                                <div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{form.isActive ? 'Published' : 'Draft'}</div>
+                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                        {form.isActive ? 'Visible to everyone on the platform right now' : 'Hidden from the board until you publish it'}
+                                    </div>
+                                </div>
+                                <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '22px', flexShrink: 0, cursor: 'pointer' }}>
+                                    <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                                        style={{ opacity: 0, width: 0, height: 0 }} />
+                                    <span style={{
+                                        position: 'absolute', inset: 0, borderRadius: '999px',
+                                        background: form.isActive ? '#22c55e' : 'var(--border-color)', transition: 'background 0.15s',
+                                    }} />
+                                    <span style={{
+                                        position: 'absolute', top: '3px', left: form.isActive ? '21px' : '3px',
+                                        width: '16px', height: '16px', borderRadius: '50%', background: '#fff',
+                                        transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                                    }} />
+                                </label>
+                            </div>
                         </div>
 
                         <div style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                            <button onClick={() => setFormModal({ open: false })}
+                            <button onClick={() => setFormModal({ open: false })} disabled={saving}
                                 style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.85rem' }}>
                                 Cancel
                             </button>
-                            <button onClick={handleSave}
-                                style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
-                                <FaSave size={12} /> {formModal.edit ? 'Update' : 'Publish'}
+                            <button onClick={handleSave} disabled={saving}
+                                style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
+                                <FaSave size={12} /> {saving ? 'Saving...' : (formModal.edit ? 'Update' : (form.isActive ? 'Publish' : 'Save Draft'))}
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
+            )}
+
+            {deleteTarget && createPortal(
+                <div className="admin-modal-overlay" onClick={() => !deleting && setDeleteTarget(null)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 420, borderRadius: 12 }}>
+                        <div className="admin-modal-header" style={{ padding: '0.9rem 1.1rem' }}>
+                            <h3 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <FaExclamationTriangle style={{ color: 'var(--primary-red)' }} /> Remove Notice
+                            </h3>
+                            <button onClick={() => !deleting && setDeleteTarget(null)}><FaTimes /></button>
+                        </div>
+                        <div className="admin-modal-body">
+                            <p style={{ fontSize: '0.88rem', margin: 0 }}>
+                                Permanently delete <strong>"{deleteTarget.title}"</strong> from the notice board? This cannot be undone.
+                            </p>
+                        </div>
+                        <div className="admin-modal-footer">
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</button>
+                            <button
+                                className="admin-btn"
+                                style={{ background: 'var(--primary-red)', borderColor: 'var(--primary-red)' }}
+                                onClick={handleDelete}
+                                disabled={deleting}
+                            >
+                                {deleting ? 'Deleting...' : 'Delete Notice'}
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
             )}
         </div>
     );
