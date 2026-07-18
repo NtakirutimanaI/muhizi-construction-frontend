@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { FaMapMarkerAlt, FaExternalLinkAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import type { Profile } from '../services/profileService';
@@ -23,6 +23,8 @@ const ProjectCard: React.FC<{
     const [current, setCurrent] = useState(0);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+    const interval = useMemo(() => 2500 + Math.floor(Math.random() * 3000), []);
+
     const next = useCallback(() => {
         setCurrent(c => (c + 1) % images.length);
     }, [images.length]);
@@ -33,9 +35,9 @@ const ProjectCard: React.FC<{
 
     useEffect(() => {
         if (!hasCarousel) return;
-        timerRef.current = setInterval(next, 3000);
+        timerRef.current = setInterval(next, interval);
         return () => { if (timerRef.current) clearInterval(timerRef.current); };
-    }, [hasCarousel, next, current]);
+    }, [hasCarousel, next, current, interval]);
 
     const linkUrl = project.url
         ? (project.url.startsWith('http') ? project.url : `https://${project.url}`)
