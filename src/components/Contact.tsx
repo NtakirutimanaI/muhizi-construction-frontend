@@ -164,7 +164,7 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                             </div>
                             <div>
                                 <h4>Location</h4>
-                                <p>{profile.location}</p>
+                                <p>Rwanda, Kigali, Nyarugenge, Nyamirambo</p>
                             </div>
                         </div>
                         <div className="contact-v2__info-item">
