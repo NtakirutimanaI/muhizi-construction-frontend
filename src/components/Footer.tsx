@@ -122,18 +122,42 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                     <div className="ark-footer__col">
                         {footerContent?.showContactInfo !== false && (
                             <>
-                                <a href={`tel:${profile.phone}`} className="ark-footer__nav-link"><FaPhone size={11} />{profile.phone}</a>
-                                <a href={`mailto:${profile.email}`} className="ark-footer__nav-link"><FaEnvelope size={11} />{profile.email}</a>
-                                {profile.location && (
-                                    <a
-                                        href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(profile.location)}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="ark-footer__nav-link"
-                                    >
-                                        <FaMapMarkerAlt size={11} />{profile.location}
-                                    </a>
-                                )}
+                                <a href={`tel:${profile.phone}`} className="ark-footer__nav-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem' }}>
+                                    <span style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                        <FaPhone size={11} />
+                                    </span>
+                                    {profile.phone}
+                                </a>
+                                <a href={`mailto:${profile.email}`} className="ark-footer__nav-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem' }}>
+                                    <span style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                        <FaEnvelope size={11} />
+                                    </span>
+                                    {profile.email}
+                                </a>
+                                <div style={{ marginTop: '0.75rem', borderRadius: 0, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', width: '100%', maxWidth: '220px' }}>
+                                    <iframe
+                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3987.5!2d29.22!3d-1.95!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMuKwNTcnMDAuMCJTIDI5wrAxMzEyLjAiRcKwNTQnNDguMCJZ!5e0!3m2!1sen!2srw!4v1"
+                                        width="100%"
+                                        height="130"
+                                        style={{ border: 0, display: 'block' }}
+                                        allowFullScreen={false}
+                                        loading="lazy"
+                                        referrerPolicy="no-referrer-when-downgrade"
+                                        title="Our Location"
+                                    />
+                                </div>
+                                <a
+                                    href="https://www.google.com/maps/dir/?api=1&destination=COSMOS+Nyamirambo+Nyarugenge+Kigali+Rwanda"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="ark-footer__nav-link"
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.5rem' }}
+                                >
+                                    <span style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                        <FaMapMarkerAlt size={11} />
+                                    </span>
+                                    Kigali, Nyamirambo
+                                </a>
                             </>
                         )}
                     </div>
