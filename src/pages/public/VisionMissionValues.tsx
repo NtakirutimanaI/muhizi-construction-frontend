@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaEye, FaBullseye, FaHeart, FaStar, FaArrowRight, FaCheckCircle } from 'react-icons/fa';
 import type { Profile } from '../../services/profileService';
@@ -57,6 +57,15 @@ const scaleIn = {
 const VisionMissionValues: React.FC = () => {
     const { profile } = useOutletContext<{ profile: Profile | null }>();
     const [activeTab, setActiveTab] = useState<'mission' | 'vision' | 'values'>('mission');
+    const navigate = useNavigate();
+
+    const goToContact = useCallback(() => {
+        navigate('/');
+        setTimeout(() => {
+            const el = document.getElementById('contact');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+    }, [navigate]);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -183,16 +192,16 @@ const VisionMissionValues: React.FC = () => {
                                         {mission.text}
                                     </p>
                                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <a href="/#contact" style={{
-                                            display: 'inline-flex', alignItems: 'center', gap: '0.7rem',
-                                            padding: '0.85rem 1.8rem', borderRadius: 0,
-                                            background: 'var(--accent, #D97706)', color: '#fff',
-                                            fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none',
-                                            transition: 'all 0.3s ease',
-                                        }}>
-                                            Get In Touch <FaArrowRight />
-                                        </a>
-                                        <a href="/about" style={{
+                    <button onClick={goToContact} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.7rem',
+                        padding: '0.85rem 1.8rem', borderRadius: 0,
+                        background: 'var(--accent, #D97706)', color: '#fff',
+                        fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none',
+                        transition: 'all 0.3s ease', border: 'none', cursor: 'pointer',
+                    }}>
+                        Get In Touch <FaArrowRight />
+                    </button>
+                    <a href="/about" style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '0.7rem',
                                             padding: '0.85rem 1.8rem', borderRadius: 0,
                                             border: '2px solid var(--border-color)', color: 'var(--text-main)',
@@ -385,14 +394,15 @@ const VisionMissionValues: React.FC = () => {
                     <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', maxWidth: '500px', margin: '0 auto 2rem', lineHeight: 1.7 }}>
                         Let us bring our values and expertise to your next construction project.
                     </p>
-                    <a href="/#contact" style={{
+                    <button onClick={goToContact} style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.7rem',
                         padding: '0.9rem 2rem', borderRadius: 0,
                         background: 'var(--accent, #D97706)', color: '#fff',
                         fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none',
+                        border: 'none', cursor: 'pointer',
                     }}>
                         Start Your Project <FaArrowRight />
-                    </a>
+                    </button>
                 </motion.div>
             </section>
         </div>
