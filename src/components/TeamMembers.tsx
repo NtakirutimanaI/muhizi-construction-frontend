@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { FaShareAlt, FaTwitter, FaInstagram, FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import type { Profile } from '../services/profileService';
 
@@ -10,6 +11,8 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
     const showSection = profile.pageContent?.showTeamSection !== false;
     const brands = profile.pageContent?.teamSection?.brands || [];
 
+    const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+
     if (members.length === 0 || !showSection) return null;
 
     const getImageUrl = (member: { name: string; imageUrl?: string }) => {
@@ -17,8 +20,11 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random&size=300`;
     };
 
-    const featured = members.slice(0, 2);
-    const minis = members.slice(2, 5);
+    const featured = selectedIdx !== null ? [members[selectedIdx]] : members.slice(0, 2);
+    const displayPool = selectedIdx !== null
+        ? members.filter((_, i) => i !== selectedIdx)
+        : members;
+    const minis = displayPool.slice(0, selectedIdx !== null ? 4 : 3);
 
     const socialsFor = (member: { socialLinks?: { twitter?: string; instagram?: string; facebook?: string; linkedin?: string; youtube?: string } }) => [
         { icon: FaTwitter, href: member.socialLinks?.twitter || profile.socialLinks?.twitter },
@@ -36,7 +42,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
                         {featured.map((member, i) => {
                             const socials = socialsFor(member);
                             return (
-                            <div key={i} className="team-v2__photo-card">
+                            <div key={member.name + i} className="team-v2__photo-card">
                                 <div className="team-v2__photo-wrap">
                                     <img src={getImageUrl(member)} alt={member.name} className="team-v2__photo-img" />
                                     {socials.length > 0 && (
@@ -84,15 +90,25 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
 
                     {minis.length > 0 && (
                         <div className="team-v2__mini-grid">
-                            {minis.map((member, i) => (
-                                <img
-                                    key={i}
-                                    src={getImageUrl(member)}
-                                    alt={member.name}
-                                    className="team-v2__mini-photo"
-                                    title={member.name}
-                                />
-                            ))}
+                            {minis.map((member, i) => {
+                                const realIdx = members.indexOf(member);
+                                const isSelected = selectedIdx === realIdx;
+                                return (
+                                    <button
+                                        key={i}
+                                        type="button"
+                                        className={`team-v2__mini-photo-btn${isSelected ? ' team-v2__mini-photo-btn--active' : ''}`}
+                                        onClick={() => setSelectedIdx(isSelected ? null : realIdx)}
+                                        title={member.name}
+                                    >
+                                        <img
+                                            src={getImageUrl(member)}
+                                            alt={member.name}
+                                            className="team-v2__mini-photo"
+                                        />
+                                    </button>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
