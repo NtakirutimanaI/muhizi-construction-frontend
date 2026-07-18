@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, Link } from 'react-router-dom';
 import CountUp from '../../components/CountUp';
 import type { Profile } from '../../services/profileService';
 
@@ -137,7 +137,7 @@ const About = () => {
               <p className="about-desc">
                 {ap?.description || "We embrace the latest technologies and sustainable practices to create environmentally-friendly and energy-efficient buildings. Our mission is not just to construct structures, but to build communities and spaces where people thrive and prosper."}
               </p>
-              <a href="#services" className="learn-more">
+              <Link to="/vision-mission-values" className="learn-more">
                 LEARN MORE
                 <span className="learn-more-circle">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(-45deg)' }}>
@@ -145,7 +145,7 @@ const About = () => {
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
                 </span>
-              </a>
+              </Link>
             </div>
 
             <div className="about-visual">
