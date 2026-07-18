@@ -79,8 +79,8 @@ const VisionMissionValues: React.FC = () => {
             {/* Hero */}
             <section data-nav-theme="dark" style={{
                 position: 'relative',
-                padding: 'clamp(5rem, 12vh, 8rem) 2rem clamp(4rem, 10vh, 6rem)',
-                background: 'linear-gradient(135deg, #0F1222 0%, #1a2332 50%, #16324F 100%)',
+                padding: 'clamp(8rem, 18vh, 12rem) 2rem clamp(5rem, 12vh, 8rem)',
+                background: 'rgba(15, 18, 34, 0.92)',
                 overflow: 'hidden',
                 textAlign: 'center',
             }}>
@@ -89,7 +89,7 @@ const VisionMissionValues: React.FC = () => {
                     backgroundImage: 'url(/bg1.png)',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
-                    opacity: 0.08,
+                    opacity: 0.15,
                     filter: 'grayscale(1)',
                 }} />
                 <motion.div
