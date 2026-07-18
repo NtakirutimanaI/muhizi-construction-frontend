@@ -76,47 +76,31 @@ const VisionMissionValues: React.FC = () => {
 
     return (
         <div style={{ minHeight: '100vh', background: '#fff' }}>
-            {/* Hero */}
-            <section style={{
-                position: 'relative',
-                padding: 'clamp(5rem, 12vh, 8rem) 2rem clamp(4rem, 10vh, 6rem)',
-                background: 'linear-gradient(135deg, #0F1222 0%, #1a2332 50%, #16324F 100%)',
-                overflow: 'hidden',
-                textAlign: 'center',
-            }}>
-                <div style={{
-                    position: 'absolute', inset: 0,
-                    backgroundImage: 'url(/bg1.png)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    opacity: 0.08,
-                    filter: 'grayscale(1)',
-                }} />
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7 }}
-                    style={{ position: 'relative', zIndex: 1, maxWidth: '700px', margin: '0 auto' }}
-                >
-                    <p style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
-                        color: 'var(--accent, #D97706)', fontWeight: 700, fontSize: '0.78rem',
-                        letterSpacing: '0.15em', textTransform: 'uppercase', margin: '0 0 1.2rem',
-                    }}>
-                        <span style={{ width: 30, height: 0, borderTop: '2px dashed var(--accent, #D97706)', display: 'inline-block' }} />
-                        About Us
-                        <span style={{ width: 30, height: 0, borderTop: '2px dashed var(--accent, #D97706)', display: 'inline-block' }} />
-                    </p>
-                    <h1 style={{
-                        fontFamily: 'var(--font-display)', color: '#fff', fontSize: 'clamp(2.2rem, 5vw, 3.5rem)',
-                        fontWeight: 800, lineHeight: 1.1, margin: '0 0 1.2rem',
-                    }}>
-                        Our Mission, Vision & Values
-                    </h1>
-                    <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 'clamp(1rem, 2vw, 1.15rem)', lineHeight: 1.7, maxWidth: '580px', margin: '0 auto' }}>
-                        The principles that guide every project we undertake and every relationship we build.
-                    </p>
-                </motion.div>
+            {/* Hero — same style as homepage */}
+            <section data-nav-theme="dark" className="hero" id="vmv-hero" style={{ position: 'relative' }}>
+                <div className="hero-video-wrap">
+                    <video
+                        className="hero-video-bg is-active"
+                        autoPlay muted loop playsInline
+                        poster="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80"
+                    >
+                        <source src="https://res.cloudinary.com/dh8e4duii/video/upload/v1783433566/muhizi/hero-construction.mp4" type="video/mp4" />
+                    </video>
+                    <div className="hero-overlay" />
+                    <div className="container hero-content">
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.7 }}
+                        >
+                            <div className="hero-slide-text">
+                                <h2 className="hero-slide-title">Our Mission, Vision & Values</h2>
+                                <p className="hero-slide-body">The principles that guide every project we undertake and every relationship we build.</p>
+                            </div>
+                        </motion.div>
+                    </div>
+                </div>
+                <div className="hero-spacer" />
             </section>
 
             {/* Tab Navigation */}
