@@ -2246,7 +2246,7 @@ img {
 }
 
 .projects-v2__photo-wrap {
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -2255,7 +2255,7 @@ img {
   aspect-ratio: 4 / 3;
   object-fit: cover;
   display: block;
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 .projects-v2__photo--empty {
@@ -4952,7 +4952,7 @@ img {
 .news-v2__image-wrap {
   position: relative;
   display: block;
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
   margin-bottom: 1.25rem;
   height: 190px;

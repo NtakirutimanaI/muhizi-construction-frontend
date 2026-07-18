@@ -14,7 +14,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
 
     const footerContent = profile.pageContent?.footer;
     const companyDesc = footerContent?.companyDescription || profile.about?.split('.')[0];
-    const copyright = footerContent?.copyrightText || (profile.firstName ? `© ${new Date().getFullYear()}. By ${profile.firstName} ${profile.lastName}` : '');
+    const copyright = footerContent?.copyrightText || `Copyright © ${new Date().getFullYear()} ${profile.company || 'Muhizi Construction'}. All Rights Reserved`;
     const poweredBy = profile.poweredBy;
     const quickLinks = footerContent?.quickLinks;
     const pageServices = profile.pageContent?.services?.items;
