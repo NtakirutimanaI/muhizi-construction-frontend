@@ -1,15 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { Profile } from '../services/profileService';
 
 interface NavbarProps {
     profile?: Profile | null;
 }
 
+const DARK_BG_ROUTES = ['/vision-mission-values'];
+
 const Navbar: React.FC<NavbarProps> = ({ profile }) => {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [navTheme, setNavTheme] = useState<'light' | 'dark'>('dark');
     const navRef = useRef<HTMLElement>(null);
+    const location = useLocation();
+    const isDarkBgRoute = DARK_BG_ROUTES.includes(location.pathname);
 
     const closeMenu = useCallback(() => setMenuOpen(false), []);
 
@@ -100,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
     }, [menuOpen]);
 
     return (
-        <nav ref={navRef} className={`navbar ${scrolled ? 'scrolled' : ''} navbar--${navTheme}`}
+        <nav ref={navRef} className={`navbar ${scrolled ? 'scrolled' : ''} navbar--${navTheme} ${isDarkBgRoute && !scrolled ? 'navbar--dark-bg' : ''}`}
             onMouseLeave={() => setMenuOpen(false)}
         >
             <div className="container">

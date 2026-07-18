@@ -248,6 +248,36 @@ img {
   background: rgba(22, 50, 79, 0.08);
 }
 
+/* Dark background route override (e.g. Vision/Mission/Values hero) */
+.navbar--dark-bg .navbar-content {
+  background-color: rgba(15, 18, 34, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.navbar--dark-bg .nav-brand-tag,
+.navbar--dark-bg .nav-brand-tag .brand-name,
+.navbar--dark-bg .nav-links-desktop-link,
+.navbar--dark-bg .nav-login-link,
+.navbar--dark-bg .nav-signup-btn,
+.navbar--dark-bg .nav-mobile-toggle {
+  color: #fff;
+}
+.navbar--dark-bg .nav-links-desktop-link:hover,
+.navbar--dark-bg .nav-login-link:hover {
+  color: var(--accent, #D97706);
+}
+.navbar--dark-bg .nav-signup-btn {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.navbar--dark-bg .nav-signup-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
+}
+.navbar--dark-bg .nav-logo {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
 /* Brand/Name Section */
 .navbar-brand {
   display: flex;
