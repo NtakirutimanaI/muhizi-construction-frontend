@@ -183,7 +183,7 @@ const VisionMissionValues: React.FC = () => {
                                         {mission.text}
                                     </p>
                                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                                        <a href="#contact" style={{
+                    <a href="/#contact" style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '0.7rem',
                                             padding: '0.85rem 1.8rem', borderRadius: 0,
                                             background: 'var(--accent, #D97706)', color: '#fff',
@@ -385,7 +385,7 @@ const VisionMissionValues: React.FC = () => {
                     <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', maxWidth: '500px', margin: '0 auto 2rem', lineHeight: 1.7 }}>
                         Let us bring our values and expertise to your next construction project.
                     </p>
-                    <a href="#contact" style={{
+                    <a href="/#contact" style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.7rem',
                         padding: '0.9rem 2rem', borderRadius: 0,
                         background: 'var(--accent, #D97706)', color: '#fff',
