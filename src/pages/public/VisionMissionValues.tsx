@@ -77,7 +77,7 @@ const VisionMissionValues: React.FC = () => {
     return (
         <div style={{ minHeight: '100vh', background: '#fff' }}>
             {/* Hero */}
-            <section style={{
+            <section data-nav-theme="dark" style={{
                 position: 'relative',
                 padding: 'clamp(5rem, 12vh, 8rem) 2rem clamp(4rem, 10vh, 6rem)',
                 background: 'linear-gradient(135deg, #0F1222 0%, #1a2332 50%, #16324F 100%)',
