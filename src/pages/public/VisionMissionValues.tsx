@@ -1,8 +1,36 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaEye, FaBullseye, FaHeart, FaStar, FaArrowRight, FaCheckCircle } from 'react-icons/fa';
 import type { Profile } from '../../services/profileService';
+
+const CountUp: React.FC<{ to: number; duration?: number; suffix?: string }> = ({ to, duration = 1.6, suffix = '' }) => {
+    const [val, setVal] = useState(0);
+    const started = useRef(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const obs = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting && !started.current) {
+                started.current = true;
+                const start = performance.now();
+                const step = (now: number) => {
+                    const progress = Math.min((now - start) / (duration * 1000), 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    setVal(Math.round(eased * to));
+                    if (progress < 1) requestAnimationFrame(step);
+                };
+                requestAnimationFrame(step);
+            }
+        }, { threshold: 0.3 });
+        obs.observe(el);
+        return () => obs.disconnect();
+    }, [to, duration]);
+
+    return <div ref={ref}>{val}{suffix}</div>;
+};
 
 const ICONS: Record<string, React.ReactNode> = {
     eye: <FaEye />,
@@ -225,17 +253,19 @@ const VisionMissionValues: React.FC = () => {
                                     }}>
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                                             {[
-                                                { num: '150+', label: 'Projects Completed' },
-                                                { num: '12+', label: 'Years Experience' },
-                                                { num: '98%', label: 'Client Satisfaction' },
-                                                { num: '50+', label: 'Team Members' },
+                                                { num: profile?.projects?.length || 0, label: 'Projects Completed', suffix: '+' },
+                                                { num: profile?.yearsOfExperience || 0, label: 'Years Experience', suffix: '+' },
+                                                { num: 98, label: 'Client Satisfaction', suffix: '%' },
+                                                { num: profile?.teamMembers?.length || 0, label: 'Team Members', suffix: '+' },
                                             ].map((stat, i) => (
                                                 <motion.div key={i} custom={i + 2} variants={fadeUp} initial="hidden" animate="visible"
                                                     style={{ textAlign: 'center', padding: '1rem' }}>
                                                     <div style={{
                                                         fontSize: 'clamp(1.8rem, 3vw, 2.5rem)', fontWeight: 800,
                                                         color: 'var(--accent, #D97706)', lineHeight: 1,
-                                                    }}>{stat.num}</div>
+                                                    }}>
+                                                        <CountUp to={stat.num} suffix={stat.suffix} />
+                                                    </div>
                                                     <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>{stat.label}</div>
                                                 </motion.div>
                                             ))}
