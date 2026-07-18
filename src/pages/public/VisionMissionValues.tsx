@@ -75,7 +75,7 @@ const VisionMissionValues: React.FC = () => {
     ];
 
     return (
-        <div style={{ minHeight: '100vh', background: '#fff' }}>
+        <div style={{ minHeight: '100vh', background: '#F5F7FA' }}>
             {/* Hero */}
             <section data-nav-theme="dark" style={{
                 position: 'relative',
