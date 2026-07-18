@@ -3561,6 +3561,13 @@ img {
   background: var(--accent, #D97706);
   flex-shrink: 0;
 }
+.ark-footer__nav-link > span:first-child ~ *,
+.ark-footer__nav-link > span:first-child {
+  --hide-dot: 1;
+}
+.ark-footer__nav-link:has(> span)::before {
+  display: none;
+}
 .ark-footer__nav-link:hover,
 .ark-footer__link:hover {
   color: var(--accent, #D97706);
