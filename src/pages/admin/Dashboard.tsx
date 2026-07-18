@@ -290,7 +290,7 @@ const AdminDashboard = () => {
                                 projects.filter(p => sites.some(s => s.projectId === p.id)).map(project => {
                                     const projectSites = sites.filter(s => s.projectId === project.id);
                                     return (
-                                        <div key={project.id} className="content-card" style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '10px', cursor: 'pointer' }}
+                                        <div key={project.id} className="content-card" style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '0', cursor: 'pointer' }}
                                             onClick={() => navigate(`/admin/sites/${project.id}`)}
                                             onMouseEnter={e => { e.currentTarget.style.borderColor = '#1B2042'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}
                                             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.boxShadow = 'none'; }}>

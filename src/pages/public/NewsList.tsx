@@ -48,7 +48,7 @@ const NewsList = () => {
         .news-list-filter-btn:hover { border-color: var(--accent); color: var(--accent); }
         .news-list-filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-        .news-featured { display: grid; grid-template-columns: 1.1fr 1fr; gap: 2.5rem; align-items: center; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 45px rgba(15,18,34,0.08); margin-bottom: 3.5rem; }
+        .news-featured { display: grid; grid-template-columns: 1.1fr 1fr; gap: 2.5rem; align-items: center; background: #fff; border-radius: 0; overflow: hidden; box-shadow: 0 20px 45px rgba(15,18,34,0.08); margin-bottom: 3.5rem; }
         .news-featured-image-wrap { position: relative; height: 100%; min-height: 340px; }
         .news-featured-image-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .news-featured-badge { position: absolute; top: 1.25rem; left: 1.25rem; background: var(--accent); color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.4rem 0.85rem; border-radius: 6px; }
@@ -66,7 +66,7 @@ const NewsList = () => {
         .news-read-more-circle { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #16324F; color: #fff; font-size: 1.05rem; flex-shrink: 0; }
 
         .news-list-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.75rem; }
-        .news-list-card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(15,18,34,0.06); display: flex; flex-direction: column; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+        .news-list-card { background: #fff; border-radius: 0; overflow: hidden; box-shadow: 0 10px 30px rgba(15,18,34,0.06); display: flex; flex-direction: column; transition: transform 0.25s ease, box-shadow 0.25s ease; }
         .news-list-card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(15,18,34,0.12); }
         .news-list-card-image-wrap { position: relative; display: block; height: 190px; }
         .news-list-card-image-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }

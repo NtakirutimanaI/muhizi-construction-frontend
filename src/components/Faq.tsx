@@ -30,7 +30,7 @@ const Faq: React.FC<FaqProps> = ({ profile }) => {
                 .faq-heading { font-family: var(--font-display); color: var(--text-main); font-size: clamp(1.9rem, 3.2vw, 2.5rem); font-weight: 800; line-height: 1.2; margin: 0 0 1.1rem; }
                 .faq-subtitle { color: var(--text-muted); font-size: 0.92rem; line-height: 1.7; max-width: 340px; margin: 0 0 3rem; }
 
-                .faq-support-card { display: flex; gap: 1rem; align-items: flex-start; border: 1px solid var(--border-color); border-radius: 14px; padding: 1.1rem; background: #fff; box-shadow: 0 8px 24px rgba(15,18,34,0.06); max-width: 340px; }
+                .faq-support-card { display: flex; gap: 1rem; align-items: flex-start; border: 1px solid var(--border-color); border-radius: 0; padding: 1.1rem; background: #fff; box-shadow: 0 8px 24px rgba(15,18,34,0.06); max-width: 340px; }
                 .faq-support-avatar { width: 56px; height: 56px; border-radius: 10px; background: var(--text-main); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.5rem; flex-shrink: 0; }
                 .faq-support-content h4 { margin: 0 0 0.4rem; font-size: 1rem; font-weight: 700; color: var(--text-main); }
                 .faq-support-content p { margin: 0 0 0.85rem; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
@@ -38,7 +38,7 @@ const Faq: React.FC<FaqProps> = ({ profile }) => {
                 .faq-support-btn:hover { background: var(--accent-dark, #B45309); }
 
                 .faq-list { display: flex; flex-direction: column; gap: 1rem; }
-                .faq-item { border: 1px solid var(--border-color); border-radius: 16px; background: #F5F7FA; box-shadow: 0 2px 10px rgba(15,18,34,0.04); cursor: pointer; transition: background 0.2s ease, box-shadow 0.2s ease; padding: 1.3rem 1.5rem; }
+                .faq-item { border: 1px solid var(--border-color); border-radius: 0; background: #F5F7FA; box-shadow: 0 2px 10px rgba(15,18,34,0.04); cursor: pointer; transition: background 0.2s ease, box-shadow 0.2s ease; padding: 1.3rem 1.5rem; }
                 .faq-item:hover { box-shadow: 0 6px 18px rgba(15,18,34,0.08); }
                 .faq-item--open { background: #ffffff; box-shadow: 0 10px 26px rgba(15,18,34,0.1); }
                 .faq-item__q { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; background: none; border: none; padding: 0; margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-main); text-align: left; cursor: pointer; }

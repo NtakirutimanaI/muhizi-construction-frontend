@@ -53,7 +53,7 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                             const Icon = DESIGN_ICONS[idx % DESIGN_ICONS.length];
                             const imgSrc = item.images?.[0] || 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
                             return (
-                                <div key={idx} style={{ borderRadius: '14px', overflow: 'hidden', background: '#fff', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 4px 20px rgba(15,18,34,0.07)' }}>
+                                <div key={idx} style={{ borderRadius: '0', overflow: 'hidden', background: '#fff', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 4px 20px rgba(15,18,34,0.07)' }}>
                                     <div style={{ position: 'relative' }}>
                                         <img
                                             src={imgSrc}

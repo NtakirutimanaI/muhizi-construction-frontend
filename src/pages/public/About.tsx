@@ -41,7 +41,7 @@ const About = () => {
         .about-composite img { width: 100%; display: block; }
 
         /* Stat card */
-        .stat-card { background: #fff; border-radius: 14px; padding: 1.75rem 1.5rem; box-shadow: 0 12px 30px rgba(15,18,34,0.07); position: relative; }
+        .stat-card { background: #fff; border-radius: 0; padding: 1.75rem 1.5rem; box-shadow: 0 12px 30px rgba(15,18,34,0.07); position: relative; }
         .stat-card__dot { position: absolute; top: 1.5rem; right: 1.5rem; width: 9px; height: 9px; border-radius: 50%; background: #D97706; }
         .stat-card__number { font-size: 2.75rem; font-weight: 800; color: #111827; font-family: var(--font-display); line-height: 1; }
         .stat-card__line { width: 60px; height: 2px; background: #111827; margin: 1.1rem 0 0.9rem; }
@@ -63,9 +63,9 @@ const About = () => {
         /* Visual column */
         .about-visual { position: relative; }
         .about-visual__house { position: absolute; top: -260px; right: 0; width: 340px; max-width: 100%; z-index: 3; }
-        .about-visual__house img { width: 100%; display: block; border-radius: 10px; filter: drop-shadow(0 25px 30px rgba(15,18,34,0.25)); }
+        .about-visual__house img { width: 100%; display: block; border-radius: 0; filter: drop-shadow(0 25px 30px rgba(15,18,34,0.25)); }
 
-        .global-reach { margin-top: 235px; background: #16324F; border-radius: 10px; padding: 1.6rem 1.6rem 1.75rem; width: 100%; max-width: 230px; color: #fff; position: relative; z-index: 2; }
+        .global-reach { margin-top: 235px; background: #16324F; border-radius: 0; padding: 1.6rem 1.6rem 1.75rem; width: 100%; max-width: 230px; color: #fff; position: relative; z-index: 2; }
         .global-reach__label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; margin: 0; }
         .global-reach__label::before { content: ''; width: 8px; height: 8px; background: #D97706; display: inline-block; }
         .global-reach__icon { width: 100%; height: 62px; object-fit: contain; object-position: right center; margin: 0.9rem 0 0.6rem; }

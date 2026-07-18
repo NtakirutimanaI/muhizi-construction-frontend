@@ -63,7 +63,7 @@ const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr 1fr', gridTemplateRows: 'auto auto', gap: '1.5rem', maxWidth: '1200px', margin: '0 auto', alignItems: 'start' }}>
                     {/* Tall image + caption card */}
-                    <div className="commitment-card commitment-card--anchor" style={{ gridColumn: '1', gridRow: '1 / 3', borderRadius: '16px', overflow: 'hidden', background: '#fff', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 10px 30px rgba(15,18,34,0.08)', display: 'flex', flexDirection: 'column' }}>
+                    <div className="commitment-card commitment-card--anchor" style={{ gridColumn: '1', gridRow: '1 / 3', borderRadius: '0', overflow: 'hidden', background: '#fff', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 10px 30px rgba(15,18,34,0.08)', display: 'flex', flexDirection: 'column' }}>
                         <img
                             src={c?.anchorImage || DEFAULT_ANCHOR_IMAGE}
                             alt="Modern residential development"
@@ -88,7 +88,7 @@ const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
                             style={{
                                 gridColumn: card.gridColumn,
                                 gridRow: card.gridRow,
-                                borderRadius: '16px',
+                                borderRadius: '0',
                                 background: '#fff',
                                 border: '1px solid rgba(15,18,34,0.06)',
                                 boxShadow: '0 10px 30px rgba(15,18,34,0.08)',
@@ -105,7 +105,7 @@ const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
                     ))}
 
                     {/* Image-only card */}
-                    <div className="commitment-card commitment-card--tilt-d" style={{ gridColumn: '3', gridRow: '2', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 10px 30px rgba(15,18,34,0.08)' }}>
+                    <div className="commitment-card commitment-card--tilt-d" style={{ gridColumn: '3', gridRow: '2', borderRadius: '0', overflow: 'hidden', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 10px 30px rgba(15,18,34,0.08)' }}>
                         <img
                             src={c?.imageCardImage || DEFAULT_IMAGE_CARD_IMAGE}
                             alt="Contemporary building exterior"

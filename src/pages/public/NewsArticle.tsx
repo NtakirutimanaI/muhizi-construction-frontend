@@ -45,7 +45,7 @@ const NewsArticle = () => {
         .article-breadcrumb a { color: #64748B; text-decoration: none; }
         .article-breadcrumb a:hover { color: var(--accent); }
 
-        .article-body { background: #fff; border-radius: 20px; padding: 2.75rem; box-shadow: 0 20px 45px rgba(15,18,34,0.07); }
+        .article-body { background: #fff; border-radius: 0; padding: 2.75rem; box-shadow: 0 20px 45px rgba(15,18,34,0.07); }
         .article-body p { color: #4B5563; font-size: 1rem; line-height: 1.9; margin: 0 0 1.4rem; }
         .article-body p:last-child { margin-bottom: 0; }
 
@@ -55,7 +55,7 @@ const NewsArticle = () => {
         .article-back-link:hover { gap: 0.85rem; }
 
         .article-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2.5rem; }
-        .article-nav-link { display: flex; flex-direction: column; gap: 0.4rem; padding: 1.25rem 1.5rem; background: #fff; border-radius: 14px; box-shadow: 0 10px 25px rgba(15,18,34,0.06); text-decoration: none; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .article-nav-link { display: flex; flex-direction: column; gap: 0.4rem; padding: 1.25rem 1.5rem; background: #fff; border-radius: 0; box-shadow: 0 10px 25px rgba(15,18,34,0.06); text-decoration: none; transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .article-nav-link:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(15,18,34,0.1); }
         .article-nav-link.next { text-align: right; align-items: flex-end; }
         .article-nav-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); display: inline-flex; align-items: center; gap: 0.4rem; }
@@ -64,7 +64,7 @@ const NewsArticle = () => {
         .article-related { margin-top: 3.5rem; }
         .article-related-heading { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: #111827; margin: 0 0 1.5rem; }
         .article-related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-        .article-related-card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 25px rgba(15,18,34,0.06); text-decoration: none; display: block; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .article-related-card { background: #fff; border-radius: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(15,18,34,0.06); text-decoration: none; display: block; transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .article-related-card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(15,18,34,0.1); }
         .article-related-card img { width: 100%; height: 130px; object-fit: cover; display: block; }
         .article-related-card-body { padding: 1rem 1.15rem 1.25rem; }
