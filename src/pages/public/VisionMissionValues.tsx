@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaEye, FaBullseye, FaHeart, FaStar, FaArrowRight, FaCheckCircle } from 'react-icons/fa';
-import { profileService, type Profile } from '../../services/profileService';
+import type { Profile } from '../../services/profileService';
 
 const ICONS: Record<string, React.ReactNode> = {
     eye: <FaEye />,
@@ -54,11 +55,10 @@ const scaleIn = {
 };
 
 const VisionMissionValues: React.FC = () => {
-    const [profile, setProfile] = useState<Profile | null>(null);
+    const { profile } = useOutletContext<{ profile: Profile | null }>();
     const [activeTab, setActiveTab] = useState<'mission' | 'vision' | 'values'>('mission');
 
     useEffect(() => {
-        profileService.getPublicProfile().then(setProfile).catch(() => {});
         window.scrollTo(0, 0);
     }, []);
 
