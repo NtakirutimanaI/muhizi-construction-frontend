@@ -105,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({ profile }) => {
     }, [menuOpen]);
 
     return (
-        <nav ref={navRef} className={`navbar ${scrolled ? 'scrolled' : ''} navbar--${navTheme} ${isDarkBgRoute && !scrolled ? 'navbar--dark-bg' : ''}`}
+        <nav ref={navRef} className={`navbar ${scrolled ? 'scrolled' : ''} navbar--${navTheme} ${isDarkBgRoute && navTheme === 'dark' ? 'navbar--dark-bg' : ''}`}
             onMouseLeave={() => setMenuOpen(false)}
         >
             <div className="container">
