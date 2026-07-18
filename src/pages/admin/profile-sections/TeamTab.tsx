@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { FaPlus, FaTrash, FaEdit, FaTimes, FaSave, FaUsers, FaTwitter, FaLinkedin, FaFacebook, FaInstagram } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEdit, FaTimes, FaSave, FaUsers, FaTwitter, FaLinkedin, FaFacebook, FaInstagram, FaYoutube } from 'react-icons/fa';
 import type { Profile } from '../../../services/profileService';
 import { profileService } from '../../../services/profileService';
 import { uploadService } from '../../../services/uploadService';
@@ -10,7 +10,7 @@ interface TeamTabProps {
     onUpdate: (updatedProfile: Profile) => void;
 }
 
-const EMPTY_FORM = { name: '', role: '', imageUrl: '', socialLinks: { twitter: '', linkedin: '', facebook: '', instagram: '' } };
+const EMPTY_FORM = { name: '', role: '', imageUrl: '', socialLinks: { twitter: '', linkedin: '', facebook: '', instagram: '', youtube: '' } };
 
 const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
     const { showToast } = useToast();
@@ -37,6 +37,7 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
                 linkedin: m.socialLinks?.linkedin || '',
                 facebook: m.socialLinks?.facebook || '',
                 instagram: m.socialLinks?.instagram || '',
+                youtube: m.socialLinks?.youtube || '',
             },
         });
     };
@@ -254,6 +255,10 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <FaInstagram style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                                     <input value={editForm.socialLinks.instagram} onChange={e => handleSocialChange('instagram', e.target.value)} className="form-input" placeholder="Instagram URL" />
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <FaYoutube style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                                    <input value={editForm.socialLinks.youtube} onChange={e => handleSocialChange('youtube', e.target.value)} className="form-input" placeholder="YouTube URL" />
                                 </div>
                             </div>
                         </div>

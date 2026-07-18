@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaLinkedin, FaFacebook, FaInstagram, FaTwitter, FaArrowUp, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
+import { FaLinkedin, FaFacebook, FaInstagram, FaTwitter, FaArrowUp, FaMapMarkerAlt, FaPhone, FaEnvelope, FaYoutube } from 'react-icons/fa';
 import type { Profile } from '../services/profileService';
 import { subscriberService } from '../services/subscriberService';
 
@@ -99,6 +99,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                                 {profile.socialLinks?.twitter && <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaTwitter /></a>}
                                 {profile.socialLinks?.instagram && <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaInstagram /></a>}
                                 {profile.socialLinks?.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaLinkedin /></a>}
+                                {profile.socialLinks?.youtube && <a href={profile.socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="ark-footer__social-link"><FaYoutube /></a>}
                             </div>
                         )}
                     </div>

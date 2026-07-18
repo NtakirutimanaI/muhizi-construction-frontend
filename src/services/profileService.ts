@@ -119,6 +119,7 @@ export interface Profile {
         twitter?: string;
         facebook?: string;
         instagram?: string;
+        youtube?: string;
         [key: string]: string | undefined;
     };
     pageContent?: {

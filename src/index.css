@@ -3200,6 +3200,75 @@ img {
   transform: translateY(-2px);
 }
 
+/* Footer Preview in Admin CMS */
+.footer-preview-wrap {
+  position: relative;
+  overflow: hidden;
+  max-height: 340px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  pointer-events: none;
+}
+.footer-preview-wrap .ark-footer {
+  margin: 0;
+  transform: scale(0.55);
+  transform-origin: top left;
+  width: 182%; /* 1 / 0.55 so wrapper width stays correct */
+}
+.footer-preview-wrap .back-to-top-ark {
+  display: none;
+}
+.footer-preview-wrap .ark-footer__newsletter {
+  display: none;
+}
+.footer-preview-wrap .ark-footer__divider {
+  display: none;
+}
+.footer-preview-wrap .ark-footer__container {
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+.footer-preview-wrap .ark-footer__grid {
+  gap: 0.75rem;
+  padding: clamp(0.75rem, 2vw, 1rem) 0;
+}
+.footer-preview-wrap .ark-footer__logo {
+  height: 30px;
+}
+.footer-preview-wrap .ark-footer__brand-name {
+  font-size: 0.95rem;
+}
+.footer-preview-wrap .ark-footer__desc {
+  font-size: 0.75rem;
+  max-width: 22ch;
+  margin: 0 0 0.25rem;
+}
+.footer-preview-wrap .ark-footer__nav-link,
+.footer-preview-wrap .ark-footer__link {
+  font-size: 0.7rem;
+  gap: 0.2rem;
+}
+.footer-preview-wrap .ark-footer__social {
+  gap: 0.3rem;
+  margin-top: 0.2rem;
+}
+.footer-preview-wrap .ark-footer__social-link {
+  width: 24px;
+  height: 24px;
+  font-size: 0.65rem;
+}
+.footer-preview-wrap .ark-footer__social-label {
+  font-size: 0.7rem;
+}
+.footer-preview-wrap .ark-footer__bottom {
+  padding-top: 0.6rem;
+}
+.footer-preview-wrap .ark-footer__copy {
+  font-size: 0.65rem;
+}
+.footer-preview-wrap .ark-footer__watermark {
+  display: none;
+}
+
 /* Ark Footer */
 .ark-footer {
   position: relative;
@@ -3405,9 +3474,8 @@ img {
 .ark-footer__social {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   margin-top: 0.4rem;
-  flex-wrap: wrap;
 }
 .ark-footer__social-label {
   font-size: 0.85rem;
@@ -3419,13 +3487,14 @@ img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: rgba(243, 241, 241, 0.08);
   border: 1px solid rgba(243, 241, 241, 0.12);
   color: rgba(243, 241, 241, 0.85);
   transition: color 0.2s, border-color 0.2s, background 0.2s;
+  flex-shrink: 0;
 }
 .ark-footer__social-link:hover {
   color: #fff;

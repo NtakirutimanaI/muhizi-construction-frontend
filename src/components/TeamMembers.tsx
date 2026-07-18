@@ -1,4 +1,4 @@
-import { FaShareAlt, FaTwitter, FaInstagram, FaFacebookF, FaLinkedinIn } from 'react-icons/fa';
+import { FaShareAlt, FaTwitter, FaInstagram, FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import type { Profile } from '../services/profileService';
 
 interface TeamMembersProps {
@@ -20,11 +20,12 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
     const featured = members.slice(0, 2);
     const minis = members.slice(2, 5);
 
-    const socialsFor = (member: { socialLinks?: { twitter?: string; instagram?: string; facebook?: string; linkedin?: string } }) => [
+    const socialsFor = (member: { socialLinks?: { twitter?: string; instagram?: string; facebook?: string; linkedin?: string; youtube?: string } }) => [
         { icon: FaTwitter, href: member.socialLinks?.twitter || profile.socialLinks?.twitter },
         { icon: FaInstagram, href: member.socialLinks?.instagram || profile.socialLinks?.instagram },
         { icon: FaFacebookF, href: member.socialLinks?.facebook || profile.socialLinks?.facebook },
         { icon: FaLinkedinIn, href: member.socialLinks?.linkedin || profile.socialLinks?.linkedin },
+        { icon: FaYoutube, href: member.socialLinks?.youtube || profile.socialLinks?.youtube },
     ].filter((s): s is { icon: typeof FaTwitter; href: string } => Boolean(s.href));
 
     return (

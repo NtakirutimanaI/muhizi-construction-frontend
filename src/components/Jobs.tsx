@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaLinkedin, FaTwitter, FaFacebookF, FaInstagram, FaGlobe } from 'react-icons/fa';
+import { FaLinkedin, FaTwitter, FaFacebookF, FaInstagram, FaGlobe, FaYoutube } from 'react-icons/fa';
 import ProfileFormModal from './ProfileFormModal';
 import type { Profile } from '../services/profileService';
 
@@ -35,6 +35,7 @@ const socialIconMap: Record<string, React.ReactNode> = {
     twitter: <FaTwitter />,
     facebook: <FaFacebookF />,
     instagram: <FaInstagram />,
+    youtube: <FaYoutube />,
     website: <FaGlobe />,
 };
 

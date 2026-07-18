@@ -18,6 +18,7 @@ import TeamTab from './profile-sections/TeamTab';
 import GeneralTab from './profile-sections/GeneralTab';
 import CertificationsTab from './profile-sections/CertificationsTab';
 import NewsTab from './profile-sections/NewsTab';
+import Footer from '../../components/Footer';
 
 type SectionId = 'home-sections' | 'about-sections' | 'footer' | 'brand' | 'projects' | 'team' | 'news' | 'certifications' | 'general';
 
@@ -127,6 +128,7 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
         githubUrl: profile.socialLinks?.github || '',
         facebookUrl: profile.socialLinks?.facebook || '',
         instagramUrl: profile.socialLinks?.instagram || '',
+        youtubeUrl: profile.socialLinks?.youtube || '',
         poweredByText: profile.poweredBy || '',
         companyDescription: fc?.companyDescription || '',
         copyrightText: fc?.copyrightText || '',
@@ -151,6 +153,7 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
             githubUrl: profile.socialLinks?.github || '',
             facebookUrl: profile.socialLinks?.facebook || '',
             instagramUrl: profile.socialLinks?.instagram || '',
+            youtubeUrl: profile.socialLinks?.youtube || '',
             poweredByText: profile.poweredBy || '',
             companyDescription: f?.companyDescription || '',
             copyrightText: f?.copyrightText || '',
@@ -177,11 +180,13 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
                 github: form.githubUrl,
                 facebook: form.facebookUrl,
                 instagram: form.instagramUrl,
+                youtube: form.youtubeUrl,
             },
             poweredBy: form.poweredByText,
             pageContent: {
                 ...profile.pageContent,
                 footer: {
+                    ...(profile.pageContent?.footer || {}),
                     companyDescription: form.companyDescription,
                     copyrightText: form.copyrightText,
                     quickLinks,
@@ -242,7 +247,7 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
                     <FaLink style={{ color: 'var(--primary)' }} /> Social Media Links
                 </h3>
                 <div style={{ display: 'grid', gap: '1rem' }}>
-                    {(['linkedinUrl', 'twitterUrl', 'githubUrl', 'facebookUrl', 'instagramUrl'] as const).map(k => (
+                    {(['linkedinUrl', 'youtubeUrl', 'twitterUrl', 'githubUrl', 'facebookUrl', 'instagramUrl'] as const).map(k => (
                         <div className="form-group" key={k}>
                             <label className="form-label" style={{ textTransform: 'capitalize' }}>{k.replace('Url', '')}</label>
                             <input type="url" name={k} className="form-input" value={form[k]} onChange={handleChange} placeholder={`https://${k.replace('Url', '')}.com/...`} />
@@ -351,38 +356,8 @@ const FooterEditor = ({ profile, onSave, saving }: { profile: Profile; onSave: (
             {/* Preview */}
             <div className="content-card" style={{ padding: '1.5rem' }}>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Preview</h3>
-                <div style={{ padding: '1rem', background: 'var(--bg-body)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
-                        <div>
-                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>Phone</h4>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{form.phone || 'Not set'}</p>
-                        </div>
-                        <div>
-                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>Email</h4>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{form.email || 'Not set'}</p>
-                        </div>
-                        <div>
-                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>Location</h4>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{form.location || 'Not set'}</p>
-                        </div>
-                        <div>
-                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>Follow Us</h4>
-                            <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                {form.linkedinUrl && <span>LinkedIn</span>}
-                                {form.twitterUrl && <span>Twitter</span>}
-                                {form.githubUrl && <span>GitHub</span>}
-                                {form.facebookUrl && <span>Facebook</span>}
-                                {form.instagramUrl && <span>Instagram</span>}
-                                {!form.linkedinUrl && !form.twitterUrl && !form.githubUrl && !form.facebookUrl && !form.instagramUrl && <span>No social links</span>}
-                            </div>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>{form.copyrightText || `© ${new Date().getFullYear()} By ${profile.firstName} ${profile.lastName}`}</p>
-                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{form.poweredByText}</p>
-                            {!form.showSocialLinks && <p style={{ fontSize: '0.75rem', color: 'var(--primary-red)' }}>Social links hidden</p>}
-                            {!form.showContactInfo && <p style={{ fontSize: '0.75rem', color: 'var(--primary-red)' }}>Contact info hidden</p>}
-                        </div>
-                    </div>
+                <div className="footer-preview-wrap">
+                    <Footer profile={profile} />
                 </div>
             </div>
         </div>
