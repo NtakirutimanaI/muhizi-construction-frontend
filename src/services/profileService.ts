@@ -83,6 +83,7 @@ export interface Profile {
         url?: string;
         githubUrl?: string;
         imageUrl?: string;
+        images?: string[];
         location?: string;
         featured: boolean;
         category?: 'Backend' | 'Frontend' | 'UI/UX' | 'Fullstack' | 'Other';

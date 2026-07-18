@@ -42,13 +42,33 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ profile, onUpdate, searchQuer
             setUploading(true);
             try {
                 const uploaded = await uploadService.uploadFile(file);
-                setEditForm((prev: any) => ({ ...prev, imageUrl: uploaded.secureUrl }));
+                setEditForm((prev: any) => {
+                    const images = [...(prev.images || []), uploaded.secureUrl];
+                    return { ...prev, images, imageUrl: images[0] || prev.imageUrl };
+                });
             } catch {
                 alert('Failed to upload image');
             } finally {
                 setUploading(false);
+                if (fileInputRef.current) fileInputRef.current.value = '';
             }
         }
+    };
+
+    const removeImage = (idx: number) => {
+        setEditForm((prev: any) => {
+            const images = (prev.images || []).filter((_: string, i: number) => i !== idx);
+            return { ...prev, images, imageUrl: images[0] || '' };
+        });
+    };
+
+    const moveImage = (from: number, to: number) => {
+        setEditForm((prev: any) => {
+            const images = [...(prev.images || [])];
+            const [moved] = images.splice(from, 1);
+            images.splice(to, 0, moved);
+            return { ...prev, images, imageUrl: images[0] || prev.imageUrl };
+        });
     };
 
     const filteredProjects = projects.filter((p: any) => {
@@ -96,9 +116,10 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ profile, onUpdate, searchQuer
             githubUrl: repo.html_url,
             technologies: [repo.language].filter(Boolean),
             imageUrl: '',
+            images: [],
             featured: false,
             category: 'Other',
-            effectiveness: 50, // Default start
+            effectiveness: 50,
             published: false,
             type: 'Open Source',
             role: 'Developer'
@@ -117,6 +138,7 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ profile, onUpdate, searchQuer
             url: '',
             githubUrl: '',
             imageUrl: '',
+            images: [],
             location: '',
             featured: false,
             category: 'Other',
@@ -132,7 +154,10 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ profile, onUpdate, searchQuer
         const originalIndex = projects.indexOf(projectToEdit);
 
         setEditingIndex(originalIndex);
-        setEditForm({ ...projectToEdit });
+        setEditForm({
+            ...projectToEdit,
+            images: projectToEdit.images || (projectToEdit.imageUrl ? [projectToEdit.imageUrl] : []),
+        });
     };
 
     const cancelEdit = () => {
@@ -383,7 +408,7 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ profile, onUpdate, searchQuer
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Project Image</label>
+                            <label className="form-label">Project Images</label>
                             <input
                                 type="file"
                                 ref={fileInputRef}
@@ -392,78 +417,45 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ profile, onUpdate, searchQuer
                                 style={{ display: 'none' }}
                             />
 
-                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                {/* Image Preview */}
-                                {editForm.imageUrl && (
-                                    <div style={{
-                                        width: '80px',
-                                        height: '80px',
-                                        borderRadius: '8px',
-                                        overflow: 'hidden',
-                                        flexShrink: 0,
-                                        border: '2px solid var(--border-color)'
-                                    }}>
-                                        <img
-                                            src={editForm.imageUrl}
-                                            alt="Preview"
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Error'; }}
-                                        />
-                                    </div>
-                                )}
-
-                                {/* Upload/Replace Button */}
-                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="admin-icon-btn"
-                                        style={{
-                                            width: 'auto',
-                                            padding: '0.6rem 1rem',
-                                            gap: '8px',
-                                            fontSize: '0.85rem',
-                                            borderRadius: '8px',
-                                            border: '1px solid var(--border-color)',
-                                            background: editForm.imageUrl ? 'var(--primary)' : 'transparent',
-                                            color: editForm.imageUrl ? '#000' : 'inherit'
-                                        }}
-                                    >
-                                        <FaUpload /> {editForm.imageUrl ? 'Replace Image' : 'Upload from PC'}
-                                    </button>
-
-                                    {/* Remove Image Button */}
-                                    {editForm.imageUrl && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setEditForm((prev: any) => ({ ...prev, imageUrl: '' }))}
-                                            className="admin-icon-btn"
-                                            style={{
-                                                width: 'auto',
-                                                padding: '0.6rem 1rem',
-                                                gap: '8px',
-                                                fontSize: '0.85rem',
-                                                borderRadius: '8px',
-                                                border: '1px solid var(--primary-red)',
-                                                color: 'var(--primary-red)'
-                                            }}
-                                        >
-                                            <FaTimes /> Remove Image
-                                        </button>
-                                    )}
+                            {(editForm.images || []).length > 0 && (
+                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                                    {(editForm.images || []).map((img: string, idx: number) => (
+                                        <div key={idx} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: idx === 0 ? '2px solid var(--primary)' : '2px solid var(--border-color)', flexShrink: 0 }}>
+                                            <img src={img} alt={`Project ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            <div style={{ position: 'absolute', top: 2, right: 2, display: 'flex', gap: '2px' }}>
+                                                {idx > 0 && (
+                                                    <button type="button" onClick={() => moveImage(idx, idx - 1)} style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Move left">&#8249;</button>
+                                                )}
+                                                {idx < (editForm.images || []).length - 1 && (
+                                                    <button type="button" onClick={() => moveImage(idx, idx + 1)} style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Move right">&#8250;</button>
+                                                )}
+                                                <button type="button" onClick={() => removeImage(idx)} style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'rgba(220,38,38,0.8)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Remove">&times;</button>
+                                            </div>
+                                            {idx === 0 && <span style={{ position: 'absolute', bottom: 2, left: 2, fontSize: '0.55rem', background: 'var(--primary)', color: '#000', padding: '1px 4px', borderRadius: '3px', fontWeight: 700 }}>COVER</span>}
+                                        </div>
+                                    ))}
                                 </div>
-                            </div>
+                            )}
 
-                            {/* URL Input */}
-                            <input
-                                name="imageUrl"
-                                value={editForm.imageUrl || ''}
-                                onChange={handleFormChange}
-                                className="form-input"
-                                placeholder="Or paste image URL: https://example.com/image.jpg"
-                            />
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="admin-icon-btn"
+                                    style={{
+                                        width: 'auto',
+                                        padding: '0.6rem 1rem',
+                                        gap: '8px',
+                                        fontSize: '0.85rem',
+                                        borderRadius: '8px',
+                                        border: '1px solid var(--border-color)',
+                                    }}
+                                >
+                                    <FaUpload /> {uploading ? 'Uploading...' : 'Add Image'}
+                                </button>
+                            </div>
                             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                                Upload an image from your PC (max 2MB) or paste a direct URL
+                                Upload up to 10 images per project. First image is the cover. Use arrows to reorder.
                             </p>
                         </div>
 
