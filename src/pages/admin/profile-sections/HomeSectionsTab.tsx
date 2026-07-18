@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaHome, FaConciergeBell, FaSave, FaPlus, FaEdit, FaTrash, FaTimes, FaEnvelope, FaQuestionCircle, FaUpload, FaVideo, FaGem } from 'react-icons/fa';
+import { FaHome, FaConciergeBell, FaSave, FaPlus, FaEdit, FaTrash, FaTimes, FaEnvelope, FaQuestionCircle, FaUpload, FaVideo, FaGem, FaEye, FaBullseye, FaStar } from 'react-icons/fa';
 import type { Profile } from '../../../services/profileService';
 import { profileService } from '../../../services/profileService';
 import { useToast } from '../../../context/ToastContext';
@@ -9,7 +9,7 @@ import { uploadService } from '../../../services/uploadService';
 // Projects and Team each have their own dedicated top-level CMS tab already
 // (ProjectsTab.tsx / TeamTab.tsx) — no nested duplicate here, so there's only
 // ever one place that writes profile.projects / profile.teamMembers.
-type HomeTab = 'hero-slides' | 'services' | 'commitment' | 'follow-us' | 'get-in-touch' | 'faq';
+type HomeTab = 'hero-slides' | 'services' | 'commitment' | 'vmv' | 'follow-us' | 'get-in-touch' | 'faq';
 
 interface Props {
     profile: Profile;
@@ -21,6 +21,7 @@ const SUB_TABS: { id: HomeTab; label: string; icon: React.ReactNode }[] = [
     { id: 'hero-slides', label: 'Hero Slides', icon: <FaHome /> },
     { id: 'services', label: 'Services', icon: <FaConciergeBell /> },
     { id: 'commitment', label: 'What Makes Us Different', icon: <FaGem /> },
+    { id: 'vmv', label: 'Vision / Mission / Values', icon: <FaEye /> },
     { id: 'follow-us', label: 'Follow Us (Videos)', icon: <FaVideo /> },
     { id: 'get-in-touch', label: 'Get in Touch', icon: <FaEnvelope /> },
     { id: 'faq', label: 'FAQ', icon: <FaQuestionCircle /> },
@@ -52,6 +53,7 @@ const HomeSectionsTab: React.FC<Props> = ({ profile, onSave, saving }) => {
                     {subTab === 'hero-slides' && <HeroSlidesEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'services' && <ServicesEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'commitment' && <CommitmentEditor profile={profile} onSave={onSave} saving={saving} />}
+                    {subTab === 'vmv' && <VMVEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'follow-us' && <FollowUsEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'get-in-touch' && <GetInTouchEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'faq' && <FaqEditor profile={profile} onSave={onSave} saving={saving} />}
@@ -585,6 +587,171 @@ const CommitmentEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
 
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button onClick={save} disabled={isSaving || uploadingAnchor || uploadingImageCard} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
+            </div>
+        </div>
+    );
+};
+
+/* ───── Vision / Mission / Values Editor ───── */
+interface VMVForm {
+    mission: { title: string; text: string; icon: string };
+    vision: { title: string; text: string; icon: string };
+    philosophy: { title: string; text: string; icon: string };
+    coreValues: Array<{ title: string; text: string; icon: string }>;
+}
+
+const VMVEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
+    const { showToast } = useToast();
+    const pc = profile.pageContent;
+    const [localSaving, setLocalSaving] = useState(false);
+    const [form, setForm] = useState<VMVForm>({
+        mission: pc?.mission || { title: 'Our Mission', text: '', icon: 'bullseye' },
+        vision: pc?.vision || { title: 'Our Vision', text: '', icon: 'eye' },
+        philosophy: pc?.philosophy || { title: 'Our Philosophy', text: '', icon: 'heart' },
+        coreValues: pc?.coreValues && pc.coreValues.length > 0
+            ? pc.coreValues
+            : [
+                { title: 'Quality', text: '', icon: 'star' },
+                { title: 'Integrity', text: '', icon: 'check' },
+                { title: 'Innovation', text: '', icon: 'bullseye' },
+                { title: 'Reliability', text: '', icon: 'heart' },
+                { title: 'Safety', text: '', icon: 'check' },
+                { title: 'Excellence', text: '', icon: 'star' },
+            ],
+    });
+
+    useEffect(() => {
+        const c = profile.pageContent;
+        setForm({
+            mission: c?.mission || { title: 'Our Mission', text: '', icon: 'bullseye' },
+            vision: c?.vision || { title: 'Our Vision', text: '', icon: 'eye' },
+            philosophy: c?.philosophy || { title: 'Our Philosophy', text: '', icon: 'heart' },
+            coreValues: c?.coreValues && c.coreValues.length > 0
+                ? c.coreValues
+                : [
+                    { title: 'Quality', text: '', icon: 'star' },
+                    { title: 'Integrity', text: '', icon: 'check' },
+                    { title: 'Innovation', text: '', icon: 'bullseye' },
+                    { title: 'Reliability', text: '', icon: 'heart' },
+                    { title: 'Safety', text: '', icon: 'check' },
+                    { title: 'Excellence', text: '', icon: 'star' },
+                ],
+        });
+    }, [profile.pageContent]);
+
+    const updateMissionVision = (field: 'mission' | 'vision' | 'philosophy', key: 'title' | 'text', value: string) => {
+        setForm(p => ({ ...p, [field]: { ...p[field], [key]: value } }));
+    };
+
+    const updateCoreValue = (i: number, key: 'title' | 'text', value: string) => {
+        setForm(p => {
+            const values = [...p.coreValues];
+            values[i] = { ...values[i], [key]: value };
+            return { ...p, coreValues: values };
+        });
+    };
+
+    const addCoreValue = () => {
+        setForm(p => ({ ...p, coreValues: [...p.coreValues, { title: '', text: '', icon: 'star' }] }));
+    };
+
+    const removeCoreValue = (i: number) => {
+        setForm(p => ({ ...p, coreValues: p.coreValues.filter((_, idx) => idx !== i) }));
+    };
+
+    const save = async () => {
+        setLocalSaving(true);
+        try {
+            const pc = { ...(profile.pageContent || {}), mission: form.mission, vision: form.vision, philosophy: form.philosophy, coreValues: form.coreValues };
+            await onSave({ pageContent: pc });
+            showToast('Vision / Mission / Values saved!', 'success');
+        } catch (e: any) {
+            showToast(e?.response?.data?.message || e?.message || 'Failed to save', 'error');
+        } finally {
+            setLocalSaving(false);
+        }
+    };
+
+    const isSaving = saving || localSaving;
+
+    const cardStyle: React.CSSProperties = { padding: '1rem', marginBottom: '1rem', border: '1px solid var(--border-color)', borderRadius: 8 };
+    const inputStyle: React.CSSProperties = { width: '100%', padding: '0.5rem 0.75rem', border: '1px solid var(--border-color)', borderRadius: 6, fontSize: '0.85rem', background: 'var(--bg-white)', color: 'var(--text-main)' };
+    const labelStyle: React.CSSProperties = { fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.3rem', display: 'block' };
+
+    return (
+        <div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                Edit the Vision, Mission, Values, and Philosophy sections displayed on the <strong>/vision-mission-values</strong> page.
+            </p>
+
+            {/* Mission */}
+            <div style={cardStyle}>
+                <h4 style={{ fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FaBullseye style={{ color: 'var(--accent, #D97706)' }} /> Mission
+                </h4>
+                <div style={{ marginBottom: '0.75rem' }}>
+                    <label style={labelStyle}>Title</label>
+                    <input value={form.mission.title} onChange={e => updateMissionVision('mission', 'title', e.target.value)} style={inputStyle} placeholder="Our Mission" />
+                </div>
+                <div>
+                    <label style={labelStyle}>Description</label>
+                    <textarea value={form.mission.text} onChange={e => updateMissionVision('mission', 'text', e.target.value)} style={{ ...inputStyle, minHeight: 80 }} rows={3} placeholder="Describe your mission..." />
+                </div>
+            </div>
+
+            {/* Vision */}
+            <div style={cardStyle}>
+                <h4 style={{ fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FaEye style={{ color: '#16324F' }} /> Vision
+                </h4>
+                <div style={{ marginBottom: '0.75rem' }}>
+                    <label style={labelStyle}>Title</label>
+                    <input value={form.vision.title} onChange={e => updateMissionVision('vision', 'title', e.target.value)} style={inputStyle} placeholder="Our Vision" />
+                </div>
+                <div>
+                    <label style={labelStyle}>Description</label>
+                    <textarea value={form.vision.text} onChange={e => updateMissionVision('vision', 'text', e.target.value)} style={{ ...inputStyle, minHeight: 80 }} rows={3} placeholder="Describe your vision..." />
+                </div>
+            </div>
+
+            {/* Philosophy */}
+            <div style={cardStyle}>
+                <h4 style={{ fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FaStar style={{ color: 'var(--accent, #D97706)' }} /> Philosophy
+                </h4>
+                <div style={{ marginBottom: '0.75rem' }}>
+                    <label style={labelStyle}>Title</label>
+                    <input value={form.philosophy.title} onChange={e => updateMissionVision('philosophy', 'title', e.target.value)} style={inputStyle} placeholder="Our Philosophy" />
+                </div>
+                <div>
+                    <label style={labelStyle}>Description</label>
+                    <textarea value={form.philosophy.text} onChange={e => updateMissionVision('philosophy', 'text', e.target.value)} style={{ ...inputStyle, minHeight: 80 }} rows={3} placeholder="Describe your philosophy..." />
+                </div>
+            </div>
+
+            {/* Core Values */}
+            <div style={cardStyle}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <h4 style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                        <FaStar style={{ color: 'var(--accent, #D97706)' }} /> Core Values ({form.coreValues.length})
+                    </h4>
+                    <button onClick={addCoreValue} style={{ padding: '0.3rem 0.7rem', fontSize: '0.75rem', border: '1px solid var(--border-color)', borderRadius: 6, background: 'var(--bg-white)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-main)' }}>
+                        <FaPlus /> Add Value
+                    </button>
+                </div>
+                {form.coreValues.map((val, i) => (
+                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: '0.5rem', alignItems: 'start', marginBottom: i < form.coreValues.length - 1 ? '0.75rem' : 0, paddingBottom: i < form.coreValues.length - 1 ? '0.75rem' : 0, borderBottom: i < form.coreValues.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
+                        <input value={val.title} onChange={e => updateCoreValue(i, 'title', e.target.value)} style={inputStyle} placeholder="Value title" />
+                        <input value={val.text} onChange={e => updateCoreValue(i, 'text', e.target.value)} style={inputStyle} placeholder="Short description" />
+                        <button onClick={() => removeCoreValue(i)} style={{ width: 28, height: 28, border: 'none', borderRadius: 6, background: 'rgba(220,38,38,0.1)', color: 'var(--primary-red)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <FaTrash size={12} />
+                        </button>
+                    </div>
+                ))}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
             </div>
         </div>
     );
