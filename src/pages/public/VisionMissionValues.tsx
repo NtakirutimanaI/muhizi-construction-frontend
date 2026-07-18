@@ -120,7 +120,7 @@ const VisionMissionValues: React.FC = () => {
             </section>
 
             {/* Tab Navigation */}
-            <section style={{ background: '#fff', borderBottom: '1px solid var(--border-color)', position: 'sticky', top: 0, zIndex: 10 }}>
+            <section data-nav-theme="light" style={{ background: '#fff', borderBottom: '1px solid var(--border-color)', position: 'sticky', top: 0, zIndex: 10 }}>
                 <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', justifyContent: 'center' }}>
                     {tabs.map((tab) => (
                         <button
