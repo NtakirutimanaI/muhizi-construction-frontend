@@ -449,8 +449,6 @@ interface CommitmentForm {
     anchorDescription: string;
     cards: { title: string; description: string }[];
     imageCardImage: string;
-    offerItems: { title: string; description: string; imageUrl: string }[];
-    offerHeading: string;
 }
 
 const CommitmentEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
@@ -458,35 +456,25 @@ const CommitmentEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     const buildForm = (p: Profile): CommitmentForm => {
         const c = p.pageContent?.commitment;
         const cards = [0, 1, 2].map(i => c?.cards?.[i] || { title: '', description: '' });
-        const svcItems = p.pageContent?.services?.items || [];
-        const offerItems = [0, 1, 2].map(i => ({
-            title: svcItems[i]?.title || '',
-            description: svcItems[i]?.description || '',
-            imageUrl: svcItems[i]?.images?.[0] || '',
-        }));
         return {
             anchorImage: c?.anchorImage || '',
             anchorTitle: c?.anchorTitle || '',
             anchorDescription: c?.anchorDescription || '',
             cards,
             imageCardImage: c?.imageCardImage || '',
-            offerItems,
-            offerHeading: p.pageContent?.services?.heading || 'Core Services',
         };
     };
     const [form, setForm] = useState<CommitmentForm>(buildForm(profile));
     const [localSaving, setLocalSaving] = useState(false);
     const [uploadingAnchor, setUploadingAnchor] = useState(false);
     const [uploadingImageCard, setUploadingImageCard] = useState(false);
-    const [uploadingOffer, setUploadingOffer] = useState<number | null>(null);
     const anchorFileRef = useRef<HTMLInputElement>(null);
     const imageCardFileRef = useRef<HTMLInputElement>(null);
-    const offerFileRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
     useEffect(() => {
         setForm(buildForm(profile));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [profile.pageContent?.commitment, profile.pageContent?.services]);
+    }, [profile.pageContent?.commitment]);
 
     const uploadTo = async (file: File, key: 'anchorImage' | 'imageCardImage', setUploading: (b: boolean) => void) => {
         if (file.size > 2 * 1024 * 1024) { showToast('Image must be smaller than 2MB', 'error'); return; }
@@ -501,55 +489,14 @@ const CommitmentEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
         }
     };
 
-    const uploadOfferImage = async (file: File, idx: number) => {
-        if (file.size > 2 * 1024 * 1024) { showToast('Image must be smaller than 2MB', 'error'); return; }
-        setUploadingOffer(idx);
-        try {
-            const uploaded = await uploadService.uploadFile(file);
-            setForm(p => {
-                const items = [...p.offerItems];
-                items[idx] = { ...items[idx], imageUrl: uploaded.secureUrl };
-                return { ...p, offerItems: items };
-            });
-        } catch (e: any) {
-            showToast(e?.response?.data?.message || e?.message || 'Failed to upload image', 'error');
-        } finally {
-            setUploadingOffer(null);
-        }
-    };
-
     const updateCard = (i: number, field: 'title' | 'description', value: string) => {
         setForm(p => ({ ...p, cards: p.cards.map((c, idx) => idx === i ? { ...c, [field]: value } : c) }));
-    };
-
-    const updateOfferItem = (i: number, field: 'title' | 'description', value: string) => {
-        setForm(p => {
-            const items = [...p.offerItems];
-            items[i] = { ...items[i], [field]: value };
-            return { ...p, offerItems: items };
-        });
     };
 
     const save = async () => {
         setLocalSaving(true);
         try {
-            const pc = { ...(profile.pageContent || {}) };
-            pc.commitment = {
-                anchorImage: form.anchorImage,
-                anchorTitle: form.anchorTitle,
-                anchorDescription: form.anchorDescription,
-                cards: form.cards,
-                imageCardImage: form.imageCardImage,
-            };
-            const existingItems = pc.services?.items || [];
-            const offerItems = form.offerItems.map((item, i) => ({
-                title: item.title,
-                description: item.description,
-                images: item.imageUrl ? [item.imageUrl] : (existingItems[i]?.images || []),
-                tags: existingItems[i]?.tags || [],
-                color: existingItems[i]?.color || '#16324F',
-            }));
-            pc.services = { ...(pc.services || {}), heading: form.offerHeading, items: offerItems };
+            const pc = { ...(profile.pageContent || {}), commitment: form };
             await onSave({ pageContent: pc });
             showToast('"What Makes Us Different" section saved!', 'success');
         } catch (e: any) {
@@ -560,51 +507,12 @@ const CommitmentEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
     };
 
     const isSaving = saving || localSaving;
-    const isUploading = uploadingAnchor || uploadingImageCard || uploadingOffer !== null;
 
     return (
         <div>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                Controls the "What Makes Us Different" section and the "What We Offer" cards on the homepage.
+                Controls the "What Makes Us Different" section on the homepage — the large image card, the two image-backed cards, and the image-only card.
             </p>
-
-            <div className="content-card" style={{ padding: '1rem', marginBottom: '1rem' }}>
-                <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>What We Offer — Service Cards</h4>
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                    <label className="form-label">Section Heading</label>
-                    <input value={form.offerHeading} onChange={e => setForm(p => ({ ...p, offerHeading: e.target.value }))} className="form-input" placeholder="Core Services" />
-                </div>
-                {form.offerItems.map((item, i) => (
-                    <div key={i} style={{ padding: '0.75rem', border: '1px solid var(--border-color)', borderRadius: 8, marginBottom: i < 2 ? '0.75rem' : 0 }}>
-                        <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Card {i + 1}</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '0.75rem', alignItems: 'start' }}>
-                            <div>
-                                <input ref={offerFileRefs[i]} type="file" accept="image/*" style={{ display: 'none' }}
-                                    onChange={e => { const f = e.target.files?.[0]; if (f) uploadOfferImage(f, i); }} />
-                                {item.imageUrl ? (
-                                    <div style={{ width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '2px solid var(--border-color)', position: 'relative' }}>
-                                        <img src={item.imageUrl} alt={`Service ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        <button type="button" onClick={() => setForm(p => { const items = [...p.offerItems]; items[i] = { ...items[i], imageUrl: '' }; return { ...p, offerItems: items }; })}
-                                            style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: 'rgba(220,38,38,0.8)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
-                                    </div>
-                                ) : (
-                                    <div onClick={() => offerFileRefs[i].current?.click()} style={{ width: 80, height: 80, borderRadius: 8, border: '2px dashed var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.65rem', cursor: 'pointer' }}>
-                                        {uploadingOffer === i ? '...' : 'Upload'}
-                                    </div>
-                                )}
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
-                                <input value={item.title} onChange={e => updateOfferItem(i, 'title', e.target.value)} className="form-input" placeholder="Service title" style={{ fontSize: '0.85rem' }} />
-                                <textarea value={item.description} onChange={e => updateOfferItem(i, 'description', e.target.value)} className="form-textarea" rows={2} placeholder="Short description" style={{ fontSize: '0.85rem' }} />
-                                <button type="button" onClick={() => offerFileRefs[i].current?.click()} disabled={uploadingOffer === i}
-                                    className="admin-icon-btn" style={{ width: 'auto', padding: '0.3rem 0.6rem', gap: '6px', fontSize: '0.75rem', border: '1px solid var(--border-color)' }}>
-                                    <FaUpload /> {uploadingOffer === i ? 'Uploading...' : item.imageUrl ? 'Replace Image' : 'Upload Image'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
 
             <div className="content-card" style={{ padding: '1rem', marginBottom: '1rem' }}>
                 <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Large Card (with photo)</h4>
@@ -676,7 +584,7 @@ const CommitmentEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button onClick={save} disabled={isSaving || isUploading} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
+                <button onClick={save} disabled={isSaving || uploadingAnchor || uploadingImageCard} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
             </div>
         </div>
     );
