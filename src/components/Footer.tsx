@@ -167,7 +167,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                 <div className="ark-footer__bottom">
                     <p className="ark-footer__copy">{copyright}</p>
                     <p className="ark-footer__copy ark-footer__copy--muted">
-                        This website powered by <a href="https://mis-frontend-eta.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #D97706)', textDecoration: 'none' }}>MIS</a>
+                        Powered by <a href="https://mis-frontend-eta.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #D97706)', textDecoration: 'none' }}>MIS</a>
                     </p>
                 </div>
             </div>
