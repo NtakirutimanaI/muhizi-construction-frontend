@@ -50,7 +50,7 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                                 </span>
                             </a>
                             <a href="/vision-mission-values" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', marginTop: '1rem', padding: '0.7rem 1.4rem', borderRadius: 0, border: '2px solid var(--border-color)', color: 'var(--text-main)', fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none', transition: 'all 0.3s ease', width: 'fit-content' }}>
-                                Learn More <FaArrowRight />
+                                More About Us <FaArrowRight />
                             </a>
                         </div>
                         {mergedFirstThree.map((item, idx) => {
