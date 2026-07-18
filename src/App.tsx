@@ -15,6 +15,7 @@ import Team from './pages/public/Team';
 import NewsList from './pages/public/NewsList';
 import NewsArticle from './pages/public/NewsArticle';
 import Unsubscribe from './pages/public/Unsubscribe';
+import VisionMissionValues from './pages/public/VisionMissionValues';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
@@ -132,6 +133,7 @@ function App() {
                 <Route path="/team" element={<Team />} />
                 <Route path="/news" element={<NewsList />} />
                 <Route path="/news/:slug" element={<NewsArticle />} />
+                <Route path="/vision-mission-values" element={<VisionMissionValues />} />
                 <Route path="/unsubscribe/:id" element={<Unsubscribe />} />
               </Route>
 
