@@ -9,7 +9,7 @@ import { uploadService } from '../../../services/uploadService';
 // Projects and Team each have their own dedicated top-level CMS tab already
 // (ProjectsTab.tsx / TeamTab.tsx) — no nested duplicate here, so there's only
 // ever one place that writes profile.projects / profile.teamMembers.
-type HomeTab = 'hero-slides' | 'services' | 'commitment' | 'get-in-touch' | 'faq';
+type HomeTab = 'hero-slides' | 'services' | 'commitment' | 'follow-us' | 'get-in-touch' | 'faq';
 
 interface Props {
     profile: Profile;
@@ -21,6 +21,7 @@ const SUB_TABS: { id: HomeTab; label: string; icon: React.ReactNode }[] = [
     { id: 'hero-slides', label: 'Hero Slides', icon: <FaHome /> },
     { id: 'services', label: 'Services', icon: <FaConciergeBell /> },
     { id: 'commitment', label: 'What Makes Us Different', icon: <FaGem /> },
+    { id: 'follow-us', label: 'Follow Us (Videos)', icon: <FaVideo /> },
     { id: 'get-in-touch', label: 'Get in Touch', icon: <FaEnvelope /> },
     { id: 'faq', label: 'FAQ', icon: <FaQuestionCircle /> },
 ];
@@ -51,6 +52,7 @@ const HomeSectionsTab: React.FC<Props> = ({ profile, onSave, saving }) => {
                     {subTab === 'hero-slides' && <HeroSlidesEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'services' && <ServicesEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'commitment' && <CommitmentEditor profile={profile} onSave={onSave} saving={saving} />}
+                    {subTab === 'follow-us' && <FollowUsEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'get-in-touch' && <GetInTouchEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'faq' && <FaqEditor profile={profile} onSave={onSave} saving={saving} />}
                 </motion.div>
@@ -583,6 +585,158 @@ const CommitmentEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
 
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button onClick={save} disabled={isSaving || uploadingAnchor || uploadingImageCard} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
+            </div>
+        </div>
+    );
+};
+
+/* ───── Follow Us (Videos) Editor ───── */
+interface FollowUsVideoForm {
+    url: string;
+    title: string;
+    description: string;
+}
+
+const FollowUsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
+    const { showToast } = useToast();
+    const section = profile.pageContent?.followUs;
+    const [subtitle, setSubtitle] = useState(section?.subtitle || '');
+    const [videos, setVideos] = useState<FollowUsVideoForm[]>(
+        (section?.videos || []).map(v => ({ url: v.url || '', title: v.title || '', description: v.description || '' }))
+    );
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [form, setForm] = useState<FollowUsVideoForm | null>(null);
+    const [localSaving, setLocalSaving] = useState(false);
+
+    useEffect(() => {
+        const s = profile.pageContent?.followUs;
+        setSubtitle(s?.subtitle || '');
+        setVideos((s?.videos || []).map(v => ({ url: v.url || '', title: v.title || '', description: v.description || '' })));
+    }, [profile.pageContent?.followUs]);
+
+    const save = async () => {
+        setLocalSaving(true);
+        try {
+            const pc = {
+                ...(profile.pageContent || {}),
+                followUs: {
+                    subtitle,
+                    videos: videos.map(v => ({ url: v.url, title: v.title, description: v.description })),
+                },
+            };
+            await onSave({ pageContent: pc });
+            showToast('Follow Us section saved!', 'success');
+        } catch (e: any) {
+            showToast(e?.response?.data?.message || e?.message || 'Failed to save', 'error');
+        } finally {
+            setLocalSaving(false);
+        }
+    };
+
+    const openNew = () => { setEditingIndex(-1); setForm({ url: '', title: '', description: '' }); };
+    const openEdit = (i: number) => { setEditingIndex(i); setForm({ ...videos[i] }); };
+    const cancel = () => { setEditingIndex(null); setForm(null); };
+
+    const handleSaveItem = () => {
+        if (!form) return;
+        const updated = [...videos];
+        if (editingIndex === -1) updated.push(form);
+        else if (editingIndex !== null) updated[editingIndex] = form;
+        setVideos(updated);
+        cancel();
+    };
+
+    const handleDelete = (i: number) => {
+        if (!window.confirm('Delete this video?')) return;
+        setVideos(videos.filter((_, idx) => idx !== i));
+    };
+
+    const isSaving = saving || localSaving;
+
+    return (
+        <div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                Manage the "Follow Us" video section on the homepage. Paste YouTube video URLs. The first video will be displayed larger.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <div className="form-group">
+                    <label className="form-label">Section Subtitle</label>
+                    <textarea value={subtitle} onChange={e => setSubtitle(e.target.value)} className="form-textarea" rows={2} placeholder="Optional subtitle text" />
+                </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Videos ({videos.length})</h3>
+                <button onClick={openNew} disabled={editingIndex !== null} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}><FaPlus /> Add Video</button>
+            </div>
+
+            <AnimatePresence>
+                {editingIndex !== null && form && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                        className="content-card" style={{ marginBottom: '1rem', padding: '1rem', border: '2px solid var(--primary)' }}
+                    >
+                        <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>{editingIndex === -1 ? 'New Video' : 'Edit Video'}</h4>
+                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                            <label className="form-label">YouTube URL</label>
+                            <input value={form.url} onChange={e => setForm(p => ({ ...p!, url: e.target.value }))} className="form-input" placeholder="https://www.youtube.com/watch?v=..." />
+                        </div>
+                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                            <label className="form-label">Title</label>
+                            <input value={form.title} onChange={e => setForm(p => ({ ...p!, title: e.target.value }))} className="form-input" placeholder="Video title" />
+                        </div>
+                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                            <label className="form-label">Description (optional)</label>
+                            <input value={form.description} onChange={e => setForm(p => ({ ...p!, description: e.target.value }))} className="form-input" placeholder="Short description" />
+                        </div>
+                        {form.url && (
+                            <div style={{ marginTop: '0.5rem' }}>
+                                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Preview:</p>
+                                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden' }}>
+                                    <iframe
+                                        src={`https://www.youtube.com/embed/${(() => {
+                                            const m = form.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
+                                            return m ? m[1] : '';
+                                        })()}`}
+                                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                                        allowFullScreen
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '0.75rem' }}>
+                            <button onClick={cancel} className="admin-icon-btn" style={{ fontSize: '0.85rem', width: 'auto', padding: '0.4rem 0.8rem' }}>Cancel</button>
+                            <button onClick={handleSaveItem} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}><FaSave /> Save</button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                {videos.map((v, i) => (
+                    <div key={i} className="content-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.8rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                            <FaVideo style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                            <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{v.title || `Video ${i + 1}`}</div>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '350px' }}>{v.url}</div>
+                            </div>
+                            {i === 0 && <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--accent)', background: 'rgba(217,119,6,0.1)', padding: '2px 8px', borderRadius: '4px', whiteSpace: 'nowrap' }}>FEATURED</span>}
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                            <button onClick={() => openEdit(i)} className="admin-icon-btn"><FaEdit /></button>
+                            <button onClick={() => handleDelete(i)} className="admin-icon-btn" style={{ color: 'var(--primary-red)' }}><FaTrash /></button>
+                        </div>
+                    </div>
+                ))}
+                {videos.length === 0 && (
+                    <div style={{ padding: '2rem', textAlign: 'center', border: '2px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-muted)' }}>
+                        No videos yet. Click "Add Video" to get started.
+                    </div>
+                )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Follow Us</>}</button>
             </div>
         </div>
     );
