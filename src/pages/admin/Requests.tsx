@@ -4,7 +4,7 @@ import {
     FaTruck, FaDollarSign, FaEye, FaChevronLeft,
     FaChevronRight, FaSpinner, FaSearch, FaFilter,
     FaThumbsUp, FaThumbsDown, FaBoxes, FaMoneyBillWave,
-    FaBuilding, FaUser, FaCheckCircle, FaCheckDouble, FaPlus
+    FaBuilding, FaUser, FaCheckCircle, FaCheckDouble, FaPlus, FaHashtag
 } from 'react-icons/fa';
 import { materialRequestsService } from '../../services/materialRequestsService';
 import { approvalsService } from '../../services/approvalsService';
@@ -13,6 +13,24 @@ import type { Approval } from '../../services/approvalsService';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
+
+const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+        </div>
+    </div>
+);
 
 type UnifiedStatus = 'pending' | 'approved' | 'rejected';
 
@@ -222,37 +240,28 @@ const Requests = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', gap: '1rem', flexWrap: 'wrap' }}>
                 <div>
                     <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: 0, marginBottom: '0.2rem' }}>
                         <FaClipboardList style={{ color: 'var(--primary)' }} /> Requests &amp; Approvals
                     </h2>
-                    <span style={{ fontSize: '0.8rem', color: '#999' }}>Material requests and fund/expense requests awaiting or already reviewed</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Material requests and fund/expense requests awaiting or already reviewed</span>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                    {canSubmitFundRequest && (
-                        <button onClick={() => { setFundForm(emptyFundForm()); setShowCreate(true); }}
-                            style={{ padding: '0.5rem 0.9rem', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <FaPlus size={10} /> New Fund Request
-                        </button>
-                    )}
-                    {([
-                        { key: 'pending' as const, label: 'Pending', color: '#f59e0b' },
-                        { key: 'approved' as const, label: 'Approved', color: '#22c55e' },
-                        { key: 'rejected' as const, label: 'Rejected', color: '#ef4444' },
-                        { key: 'all' as const, label: 'Total', color: 'var(--primary)' },
-                    ]).map(s => (
-                        <div key={s.key} className="admin-card" style={{
-                            padding: '0.55rem 2rem', textAlign: 'center',
-                            background: s.color, color: '#fff', cursor: 'pointer',
-                            opacity: filter === s.key || (s.key === 'all' && filter === 'all') ? 1 : 0.65,
-                            transition: 'opacity 0.2s',
-                        }} onClick={() => { setFilter(s.key); setPage(1); }}>
-                            <div style={{ fontSize: '1rem', fontWeight: 800 }}>{s.key === 'all' ? stats.total : stats[s.key]}</div>
-                            <div style={{ fontSize: '0.65rem', opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{s.label}</div>
-                        </div>
-                    ))}
-                </div>
+                {canSubmitFundRequest && (
+                    <button onClick={() => { setFundForm(emptyFundForm()); setShowCreate(true); }}
+                        style={{ padding: '0.5rem 0.9rem', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <FaPlus size={10} /> New Fund Request
+                    </button>
+                )}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                <StatTile icon={<FaClipboardList />} label="Total requests" value={String(stats.total)} accent="#1B2042" emphasis />
+                <StatTile icon={<FaClock />} label="Pending" value={String(stats.pending)} accent="#f59e0b" />
+                <StatTile icon={<FaCheckCircle />} label="Approved" value={String(stats.approved)} accent="#22c55e" />
+                <StatTile icon={<FaTimesCircle />} label="Rejected" value={String(stats.rejected)} accent="#ef4444" />
+                <StatTile icon={<FaTruck />} label="Material" value={String(requests.filter(r => r.source === 'material').length)} accent="#3b82f6" />
+                <StatTile icon={<FaMoneyBillWave />} label="Fund" value={String(requests.filter(r => r.source === 'general').length)} accent="#06b6d4" />
             </div>
 
             <div className="admin-card">
