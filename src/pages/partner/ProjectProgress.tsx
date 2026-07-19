@@ -7,25 +7,47 @@ import type { Project } from '../../services/constructionService';
 
 const COLORS = ['#1a8a6a', '#10b981', '#f59e0b', '#6b7280', '#8b5cf6'];
 
+const CACHE_TTL = 5 * 60 * 1000;
+function loadCache(key: string) {
+    try {
+        const raw = localStorage.getItem('db_cache_' + key);
+        if (!raw) return null;
+        const { data, ts } = JSON.parse(raw);
+        if (Date.now() - ts > CACHE_TTL) return null;
+        return data;
+    } catch { return null; }
+}
+function saveCache(key: string, data: any) {
+    try { localStorage.setItem('db_cache_' + key, JSON.stringify({ data, ts: Date.now() })); } catch {}
+}
+
 const ProjectProgress = () => {
     const [items, setItems] = useState<ProjectEvidence[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [filterType, setFilterType] = useState<'all' | 'image' | 'video'>('all');
 
     useEffect(() => {
-        partnerPortalService.getMyProjects()
-            .then(async (projRes) => {
+        const cached = loadCache('partner-progress');
+        if (cached) {
+            if (cached.projects) setProjects(cached.projects);
+            if (cached.items) setItems(cached.items);
+        }
+
+        const fetchFresh = async () => {
+            try {
+                const projRes = await partnerPortalService.getMyProjects();
                 const projectsData = (projRes.data || []) as Project[];
                 setProjects(projectsData);
                 const evidenceResults = await Promise.all(
                     projectsData.map((p) => partnerPortalService.getProjectEvidence(p.id).catch(() => ({ data: [] })))
                 );
-                setItems(evidenceResults.flatMap((r) => r.data || []));
-            })
-            .catch(() => { setItems([]); setProjects([]); })
-            .finally(() => setLoading(false));
+                const evData = evidenceResults.flatMap((r) => r.data || []);
+                setItems(evData);
+                saveCache('partner-progress', { projects: projectsData, items: evData });
+            } catch {}
+        };
+        fetchFresh();
     }, []);
 
     const images = items.filter(i => i.type === 'image');
@@ -65,32 +87,6 @@ const ProjectProgress = () => {
         if (percent < 0.05) return null;
         return `${name} ${(percent * 100).toFixed(0)}%`;
     };
-
-    if (loading) {
-        return (
-            <div className="dashboard-page">
-                <div className="dashboard-header">
-                    <div>
-                        <h1 className="dashboard-title"><FaHardHat style={{ color: '#1a8a6a' }} /> Project Progress</h1>
-                        <p className="dashboard-subtitle">Track the latest progress of your construction projects</p>
-                    </div>
-                </div>
-                <div className="dashboard-cards">
-                    {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="dashboard-skeleton dashboard-skeleton-card" />
-                    ))}
-                </div>
-                <div className="dashboard-charts-row">
-                    <div className="dashboard-chart-card dashboard-chart-wide">
-                        <div className="dashboard-skeleton dashboard-skeleton-chart" />
-                    </div>
-                    <div className="dashboard-chart-card">
-                        <div className="dashboard-skeleton dashboard-skeleton-pie" />
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="dashboard-page">

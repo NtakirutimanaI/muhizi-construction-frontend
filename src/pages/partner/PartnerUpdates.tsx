@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaSpinner, FaClipboardList, FaCheckCircle, FaClock, FaHardHat, FaImage, FaVideo, FaCalendarAlt } from 'react-icons/fa';
+import { FaClipboardList, FaCheckCircle, FaClock, FaHardHat, FaImage, FaVideo, FaCalendarAlt } from 'react-icons/fa';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { partnerPortalService } from '../../services/partnerPortalService';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
@@ -8,21 +8,39 @@ import type { Project } from '../../services/constructionService';
 
 const COLORS = ['#1a8a6a', '#10b981', '#f59e0b', '#8b5cf6'];
 
+const CACHE_TTL = 5 * 60 * 1000;
+function loadCache(key: string) {
+    try {
+        const raw = localStorage.getItem('db_cache_' + key);
+        if (!raw) return null;
+        const { data, ts } = JSON.parse(raw);
+        if (Date.now() - ts > CACHE_TTL) return null;
+        return data;
+    } catch { return null; }
+}
+function saveCache(key: string, data: any) {
+    try { localStorage.setItem('db_cache_' + key, JSON.stringify({ data, ts: Date.now() })); } catch {}
+}
+
 interface EvidenceWithSite extends ProjectEvidence {
     siteName?: string;
 }
 
 const PartnerUpdates = () => {
     const [items, setItems] = useState<EvidenceWithSite[]>([]);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        partnerPortalService.getMyProjects()
-            .then(async (projectsRes) => {
+        const cached = loadCache('partner-updates');
+        if (cached) {
+            if (cached.items) setItems(cached.items);
+        }
+
+        const fetchFresh = async () => {
+            try {
+                const projectsRes = await partnerPortalService.getMyProjects();
                 const projects = (projectsRes.data || []) as Project[];
                 const sitesData = projects.flatMap((p) => (p as any).sites || []) as Site[];
                 const siteMap = new Map(sitesData.map(s => [s.id, s.name]));
-
                 const evidenceResults = await Promise.all(
                     projects.map((p) => partnerPortalService.getProjectEvidence(p.id).catch(() => ({ data: [] })))
                 );
@@ -35,9 +53,10 @@ const PartnerUpdates = () => {
                     return new Date(b.date).getTime() - new Date(a.date).getTime();
                 });
                 setItems(evData);
-            })
-            .catch(() => setItems([]))
-            .finally(() => setLoading(false));
+                saveCache('partner-updates', { items: evData });
+            } catch {}
+        };
+        fetchFresh();
     }, []);
 
     const images = items.filter(i => i.type === 'image');
@@ -49,19 +68,6 @@ const PartnerUpdates = () => {
         { name: 'Images', value: images.length },
         { name: 'Videos', value: videos.length },
     ].filter(d => d.value > 0);
-
-    if (loading) {
-        return (
-            <div className="dashboard-page">
-                <div className="dashboard-cards">
-                    {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="dashboard-skeleton dashboard-skeleton-card" />
-                    ))}
-                </div>
-                <div className="dashboard-skeleton dashboard-skeleton-chart" style={{ marginTop: '1rem' }} />
-            </div>
-        );
-    }
 
     return (
         <div className="dashboard-page">

@@ -15,25 +15,46 @@ import type { ProjectEvidence } from '../../services/projectEvidenceService';
 
 const COLORS = ['#6c3096', '#b84c8c', '#0d9488', '#f59e0b', '#3b82f6', '#ef4444'];
 
+const CACHE_TTL = 5 * 60 * 1000;
+function loadCache(key: string) {
+    try {
+        const raw = localStorage.getItem('db_cache_' + key);
+        if (!raw) return null;
+        const { data, ts } = JSON.parse(raw);
+        if (Date.now() - ts > CACHE_TTL) return null;
+        return data;
+    } catch { return null; }
+}
+function saveCache(key: string, data: any) {
+    try { localStorage.setItem('db_cache_' + key, JSON.stringify({ data, ts: Date.now() })); } catch {}
+}
+
 const ClientDashboard = () => {
     const { user } = useAuth();
     const [projects, setProjects] = useState<Project[]>([]);
     const [evidence, setEvidence] = useState<ProjectEvidence[]>([]);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        clientPortalService.getMyProjects()
-            .then(async (projectsRes) => {
+        const cached = loadCache('client');
+        if (cached) {
+            if (cached.projects) setProjects(cached.projects);
+            if (cached.evidence) setEvidence(cached.evidence);
+        }
+
+        const fetchFresh = async () => {
+            try {
+                const projectsRes = await clientPortalService.getMyProjects();
                 const projectsData = (projectsRes.data || []) as Project[];
                 setProjects(projectsData);
-
                 const evidenceResults = await Promise.all(
                     projectsData.map((p) => clientPortalService.getProjectEvidence(p.id).catch(() => ({ data: [] })))
                 );
-                setEvidence(evidenceResults.flatMap((r) => r.data || []));
-            })
-            .catch(() => {})
-            .finally(() => setLoading(false));
+                const evData = evidenceResults.flatMap((r) => r.data || []);
+                setEvidence(evData);
+                saveCache('client', { projects: projectsData, evidence: evData });
+            } catch {}
+        };
+        fetchFresh();
     }, []);
 
     const sites = projects.flatMap((p: any) => p.sites || []);
@@ -91,69 +112,59 @@ const ClientDashboard = () => {
                 </div>
             </div>
 
-            {loading ? (
-                <div className="dashboard-cards">
-                    {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="dashboard-skeleton dashboard-skeleton-card" />
-                    ))}
+            <div className="dashboard-cards">
+                <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, #6c3096, #8b5cf6)' }}>
+                    <div className="dashboard-card-content">
+                        <div className="dashboard-card-top">
+                            <span className="dashboard-card-label">My Projects</span>
+                            <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}><FaProjectDiagram /></div>
+                        </div>
+                        <div className="dashboard-card-value">{projects.length}</div>
+                        <div className="dashboard-card-sub">{activeProjects.length} active</div>
+                    </div>
+                    <div className="dashboard-card-watermark"><FaProjectDiagram /></div>
                 </div>
-            ) : (
-                <div className="dashboard-cards">
-                    <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, #6c3096, #8b5cf6)' }}>
-                        <div className="dashboard-card-content">
-                            <div className="dashboard-card-top">
-                                <span className="dashboard-card-label">My Projects</span>
-                                <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}><FaProjectDiagram /></div>
-                            </div>
-                            <div className="dashboard-card-value">{projects.length}</div>
-                            <div className="dashboard-card-sub">{activeProjects.length} active</div>
+                <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, #0d9488, #14b8a6)' }}>
+                    <div className="dashboard-card-content">
+                        <div className="dashboard-card-top">
+                            <span className="dashboard-card-label">Sites</span>
+                            <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}><FaHardHat /></div>
                         </div>
-                        <div className="dashboard-card-watermark"><FaProjectDiagram /></div>
+                        <div className="dashboard-card-value">{sites.length}</div>
+                        <div className="dashboard-card-sub">construction sites</div>
                     </div>
-                    <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, #0d9488, #14b8a6)' }}>
-                        <div className="dashboard-card-content">
-                            <div className="dashboard-card-top">
-                                <span className="dashboard-card-label">Sites</span>
-                                <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}><FaHardHat /></div>
-                            </div>
-                            <div className="dashboard-card-value">{sites.length}</div>
-                            <div className="dashboard-card-sub">construction sites</div>
-                        </div>
-                        <div className="dashboard-card-watermark"><FaHardHat /></div>
-                    </div>
-                    <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, #b84c8c, #ec4899)' }}>
-                        <div className="dashboard-card-content">
-                            <div className="dashboard-card-top">
-                                <span className="dashboard-card-label">Evidence</span>
-                                <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}><FaImage /></div>
-                            </div>
-                            <div className="dashboard-card-value">{evidence.length}</div>
-                            <div className="dashboard-card-sub">{evidence.filter(e => e.type === 'image').length} images</div>
-                        </div>
-                        <div className="dashboard-card-watermark"><FaImage /></div>
-                    </div>
-                    <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
-                        <div className="dashboard-card-content">
-                            <div className="dashboard-card-top">
-                                <span className="dashboard-card-label">Avg Progress</span>
-                                <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}><FaCheckCircle /></div>
-                            </div>
-                            <div className="dashboard-card-value">{avgProgress}%</div>
-                            <div className="dashboard-card-sub">overall completion</div>
-                        </div>
-                        <div className="dashboard-card-watermark"><FaCheckCircle /></div>
-                    </div>
+                    <div className="dashboard-card-watermark"><FaHardHat /></div>
                 </div>
-            )}
+                <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, #b84c8c, #ec4899)' }}>
+                    <div className="dashboard-card-content">
+                        <div className="dashboard-card-top">
+                            <span className="dashboard-card-label">Evidence</span>
+                            <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}><FaImage /></div>
+                        </div>
+                        <div className="dashboard-card-value">{evidence.length}</div>
+                        <div className="dashboard-card-sub">{evidence.filter(e => e.type === 'image').length} images</div>
+                    </div>
+                    <div className="dashboard-card-watermark"><FaImage /></div>
+                </div>
+                <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
+                    <div className="dashboard-card-content">
+                        <div className="dashboard-card-top">
+                            <span className="dashboard-card-label">Avg Progress</span>
+                            <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}><FaCheckCircle /></div>
+                        </div>
+                        <div className="dashboard-card-value">{avgProgress}%</div>
+                        <div className="dashboard-card-sub">overall completion</div>
+                    </div>
+                    <div className="dashboard-card-watermark"><FaCheckCircle /></div>
+                </div>
+            </div>
 
             <div className="dashboard-charts-row">
                 <div className="dashboard-chart-card dashboard-chart-wide">
                     <h3 className="dashboard-chart-title">
                         <FaProjectDiagram style={{ color: '#6c3096' }} /> Project Progress
                     </h3>
-                    {loading ? (
-                        <div className="dashboard-skeleton dashboard-skeleton-chart" />
-                    ) : progressData.length > 0 ? (
+                    {progressData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={200}>
                             <BarChart data={progressData} margin={{ top: 5, right: 15, left: 5, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
@@ -176,9 +187,7 @@ const ClientDashboard = () => {
                     <h3 className="dashboard-chart-title">
                         <FaCheckCircle style={{ color: '#0d9488' }} /> Project Status
                     </h3>
-                    {loading ? (
-                        <div className="dashboard-skeleton dashboard-skeleton-pie" />
-                    ) : statusData.length > 0 ? (
+                    {statusData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={200}>
                             <PieChart>
                                 <Pie

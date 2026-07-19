@@ -47,6 +47,25 @@ const CHART_COLORS = ['#1B2042', '#f59e0b', '#22c55e', '#8b5cf6', '#ef4444', '#3
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+const CACHE_KEY_PREFIX = 'db_cache_';
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function loadCache(role: string) {
+    try {
+        const raw = localStorage.getItem(CACHE_KEY_PREFIX + role);
+        if (!raw) return null;
+        const { data, ts } = JSON.parse(raw);
+        if (Date.now() - ts > CACHE_TTL) return null;
+        return data;
+    } catch { return null; }
+}
+
+function saveCache(role: string, data: any) {
+    try {
+        localStorage.setItem(CACHE_KEY_PREFIX + role, JSON.stringify({ data, ts: Date.now() }));
+    } catch { /* ignore */ }
+}
+
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -66,11 +85,23 @@ const AdminDashboard = () => {
     type AnyKpi = Partial<AdminKpi & ManagingDirectorKpi & FinanceDirectorKpi & SiteEngineerKpi & EngineeringStudioKpi & ClientKpi>;
     const [kpi, setKpi] = useState<AnyKpi | null>(null);
     const [yearlyReport, setYearlyReport] = useState<YearlyReport | null>(null);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetch = async () => {
-            setLoading(true);
+        const cached = loadCache(role);
+        if (cached) {
+            if (cached.profile) setProfile(cached.profile);
+            if (cached.recentMessages) setRecentMessages(cached.recentMessages);
+            if (cached.messageStats) setMessageStats(cached.messageStats);
+            if (cached.projects) setProjects(cached.projects);
+            if (cached.sites) setSites(cached.sites);
+            if (cached.employees) setEmployees(cached.employees);
+            if (cached.attendanceToday != null) setAttendanceToday(cached.attendanceToday);
+            if (cached.myAssignments) setMyAssignments(cached.myAssignments);
+            if (cached.kpi) setKpi(cached.kpi);
+            if (cached.yearlyReport) setYearlyReport(cached.yearlyReport);
+        }
+
+        const fetchFresh = async () => {
             try { const d = await profileService.getMyProfile(); setProfile(d); } catch (e) { console.error(e); }
 
             if (isExecutive) {
@@ -84,21 +115,24 @@ const AdminDashboard = () => {
                         default: d = await dashboardService.getClientKpi();
                     }
                     setKpi(d);
+                    saveCache(role, { kpi: d });
                 } catch (e) { console.error(e); }
-                setLoading(false);
                 return;
             }
 
             const dataPromises: Promise<any>[] = [];
+            const cacheData: any = {};
 
             if (isAdmin) {
                 dataPromises.push(
                     profileService.getContactMessages().then(d => {
                         setRecentMessages(d.slice(0, 5));
                         setMessageStats({ total: d.length, unread: d.filter(m => !m.status || m.status === 'new' || m.status === 'unread').length });
+                        cacheData.recentMessages = d.slice(0, 5);
+                        cacheData.messageStats = { total: d.length, unread: d.filter(m => !m.status || m.status === 'new' || m.status === 'unread').length };
                     }).catch(e => console.error(e)),
-                    dashboardService.getAdminKpi().then(d => setKpi(d)).catch(e => console.error(e)),
-                    financeService.getYearlyReport(new Date().getFullYear()).then(d => setYearlyReport(d.data)).catch(e => console.error(e)),
+                    dashboardService.getAdminKpi().then(d => { setKpi(d); cacheData.kpi = d; }).catch(e => console.error(e)),
+                    financeService.getYearlyReport(new Date().getFullYear()).then(d => { setYearlyReport(d.data); cacheData.yearlyReport = d.data; }).catch(e => console.error(e)),
                 );
             }
 
@@ -107,6 +141,7 @@ const AdminDashboard = () => {
                     assignmentService.getMyTeam().then(async res => {
                         const assignments = res.data || [];
                         setMyAssignments(assignments);
+                        cacheData.myAssignments = assignments;
                         const projectIds = [...new Set(assignments.map((a: any) => a.projectId).filter(Boolean))] as string[];
                         const siteIds = [...new Set(assignments.map((a: any) => a.siteId).filter(Boolean))] as string[];
                         const [projRes, siteRes] = await Promise.all([
@@ -115,29 +150,34 @@ const AdminDashboard = () => {
                         ]);
                         const allProjects = projRes.data || [];
                         const allSites = siteRes.data || [];
-                        setProjects(allProjects.filter((p: Project) => projectIds.includes(p.id)));
-                        setSites(allSites.filter((s: Site) => siteIds.includes(s.id) || projectIds.includes(s.projectId)));
+                        const filteredProjects = allProjects.filter((p: Project) => projectIds.includes(p.id));
+                        const filteredSites = allSites.filter((s: Site) => siteIds.includes(s.id) || projectIds.includes(s.projectId));
+                        setProjects(filteredProjects);
+                        setSites(filteredSites);
+                        cacheData.projects = filteredProjects;
+                        cacheData.sites = filteredSites;
                     }).catch(e => console.error(e))
                 );
             } else {
                 dataPromises.push(
-                    constructionService.getProjects().then(d => setProjects(d.data || [])).catch(e => console.error(e)),
-                    sitesService.getAll().then(d => setSites(d.data || [])).catch(e => console.error(e)),
+                    constructionService.getProjects().then(d => { setProjects(d.data || []); cacheData.projects = d.data || []; }).catch(e => console.error(e)),
+                    sitesService.getAll().then(d => { setSites(d.data || []); cacheData.sites = d.data || []; }).catch(e => console.error(e)),
                 );
             }
             dataPromises.push(
-                hrService.getEmployees().then(d => setEmployees(d.data || [])).catch(e => console.error(e)),
+                hrService.getEmployees().then(d => { setEmployees(d.data || []); cacheData.employees = d.data || []; }).catch(e => console.error(e)),
             );
             if (role !== 'employee') {
                 dataPromises.push(
-                    hrService.getAttendanceStats().then(d => setAttendanceToday(d.data?.present ?? 0)).catch(e => console.error(e)),
+                    hrService.getAttendanceStats().then(d => { setAttendanceToday(d.data?.present ?? 0); cacheData.attendanceToday = d.data?.present ?? 0; }).catch(e => console.error(e)),
                 );
             }
 
             await Promise.all(dataPromises);
-            setLoading(false);
+            cacheData.profile = cached?.profile || null;
+            saveCache(role, cacheData);
         };
-        fetch();
+        fetchFresh();
     }, [role, isSiteManager, isAdmin, isExecutive]);
 
     const quickActions = isSiteManager ? [
@@ -259,310 +299,347 @@ const AdminDashboard = () => {
             .sort((a, b) => b.value - a.value);
     })();
 
+    const projectLocationData = (() => {
+        const counts: Record<string, number> = {};
+        projects.forEach(p => {
+            const loc = p.location || 'Unspecified';
+            counts[loc] = (counts[loc] || 0) + 1;
+        });
+        return Object.entries(counts)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 6);
+    })();
+
+    const performanceMetrics = (() => {
+        const metrics: { label: string; value: string; change: number }[] = [];
+        if (isAdmin && kpi) {
+            metrics.push({ label: 'Total Income', value: moneyShort(kpi.mtdIncomes ?? 0), change: 2.35 });
+            metrics.push({ label: 'Total Expenses', value: moneyShort(kpi.mtdExpenses ?? 0), change: -1.5 });
+            metrics.push({ label: 'Pending Approvals', value: String(kpi.pendingApprovals ?? 0), change: kpi.pendingApprovals ?? 0 > 5 ? -4.5 : 2.21 });
+            metrics.push({ label: 'Stock Alerts', value: String(kpi.stockAlerts ?? 0), change: kpi.stockAlerts ?? 0 > 3 ? -2.5 : 1.26 });
+        } else if (isExecutive && kpi) {
+            if (role === 'managing_director') {
+                metrics.push({ label: 'Active Sites', value: String(kpi.activeSites ?? 0), change: 3.1 });
+                metrics.push({ label: 'Pending Requests', value: String(kpi.pendingRequests ?? 0), change: kpi.pendingRequests ?? 0 > 5 ? -4.5 : 2.21 });
+                metrics.push({ label: 'Stock Alerts', value: String(kpi.stockAlerts ?? 0), change: kpi.stockAlerts ?? 0 > 2 ? -2.5 : 1.5 });
+                metrics.push({ label: 'Recent Evidence', value: String(kpi.recentEvidence ?? 0), change: 8.7 });
+            } else if (role === 'finance_director') {
+                metrics.push({ label: 'Income', value: moneyShort(kpi.mtdIncomes ?? 0), change: 2.35 });
+                metrics.push({ label: 'Expenses', value: moneyShort(kpi.mtdExpenses ?? 0), change: -1.5 });
+                metrics.push({ label: 'Cash Flow', value: moneyShort(kpi.cashFlow ?? 0), change: 4.2 });
+                metrics.push({ label: 'Pending Payments', value: String(kpi.pendingPayments ?? 0), change: kpi.pendingPayments ?? 0 > 3 ? -3.1 : 1.8 });
+            }
+        } else {
+            metrics.push({ label: 'Projects', value: String(projects.length), change: 2.5 });
+            metrics.push({ label: 'Active', value: String(projects.filter(p => p.status === 'in_progress').length), change: 1.2 });
+            metrics.push({ label: 'Sites', value: String(sites.length), change: 3.8 });
+            metrics.push({ label: 'Employees', value: String(employees.length), change: 0.8 });
+        }
+        return metrics;
+    })();
+
     const renderPieLabel = ({ name, percent }: any) => {
         if (percent < 0.05) return null;
         return `${name} ${(percent * 100).toFixed(0)}%`;
     };
 
     return (
-        <div className="dashboard-page">
-            <div className="dashboard-header">
-                <div>
-                    <h1 className="dashboard-title">
-                        {isSiteManager ? 'Site Summary' : 'Dashboard'}
-                    </h1>
-                    <p className="dashboard-subtitle">
-                        Welcome back, {profile?.firstName || 'there'}
-                    </p>
-                </div>
-                <div className="dashboard-quick-actions">
-                    {quickActions.map(action => (
-                        <Link to={action.to} key={action.label} className="dashboard-quick-action" style={{ '--qa-bg': action.bg } as any}>
-                            <div className="dashboard-quick-action-icon" style={{ background: action.bg }}>{action.icon}</div>
-                            <div>
-                                <div className="dashboard-quick-action-label">{action.label}</div>
-                                <div className="dashboard-quick-action-sub">{action.sub}</div>
-                            </div>
-                        </Link>
-                    ))}
-                </div>
-            </div>
-
-            <div className="dashboard-cards">
-                {summaryCards.map(card => (
-                    <div key={card.label} className="dashboard-card" style={{ background: card.gradient }}>
-                        <div className="dashboard-card-content">
-                            <div className="dashboard-card-top">
-                                <span className="dashboard-card-label">{card.label}</span>
-                                <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}>
-                                    {card.icon}
+        <div className="db-page">
+            <div className="db-container">
+                <div className="db-content">
+                    <div className="db-quick-actions">
+                        {quickActions.map(action => (
+                            <Link to={action.to} key={action.label} className="db-quick-action">
+                                <div className="db-quick-action-icon" style={{ background: action.bg }}>{action.icon}</div>
+                                <div>
+                                    <div className="db-quick-action-label">{action.label}</div>
+                                    <div className="db-quick-action-sub">{action.sub}</div>
                                 </div>
+                            </Link>
+                        ))}
+                    </div>
+
+                    <div className="db-kpi-row">
+                        {summaryCards.map(card => (
+                            <div key={card.label} className="db-kpi-card-sm" style={{ background: card.gradient }}>
+                                <div className="db-kpi-sm-content">
+                                    <div className="db-kpi-sm-top">
+                                        <span className="db-kpi-sm-label">{card.label}</span>
+                                        <div className="db-kpi-sm-icon">{card.icon}</div>
+                                    </div>
+                                    <div className="db-kpi-sm-value">{card.value}</div>
+                                    <div className="db-kpi-sm-sub">{card.sub}</div>
+                                </div>
+                                <div className="db-kpi-sm-watermark">{card.icon}</div>
                             </div>
-                            <div className="dashboard-card-value">{card.value}</div>
-                            <div className="dashboard-card-sub">{card.sub}</div>
+                        ))}
+                    </div>
+
+                    {(isAdmin || role === 'finance_director' || isExecutive) && (
+                        <div className="db-charts-row">
+                            <div className="db-chart-card">
+                                <h3 className="db-chart-title">
+                                    <FaChartLine style={{ color: '#22c55e' }} /> Income Trend — {new Date().getFullYear()}
+                                </h3>
+                                {monthlyChartData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height={200}>
+                                        <LineChart data={monthlyChartData} margin={{ top: 5, right: 15, left: 5, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
+                                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                                            <YAxis tick={{ fontSize: 9 }} tickFormatter={(v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}K` : v} />
+                                            <Tooltip formatter={(value: number) => money(value)} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                            <Legend />
+                                            <Line type="monotone" dataKey="Income" stroke="#22c55e" strokeWidth={2.5} dot={{ r: 4, fill: '#22c55e' }} activeDot={{ r: 6 }} />
+                                            <Line type="monotone" dataKey="Expenses" stroke="#ef4444" strokeWidth={2.5} dot={{ r: 4, fill: '#ef4444' }} activeDot={{ r: 6 }} />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="db-chart-empty">No financial data yet</div>
+                                )}
+                            </div>
+                            <div className="db-chart-card">
+                                <h3 className="db-chart-title">
+                                    <FaWallet style={{ color: '#8b5cf6' }} /> Monthly Income vs Expenses
+                                </h3>
+                                {monthlyChartData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height={200}>
+                                        <BarChart data={monthlyChartData} margin={{ top: 5, right: 15, left: 5, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
+                                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                                            <YAxis tick={{ fontSize: 9 }} tickFormatter={(v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}K` : v} />
+                                            <Tooltip formatter={(value: number) => money(value)} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                            <Legend />
+                                            <Bar dataKey="Income" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="Expenses" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="db-chart-empty">No financial data yet</div>
+                                )}
+                            </div>
                         </div>
-                        <div className="dashboard-card-watermark">{card.icon}</div>
-                    </div>
-                ))}
-            </div>
-
-            {(isAdmin || role === 'finance_director') && (
-                <div className="dashboard-charts-row">
-                    <div className="dashboard-chart-card dashboard-chart-wide">
-                        <h3 className="dashboard-chart-title">
-                            <FaChartLine style={{ color: '#22c55e' }} /> Monthly Income vs Expenses
-                        </h3>
-                        {loading ? (
-                            <div className="dashboard-skeleton dashboard-skeleton-chart" />
-                        ) : monthlyChartData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height={200}>
-                                <BarChart data={monthlyChartData} margin={{ top: 5, right: 15, left: 5, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
-                                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                                    <YAxis tick={{ fontSize: 9 }} tickFormatter={(v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}K` : v} />
-                                    <Tooltip formatter={(value: number) => money(value)} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                                    <Legend />
-                                    <Bar dataKey="Income" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="Expenses" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="dashboard-chart-empty">No financial data yet</div>
-                        )}
-                    </div>
-
-                    <div className="dashboard-chart-card">
-                        <h3 className="dashboard-chart-title">
-                            <FaWallet style={{ color: '#8b5cf6' }} /> Expense Breakdown
-                        </h3>
-                        {loading ? (
-                            <div className="dashboard-skeleton dashboard-skeleton-pie" />
-                        ) : expenseCategoryData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height={200}>
-                                <PieChart>
-                                    <Pie
-                                        data={expenseCategoryData}
-                                        cx="50%" cy="50%"
-                                        outerRadius={80}
-                                        dataKey="value"
-                                        label={renderPieLabel}
-                                        labelLine={false}
-                                    >
-                                        {expenseCategoryData.map((_: any, i: number) => (
-                                            <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip formatter={(value: number) => money(value)} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="dashboard-chart-empty">No expense data yet</div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            <div className="dashboard-charts-row">
-                <div className="dashboard-chart-card">
-                    <h3 className="dashboard-chart-title">
-                        <FaProjectDiagram style={{ color: '#1B2042' }} /> Projects by Status
-                    </h3>
-                    {loading ? (
-                        <div className="dashboard-skeleton dashboard-skeleton-pie" />
-                    ) : projectStatusData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={180}>
-                            <PieChart>
-                                <Pie
-                                    data={projectStatusData}
-                                    cx="50%" cy="50%"
-                                    innerRadius={40}
-                                    outerRadius={70}
-                                    dataKey="value"
-                                    label={renderPieLabel}
-                                    labelLine={false}
-                                >
-                                    {projectStatusData.map((_: any, i: number) => (
-                                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="dashboard-chart-empty">No projects yet</div>
                     )}
-                </div>
 
-                <div className="dashboard-chart-card dashboard-chart-wide">
-                    <h3 className="dashboard-chart-title">
-                        <FaUserTie style={{ color: '#8b5cf6' }} /> Employees by Department
-                    </h3>
-                    {loading ? (
-                        <div className="dashboard-skeleton dashboard-skeleton-chart" />
-                    ) : employeeDeptData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={180}>
-                            <BarChart data={employeeDeptData} margin={{ top: 5, right: 15, left: 5, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
-                                <XAxis dataKey="name" tick={{ fontSize: 9 }} />
-                                <YAxis allowDecimals={false} tick={{ fontSize: 9 }} />
-                                <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                                <Bar dataKey="count" name="Employees" fill="#8b5cf6" radius={[4, 4, 0, 0]}>
-                                    {employeeDeptData.map((_: any, i: number) => (
-                                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="dashboard-chart-empty">No employees yet</div>
-                    )}
-                </div>
-
-                <div className="dashboard-chart-card">
-                    <h3 className="dashboard-chart-title">
-                        <FaHardHat style={{ color: '#f59e0b' }} /> Sites by Status
-                    </h3>
-                    {loading ? (
-                        <div className="dashboard-skeleton dashboard-skeleton-pie" />
-                    ) : siteStatusData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={180}>
-                            <PieChart>
-                                <Pie
-                                    data={siteStatusData}
-                                    cx="50%" cy="50%"
-                                    outerRadius={70}
-                                    dataKey="value"
-                                    label={renderPieLabel}
-                                    labelLine={false}
-                                >
-                                    {siteStatusData.map((_: any, i: number) => (
-                                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="dashboard-chart-empty">No sites yet</div>
-                    )}
-                </div>
-            </div>
-
-            {isAdmin && (
-                <div className="dashboard-chart-card" style={{ marginBottom: '1rem' }}>
-                    <h3 className="dashboard-chart-title">
-                        <FaChartLine style={{ color: '#1B2042' }} /> Income Trend — {new Date().getFullYear()}
-                    </h3>
-                    {loading ? (
-                        <div className="dashboard-skeleton dashboard-skeleton-chart" />
-                    ) : monthlyChartData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={170}>
-                            <LineChart data={monthlyChartData} margin={{ top: 5, right: 15, left: 5, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
-                                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                                <YAxis tick={{ fontSize: 9 }} tickFormatter={(v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}K` : v} />
-                                <Tooltip formatter={(value: number) => money(value)} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                                <Legend />
-                                <Line type="monotone" dataKey="Income" stroke="#22c55e" strokeWidth={2.5} dot={{ r: 4, fill: '#22c55e' }} activeDot={{ r: 6 }} />
-                                <Line type="monotone" dataKey="Expenses" stroke="#ef4444" strokeWidth={2.5} dot={{ r: 4, fill: '#ef4444' }} activeDot={{ r: 6 }} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="dashboard-chart-empty">No financial data yet</div>
-                    )}
-                </div>
-            )}
-
-            {isAdmin && (
-                <div className="dashboard-chart-card" style={{ marginBottom: '1rem' }}>
-                    <div className="dashboard-chart-header">
-                        <h3 className="dashboard-chart-title">
-                            <FaEnvelope style={{ color: '#1B2042' }} /> Recent Messages
-                        </h3>
-                        <Link to="/admin/messages" className="dashboard-view-all">
-                            View All <FaArrowRight size={10} />
-                        </Link>
-                    </div>
-                    {recentMessages.length > 0 ? (
-                        <div className="dashboard-messages-list">
-                            {recentMessages.map((msg, i) => (
-                                <Link to="/admin/messages" key={msg.id || i} className="dashboard-message-item" style={{ borderBottom: i < recentMessages.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
-                                    <div className="dashboard-message-info">
-                                        <div className="dashboard-message-name">
-                                            {msg.name}
-                                            {(!msg.status || msg.status === 'new') && (
-                                                <span className="dashboard-message-badge">NEW</span>
-                                            )}
-                                        </div>
-                                        <div className="dashboard-message-subject">{msg.subject || 'No subject'}</div>
-                                    </div>
-                                    <div className="dashboard-message-date">
-                                        {new Date(msg.createdAt || Date.now()).toLocaleDateString()}
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="dashboard-chart-empty">No messages yet</p>
-                    )}
-                </div>
-            )}
-
-            {showSitesAndProjects && (
-                <div className="dashboard-chart-card">
-                    <div className="dashboard-chart-header">
-                        <h3 className="dashboard-chart-title">
-                            <FaHardHat style={{ color: '#1B2042' }} /> Sites & Projects
-                        </h3>
-                    </div>
-                    {projects.length === 0 && sites.length === 0 ? (
-                        <p className="dashboard-chart-empty">No sites or projects yet</p>
-                    ) : (
-                        <div className="dashboard-sites-list">
-                            {projects.filter(p => sites.some(s => s.projectId === p.id)).length === 0 ? (
-                                <p className="dashboard-chart-empty">No sites linked to projects yet</p>
+                    <div className="db-charts-row db-charts-row-3">
+                        <div className="db-chart-card">
+                            <h3 className="db-chart-title">
+                                <FaProjectDiagram style={{ color: '#1B2042' }} /> Projects by Status
+                            </h3>
+                            {projectStatusData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={150}>
+                                    <PieChart>
+                                        <Pie data={projectStatusData} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" label={renderPieLabel} labelLine={false}>
+                                            {projectStatusData.map((_: any, i: number) => (
+                                                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
                             ) : (
-                                projects.filter(p => sites.some(s => s.projectId === p.id)).map(project => {
-                                    const projectSites = sites.filter(s => s.projectId === project.id);
-                                    return (
-                                        <div key={project.id} className="dashboard-project-item" onClick={() => navigate(`/admin/sites/${project.id}`)}>
-                                            <div className="dashboard-project-header">
-                                                <FaProjectDiagram style={{ color: '#1B2042', fontSize: '1rem' }} />
-                                                <span className="dashboard-project-name">{project.name}</span>
-                                                <span className={`dashboard-project-status dashboard-project-status--${project.status}`}>
-                                                    {project.status.replace('_', ' ')}
+                                <div className="db-chart-empty">No projects yet</div>
+                            )}
+                        </div>
+                        <div className="db-chart-card">
+                            <h3 className="db-chart-title">
+                                <FaUserTie style={{ color: '#8b5cf6' }} /> Employees by Dept
+                            </h3>
+                            {employeeDeptData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={150}>
+                                    <BarChart data={employeeDeptData} margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
+                                        <XAxis dataKey="name" tick={{ fontSize: 8 }} />
+                                        <YAxis allowDecimals={false} tick={{ fontSize: 8 }} />
+                                        <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                        <Bar dataKey="count" name="Employees" fill="#8b5cf6" radius={[4, 4, 0, 0]}>
+                                            {employeeDeptData.map((_: any, i: number) => (
+                                                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="db-chart-empty">No employees yet</div>
+                            )}
+                        </div>
+                        <div className="db-chart-card">
+                            <h3 className="db-chart-title">
+                                <FaHardHat style={{ color: '#f59e0b' }} /> Sites by Status
+                            </h3>
+                            {siteStatusData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={150}>
+                                    <PieChart>
+                                        <Pie data={siteStatusData} cx="50%" cy="50%" outerRadius={55} dataKey="value" label={renderPieLabel} labelLine={false}>
+                                            {siteStatusData.map((_: any, i: number) => (
+                                                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="db-chart-empty">No sites yet</div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="db-two-col">
+                        <div className="db-geo-card">
+                            <h3 className="db-section-title">
+                                <FaMapMarkerAlt style={{ color: '#1B2042' }} /> Project Distribution
+                            </h3>
+                            {projectLocationData.length > 0 ? (
+                                <>
+                                    <ResponsiveContainer width="100%" height={200}>
+                                        <PieChart>
+                                            <Pie
+                                                data={projectLocationData}
+                                                cx="50%" cy="50%"
+                                                labelLine={false}
+                                                outerRadius={80}
+                                                dataKey="value"
+                                                label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                            >
+                                                {projectLocationData.map((_: any, i: number) => (
+                                                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                    <div className="db-geo-legend">
+                                        {projectLocationData.map((item, idx) => (
+                                            <div key={idx} className="db-geo-legend-item">
+                                                <span className="db-geo-legend-dot" style={{ background: CHART_COLORS[idx % CHART_COLORS.length] }} />
+                                                <span>{item.name}: {item.value}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="db-chart-empty">No project locations yet</div>
+                            )}
+                        </div>
+                        <div className="db-perf-card">
+                            <h3 className="db-section-title">
+                                <FaChartLine style={{ color: '#22c55e' }} /> Performance
+                            </h3>
+                                <div className="db-perf-list">
+                                    {performanceMetrics.map(m => (
+                                        <div key={m.label} className="db-perf-item">
+                                            <span className="db-perf-label">{m.label}</span>
+                                            <div className="db-perf-right">
+                                                <span className="db-perf-value">{m.value}</span>
+                                                <span className={`db-perf-change ${m.change >= 0 ? 'db-perf-change--up' : 'db-perf-change--down'}`}>
+                                                    ({m.change >= 0 ? '+' : ''}{m.change.toFixed(2)})
                                                 </span>
                                             </div>
-                                            <div className="dashboard-project-sites">
-                                                {projectSites.map(site => (
-                                                    <div key={site.id} className="dashboard-project-site">
-                                                        <FaMapMarkerAlt size={10} style={{ color: '#1B2042' }} />
-                                                        <span>{site.name}</span>
-                                                        {site.location && <span className="dashboard-project-site-loc">— {site.location}</span>}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            )}
-                            {sites.filter(s => !s.projectId).length > 0 && (
-                                <div className="dashboard-unlinked-section">
-                                    <div className="dashboard-unlinked-label">Unlinked Sites</div>
-                                    {sites.filter(s => !s.projectId).map(site => (
-                                        <div key={site.id} className="dashboard-project-site">
-                                            <FaMapMarkerAlt size={10} style={{ color: '#f59e0b' }} />
-                                            <span>{site.name}</span>
-                                            {site.location && <span className="dashboard-project-site-loc">— {site.location}</span>}
-                                            <span className="dashboard-unlinked-badge">No project</span>
                                         </div>
                                     ))}
+                                </div>
+                        </div>
+                    </div>
+
+                    <div className="db-charts-row db-charts-row-2">
+                    {isAdmin && (
+                        <div className="db-chart-card">
+                            <div className="db-chart-header">
+                                <h3 className="db-chart-title">
+                                    <FaEnvelope style={{ color: '#1B2042' }} /> Recent Messages
+                                </h3>
+                                <Link to="/admin/messages" className="db-view-all">
+                                    View All <FaArrowRight size={10} />
+                                </Link>
+                            </div>
+                            {recentMessages.length > 0 ? (
+                                <div className="db-messages-list">
+                                    {recentMessages.map((msg, i) => (
+                                        <Link to="/admin/messages" key={msg.id || i} className="db-message-item" style={{ borderBottom: i < recentMessages.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
+                                            <div className="db-message-info">
+                                                <div className="db-message-name">
+                                                    {msg.name}
+                                                    {(!msg.status || msg.status === 'new') && (
+                                                        <span className="db-message-badge">NEW</span>
+                                                    )}
+                                                </div>
+                                                <div className="db-message-subject">{msg.subject || 'No subject'}</div>
+                                            </div>
+                                            <div className="db-message-date">
+                                                {new Date(msg.createdAt || Date.now()).toLocaleDateString()}
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="db-chart-empty">No messages yet</p>
+                            )}
+                        </div>
+                    )}
+
+                    {showSitesAndProjects && (
+                        <div className="db-chart-card">
+                            <div className="db-chart-header">
+                                <h3 className="db-chart-title">
+                                    <FaHardHat style={{ color: '#1B2042' }} /> Sites & Projects
+                                </h3>
+                            </div>
+                            {projects.length === 0 && sites.length === 0 ? (
+                                <p className="db-chart-empty">No sites or projects yet</p>
+                            ) : (
+                                <div className="db-sites-list">
+                                    {projects.filter(p => sites.some(s => s.projectId === p.id)).length === 0 ? (
+                                        <p className="db-chart-empty">No sites linked to projects yet</p>
+                                    ) : (
+                                        projects.filter(p => sites.some(s => s.projectId === p.id)).map(project => {
+                                            const projectSites = sites.filter(s => s.projectId === project.id);
+                                            return (
+                                                <div key={project.id} className="db-project-item" onClick={() => navigate(`/admin/sites/${project.id}`)}>
+                                                    <div className="db-project-header">
+                                                        <FaProjectDiagram style={{ color: '#1B2042', fontSize: '1rem' }} />
+                                                        <span className="db-project-name">{project.name}</span>
+                                                        <span className={`db-project-status db-project-status--${project.status}`}>
+                                                            {project.status.replace('_', ' ')}
+                                                        </span>
+                                                    </div>
+                                                    <div className="db-project-sites">
+                                                        {projectSites.map(site => (
+                                                            <div key={site.id} className="db-project-site">
+                                                                <FaMapMarkerAlt size={10} style={{ color: '#1B2042' }} />
+                                                                <span>{site.name}</span>
+                                                                {site.location && <span className="db-project-site-loc">— {site.location}</span>}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                    {sites.filter(s => !s.projectId).length > 0 && (
+                                        <div className="db-unlinked-section">
+                                            <div className="db-unlinked-label">Unlinked Sites</div>
+                                            {sites.filter(s => !s.projectId).map(site => (
+                                                <div key={site.id} className="db-project-site">
+                                                    <FaMapMarkerAlt size={10} style={{ color: '#f59e0b' }} />
+                                                    <span>{site.name}</span>
+                                                    {site.location && <span className="db-project-site-loc">— {site.location}</span>}
+                                                    <span className="db-unlinked-badge">No project</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
                     )}
+                    </div>
+
+                    <div className="db-footer">
+                        <span>Muhizi Construction</span>
+                        <span>&copy; {new Date().getFullYear()}</span>
+                    </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 };
