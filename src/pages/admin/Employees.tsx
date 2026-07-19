@@ -3,6 +3,7 @@ import {
     FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaUsers, FaDollarSign,
     FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye, FaIdCard, FaLock, FaFileAlt, FaSpinner,
     FaCamera, FaUpload, FaFileSignature, FaExclamationTriangle, FaDownload, FaUserTie, FaHeartbeat, FaGraduationCap,
+    FaCheckCircle, FaTimesCircle, FaBan,
 } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
@@ -13,6 +14,24 @@ import { useAuth } from '../../context/AuthContext';
 import type { Employee } from '../../services/hrService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
+const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+        </div>
+    </div>
+);
 
 const CONTRACT_STATUS_COLORS: Record<string, string> = {
     active: '#22c55e', expiring_soon: '#f59e0b', expired: '#ef4444', draft: '#6b7280',
@@ -436,31 +455,16 @@ const Employees = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
+            <div style={{ marginBottom: '1rem' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
                     <FaUsers style={{ color: 'var(--primary)' }} /> Employees
                 </h2>
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.total}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.active}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Active</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.inactive}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Inactive</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.terminated}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Terminated</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {stats.totalSalary.toLocaleString()}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total Salary</div>
-                    </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginTop: '0.75rem', marginBottom: '1.25rem' }}>
+                    <StatTile icon={<FaUsers />} label="Total" value={String(stats.total)} accent="#1B2042" emphasis />
+                    <StatTile icon={<FaCheckCircle />} label="Active" value={String(stats.active)} accent="#22c55e" />
+                    <StatTile icon={<FaTimesCircle />} label="Inactive" value={String(stats.inactive)} accent="#6b7280" />
+                    <StatTile icon={<FaBan />} label="Terminated" value={String(stats.terminated)} accent="#ef4444" />
+                    <StatTile icon={<FaDollarSign />} label="Total Salary" value={`RWF ${stats.totalSalary.toLocaleString()}`} accent="#f59e0b" />
                 </div>
             </div>
 

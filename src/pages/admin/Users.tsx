@@ -1,10 +1,28 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaUsers, FaEnvelope, FaUser, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaArrowsAlt, FaDownload, FaFileExcel, FaFilePdf } from 'react-icons/fa';
+import { FaUsers, FaEnvelope, FaUser, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaArrowsAlt, FaDownload, FaFileExcel, FaFilePdf, FaCheckCircle, FaTimesCircle, FaUserTie } from 'react-icons/fa';
 import { authService } from '../../services/authService';
 import { useToast } from '../../context/ToastContext';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
+const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+        </div>
+    </div>
+);
 
 interface UserData {
     id: string;
@@ -302,28 +320,14 @@ const Users = () => {
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
                     <FaUsers style={{ color: 'var(--primary)' }} /> Users
                 </h2>
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{users.length}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{users.filter(u => u.isActive).length}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Active</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{users.filter(u => !u.isActive).length}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Inactive</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{users.filter(u => u.role === 'admin').length}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>CEO</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{users.filter(u => u.role === 'managing_director').length}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>M. Director</div>
-                    </div>
-                </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                <StatTile icon={<FaUsers />} label="Total" value={String(users.length)} accent="#1B2042" emphasis />
+                <StatTile icon={<FaCheckCircle />} label="Active" value={String(users.filter(u => u.isActive).length)} accent="#22c55e" />
+                <StatTile icon={<FaTimesCircle />} label="Inactive" value={String(users.filter(u => !u.isActive).length)} accent="#6b7280" />
+                <StatTile icon={<FaShieldAlt />} label="CEO" value={String(users.filter(u => u.role === 'admin').length)} accent="#3b82f6" />
+                <StatTile icon={<FaUserTie />} label="M. Director" value={String(users.filter(u => u.role === 'managing_director').length)} accent="#8b5cf6" />
             </div>
 
             <div className="admin-card">

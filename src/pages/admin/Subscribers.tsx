@@ -1,11 +1,29 @@
 import { useState, useMemo, useEffect } from 'react';
-import { FaEnvelope, FaTrash, FaChevronLeft, FaChevronRight, FaSpinner, FaPaperPlane, FaTimes, FaBan } from 'react-icons/fa';
+import { FaEnvelope, FaTrash, FaChevronLeft, FaChevronRight, FaSpinner, FaPaperPlane, FaTimes, FaBan, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { subscriberService } from '../../services/subscriberService';
 import type { Subscriber } from '../../services/subscriberService';
 import { useToast } from '../../context/ToastContext';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 const PAGE_SIZES = [5, 10, 15, 20];
+
+const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+        </div>
+    </div>
+);
 
 const Subscribers = () => {
     const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -171,13 +189,13 @@ const Subscribers = () => {
                             </button>
                         </>
                     )}
-                    {(['total', 'active', 'inactive'] as const).map(k => (
-                        <div key={k} className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: k === 'total' ? '#1B2042' : k === 'active' ? '#22c55e' : '#6b7280', color: '#fff' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{counts[k]}</div>
-                            <div style={{ fontSize: '0.65rem', opacity: 0.85, textTransform: 'capitalize' }}>{k}</div>
-                        </div>
-                    ))}
                 </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                <StatTile icon={<FaEnvelope />} label="Total" value={String(counts.total)} accent="#1B2042" emphasis />
+                <StatTile icon={<FaCheckCircle />} label="Active" value={String(counts.active)} accent="#22c55e" />
+                <StatTile icon={<FaTimesCircle />} label="Inactive" value={String(counts.inactive)} accent="#6b7280" />
             </div>
 
             <div className="admin-card">

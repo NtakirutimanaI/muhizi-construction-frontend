@@ -1,11 +1,29 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaEnvelope, FaUser, FaPhone, FaBuilding, FaCheck, FaClock, FaTrash, FaInbox, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight, FaPaperPlane, FaTimes } from 'react-icons/fa';
+import { FaEnvelope, FaUser, FaPhone, FaBuilding, FaCheck, FaClock, FaCheckCircle, FaTrash, FaInbox, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight, FaPaperPlane, FaTimes } from 'react-icons/fa';
 import { profileService, type ContactMessage } from '../../services/profileService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { mlService, type LeadScoreResult } from '../../services/mlService';
 import { useToast } from '../../context/ToastContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
+const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+        </div>
+    </div>
+);
 
 const PAGE_SIZES = [5, 10, 15, 20];
 
@@ -219,19 +237,10 @@ const MessagesInbox = () => {
                         style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         <FaPaperPlane size={10} /> Reply {selectedIds.size ? `(${selectedIds.size})` : ''}
                     </button>
-                <div className="admin-summary-cards">
-                    <div className="admin-summary-card">
-                        <div className="admin-summary-card__value">{messages.length}</div>
-                        <div className="admin-summary-card__label">Total</div>
-                    </div>
-                    <div className="admin-summary-card">
-                        <div className="admin-summary-card__value">{unreadCount}</div>
-                        <div className="admin-summary-card__label">Unread</div>
-                    </div>
-                    <div className="admin-summary-card">
-                        <div className="admin-summary-card__value">{messages.length - unreadCount}</div>
-                        <div className="admin-summary-card__label">Read</div>
-                    </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                    <StatTile icon={<FaEnvelope />} label="Total Messages" value={String(messages.length)} accent="#1B2042" emphasis />
+                    <StatTile icon={<FaClock />} label="Unread" value={String(unreadCount)} accent="#f59e0b" />
+                    <StatTile icon={<FaCheckCircle />} label="Read" value={String(messages.length - unreadCount)} accent="#22c55e" />
                 </div>
                 </div>
             </div>
