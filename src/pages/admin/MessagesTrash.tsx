@@ -106,8 +106,8 @@ const MessagesTrash = () => {
                 <input type="text" className="form-input" placeholder="Search name, email, subject..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 280 }} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
-                <StatTile icon={<FaTrash />} label="Trashed Messages" value={String(messages.length)} accent="#ef4444" emphasis />
+            <div style={{ marginBottom: '1.25rem', maxWidth: 130 }}>
+                <StatTile icon={<FaTrash />} label="Trashed" value={String(messages.length)} accent="#ef4444" emphasis />
             </div>
 
             <div className="admin-card" style={{ padding: 0, overflow: 'hidden' }}>
