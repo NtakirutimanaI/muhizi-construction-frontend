@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FaEdit, FaTrash, FaTimes as FaTimesIcon, FaClock, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaProjectDiagram, FaSave } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaTimes as FaTimesIcon, FaClock, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaProjectDiagram, FaSave, FaUsers, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaBan, FaUserShield } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { authService } from '../../services/authService';
@@ -24,6 +24,24 @@ const STATUS_OPTIONS: { value: AttendanceStatus; label: string; color: string }[
     { value: 'permission', label: 'Permission', color: '#8b5cf6' },
     { value: 'suspended', label: 'Suspended', color: '#6b7280' },
 ];
+
+const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+        </div>
+    </div>
+);
 
 const AttendancePage = () => {
     const { showToast } = useToast();
@@ -424,32 +442,13 @@ const AttendancePage = () => {
                     <FaClock style={{ color: 'var(--primary)' }} /> Attendance
                     {urlSite && <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginLeft: 4 }}>/ {urlSite}</span>}
                 </h2>
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.total}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#22c55e', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.present}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Present</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#ef4444', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.absent}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Absent</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#f59e0b', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.late}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Late</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.onLeave}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>On Leave</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#8b5cf6', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.permission}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Permission</div>
-                    </div>
-
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem', flex: 1, maxWidth: 700 }}>
+                    <StatTile icon={<FaUsers />} label="Total" value={String(stats.total)} accent="#1B2042" emphasis />
+                    <StatTile icon={<FaCheckCircle />} label="Present" value={String(stats.present)} accent="#22c55e" />
+                    <StatTile icon={<FaTimesCircle />} label="Absent" value={String(stats.absent)} accent="#ef4444" />
+                    <StatTile icon={<FaHourglassHalf />} label="Late" value={String(stats.late)} accent="#f59e0b" />
+                    <StatTile icon={<FaBan />} label="On Leave" value={String(stats.onLeave)} accent="#1B2042" />
+                    <StatTile icon={<FaUserShield />} label="Permission" value={String(stats.permission)} accent="#8b5cf6" />
                 </div>
             </div>
 
