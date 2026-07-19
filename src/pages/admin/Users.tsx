@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FaUsers, FaEnvelope, FaUser, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaArrowsAlt, FaDownload, FaFileExcel, FaFilePdf } from 'react-icons/fa';
 import { authService } from '../../services/authService';
 import { useToast } from '../../context/ToastContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -22,7 +23,7 @@ const PAGE_SIZES = [5, 10, 15, 20];
 const Users = () => {
     const { showToast } = useToast();
     const [users, setUsers] = useState<UserData[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState<'add' | 'edit' | 'view' | null>(null);
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
     const [form, setForm] = useState({
@@ -195,8 +196,11 @@ const Users = () => {
 
     const fetch = async () => {
         try {
+            const cached = loadPageCache<UserData[]>('pg_users');
+            if (cached) setUsers(cached);
             const data = await authService.getAllUsers();
             setUsers(data);
+            savePageCache('pg_users', data);
         } catch (e) {
             console.error('Failed to load users', e);
         } finally {
@@ -284,8 +288,6 @@ const Users = () => {
             showToast(e?.response?.data?.message || 'Failed to delete user', 'error');
         }
     };
-
-    if (loading) return <div className="admin-page"><div className="inline-spinner">Loading users...</div></div>;
 
     const roleColors: Record<string, string> = {
         admin: '#ef4444', managing_director: '#1B2042', finance_director: '#f59e0b', site_engineer: '#22c55e', engineering_studio: '#3b82f6',

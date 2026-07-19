@@ -12,6 +12,7 @@ import type { MaterialRequest } from '../../services/materialRequestsService';
 import type { Approval } from '../../services/approvalsService';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 type UnifiedStatus = 'pending' | 'approved' | 'rejected';
 
@@ -57,7 +58,7 @@ const Requests = () => {
     const canSubmitFundRequest = role === 'managing_director' || role === 'site_engineer';
     const canReviewFundRequest = role === 'admin';
     const [requests, setRequests] = useState<UnifiedRequest[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<UnifiedStatus | 'all'>('pending');
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState<'all' | 'material' | 'money'>('all');
@@ -103,18 +104,23 @@ const Requests = () => {
         raw: r,
     });
 
-    const load = () => {
-        setLoading(true);
-        return Promise.all([
-            materialRequestsService.getAll().catch(() => ({ data: [] })),
-            approvalsService.getAll().catch(() => ({ data: [] })),
-        ])
-            .then(([matRes, appRes]) => {
-                const material = (matRes.data || []).map(toUnified);
-                const general = (appRes.data || []).map(toUnifiedFromApproval);
-                setRequests([...material, ...general]);
-            })
-            .finally(() => setLoading(false));
+    const load = async () => {
+        const cached = loadPageCache<{ requests: UnifiedRequest[] }>('pg_requests');
+        if (cached) {
+            setRequests(cached.requests);
+        }
+        try {
+            const [matRes, appRes] = await Promise.all([
+                materialRequestsService.getAll().catch(() => ({ data: [] })),
+                approvalsService.getAll().catch(() => ({ data: [] })),
+            ]);
+            const material = (matRes.data || []).map(toUnified);
+            const general = (appRes.data || []).map(toUnifiedFromApproval);
+            const allRequests = [...material, ...general];
+            setRequests(allRequests);
+            savePageCache('pg_requests', { requests: allRequests });
+        } catch (e) { console.error(e); }
+        finally { setLoading(false); }
     };
 
     useEffect(() => { load(); }, []);
@@ -213,14 +219,6 @@ const Requests = () => {
             .catch(() => showToast('Failed to submit request', 'error'))
             .finally(() => setSaving(false));
     };
-
-    if (loading) return (
-        <div className="admin-page">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, gap: 12, color: '#999', fontSize: '1.1rem' }}>
-                <FaSpinner className="spin" size={20} /> Loading requests...
-            </div>
-        </div>
-    );
 
     return (
         <div className="admin-page">

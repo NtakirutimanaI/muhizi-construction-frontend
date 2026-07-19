@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaHistory, FaCheckCircle, FaClock, FaBan } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
 import { useAuth } from '../../context/AuthContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import type { Payroll } from '../../services/hrService';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -15,20 +16,24 @@ const statusIcon: Record<string, React.ReactNode> = {
 const SalaryHistory = () => {
     const { user } = useAuth();
     const [records, setRecords] = useState<Payroll[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [err, setErr] = useState('');
 
     useEffect(() => {
         const fetch = async () => {
+            const cached = loadPageCache<{ records: Payroll[] }>('pg_salary_history');
+            if (cached) {
+                setRecords(cached.records || []);
+            }
             try {
                 const empId = user?.id;
-                if (!empId) { setLoading(false); return; }
+                if (!empId) return;
                 const res = await hrService.getPayrollByEmployee(empId);
-                setRecords(res.data || []);
+                const freshRecords = res.data || [];
+                setRecords(freshRecords);
+                savePageCache('pg_salary_history', { records: freshRecords });
             } catch (e: any) {
                 setErr(e.response?.data?.message || 'Could not load records.');
-            } finally {
-                setLoading(false);
             }
         };
         fetch();

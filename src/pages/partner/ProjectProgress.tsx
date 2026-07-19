@@ -4,22 +4,9 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { partnerPortalService } from '../../services/partnerPortalService';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
 import type { Project } from '../../services/constructionService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 const COLORS = ['#1a8a6a', '#10b981', '#f59e0b', '#6b7280', '#8b5cf6'];
-
-const CACHE_TTL = 5 * 60 * 1000;
-function loadCache(key: string) {
-    try {
-        const raw = localStorage.getItem('db_cache_' + key);
-        if (!raw) return null;
-        const { data, ts } = JSON.parse(raw);
-        if (Date.now() - ts > CACHE_TTL) return null;
-        return data;
-    } catch { return null; }
-}
-function saveCache(key: string, data: any) {
-    try { localStorage.setItem('db_cache_' + key, JSON.stringify({ data, ts: Date.now() })); } catch {}
-}
 
 const ProjectProgress = () => {
     const [items, setItems] = useState<ProjectEvidence[]>([]);
@@ -28,7 +15,7 @@ const ProjectProgress = () => {
     const [filterType, setFilterType] = useState<'all' | 'image' | 'video'>('all');
 
     useEffect(() => {
-        const cached = loadCache('partner-progress');
+        const cached = loadPageCache('partner-progress');
         if (cached) {
             if (cached.projects) setProjects(cached.projects);
             if (cached.items) setItems(cached.items);
@@ -44,7 +31,7 @@ const ProjectProgress = () => {
                 );
                 const evData = evidenceResults.flatMap((r) => r.data || []);
                 setItems(evData);
-                saveCache('partner-progress', { projects: projectsData, items: evData });
+                savePageCache('partner-progress', { projects: projectsData, items: evData });
             } catch {}
         };
         fetchFresh();

@@ -6,6 +6,7 @@ import { constructionService, type Project } from '../../services/constructionSe
 import { sitesService, type Site } from '../../services/sitesService';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 interface FormData {
     employeeId: string;
@@ -28,7 +29,7 @@ const EmployeeAssignments = () => {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [sites, setSites] = useState<Site[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<EmployeeAssignment | null>(null);
     const [form, setForm] = useState<FormData>(emptyForm);
@@ -46,6 +47,13 @@ const EmployeeAssignments = () => {
     const isSiteManager = user?.role === 'site_manager' || user?.role === 'manager';
 
     const fetch = async () => {
+        const cached = loadPageCache<{ data: EmployeeAssignment[]; employees: Employee[]; projects: Project[]; sites: Site[] }>('pg_employee_assignments');
+        if (cached) {
+            setData(cached.data || []);
+            setEmployees(cached.employees || []);
+            setProjects(cached.projects || []);
+            setSites(cached.sites || []);
+        }
         try {
             const assPromise = isSiteManager ? assignmentService.getMyTeam() : assignmentService.getAll();
             const [assRes, empRes, projRes, siteRes] = await Promise.all([
@@ -54,12 +62,16 @@ const EmployeeAssignments = () => {
                 constructionService.getProjects(),
                 sitesService.getAll(),
             ]);
-            setData(assRes.data || []);
-            setEmployees(empRes.data || []);
-            setProjects(projRes.data || []);
-            setSites(siteRes.data || []);
+            const freshData = assRes.data || [];
+            const freshEmployees = empRes.data || [];
+            const freshProjects = projRes.data || [];
+            const freshSites = siteRes.data || [];
+            setData(freshData);
+            setEmployees(freshEmployees);
+            setProjects(freshProjects);
+            setSites(freshSites);
+            savePageCache('pg_employee_assignments', { data: freshData, employees: freshEmployees, projects: freshProjects, sites: freshSites });
         } catch (e) { console.error(e); }
-        finally { setLoading(false); }
     };
 
     useEffect(() => { fetch(); }, []);
@@ -167,8 +179,6 @@ const EmployeeAssignments = () => {
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     }, [onMouseMove, onMouseUp]);
-
-    if (loading) return <div className="admin-page"><div className="inline-spinner">Loading assignments...</div></div>;
 
     return (
         <div className="admin-page">

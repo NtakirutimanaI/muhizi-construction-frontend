@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { FaEnvelope, FaUser, FaPhone, FaBuilding, FaCheck, FaClock, FaTrash, FaInbox, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight, FaPaperPlane, FaTimes } from 'react-icons/fa';
 import { profileService, type ContactMessage } from '../../services/profileService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { mlService, type LeadScoreResult } from '../../services/mlService';
 import { useToast } from '../../context/ToastContext';
 import jsPDF from 'jspdf';
@@ -12,7 +13,7 @@ const MessagesInbox = () => {
     const { showToast } = useToast();
     const [messages, setMessages] = useState<ContactMessage[]>([]);
     const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
     const [search, setSearch] = useState('');
     const [fromDate, setFromDate] = useState('');
@@ -31,8 +32,13 @@ const MessagesInbox = () => {
 
     const loadMessages = async () => {
         try {
+            const cached = loadPageCache<ContactMessage[]>('pg_messages_inbox');
+            if (cached) {
+                setMessages(cached);
+            }
             const data = await profileService.getInboxMessages();
             setMessages(data || []);
+            savePageCache('pg_messages_inbox', data || []);
         } catch (error) {
             console.error(error);
         } finally {
@@ -261,9 +267,7 @@ const MessagesInbox = () => {
                         </label>
                     </div>
                     <div style={{ flex: 1, overflowY: 'auto', maxHeight: '520px' }}>
-                        {loading ? (
-                            <div className="inline-spinner">Loading messages...</div>
-                        ) : paginated.length === 0 ? (
+                        {paginated.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
                                 <FaInbox size={40} style={{ marginBottom: '1rem', opacity: 0.2 }} />
                                 <p style={{ fontSize: '0.95rem' }}>No messages in inbox</p>

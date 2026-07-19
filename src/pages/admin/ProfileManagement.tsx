@@ -4,6 +4,7 @@ import { profileService } from '../../services/profileService';
 import type { Profile } from '../../services/profileService';
 import { useAuth } from '../../context/AuthContext';
 import Loading from '../../components/Loading';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import GeneralTab from './profile-sections/GeneralTab';
 
 const tabs = [
@@ -13,20 +14,24 @@ const tabs = [
 const ProfileManagement = () => {
     const { updateUser } = useAuth();
     const [profile, setProfile] = useState<Profile | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('general');
 
     useEffect(() => { loadProfile(); }, []);
 
     const loadProfile = async () => {
+        const cached = loadPageCache<Profile>('pg_profile_management');
+        if (cached) {
+            setProfile(cached);
+            updateUser({ firstName: cached.firstName, lastName: cached.lastName, email: cached.email, avatar: cached.avatar });
+        }
         try {
             const data = await profileService.getMyProfile();
             setProfile(data);
             updateUser({ firstName: data.firstName, lastName: data.lastName, email: data.email, avatar: data.avatar });
+            savePageCache('pg_profile_management', data);
         } catch (error) {
             console.error('Failed to load profile', error);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -35,7 +40,6 @@ const ProfileManagement = () => {
         updateUser({ firstName: updatedProfile.firstName, lastName: updatedProfile.lastName, email: updatedProfile.email, avatar: updatedProfile.avatar });
     };
 
-    if (loading) return <Loading />;
     if (!profile) return <div style={{ textAlign: 'center', padding: '2rem' }}>Failed to load profile</div>;
 
     return (

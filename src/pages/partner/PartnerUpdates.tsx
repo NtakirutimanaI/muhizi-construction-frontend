@@ -5,22 +5,9 @@ import { partnerPortalService } from '../../services/partnerPortalService';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
 import type { Site } from '../../services/sitesService';
 import type { Project } from '../../services/constructionService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 const COLORS = ['#1a8a6a', '#10b981', '#f59e0b', '#8b5cf6'];
-
-const CACHE_TTL = 5 * 60 * 1000;
-function loadCache(key: string) {
-    try {
-        const raw = localStorage.getItem('db_cache_' + key);
-        if (!raw) return null;
-        const { data, ts } = JSON.parse(raw);
-        if (Date.now() - ts > CACHE_TTL) return null;
-        return data;
-    } catch { return null; }
-}
-function saveCache(key: string, data: any) {
-    try { localStorage.setItem('db_cache_' + key, JSON.stringify({ data, ts: Date.now() })); } catch {}
-}
 
 interface EvidenceWithSite extends ProjectEvidence {
     siteName?: string;
@@ -30,7 +17,7 @@ const PartnerUpdates = () => {
     const [items, setItems] = useState<EvidenceWithSite[]>([]);
 
     useEffect(() => {
-        const cached = loadCache('partner-updates');
+        const cached = loadPageCache('partner-updates');
         if (cached) {
             if (cached.items) setItems(cached.items);
         }
@@ -53,7 +40,7 @@ const PartnerUpdates = () => {
                     return new Date(b.date).getTime() - new Date(a.date).getTime();
                 });
                 setItems(evData);
-                saveCache('partner-updates', { items: evData });
+                savePageCache('partner-updates', { items: evData });
             } catch {}
         };
         fetchFresh();

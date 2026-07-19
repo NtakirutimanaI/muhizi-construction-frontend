@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaSpinner, FaClipboardList, FaCheckCircle, FaClock, FaHardHat } from 'react-icons/fa';
 import { clientPortalService } from '../../services/clientPortalService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
 import type { Site } from '../../services/sitesService';
 import type { Project } from '../../services/constructionService';
@@ -11,9 +12,14 @@ interface EvidenceWithSite extends ProjectEvidence {
 
 const ClientUpdates = () => {
   const [items, setItems] = useState<EvidenceWithSite[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const cached = loadPageCache<{ items: EvidenceWithSite[] }>('pg_client_updates');
+    if (cached) {
+      setItems(cached.items);
+    }
+
     clientPortalService.getMyProjects()
       .then(async (projectsRes) => {
         const projects = (projectsRes.data || []) as Project[];
@@ -32,18 +38,11 @@ const ClientUpdates = () => {
           return new Date(b.date).getTime() - new Date(a.date).getTime();
         });
         setItems(evData);
+        savePageCache('pg_client_updates', { items: evData });
       })
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
   }, []);
-
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '0.75rem', color: 'var(--text-muted)' }}>
-        <FaSpinner className="spin" /> Loading updates...
-      </div>
-    );
-  }
 
   return (
     <div>

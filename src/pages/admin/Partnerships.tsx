@@ -10,6 +10,7 @@ import { uploadService } from '../../services/uploadService';
 import { useToast } from '../../context/ToastContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 interface FormData {
     entityKind: string;
@@ -74,7 +75,7 @@ const Partnerships = () => {
     const { showToast } = useToast();
     const [data, setData] = useState<Partnership[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Partnership | null>(null);
     const [viewItem, setViewItem] = useState<Partnership | null>(null);
@@ -94,9 +95,14 @@ const Partnerships = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const fetch = async () => {
+        const cached = loadPageCache<{ data: Partnership[] }>('pg_partnerships');
+        if (cached) {
+            setData(cached.data || []);
+        }
         try {
             const res = await constructionService.getPartnerships();
             setData(res.data || []);
+            savePageCache('pg_partnerships', { data: res.data || [] });
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
@@ -369,8 +375,6 @@ const Partnerships = () => {
             setDeleting(false);
         }
     };
-
-    if (loading) return <div className="admin-page"><div className="inline-spinner">Loading partnerships...</div></div>;
 
     const statusColors: Record<string, string> = {
         active: '#22c55e', inactive: '#6b7280', pending: '#f59e0b', rejected: '#ef4444',

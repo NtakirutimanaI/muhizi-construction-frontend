@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FaEdit, FaTrash, FaTimes as FaTimesIcon, FaClock, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaProjectDiagram, FaSave } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { authService } from '../../services/authService';
 import { constructionService, type Project } from '../../services/constructionService';
 import { assignmentService, type EmployeeAssignment } from '../../services/assignmentService';
@@ -32,7 +33,7 @@ const AttendancePage = () => {
     const [data, setData] = useState<Attendance[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Attendance | null>(null);
     const [search, setSearch] = useState('');
@@ -58,6 +59,12 @@ const AttendancePage = () => {
     }, [employees]);
 
     const fetch = async () => {
+        const cached = loadPageCache<{ data: Attendance[]; projects: Project[]; employees: Employee[] }>('pg_attendance');
+        if (cached) {
+            setData(cached.data);
+            setProjects(cached.projects);
+            setEmployees(cached.employees);
+        }
         try {
             const [attRes, empRes, usersRes, projRes] = await Promise.all([
                 hrService.getAttendance(),
@@ -75,6 +82,7 @@ const AttendancePage = () => {
                 const email = (u.email || '').toLowerCase();
                 return email && !empEmails.has(email);
             });
+            let finalEmpData: Employee[];
             if (missing.length > 0) {
                 const created = await Promise.all(
                     missing.map((u: any) =>
@@ -88,10 +96,12 @@ const AttendancePage = () => {
                         }).then(r => r.data).catch(() => null)
                     )
                 );
-                setEmployees([...empData, ...created.filter(Boolean) as Employee[]]);
+                finalEmpData = [...empData, ...created.filter(Boolean) as Employee[]];
             } else {
-                setEmployees(empData);
+                finalEmpData = empData;
             }
+            setEmployees(finalEmpData);
+            savePageCache('pg_attendance', { data: attRes.data || [], projects: projRes.data || [], employees: finalEmpData });
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
@@ -404,7 +414,6 @@ const AttendancePage = () => {
         } catch { showToast('Failed to update', 'error'); }
     };
 
-    if (loading) return <div className="admin-page"><div className="inline-spinner">Loading attendance...</div></div>;
 
     const selectedProject = projects.find(p => p.id === selectedProjectId);
 

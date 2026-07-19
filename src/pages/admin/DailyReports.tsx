@@ -4,6 +4,7 @@ import { dailyReportsService } from '../../services/dailyReportsService';
 import type { DailyReport } from '../../services/dailyReportsService';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
@@ -14,21 +15,24 @@ const DailyReports = () => {
     const isSubmitter = user?.role === 'managing_director';
 
     const [reports, setReports] = useState<DailyReport[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showNew, setShowNew] = useState(false);
     const [summary, setSummary] = useState('');
     const [date, setDate] = useState(todayStr());
     const [saving, setSaving] = useState(false);
 
     const load = async () => {
-        setLoading(true);
+        const cached = loadPageCache<DailyReport[]>('pg_daily_reports');
+        if (cached) {
+            setReports(cached);
+        }
         try {
             const res = isAdmin ? await dailyReportsService.getAll() : await dailyReportsService.getMy();
-            setReports(res.data || []);
+            const data = res.data || [];
+            setReports(data);
+            savePageCache('pg_daily_reports', data);
         } catch {
-            showToast('Failed to load reports', 'error');
-        } finally {
-            setLoading(false);
+            if (!cached) showToast('Failed to load reports', 'error');
         }
     };
 
@@ -64,14 +68,6 @@ const DailyReports = () => {
             showToast('Failed to delete', 'error');
         }
     };
-
-    if (loading) return (
-        <div className="admin-page">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, gap: 12, color: '#999', fontSize: '1.1rem' }}>
-                <FaSpinner className="spin" size={20} /> Loading reports...
-            </div>
-        </div>
-    );
 
     return (
         <div className="admin-page">

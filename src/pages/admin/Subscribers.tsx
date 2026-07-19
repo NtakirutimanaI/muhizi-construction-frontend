@@ -1,14 +1,15 @@
 import { useState, useMemo, useEffect } from 'react';
-import { FaEnvelope, FaTrash, FaChevronLeft, FaChevronRight, FaSpinner, FaPaperPlane, FaTimes } from 'react-icons/fa';
+import { FaEnvelope, FaTrash, FaChevronLeft, FaChevronRight, FaSpinner, FaPaperPlane, FaTimes, FaBan } from 'react-icons/fa';
 import { subscriberService } from '../../services/subscriberService';
 import type { Subscriber } from '../../services/subscriberService';
 import { useToast } from '../../context/ToastContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 const PAGE_SIZES = [5, 10, 15, 20];
 
 const Subscribers = () => {
     const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
@@ -21,10 +22,15 @@ const Subscribers = () => {
     const { showToast } = useToast();
 
     useEffect(() => {
+        const cached = loadPageCache<Subscriber[]>('pg_subscribers');
+        if (cached) setSubscribers(cached);
+
         subscriberService.getAll()
-            .then(setSubscribers)
-            .catch(() => showToast('Failed to load subscribers', 'error'))
-            .finally(() => setLoading(false));
+            .then(data => {
+                setSubscribers(data);
+                savePageCache('pg_subscribers', data);
+            })
+            .catch(() => { if (!cached) showToast('Failed to load subscribers', 'error'); });
     }, []);
 
     const counts = useMemo(() => ({
@@ -67,6 +73,32 @@ const Subscribers = () => {
             showToast('Subscriber permanently deleted', 'success');
         } catch {
             showToast('Failed to delete', 'error');
+        }
+    };
+
+    const handleBulkDeactivate = async () => {
+        if (!selectedIds.size) { showToast('Select subscribers first', 'error'); return; }
+        if (!confirm(`Deactivate ${selectedIds.size} subscriber(s)? They will be skipped in broadcasts.`)) return;
+        try {
+            await Promise.all(Array.from(selectedIds).map(id => subscriberService.update(id, { isActive: false })));
+            setSubscribers(prev => prev.map(s => selectedIds.has(s.id) ? { ...s, isActive: false } : s));
+            showToast(`${selectedIds.size} subscriber(s) deactivated`, 'success');
+            setSelectedIds(new Set());
+        } catch {
+            showToast('Failed to deactivate some subscribers', 'error');
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (!selectedIds.size) { showToast('Select subscribers first', 'error'); return; }
+        if (!confirm(`Permanently delete ${selectedIds.size} subscriber(s)? This cannot be undone.`)) return;
+        try {
+            await Promise.all(Array.from(selectedIds).map(id => subscriberService.remove(id)));
+            setSubscribers(prev => prev.filter(s => !selectedIds.has(s.id)));
+            showToast(`${selectedIds.size} subscriber(s) deleted`, 'success');
+            setSelectedIds(new Set());
+        } catch {
+            showToast('Failed to delete some subscribers', 'error');
         }
     };
 
@@ -115,8 +147,6 @@ const Subscribers = () => {
         }
     };
 
-    if (loading) return <div style={{ padding: '4rem', textAlign: 'center', color: 'gray', fontSize: '1.2rem' }}><FaSpinner className="spin" /> Loading...</div>;
-
     return (
         <div className="admin-page">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
@@ -129,6 +159,18 @@ const Subscribers = () => {
                         style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         <FaPaperPlane size={10} /> Send Update {selectedIds.size ? `(${selectedIds.size})` : ''}
                     </button>
+                    {selectedIds.size > 0 && (
+                        <>
+                            <button onClick={handleBulkDeactivate}
+                                style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: '1px solid #f59e0b', background: 'transparent', color: '#f59e0b', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                <FaBan size={10} /> Deactivate ({selectedIds.size})
+                            </button>
+                            <button onClick={handleBulkDelete}
+                                style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: '1px solid #ef4444', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                <FaTrash size={10} /> Delete ({selectedIds.size})
+                            </button>
+                        </>
+                    )}
                     {(['total', 'active', 'inactive'] as const).map(k => (
                         <div key={k} className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: k === 'total' ? '#1B2042' : k === 'active' ? '#22c55e' : '#6b7280', color: '#fff' }}>
                             <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{counts[k]}</div>
@@ -152,7 +194,7 @@ const Subscribers = () => {
                     </div>
                 </div>
                 <p style={{ fontSize: '0.72rem', color: 'gray', margin: '0 0 0.6rem' }}>
-                    Inactive subscribers are skipped in broadcasts. Delete is only available after deactivating.
+                    Inactive subscribers are skipped in broadcasts. You can deactivate or delete any subscriber.
                 </p>
                 <div style={{ overflowX: 'auto' }}>
                     <table className="admin-table">
@@ -175,9 +217,8 @@ const Subscribers = () => {
                                             {s.isActive ? 'Deactivate' : 'Activate'}
                                         </button>
                                         <button onClick={() => handleDelete(s.id)}
-                                            disabled={s.isActive}
-                                            title={s.isActive ? 'Deactivate first to enable delete' : 'Delete permanently'}
-                                            style={{ padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid #ddd', background: 'transparent', cursor: s.isActive ? 'not-allowed' : 'pointer', color: s.isActive ? '#ccc' : '#ef4444' }}>
+                                            title="Delete permanently"
+                                            style={{ padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer', color: '#ef4444' }}>
                                             <FaTrash size={11} />
                                         </button>
                                     </div></td>

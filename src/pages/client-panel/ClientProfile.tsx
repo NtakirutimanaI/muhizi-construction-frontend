@@ -4,6 +4,7 @@ import { profileService } from '../../services/profileService';
 import { uploadService } from '../../services/uploadService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import Loading from '../../components/Loading';
 import type { Profile } from '../../services/profileService';
 
@@ -12,7 +13,7 @@ const ClientProfile = () => {
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -28,10 +29,17 @@ const ClientProfile = () => {
   });
 
   useEffect(() => {
+    const cached = loadPageCache<{ profile: Profile; formData: { firstName: string; lastName: string; email: string; phone: string; location: string; title: string; bio: string; avatar: string } }>('pg_client_profile');
+    if (cached) {
+      setProfile(cached.profile);
+      setFormData(cached.formData);
+      updateUser({ firstName: cached.profile.firstName, lastName: cached.profile.lastName, email: cached.profile.email, avatar: cached.profile.avatar });
+    }
+
     profileService.getMyProfile()
       .then(data => {
         setProfile(data);
-        setFormData({
+        const newFormData = {
           firstName: data.firstName || '',
           lastName: data.lastName || '',
           email: data.email || user?.email || '',
@@ -40,8 +48,10 @@ const ClientProfile = () => {
           title: data.title || '',
           bio: data.bio || '',
           avatar: data.avatar || '',
-        });
+        };
+        setFormData(newFormData);
         updateUser({ firstName: data.firstName, lastName: data.lastName, email: data.email, avatar: data.avatar });
+        savePageCache('pg_client_profile', { profile: data, formData: newFormData });
       })
       .catch(() => showToast('Failed to load profile', 'error'))
       .finally(() => setLoading(false));
@@ -86,8 +96,6 @@ const ClientProfile = () => {
     }
     setSaving(false);
   };
-
-  if (loading) return <Loading />;
 
   return (
     <div>

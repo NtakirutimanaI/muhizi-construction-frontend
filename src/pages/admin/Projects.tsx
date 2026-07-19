@@ -7,6 +7,7 @@ import { authService } from '../../services/authService';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import type { Project } from '../../services/constructionService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 interface FormData {
     name: string; description: string; type: string; status: string;
@@ -33,7 +34,7 @@ const Projects = () => {
     const { showToast } = useToast();
     const isAdmin = user?.role === 'admin';
     const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Project | null>(null);
     const [form, setForm] = useState<FormData>(emptyForm);
@@ -102,13 +103,21 @@ const Projects = () => {
     }, [showModal, portalUsers.length]);
 
     const fetch = async () => {
+        const cached = loadPageCache<{ projects: Project[]; allSites: Site[] }>('pg_projects');
+        if (cached) {
+            setProjects(cached.projects);
+            setAllSites(cached.allSites);
+        }
         try {
             const [projRes, sitesRes] = await Promise.all([
                 constructionService.getProjects(),
                 sitesService.getAll(),
             ]);
-            setProjects(projRes.data || []);
-            setAllSites(sitesRes.data || []);
+            const projects = projRes.data || [];
+            const allSites = sitesRes.data || [];
+            setProjects(projects);
+            setAllSites(allSites);
+            savePageCache('pg_projects', { projects, allSites });
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
@@ -249,8 +258,6 @@ const Projects = () => {
             setCreatingSite(false);
         }
     };
-
-    if (loading) return <div className="admin-page"><div className="inline-spinner">Loading projects...</div></div>;
 
     const statusColors: Record<string, string> = {
         planning: '#8b5cf6', in_progress: '#f59e0b', completed: '#22c55e', cancelled: '#ef4444',

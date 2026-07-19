@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaHardHat, FaSpinner, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { siteActivitiesService } from '../../services/siteActivitiesService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import type { SiteActivity } from '../../services/siteActivitiesService';
 
 const PAGE_SIZES = [5, 10, 15, 20];
@@ -10,7 +11,7 @@ const emptyForm: Omit<SiteActivity, 'id' | 'isActive' | 'createdAt'> = { project
 
 const SiteActivities = () => {
     const [activities, setActivities] = useState<SiteActivity[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
     const [selectedProject, setSelectedProject] = useState('all');
     const [showModal, setShowModal] = useState(false);
@@ -21,11 +22,30 @@ const SiteActivities = () => {
     const [pageSize, setPageSize] = useState(10);
 
     useEffect(() => {
-        constructionService.getProjects().then(res => setProjects(res.data || [])).catch(() => {});
-        siteActivitiesService.getAllAdmin()
-            .then(res => setActivities(res.data || []))
-            .catch(() => setActivities([]))
-            .finally(() => setLoading(false));
+        const cached = loadPageCache<{ activities: SiteActivity[]; projects: { id: string; name: string }[] }>('pg_site_activities');
+        if (cached) {
+            setActivities(cached.activities || []);
+            setProjects(cached.projects || []);
+        }
+        constructionService.getProjects().then(res => {
+            const freshProjects = res.data || [];
+            setProjects(freshProjects);
+            siteActivitiesService.getAllAdmin()
+                .then(actRes => {
+                    const freshActivities = actRes.data || [];
+                    setActivities(freshActivities);
+                    savePageCache('pg_site_activities', { activities: freshActivities, projects: freshProjects });
+                })
+                .catch(() => setActivities([]))
+                .finally(() => setLoading(false));
+        }).catch(() => {
+            siteActivitiesService.getAllAdmin()
+                .then(actRes => {
+                    setActivities(actRes.data || []);
+                })
+                .catch(() => setActivities([]))
+                .finally(() => setLoading(false));
+        });
     }, []);
 
     const filtered = useMemo(() =>
@@ -73,14 +93,6 @@ const SiteActivities = () => {
     };
 
     const statusColor = (s: string) => s === 'completed' ? '#22c55e' : s === 'in_progress' ? '#1B2042' : '#f59e0b';
-
-    if (loading) {
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '0.75rem', color: 'var(--text-muted)' }}>
-                <FaSpinner className="spin" /> Loading site activities...
-            </div>
-        );
-    }
 
     return (
         <div>

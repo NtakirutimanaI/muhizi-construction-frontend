@@ -4,6 +4,7 @@ import { financeService } from '../../services/financeService';
 import type { MonthlyReport, YearlyReport, ReportTransaction } from '../../services/financeService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -20,15 +21,19 @@ const Reports = () => {
     const transactions: ReportTransaction[] = active?.transactions || [];
 
     const fetchMonthly = async () => {
+        const cached = loadPageCache<Record<string, any>>('pg_reports');
+        if (cached?.monthly) setMonthly(cached.monthly);
         setLoading(true);
-        try { const res = await financeService.getMonthlyReport(year, month); setMonthly(res.data); }
+        try { const res = await financeService.getMonthlyReport(year, month); setMonthly(res.data); savePageCache('pg_reports', { ...(cached || {}), monthly: res.data }); }
         catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
 
     const fetchYearly = async () => {
+        const cached = loadPageCache<Record<string, any>>('pg_reports');
+        if (cached?.yearly) setYearly(cached.yearly);
         setLoading(true);
-        try { const res = await financeService.getYearlyReport(year); setYearly(res.data); }
+        try { const res = await financeService.getYearlyReport(year); setYearly(res.data); savePageCache('pg_reports', { ...(cached || {}), yearly: res.data }); }
         catch (e) { console.error(e); }
         finally { setLoading(false); }
     };

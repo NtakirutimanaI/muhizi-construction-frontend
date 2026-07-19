@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDollarSign, FaMoneyBillWave, FaPercentage, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaCheckCircle, FaBan, FaHourglassHalf, FaClock } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
 import { authService } from '../../services/authService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import type { Payroll, Employee, Attendance } from '../../services/hrService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -25,7 +26,7 @@ const PayrollPage = () => {
     const [data, setData] = useState<Payroll[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [attendanceRecords, setAttendanceRecords] = useState<Attendance[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Payroll | null>(null);
     const [form, setForm] = useState<FormData>(emptyForm);
@@ -44,14 +45,19 @@ const PayrollPage = () => {
         return emp ? `${emp.firstName} ${emp.lastName}` : id;
     }, [employees]);
 
-    const fetch = async () => {
+    const fetchPayroll = async () => {
+        const cached = loadPageCache<{ data: Payroll[]; employees: Employee[] }>('pg_payroll');
+        if (cached) {
+            setData(cached.data || []);
+            setEmployees(cached.employees || []);
+        }
         try {
             const [payRes, empRes, usersRes] = await Promise.all([
                 hrService.getPayroll(),
                 hrService.getEmployees(),
                 authService.getAllUsers().catch(() => []),
             ]);
-            setData(payRes.data || []);
+            const freshData = payRes.data || [];
             const empData = empRes.data || [];
             const users = Array.isArray(usersRes) ? usersRes : [];
             const employeeUsers = users.filter((u: any) => u.role === 'engineering_studio');
@@ -60,6 +66,7 @@ const PayrollPage = () => {
                 const email = (u.email || '').toLowerCase();
                 return email && !empEmails.has(email);
             });
+            let finalEmployees: Employee[];
             if (missing.length > 0) {
                 const created = await Promise.all(
                     missing.map((u: any) =>
@@ -73,15 +80,18 @@ const PayrollPage = () => {
                         }).then(r => r.data).catch(() => null)
                     )
                 );
-                setEmployees([...empData, ...created.filter(Boolean) as Employee[]]);
+                finalEmployees = [...empData, ...created.filter(Boolean) as Employee[]];
             } else {
-                setEmployees(empData);
+                finalEmployees = empData;
             }
+            setData(freshData);
+            setEmployees(finalEmployees);
+            savePageCache('pg_payroll', { data: freshData, employees: finalEmployees });
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
 
-    useEffect(() => { fetch(); }, []);
+    useEffect(() => { fetchPayroll(); }, []);
 
     const filtered = useMemo(() => {
         const q = search.toLowerCase().trim();
@@ -369,8 +379,6 @@ const PayrollPage = () => {
         try { await hrService.deletePayroll(id); fetch(); }
         catch (e) { console.error(e); }
     };
-
-    if (loading) return <div className="admin-page"><div className="inline-spinner">Loading payroll...</div></div>;
 
     const statusColors: Record<string, string> = {
         draft: '#6b7280', paid: '#22c55e', pending: '#f59e0b',

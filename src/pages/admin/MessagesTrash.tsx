@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { FaEnvelope, FaArchive, FaTrash, FaUndo, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { profileService, type ContactMessage } from '../../services/profileService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { useToast } from '../../context/ToastContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -10,7 +11,7 @@ const PAGE_SIZES = [5, 10, 15, 20];
 const MessagesTrash = () => {
     const { showToast } = useToast();
     const [messages, setMessages] = useState<ContactMessage[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
@@ -21,8 +22,13 @@ const MessagesTrash = () => {
 
     const loadMessages = async () => {
         try {
+            const cached = loadPageCache<ContactMessage[]>('pg_messages_trash');
+            if (cached) {
+                setMessages(cached);
+            }
             const data = await profileService.getTrashMessages();
             setMessages(data || []);
+            savePageCache('pg_messages_trash', data || []);
         } catch (error) {
             console.error(error);
         } finally {
@@ -178,11 +184,7 @@ const MessagesTrash = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {loading ? (
-                                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-                                    <div className="inline-spinner">Loading trash...</div>
-                                </td></tr>
-                            ) : paginated.length === 0 ? (
+                            {paginated.length === 0 ? (
                                 <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
                                     <FaArchive size={32} style={{ marginBottom: '0.75rem', opacity: 0.2 }} />
                                     <p style={{ fontSize: '0.95rem' }}>Trash is empty</p>

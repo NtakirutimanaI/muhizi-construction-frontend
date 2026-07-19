@@ -12,22 +12,9 @@ import { useAuth } from '../../context/AuthContext';
 import { clientPortalService } from '../../services/clientPortalService';
 import type { Project } from '../../services/constructionService';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 const COLORS = ['#6c3096', '#b84c8c', '#0d9488', '#f59e0b', '#3b82f6', '#ef4444'];
-
-const CACHE_TTL = 5 * 60 * 1000;
-function loadCache(key: string) {
-    try {
-        const raw = localStorage.getItem('db_cache_' + key);
-        if (!raw) return null;
-        const { data, ts } = JSON.parse(raw);
-        if (Date.now() - ts > CACHE_TTL) return null;
-        return data;
-    } catch { return null; }
-}
-function saveCache(key: string, data: any) {
-    try { localStorage.setItem('db_cache_' + key, JSON.stringify({ data, ts: Date.now() })); } catch {}
-}
 
 const ClientDashboard = () => {
     const { user } = useAuth();
@@ -35,7 +22,7 @@ const ClientDashboard = () => {
     const [evidence, setEvidence] = useState<ProjectEvidence[]>([]);
 
     useEffect(() => {
-        const cached = loadCache('client');
+        const cached = loadPageCache('client');
         if (cached) {
             if (cached.projects) setProjects(cached.projects);
             if (cached.evidence) setEvidence(cached.evidence);
@@ -51,7 +38,7 @@ const ClientDashboard = () => {
                 );
                 const evData = evidenceResults.flatMap((r) => r.data || []);
                 setEvidence(evData);
-                saveCache('client', { projects: projectsData, evidence: evData });
+                savePageCache('client', { projects: projectsData, evidence: evData });
             } catch {}
         };
         fetchFresh();

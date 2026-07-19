@@ -24,6 +24,7 @@ import { financeService } from '../../services/financeService';
 import type { AdminKpi, ManagingDirectorKpi, FinanceDirectorKpi, SiteEngineerKpi, EngineeringStudioKpi, ClientKpi } from '../../services/dashboardService';
 import type { YearlyReport } from '../../services/financeService';
 import { useAuth } from '../../context/AuthContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 interface Card {
     label: string;
@@ -47,25 +48,6 @@ const CHART_COLORS = ['#1B2042', '#f59e0b', '#22c55e', '#8b5cf6', '#ef4444', '#3
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-const CACHE_KEY_PREFIX = 'db_cache_';
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-function loadCache(role: string) {
-    try {
-        const raw = localStorage.getItem(CACHE_KEY_PREFIX + role);
-        if (!raw) return null;
-        const { data, ts } = JSON.parse(raw);
-        if (Date.now() - ts > CACHE_TTL) return null;
-        return data;
-    } catch { return null; }
-}
-
-function saveCache(role: string, data: any) {
-    try {
-        localStorage.setItem(CACHE_KEY_PREFIX + role, JSON.stringify({ data, ts: Date.now() }));
-    } catch { /* ignore */ }
-}
-
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -87,7 +69,7 @@ const AdminDashboard = () => {
     const [yearlyReport, setYearlyReport] = useState<YearlyReport | null>(null);
 
     useEffect(() => {
-        const cached = loadCache(role);
+        const cached = loadPageCache(role);
         if (cached) {
             if (cached.profile) setProfile(cached.profile);
             if (cached.recentMessages) setRecentMessages(cached.recentMessages);
@@ -115,7 +97,7 @@ const AdminDashboard = () => {
                         default: d = await dashboardService.getClientKpi();
                     }
                     setKpi(d);
-                    saveCache(role, { kpi: d });
+                    savePageCache(role, { kpi: d });
                 } catch (e) { console.error(e); }
                 return;
             }
@@ -175,7 +157,7 @@ const AdminDashboard = () => {
 
             await Promise.all(dataPromises);
             cacheData.profile = cached?.profile || null;
-            saveCache(role, cacheData);
+            savePageCache(role, cacheData);
         };
         fetchFresh();
     }, [role, isSiteManager, isAdmin, isExecutive]);

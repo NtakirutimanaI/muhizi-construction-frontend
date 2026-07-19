@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { FaPlus, FaTrash, FaTimes, FaSave, FaVideo, FaImage, FaSpinner, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { projectEvidenceService } from '../../services/projectEvidenceService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
 
 const PAGE_SIZES = [5, 10, 15, 20];
@@ -10,7 +11,7 @@ const emptyForm = { project: '', type: 'image' as 'image' | 'video', title: '', 
 
 const ProjectEvidencePage = () => {
     const [evidences, setEvidences] = useState<ProjectEvidence[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
     const [selectedProject, setSelectedProject] = useState('all');
     const [showModal, setShowModal] = useState(false);
@@ -22,11 +23,26 @@ const ProjectEvidencePage = () => {
     const [pageSize, setPageSize] = useState(10);
 
     useEffect(() => {
-        constructionService.getProjects().then(res => setProjects(res.data || [])).catch(() => {});
-        projectEvidenceService.getAll()
-            .then(res => setEvidences(res.data || []))
-            .catch(() => setEvidences([]))
-            .finally(() => setLoading(false));
+        const cached = loadPageCache<{ evidences: ProjectEvidence[]; projects: { id: string; name: string }[] }>('pg_project_evidence');
+        if (cached) {
+            setEvidences(cached.evidences || []);
+            setProjects(cached.projects || []);
+        }
+        constructionService.getProjects().then(res => {
+            const freshProjects = res.data || [];
+            setProjects(freshProjects);
+            projectEvidenceService.getAll()
+                .then(res => {
+                    const freshEvidences = res.data || [];
+                    setEvidences(freshEvidences);
+                    savePageCache('pg_project_evidence', { evidences: freshEvidences, projects: freshProjects });
+                })
+                .catch(() => setEvidences([]));
+        }).catch(() => {
+            projectEvidenceService.getAll()
+                .then(res => setEvidences(res.data || []))
+                .catch(() => setEvidences([]));
+        });
     }, []);
 
     const filtered = useMemo(() =>
@@ -78,14 +94,6 @@ const ProjectEvidencePage = () => {
             .then(res => setEvidences(prev => prev.map(item => item.id === e.id ? res.data : item)))
             .catch(() => {});
     };
-
-    if (loading) {
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '0.75rem', color: 'var(--text-muted)' }}>
-                <FaSpinner className="spin" /> Loading project evidence...
-            </div>
-        );
-    }
 
     return (
         <div>

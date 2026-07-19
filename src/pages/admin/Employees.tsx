@@ -5,6 +5,7 @@ import {
     FaCamera, FaUpload, FaFileSignature, FaExclamationTriangle, FaDownload, FaUserTie, FaHeartbeat, FaGraduationCap,
 } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { contractsService, type Contract } from '../../services/contractsService';
 import { uploadService } from '../../services/uploadService';
 import { useToast } from '../../context/ToastContext';
@@ -69,7 +70,7 @@ const Employees = () => {
     const canManageContracts = role === 'finance_director';
 
     const [data, setData] = useState<Employee[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Employee | null>(null);
     const [form, setForm] = useState<FormData>(emptyForm);
@@ -100,9 +101,12 @@ const Employees = () => {
     const contractFileInputRef = useRef<HTMLInputElement>(null);
 
     const fetch = async () => {
+        const cached = loadPageCache<{ data: Employee[] }>('pg_employees');
+        if (cached) { setData(cached.data); }
         try {
             const res = await hrService.getEmployees();
             setData(res.data || []);
+            savePageCache('pg_employees', { data: res.data || [] });
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
@@ -425,7 +429,6 @@ const Employees = () => {
         }
     };
 
-    if (loading) return <div className="admin-page"><div className="inline-spinner">Loading employees...</div></div>;
 
     const statusColors: Record<string, string> = {
         active: '#22c55e', inactive: '#f59e0b', terminated: '#ef4444',

@@ -11,6 +11,7 @@ import { profileService } from '../../services/profileService';
 import type { Profile } from '../../services/profileService';
 import { useToast } from '../../context/ToastContext';
 import { uploadService } from '../../services/uploadService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import HomeSectionsTab from './profile-sections/HomeSectionsTab';
 import AboutSectionsTab from './profile-sections/AboutSectionsTab';
 import ProjectsTab from './profile-sections/ProjectsTab';
@@ -43,7 +44,7 @@ const Resources = () => {
     const { showToast } = useToast();
     const [searchParams] = useSearchParams();
     const [profile, setProfile] = useState<Profile>(emptyP);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const tabParam = searchParams.get('tab') as SectionId | null;
     const [filter, setFilter] = useState<SectionId>(tabParam || 'home-sections');
@@ -57,8 +58,13 @@ const Resources = () => {
     useEffect(() => { if (tabParam && SECTIONS.includes(tabParam)) setFilter(tabParam); }, [tabParam]);
 
     const loadProfile = async () => {
-        try { setProfile(await profileService.getMyProfile()); }
-        catch (e) { console.error(e); }
+        try {
+            const cached = loadPageCache<Profile>('pg_resources');
+            if (cached) setProfile(cached);
+            const fresh = await profileService.getMyProfile();
+            setProfile(fresh);
+            savePageCache('pg_resources', fresh);
+        } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
 
@@ -101,17 +107,13 @@ const Resources = () => {
                 </div>
             </div>
 
-            {loading ? (
-                <div className="inline-spinner">Loading content...</div>
-            ) : (
-                <AnimatePresence mode="wait">
-                    <motion.div key={filter} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }} style={{ display: 'flex', justifyContent: 'center' }}>
-                        <div style={{ width: 'calc(50% + 300px)', minWidth: '300px', maxWidth: '100%' }}>
-                            {renderSection()}
-                        </div>
-                    </motion.div>
-                </AnimatePresence>
-            )}
+            <AnimatePresence mode="wait">
+                <motion.div key={filter} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.15 }} style={{ display: 'flex', justifyContent: 'center' }}>
+                    <div style={{ width: 'calc(50% + 300px)', minWidth: '300px', maxWidth: '100%' }}>
+                        {renderSection()}
+                    </div>
+                </motion.div>
+            </AnimatePresence>
         </div>
     );
 };
