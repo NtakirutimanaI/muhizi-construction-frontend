@@ -39,7 +39,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
 
             { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests & Approvals', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER] },
             { path: '/admin/engineering-submissions', icon: 'FaDraftingCompass', label: 'Engineering Submissions', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
-            { path: '/admin/daily-reports', icon: 'FaClipboardCheck', label: 'Daily Reports', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/daily-reports', icon: 'FaClipboardCheck', label: 'Daily Reports', roles: [ROLES.ADMIN] },
             { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.MANAGER] },
             // Site safety/operating rules apply to everyone on the platform, not just operations roles.
             { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.EMPLOYEE, ROLES.CLIENT, ROLES.PARTNER] },
