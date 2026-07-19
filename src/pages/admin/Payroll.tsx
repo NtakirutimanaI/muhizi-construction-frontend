@@ -14,6 +14,24 @@ interface FormData {
     totalAllowances: number; totalDeductions: number; netSalary: number; status: string;
 }
 
+const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+        </div>
+    </div>
+);
+
 const emptyForm: FormData = {
     employeeId: '', month: new Date().getMonth() + 1, year: new Date().getFullYear(),
     basicSalary: 0, allowances: [], deductions: [], totalAllowances: 0, totalDeductions: 0, netSalary: 0, status: 'draft',
@@ -386,35 +404,17 @@ const PayrollPage = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
+            <div style={{ marginBottom: '1rem' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
                     <FaDollarSign style={{ color: 'var(--primary)' }} /> Payroll
                 </h2>
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {totals.net.toLocaleString()}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total Payroll</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {totals.basic.toLocaleString()}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Basic Salary</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {totals.allowances.toLocaleString()}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Allowances</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {totals.deductions.toLocaleString()}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Deductions</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{totals.count}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Records</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{totals.paid}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Paid</div>
-                    </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginTop: '0.75rem', marginBottom: '1.25rem' }}>
+                    <StatTile icon={<FaDollarSign />} label="Total Payroll" value={`RWF ${totals.net.toLocaleString()}`} accent="#1B2042" emphasis />
+                    <StatTile icon={<FaMoneyBillWave />} label="Basic Salary" value={`RWF ${totals.basic.toLocaleString()}`} accent="#3b82f6" />
+                    <StatTile icon={<FaCheckCircle />} label="Allowances" value={`RWF ${totals.allowances.toLocaleString()}`} accent="#22c55e" />
+                    <StatTile icon={<FaBan />} label="Deductions" value={`RWF ${totals.deductions.toLocaleString()}`} accent="#ef4444" />
+                    <StatTile icon={<FaClock />} label="Records" value={String(totals.count)} accent="#f59e0b" />
+                    <StatTile icon={<FaCheckCircle />} label="Paid" value={String(totals.paid)} accent="#22c55e" />
                 </div>
             </div>
 
