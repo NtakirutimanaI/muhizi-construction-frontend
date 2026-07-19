@@ -225,24 +225,23 @@ const MessagesInbox = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', gap: '1rem', flexWrap: 'wrap' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
                     <FaEnvelope style={{ color: 'var(--primary)' }} /> Messages
                 </h2>
-                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button onClick={() => {
-                        if (!selectedIds.size) { showToast('Select messages first', 'error'); return; }
-                        setReplySubject(''); setReplyMessage(''); setShowReply(true);
-                    }}
-                        style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <FaPaperPlane size={10} /> Reply {selectedIds.size ? `(${selectedIds.size})` : ''}
-                    </button>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
-                    <StatTile icon={<FaEnvelope />} label="Total Messages" value={String(messages.length)} accent="#1B2042" emphasis />
-                    <StatTile icon={<FaClock />} label="Unread" value={String(unreadCount)} accent="#f59e0b" />
-                    <StatTile icon={<FaCheckCircle />} label="Read" value={String(messages.length - unreadCount)} accent="#22c55e" />
-                </div>
-                </div>
+                <button onClick={() => {
+                    if (!selectedIds.size) { showToast('Select messages first', 'error'); return; }
+                    setReplySubject(''); setReplyMessage(''); setShowReply(true);
+                }}
+                    style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <FaPaperPlane size={10} /> Reply {selectedIds.size ? `(${selectedIds.size})` : ''}
+                </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                <StatTile icon={<FaEnvelope />} label="Total Messages" value={String(messages.length)} accent="#1B2042" emphasis />
+                <StatTile icon={<FaClock />} label="Unread" value={String(unreadCount)} accent="#f59e0b" />
+                <StatTile icon={<FaCheckCircle />} label="Read" value={String(messages.length - unreadCount)} accent="#22c55e" />
             </div>
 
             <div className="admin-card" style={{ marginBottom: '1rem' }}>
