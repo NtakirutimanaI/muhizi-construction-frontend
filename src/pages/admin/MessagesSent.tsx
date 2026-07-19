@@ -125,8 +125,8 @@ const MessagesSent = () => {
                 </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
-                <StatTile icon={<FaPaperPlane />} label="Sent Messages" value={String(messages.length)} accent="#1B2042" emphasis />
+            <div style={{ marginBottom: '1.25rem', maxWidth: 130 }}>
+                <StatTile icon={<FaPaperPlane />} label="Sent" value={String(messages.length)} accent="#1B2042" emphasis />
             </div>
 
             <div className="admin-card" style={{ marginBottom: '1rem' }}>
