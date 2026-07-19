@@ -99,21 +99,15 @@ const MessagesTrash = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', gap: '1rem', flexWrap: 'wrap' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
                     <FaEnvelope style={{ color: 'var(--primary)' }} /> Messages
                 </h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
-                    <StatTile icon={<FaTrash />} label="Trashed Messages" value={String(messages.length)} accent="#ef4444" emphasis />
-                </div>
+                <input type="text" className="form-input" placeholder="Search name, email, subject..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 280 }} />
             </div>
 
-            <div className="admin-card" style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <input type="text" className="form-input" placeholder="Search name, email, subject..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 280 }} />
-                    </div>
-                </div>
+            <div style={{ marginBottom: '0.75rem' }}>
+                <StatTile icon={<FaTrash />} label="Trashed Messages" value={String(messages.length)} accent="#ef4444" emphasis />
             </div>
 
             <div className="admin-card" style={{ padding: 0, overflow: 'hidden' }}>
