@@ -125,7 +125,7 @@ const MessagesSent = () => {
                 </button>
             </div>
 
-            <div style={{ marginBottom: '0.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
                 <StatTile icon={<FaPaperPlane />} label="Sent Messages" value={String(messages.length)} accent="#1B2042" emphasis />
             </div>
 
