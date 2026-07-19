@@ -67,7 +67,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         items: [
             { path: '/admin/incomes', icon: 'FaArrowUp', label: 'Incomes', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/expenses', icon: 'FaArrowDown', label: 'Expenses', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/stock/in', icon: 'FaBoxes', label: 'Stock', roles: [ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/stock/in', icon: 'FaBoxes', label: 'Stock', roles: [ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/reports', icon: 'FaChartPie', label: 'Reports', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
         ],
     },
