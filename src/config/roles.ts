@@ -116,7 +116,7 @@ export const ROLE_AREA_TITLE: Record<string, string> = {
   [ROLES.SITE_MANAGER]: 'Site Manager Area',
   [ROLES.MANAGER]: 'Manager Area',
   [ROLES.EMPLOYEE]: 'Employee Area',
-  [ROLES.MANAGING_DIRECTOR]: 'CEO Area',
+  [ROLES.MANAGING_DIRECTOR]: 'Managing Director Area',
   [ROLES.FINANCE_DIRECTOR]: 'Finance Director Area',
   [ROLES.SITE_ENGINEER]: 'Site Engineer Area',
   [ROLES.ENGINEERING_STUDIO]: 'Engineering Studio Area',
