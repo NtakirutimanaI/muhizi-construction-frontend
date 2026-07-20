@@ -1,10 +1,36 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDollarSign, FaMoneyBillWave, FaPercentage, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaCheckCircle, FaBan, FaHourglassHalf, FaClock } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDollarSign, FaMoneyBillWave, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaCheckCircle, FaBan, FaHourglassHalf, FaClock, FaArrowUp, FaMinusCircle, FaHashtag } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
 import { authService } from '../../services/authService';
+import { useToast } from '../../context/ToastContext';
 import type { Payroll, Employee, Attendance } from '../../services/hrService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
+const extractErrorMessage = (e: any, fallback: string): string => {
+    const message = e?.response?.data?.message;
+    if (Array.isArray(message)) return message.join('. ');
+    if (typeof message === 'string') return message;
+    return fallback;
+};
+
+const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+        </div>
+    </div>
+);
 
 interface FormData {
     employeeId: string; month: number; year: number;
@@ -38,6 +64,8 @@ const PayrollPage = () => {
     const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
     const [attendanceLoading, setAttendanceLoading] = useState(false);
     const [attendanceStats, setAttendanceStats] = useState<{ present: number; absent: number; late: number; halfDay: number; onLeave: number } | null>(null);
+    const [saving, setSaving] = useState(false);
+    const { showToast } = useToast();
 
     const getEmployeeName = useCallback((id: string) => {
         const emp = employees.find(e => e.id === id);
@@ -350,6 +378,8 @@ const PayrollPage = () => {
     };
 
     const handleSave = async () => {
+        if (saving) return;
+        setSaving(true);
         try {
             const payload = {
                 ...form,
@@ -357,17 +387,20 @@ const PayrollPage = () => {
                 totalDeductions: form.deductions.reduce((s, d) => s + (d.amount || 0), 0),
                 netSalary: form.basicSalary + form.allowances.reduce((s, a) => s + (a.amount || 0), 0) - form.deductions.reduce((s, d) => s + (d.amount || 0), 0),
             };
-            if (editing) await hrService.updatePayroll(editing.id, payload);
-            else await hrService.createPayroll(payload);
+            if (editing) {
+                await hrService.updatePayroll(editing.id, payload);
+                showToast('Payroll record updated', 'success');
+            } else {
+                await hrService.createPayroll(payload);
+                showToast('Payroll record saved', 'success');
+            }
             setShowModal(false);
             fetch();
-        } catch (e) { console.error(e); }
-    };
-
-    const handleDelete = async (id: string) => {
-        if (!window.confirm('Delete this payroll record?')) return;
-        try { await hrService.deletePayroll(id); fetch(); }
-        catch (e) { console.error(e); }
+        } catch (e) {
+            showToast(extractErrorMessage(e, 'Failed to save payroll record'), 'error');
+        } finally {
+            setSaving(false);
+        }
     };
 
     if (loading) return <div className="admin-page"><div className="inline-spinner">Loading payroll...</div></div>;
@@ -378,36 +411,16 @@ const PayrollPage = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
-                    <FaDollarSign style={{ color: 'var(--primary)' }} /> Payroll
-                </h2>
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {totals.net.toLocaleString()}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total Payroll</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {totals.basic.toLocaleString()}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Basic Salary</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {totals.allowances.toLocaleString()}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Allowances</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {totals.deductions.toLocaleString()}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Deductions</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{totals.count}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Records</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 3.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{totals.paid}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Paid</div>
-                    </div>
-                </div>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.85rem' }}>
+                <FaDollarSign style={{ color: 'var(--primary)' }} /> Payroll
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                <StatTile icon={<FaMoneyBillWave />} label="Total payroll" value={`RWF ${totals.net.toLocaleString()}`} accent="#22c55e" emphasis />
+                <StatTile icon={<FaDollarSign />} label="Basic salary" value={`RWF ${totals.basic.toLocaleString()}`} accent="#1B2042" />
+                <StatTile icon={<FaArrowUp />} label="Allowances" value={`RWF ${totals.allowances.toLocaleString()}`} accent="#3b82f6" />
+                <StatTile icon={<FaMinusCircle />} label="Deductions" value={`RWF ${totals.deductions.toLocaleString()}`} accent="#e11d48" />
+                <StatTile icon={<FaHashtag />} label="Records" value={String(totals.count)} accent="#06b6d4" />
+                <StatTile icon={<FaCheckCircle />} label="Paid" value={String(totals.paid)} accent="#8b5cf6" />
             </div>
 
             <div className="admin-card">
@@ -461,7 +474,6 @@ const PayrollPage = () => {
                                     <td>
                                         <div style={{ display: 'flex', gap: 6 }}>
                                             <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)}><FaEdit /></button>
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)}><FaTrash /></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -619,8 +631,10 @@ const PayrollPage = () => {
                             </div>
                         </div>
                         <div className="admin-modal-footer">
-                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button className="admin-btn" onClick={handleSave}>Save</button>
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)} disabled={saving}>Cancel</button>
+                            <button className="admin-btn" onClick={handleSave} disabled={saving}>
+                                {saving ? 'Saving...' : 'Save'}
+                            </button>
                         </div>
                     </div>
                 </div>
