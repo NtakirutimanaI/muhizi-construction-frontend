@@ -16,7 +16,6 @@ export interface ContactMessage {
     sender?: {
         id: string;
         email?: string;
-        username?: string;
         profile?: { firstName?: string; lastName?: string };
     };
 }
@@ -25,7 +24,6 @@ export interface Profile {
     id: string;
     firstName: string;
     lastName: string;
-    username: string;
     email: string;
     bio: string;
     greeting: string;

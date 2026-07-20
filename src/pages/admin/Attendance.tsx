@@ -105,7 +105,7 @@ const AttendancePage = () => {
                 const created = await Promise.all(
                     missing.map((u: any) =>
                         hrService.createEmployee({
-                            firstName: u.profile?.firstName || u.username || 'Unknown',
+                            firstName: u.profile?.firstName || u.email || 'Unknown',
                             lastName: u.profile?.lastName || 'User',
                             email: u.email,
                             department: 'other',

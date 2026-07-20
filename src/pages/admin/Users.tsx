@@ -27,7 +27,6 @@ const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactN
 interface UserData {
     id: string;
     email: string;
-    username: string;
     role: string;
     isActive: boolean;
     profile?: { firstName?: string; lastName?: string; avatar?: string; phone?: string };
@@ -45,7 +44,7 @@ const Users = () => {
     const [showModal, setShowModal] = useState<'add' | 'edit' | 'view' | null>(null);
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
     const [form, setForm] = useState({
-        firstName: '', lastName: '', email: '', username: '', password: '', role: 'site_engineer', isActive: true, phone: '',
+        firstName: '', lastName: '', email: '', password: '', role: 'site_engineer', isActive: true, phone: '',
     });
     const [showPassword, setShowPassword] = useState(false);
     const [passwordError, setPasswordError] = useState('');
@@ -61,8 +60,7 @@ const Users = () => {
             if (q) {
                 const name = `${u.profile?.firstName || ''} ${u.profile?.lastName || ''}`.toLowerCase();
                 const email = u.email.toLowerCase();
-                const username = u.username.toLowerCase();
-                if (!name.includes(q) && !email.includes(q) && !username.includes(q)) return false;
+                if (!name.includes(q) && !email.includes(q)) return false;
             }
             if (fromDate && new Date(u.createdAt) < new Date(fromDate)) return false;
             if (toDate) {
@@ -85,7 +83,7 @@ const Users = () => {
     const tableData = useMemo(() => filteredUsers.map((u, i) => [
         String(i + 1),
         u.profile?.firstName || '', u.profile?.lastName || '',
-        u.email, u.profile?.phone || '', u.username, u.role, u.isActive ? 'Active' : 'Inactive',
+        u.email, u.profile?.phone || '', u.role, u.isActive ? 'Active' : 'Inactive',
         new Date(u.createdAt).toLocaleDateString(),
     ]), [filteredUsers]);
 
@@ -123,7 +121,7 @@ const Users = () => {
 
         // Table
         autoTable(doc, {
-            head: [['#', 'First Name', 'Last Name', 'Email', 'Phone', 'Username', 'Role', 'Status', 'Joined']],
+            head: [['#', 'First Name', 'Last Name', 'Email', 'Phone', 'Role', 'Status', 'Joined']],
             body: tableData,
             startY: 46,
             styles: { fontSize: 8, textColor: '#333' },
@@ -148,7 +146,7 @@ const Users = () => {
         const brown = '#1B2042';
         const today = new Date().toLocaleDateString();
         const period = fromDate && toDate ? `Period: ${fromDate} to ${toDate}` : '';
-        const headers = ['#', 'First Name', 'Last Name', 'Email', 'Phone', 'Username', 'Role', 'Status', 'Joined'];
+        const headers = ['#', 'First Name', 'Last Name', 'Email', 'Phone', 'Role', 'Status', 'Joined'];
         const rows = tableData.map(r => `<tr>${r.map(c => `<td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${c}</td>`).join('')}</tr>`).join('');
 
         const html = `
@@ -233,7 +231,7 @@ const Users = () => {
     }, [totalPages, page]);
 
     const openAdd = () => {
-        setForm({ firstName: '', lastName: '', email: '', username: '', password: '', role: 'site_engineer', isActive: true, phone: '' });
+        setForm({ firstName: '', lastName: '', email: '', password: '', role: 'site_engineer', isActive: true, phone: '' });
         setSelectedUser(null);
         setPasswordError('');
         setModalPos(null);
@@ -246,7 +244,6 @@ const Users = () => {
             firstName: u.profile?.firstName || '',
             lastName: u.profile?.lastName || '',
             email: u.email,
-            username: u.username,
             password: '',
             role: u.role,
             isActive: u.isActive,
@@ -279,7 +276,6 @@ const Users = () => {
                     firstName: form.firstName,
                     lastName: form.lastName,
                     email: form.email,
-                    username: form.username,
                     role: form.role,
                     isActive: form.isActive,
                     phone: form.phone,
@@ -469,10 +465,6 @@ const Users = () => {
                                     <input type="email" className="form-input" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="user@example.com" />
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Username</label>
-                                    <input className="form-input" value={form.username} onChange={e => setForm(p => ({ ...p, username: e.target.value }))} placeholder="Choose a username" />
-                                </div>
-                                <div className="form-group">
                                     <label className="form-label">Phone</label>
                                     <input type="tel" className="form-input" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+250 788 000 000" />
                                 </div>
@@ -545,10 +537,6 @@ const Users = () => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
                                     <span style={{ color: 'var(--text-muted)' }}>Phone</span>
                                     <span style={{ fontWeight: 600 }}>{selectedUser.profile?.phone || '—'}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
-                                    <span style={{ color: 'var(--text-muted)' }}>Username</span>
-                                    <span style={{ fontWeight: 600 }}>{selectedUser.username}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
                                     <span style={{ color: 'var(--text-muted)' }}>Status</span>

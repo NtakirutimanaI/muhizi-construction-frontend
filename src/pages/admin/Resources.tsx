@@ -32,7 +32,7 @@ const SECTION_ICONS: Record<string, React.ReactNode> = {
 const SECTIONS: SectionId[] = ['home-sections', 'about-sections', 'projects', 'team', 'news', 'certifications', 'footer', 'brand', 'general'];
 
 const emptyP: Profile = {
-    id: '', firstName: '', lastName: '', username: '', email: '', bio: '', greeting: '', aboutMeTitle: '', title: '',
+    id: '', firstName: '', lastName: '', email: '', bio: '', greeting: '', aboutMeTitle: '', title: '',
     location: '', phone: '', website: '', avatar: '', cvUrl: '', company: '', yearsOfExperience: 0,
     availableForHire: false, isPublic: false, about: '', education: [], experience: [],
     skills: { backend: [], frontend: [], databases: [], tools: [] }, projects: [], certifications: [], languages: [], teamMembers: [], socialLinks: {}, services: [],

@@ -66,7 +66,7 @@ import './index.css';
 
 const defaultProfile: Profile = {
   id: '', firstName: 'MUHIZI', lastName: 'CONSTRUCTION',
-  username: 'muhizi_construction', email: 'info@muhiziconstruction.rw',
+  email: 'info@muhiziconstruction.rw',
   bio: 'Leading construction company in Rwanda', greeting: 'Welcome',
   aboutMeTitle: 'About Us', title: 'Real Estate & Construction',
   location: 'Kigali, Rwanda', phone: '', website: '',

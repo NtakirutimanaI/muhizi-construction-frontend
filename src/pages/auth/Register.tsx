@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
 
 const Register = () => {
-    const [form, setForm] = useState({ firstName: '', lastName: '', username: '', email: '', phone: '', password: '' });
+    const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -74,9 +74,6 @@ const Register = () => {
                             <input name="lastName" value={form.lastName} onChange={handleChange}
                                 className="auth-input" placeholder="Last Name" required />
                         </div>
-
-                        <input name="username" value={form.username} onChange={handleChange}
-                            className="auth-input" placeholder="Username" required />
 
                         <input type="email" name="email" value={form.email} onChange={handleChange}
                             className="auth-input" placeholder="Email Address" required />

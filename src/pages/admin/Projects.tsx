@@ -16,7 +16,7 @@ interface FormData {
 }
 
 interface PortalUserOption {
-    id: string; email: string; username: string; role: string;
+    id: string; email: string; role: string;
     profile?: { firstName?: string; lastName?: string };
 }
 
@@ -516,7 +516,7 @@ const Projects = () => {
                                     <select className="form-select" value={form.clientUserId} onChange={e => setForm(p => ({ ...p, clientUserId: e.target.value }))}>
                                         <option value="">— Not linked —</option>
                                         {clientUsers.map(u => {
-                                            const label = `${u.profile?.firstName || ''} ${u.profile?.lastName || ''}`.trim() || u.username;
+                                            const label = `${u.profile?.firstName || ''} ${u.profile?.lastName || ''}`.trim() || u.email;
                                             return <option key={u.id} value={u.id}>{label} ({u.email})</option>;
                                         })}
                                     </select>
@@ -529,7 +529,7 @@ const Projects = () => {
                                     <select className="form-select" value={form.partnerUserId} onChange={e => setForm(p => ({ ...p, partnerUserId: e.target.value }))}>
                                         <option value="">— Not linked —</option>
                                         {partnerUsers.map(u => {
-                                            const label = `${u.profile?.firstName || ''} ${u.profile?.lastName || ''}`.trim() || u.username;
+                                            const label = `${u.profile?.firstName || ''} ${u.profile?.lastName || ''}`.trim() || u.email;
                                             return <option key={u.id} value={u.id}>{label} ({u.email})</option>;
                                         })}
                                     </select>

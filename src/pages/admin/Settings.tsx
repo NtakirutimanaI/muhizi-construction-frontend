@@ -175,10 +175,6 @@ const Settings = () => {
                         </h3>
                         <div style={{ display: 'grid', gap: '0.4rem' }}>
                             <div className="form-group" style={{ width: '100%' }}>
-                                <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>Username</label>
-                                <input className="form-input" value={user?.username || ''} disabled style={{ opacity: 0.7 }} />
-                            </div>
-                            <div className="form-group" style={{ width: '100%' }}>
                                 <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>Email</label>
                                 <input className="form-input" value={user?.email || ''} disabled style={{ opacity: 0.7 }} />
                             </div>

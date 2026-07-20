@@ -4,7 +4,6 @@ import { authService } from '../services/authService';
 interface User {
     id: string;
     email: string;
-    username: string;
     firstName: string;
     lastName: string;
     role: string;
@@ -39,7 +38,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     const mappedUser: User = {
                         id: me.id,
                         email: me.email,
-                        username: me.username,
                         firstName: me.profile?.firstName || '',
                         lastName: me.profile?.lastName || '',
                         role: me.role,
@@ -67,7 +65,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const mappedUser: User = {
             id: newUser.id,
             email: newUser.email,
-            username: newUser.username,
             firstName: newUser.profile?.firstName || newUser.firstName || '',
             lastName: newUser.profile?.lastName || newUser.lastName || '',
             role: newUser.role,
