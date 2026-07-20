@@ -33,7 +33,8 @@ const Login = () => {
             const target = getRolePath(data.user?.role || '');
             navigate(target);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
+            const errMsg = err.response?.data?.message;
+            setError(Array.isArray(errMsg) ? errMsg.join('. ') : (errMsg || 'Failed to login. Please check your credentials.'));
         } finally {
             setIsLoading(false);
         }

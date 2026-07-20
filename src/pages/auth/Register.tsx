@@ -30,7 +30,8 @@ const Register = () => {
             const target = getRolePath(data.user?.role || '');
             navigate(target);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Registration failed. Please try again.');
+            const errMsg = err.response?.data?.message;
+            setError(Array.isArray(errMsg) ? errMsg.join('. ') : (errMsg || 'Registration failed. Please try again.'));
         } finally {
             setIsLoading(false);
         }
@@ -83,11 +84,14 @@ const Register = () => {
 
                         <div className="auth-password-wrap">
                             <input type={showPassword ? 'text' : 'password'} name="password" value={form.password} onChange={handleChange}
-                                className="auth-input" placeholder="Password" minLength={6} required />
+                                    className="auth-input" placeholder="Password" minLength={8} required />
                             <button type="button" onClick={() => setShowPassword(!showPassword)} className="auth-eye-btn">
                                 {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
                             </button>
                         </div>
+                        <p style={{ fontSize: '0.75rem', color: '#888', margin: '-4px 0 8px' }}>
+                            Min 8 chars, 1 uppercase, 1 lowercase, 1 special character
+                        </p>
 
                         <motion.button
                             type="submit"
