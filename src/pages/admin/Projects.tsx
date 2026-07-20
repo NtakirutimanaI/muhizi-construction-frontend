@@ -48,8 +48,11 @@ const Projects = () => {
     const [lastCreatedSiteId, setLastCreatedSiteId] = useState<string | null>(null);
     const [creatingProjectForSite, setCreatingProjectForSite] = useState(false);
     const [siteForm, setSiteForm] = useState({
-        name: '', location: '', activity: ''
+        name: '', location: '', activity: '', assignedEngineerId: ''
     });
+    const [editingSiteEngineer, setEditingSiteEngineer] = useState<Site | null>(null);
+    const [savingSiteEngineer, setSavingSiteEngineer] = useState(false);
+    const [pendingEngineerId, setPendingEngineerId] = useState('');
     const [searchParams, setSearchParams] = useSearchParams();
     const createProjectForSite = searchParams.get('createProject');
     const createProjectSiteId = searchParams.get('siteId');
@@ -64,6 +67,8 @@ const Projects = () => {
     const [portalUsers, setPortalUsers] = useState<PortalUserOption[]>([]);
     const clientUsers = useMemo(() => portalUsers.filter(u => u.role === 'client'), [portalUsers]);
     const partnerUsers = useMemo(() => portalUsers.filter(u => u.role === 'partner'), [portalUsers]);
+    const siteEngineerUsers = useMemo(() => portalUsers.filter(u => u.role === 'site_engineer'), [portalUsers]);
+    const siteEngineerName = (u: PortalUserOption) => `${u.profile?.firstName || ''} ${u.profile?.lastName || ''}`.trim() || u.email;
 
     useEffect(() => {
         if (createProjectForSite === 'true' && createProjectSiteId) {
@@ -93,14 +98,14 @@ const Projects = () => {
         }
     }, [showModal, editing]);
 
-    // Fetch client/partner accounts once, for the "Link to Client/Partner Account" dropdowns
+    // Fetch client/partner/site-engineer accounts once, for the various assignment dropdowns
     useEffect(() => {
-        if (showModal && portalUsers.length === 0) {
+        if ((showModal || showCreateSite || editingSiteEngineer) && portalUsers.length === 0) {
             authService.getAllUsers()
                 .then((all: any[]) => setPortalUsers(all || []))
                 .catch(() => setPortalUsers([]));
         }
-    }, [showModal, portalUsers.length]);
+    }, [showModal, showCreateSite, editingSiteEngineer, portalUsers.length]);
 
     const fetch = async () => {
         const cached = loadPageCache<{ projects: Project[]; allSites: Site[] }>('pg_projects');
@@ -239,16 +244,19 @@ const Projects = () => {
         if (!siteForm.name.trim()) { showToast('Site name is required', 'error'); return; }
         try {
             setCreatingSite(true);
+            const assignedEngineer = siteEngineerUsers.find(u => u.id === siteForm.assignedEngineerId);
             const res = await sitesService.create({
                 name: siteForm.name,
                 location: siteForm.location || undefined,
                 description: siteForm.activity || undefined,
+                assignedEngineerId: siteForm.assignedEngineerId || undefined,
+                assignedEngineerName: assignedEngineer ? siteEngineerName(assignedEngineer) : undefined,
             });
             const createdSite = res.data || res;
             setLastCreatedSiteId(createdSite.id);
             showToast('Site created successfully!', 'success');
             setShowCreateSite(false);
-            setSiteForm({ name: '', location: '', activity: '' });
+            setSiteForm({ name: '', location: '', activity: '', assignedEngineerId: '' });
             window.dispatchEvent(new CustomEvent('sites-updated', { detail: { projectId: 'all' } }));
             fetch();
         } catch (e: any) {
@@ -256,6 +264,32 @@ const Projects = () => {
             showToast(errMsg, 'error');
         } finally {
             setCreatingSite(false);
+        }
+    };
+
+    const openEditSiteEngineer = (site: Site) => {
+        setEditingSiteEngineer(site);
+        setPendingEngineerId(site.assignedEngineerId || '');
+    };
+
+    const handleSaveSiteEngineer = async () => {
+        if (!editingSiteEngineer) return;
+        setSavingSiteEngineer(true);
+        try {
+            const assignedEngineer = siteEngineerUsers.find(u => u.id === pendingEngineerId);
+            await sitesService.update(editingSiteEngineer.id, {
+                assignedEngineerId: (pendingEngineerId || null) as unknown as string,
+                assignedEngineerName: (assignedEngineer ? siteEngineerName(assignedEngineer) : null) as unknown as string,
+            });
+            showToast('Site engineer updated', 'success');
+            setEditingSiteEngineer(null);
+            window.dispatchEvent(new CustomEvent('sites-updated', { detail: { projectId: 'all' } }));
+            fetch();
+        } catch (e: any) {
+            const errMsg = e?.response?.data?.message || e?.message || 'Failed to update site engineer';
+            showToast(Array.isArray(errMsg) ? errMsg.join('. ') : errMsg, 'error');
+        } finally {
+            setSavingSiteEngineer(false);
         }
     };
 
@@ -572,12 +606,49 @@ const Projects = () => {
                                     <label className="form-label">Activity</label>
                                     <textarea className="form-textarea" rows={2} value={siteForm.activity} onChange={e => setSiteForm(p => ({ ...p, activity: e.target.value }))} placeholder="What activity is happening at this site?" />
                                 </div>
+                                <div className="form-group">
+                                    <label className="form-label">Site Engineer</label>
+                                    <select className="form-select" value={siteForm.assignedEngineerId} onChange={e => setSiteForm(p => ({ ...p, assignedEngineerId: e.target.value }))}>
+                                        <option value="">— Unassigned —</option>
+                                        {siteEngineerUsers.map(u => <option key={u.id} value={u.id}>{siteEngineerName(u)}</option>)}
+                                    </select>
+                                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>The engineer assigned here will only see this site and its data — attendance, activities, evidence — once logged in.</p>
+                                </div>
                             </div>
                         </div>
                         <div className="admin-modal-footer">
                             <button className="admin-btn admin-btn--secondary" onClick={() => setShowCreateSite(false)}>Cancel</button>
                             <button className="admin-btn" onClick={handleCreateSite} disabled={creatingSite} style={{ background: '#8B5CF6', borderColor: '#8B5CF6' }}>
                                 {creatingSite ? 'Creating...' : 'Create Site'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {editingSiteEngineer && (
+                <div className="admin-modal-overlay" onClick={() => !savingSiteEngineer && setEditingSiteEngineer(null)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', borderRadius: 12 }}>
+                        <div className="admin-modal-header">
+                            <h3 style={{ fontSize: '1rem' }}><FaHardHat style={{ marginRight: 8, color: '#8B5CF6' }} />Assign Site Engineer</h3>
+                            <button onClick={() => !savingSiteEngineer && setEditingSiteEngineer(null)}><FaTimesIcon /></button>
+                        </div>
+                        <div className="admin-modal-body">
+                            <p style={{ fontSize: '0.85rem', margin: '0 0 0.75rem' }}>
+                                Which Site Engineer should see and manage <strong>{editingSiteEngineer.name}</strong>?
+                            </p>
+                            <div className="form-group">
+                                <label className="form-label">Site Engineer</label>
+                                <select className="form-select" value={pendingEngineerId} onChange={e => setPendingEngineerId(e.target.value)}>
+                                    <option value="">— Unassigned —</option>
+                                    {siteEngineerUsers.map(u => <option key={u.id} value={u.id}>{siteEngineerName(u)}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                        <div className="admin-modal-footer">
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setEditingSiteEngineer(null)} disabled={savingSiteEngineer}>Cancel</button>
+                            <button className="admin-btn" onClick={handleSaveSiteEngineer} disabled={savingSiteEngineer} style={{ background: '#8B5CF6', borderColor: '#8B5CF6' }}>
+                                {savingSiteEngineer ? 'Saving...' : 'Save'}
                             </button>
                         </div>
                     </div>
@@ -653,11 +724,22 @@ const Projects = () => {
                                     <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.4rem' }}>
                                         <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Linked Sites ({linkedSites.length})</div>
                                         {linkedSites.map(s => (
-                                            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', padding: '0.2rem 0' }}>
-                                                <FaHardHat size={10} style={{ color: '#8B5CF6' }} />
-                                                <span style={{ fontWeight: 600 }}>{s.name}</span>
-                                                {s.location && <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>— {s.location}</span>}
-                                                <span style={{ fontSize: '0.65rem', fontWeight: 600, padding: '0.05rem 0.35rem', borderRadius: '6px', background: s.status === 'active' ? '#22c55e20' : '#f59e0b20', color: s.status === 'active' ? '#22c55e' : '#f59e0b', marginLeft: 'auto', textTransform: 'capitalize' }}>{s.status}</span>
+                                            <div key={s.id} style={{ padding: '0.25rem 0' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem' }}>
+                                                    <FaHardHat size={10} style={{ color: '#8B5CF6' }} />
+                                                    <span style={{ fontWeight: 600 }}>{s.name}</span>
+                                                    {s.location && <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>— {s.location}</span>}
+                                                    <span style={{ fontSize: '0.65rem', fontWeight: 600, padding: '0.05rem 0.35rem', borderRadius: '6px', background: s.status === 'active' ? '#22c55e20' : '#f59e0b20', color: s.status === 'active' ? '#22c55e' : '#f59e0b', marginLeft: 'auto', textTransform: 'capitalize' }}>{s.status}</span>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem', color: 'var(--text-muted)', paddingLeft: '1.05rem', marginTop: '0.1rem' }}>
+                                                    <FaUser size={9} />
+                                                    {s.assignedEngineerName ? `Engineer: ${s.assignedEngineerName}` : 'No Site Engineer assigned'}
+                                                    {isAdmin && (
+                                                        <button className="admin-btn admin-btn--secondary" onClick={() => openEditSiteEngineer(s)} style={{ padding: '0.05rem 0.4rem', fontSize: '0.65rem', marginLeft: '0.3rem' }}>
+                                                            {s.assignedEngineerName ? 'Reassign' : 'Assign'}
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
