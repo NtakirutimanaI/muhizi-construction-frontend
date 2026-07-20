@@ -5,6 +5,7 @@ import type { Design, Project } from '../../services/constructionService';
 import { uploadService } from '../../services/uploadService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 interface FormData {
     title: string; description: string; type: string; status: string;
@@ -17,7 +18,7 @@ const PAGE_SIZES = [5, 10, 15, 20];
 const Designs = () => {
     const [data, setData] = useState<Design[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Design | null>(null);
     const [form, setForm] = useState<FormData>(emptyForm);
@@ -34,6 +35,11 @@ const Designs = () => {
     const [thumbUploadProgress, setThumbUploadProgress] = useState(0);
 
     const fetch = async () => {
+        const cached = loadPageCache<{ designs: Design[]; projects: Project[] }>('pg_designs');
+        if (cached) {
+            setData(cached.designs || []);
+            setProjects(cached.projects || []);
+        }
         try {
             const [desRes, projRes] = await Promise.all([
                 constructionService.getDesigns(),
@@ -41,6 +47,7 @@ const Designs = () => {
             ]);
             setData(desRes.data || []);
             setProjects(projRes.data || []);
+            savePageCache('pg_designs', { designs: desRes.data || [], projects: projRes.data || [] });
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
@@ -244,8 +251,6 @@ const Designs = () => {
         try { await constructionService.deleteDesign(id); fetch(); }
         catch (e) { console.error(e); }
     };
-
-    if (loading) return <div className="admin-page"><div className="inline-spinner">Loading designs...</div></div>;
 
     const statusColors: Record<string, string> = {
         draft: '#6b7280', approved: '#22c55e', rejected: '#ef4444',

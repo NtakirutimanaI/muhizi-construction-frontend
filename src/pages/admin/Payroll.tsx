@@ -3,6 +3,7 @@ import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDollarSign, FaMoneyB
 import { hrService } from '../../services/hrService';
 import { authService } from '../../services/authService';
 import { useToast } from '../../context/ToastContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import type { Payroll, Employee, Attendance } from '../../services/hrService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -51,7 +52,7 @@ const PayrollPage = () => {
     const [data, setData] = useState<Payroll[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [attendanceRecords, setAttendanceRecords] = useState<Attendance[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Payroll | null>(null);
     const [form, setForm] = useState<FormData>(emptyForm);
@@ -72,14 +73,19 @@ const PayrollPage = () => {
         return emp ? `${emp.firstName} ${emp.lastName}` : id;
     }, [employees]);
 
-    const fetch = async () => {
+    const fetchPayroll = async () => {
+        const cached = loadPageCache<{ data: Payroll[]; employees: Employee[] }>('pg_payroll');
+        if (cached) {
+            setData(cached.data || []);
+            setEmployees(cached.employees || []);
+        }
         try {
             const [payRes, empRes, usersRes] = await Promise.all([
                 hrService.getPayroll(),
                 hrService.getEmployees(),
                 authService.getAllUsers().catch(() => []),
             ]);
-            setData(payRes.data || []);
+            const freshData = payRes.data || [];
             const empData = empRes.data || [];
             const users = Array.isArray(usersRes) ? usersRes : [];
             const employeeUsers = users.filter((u: any) => u.role === 'engineering_studio');
@@ -88,6 +94,7 @@ const PayrollPage = () => {
                 const email = (u.email || '').toLowerCase();
                 return email && !empEmails.has(email);
             });
+            let finalEmployees: Employee[];
             if (missing.length > 0) {
                 const created = await Promise.all(
                     missing.map((u: any) =>
@@ -101,15 +108,18 @@ const PayrollPage = () => {
                         }).then(r => r.data).catch(() => null)
                     )
                 );
-                setEmployees([...empData, ...created.filter(Boolean) as Employee[]]);
+                finalEmployees = [...empData, ...created.filter(Boolean) as Employee[]];
             } else {
-                setEmployees(empData);
+                finalEmployees = empData;
             }
+            setData(freshData);
+            setEmployees(finalEmployees);
+            savePageCache('pg_payroll', { data: freshData, employees: finalEmployees });
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
 
-    useEffect(() => { fetch(); }, []);
+    useEffect(() => { fetchPayroll(); }, []);
 
     const filtered = useMemo(() => {
         const q = search.toLowerCase().trim();
@@ -395,7 +405,7 @@ const PayrollPage = () => {
                 showToast('Payroll record saved', 'success');
             }
             setShowModal(false);
-            fetch();
+            fetchPayroll();
         } catch (e) {
             showToast(extractErrorMessage(e, 'Failed to save payroll record'), 'error');
         } finally {
@@ -403,24 +413,24 @@ const PayrollPage = () => {
         }
     };
 
-    if (loading) return <div className="admin-page"><div className="inline-spinner">Loading payroll...</div></div>;
-
     const statusColors: Record<string, string> = {
         draft: '#6b7280', paid: '#22c55e', pending: '#f59e0b',
     };
 
     return (
         <div className="admin-page">
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.85rem' }}>
-                <FaDollarSign style={{ color: 'var(--primary)' }} /> Payroll
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
-                <StatTile icon={<FaMoneyBillWave />} label="Total payroll" value={`RWF ${totals.net.toLocaleString()}`} accent="#22c55e" emphasis />
-                <StatTile icon={<FaDollarSign />} label="Basic salary" value={`RWF ${totals.basic.toLocaleString()}`} accent="#1B2042" />
-                <StatTile icon={<FaArrowUp />} label="Allowances" value={`RWF ${totals.allowances.toLocaleString()}`} accent="#3b82f6" />
-                <StatTile icon={<FaMinusCircle />} label="Deductions" value={`RWF ${totals.deductions.toLocaleString()}`} accent="#e11d48" />
-                <StatTile icon={<FaHashtag />} label="Records" value={String(totals.count)} accent="#06b6d4" />
-                <StatTile icon={<FaCheckCircle />} label="Paid" value={String(totals.paid)} accent="#8b5cf6" />
+            <div style={{ marginBottom: '1rem' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
+                    <FaDollarSign style={{ color: 'var(--primary)' }} /> Payroll
+                </h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginTop: '0.75rem', marginBottom: '1.25rem' }}>
+                    <StatTile icon={<FaMoneyBillWave />} label="Total payroll" value={`RWF ${totals.net.toLocaleString()}`} accent="#22c55e" emphasis />
+                    <StatTile icon={<FaDollarSign />} label="Basic salary" value={`RWF ${totals.basic.toLocaleString()}`} accent="#1B2042" />
+                    <StatTile icon={<FaArrowUp />} label="Allowances" value={`RWF ${totals.allowances.toLocaleString()}`} accent="#3b82f6" />
+                    <StatTile icon={<FaMinusCircle />} label="Deductions" value={`RWF ${totals.deductions.toLocaleString()}`} accent="#e11d48" />
+                    <StatTile icon={<FaHashtag />} label="Records" value={String(totals.count)} accent="#06b6d4" />
+                    <StatTile icon={<FaCheckCircle />} label="Paid" value={String(totals.paid)} accent="#8b5cf6" />
+                </div>
             </div>
 
             <div className="admin-card">

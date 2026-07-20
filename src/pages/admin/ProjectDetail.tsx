@@ -5,6 +5,7 @@ import { constructionService } from '../../services/constructionService';
 import { sitesService, type Site, type SiteActivity, type SiteRule, type ProjectEvidence, type Approval, type Contract } from '../../services/sitesService';
 import { useToast } from '../../context/ToastContext';
 import { FaArrowLeft, FaProjectDiagram, FaHardHat, FaTruck, FaCamera, FaCheckDouble, FaFileAlt, FaGavel, FaMapMarkerAlt, FaUser, FaCalendarAlt, FaCheckCircle, FaSpinner, FaClock, FaTimesCircle, FaCheck, FaBullhorn, FaLock, FaListAlt, FaExclamationTriangle, FaMoneyCheckAlt, FaPlus, FaTimes as FaTimesIcon } from 'react-icons/fa';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 type Tab = 'overview' | 'sites' | 'approvals' | 'contracts' | 'rules';
 
@@ -50,7 +51,7 @@ const ProjectDetail = () => {
     const [approvals, setApprovals] = useState<Approval[]>([]);
     const [contracts, setContracts] = useState<Contract[]>([]);
     const [activeTab, setActiveTab] = useState<Tab>('overview');
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [selectedApproval, setSelectedApproval] = useState<Approval | null>(null);
     const [selectedRule, setSelectedRule] = useState<SiteRule | null>(null);
     const [showCreateSite, setShowCreateSite] = useState(false);
@@ -59,24 +60,37 @@ const ProjectDetail = () => {
 
     useEffect(() => {
         if (!id) return;
+        const cacheKey = 'pg_project_detail';
+        const cached = loadPageCache<any>(cacheKey);
+        if (cached) {
+            if (cached.project) setProject(cached.project);
+            if (cached.sites) setSites(cached.sites);
+            if (cached.approvals) setApprovals(cached.approvals);
+            if (cached.contracts) setContracts(cached.contracts);
+        }
+
         const fetch = async () => {
             try {
-                const [projRes, sitesRes] = await Promise.all([
+                const [projRes, sitesRes, approvalsRes, contractsRes] = await Promise.all([
                     constructionService.getProject(id!),
                     sitesService.getByProject(id!),
+                    api.get('/approvals').catch(() => ({ data: [] })),
+                    api.get('/contracts').catch(() => ({ data: [] })),
                 ]);
-                setProject(projRes.data);
-                setSites(sitesRes.data || []);
+                const projData = projRes.data;
+                const sitesData = sitesRes.data || [];
+                const approvalsData = (approvalsRes.data || []) as Approval[];
+                const contractsData = (contractsRes.data || []) as Contract[];
+                setProject(projData);
+                setSites(sitesData);
+                setApprovals(approvalsData);
+                setContracts(contractsData);
+                savePageCache(cacheKey, { project: projData, sites: sitesData, approvals: approvalsData, contracts: contractsData });
             } catch {
                 setProject(null);
-            } finally {
-                setLoading(false);
             }
         };
         fetch();
-
-        api.get('/approvals').then(r => setApprovals((r.data || []) as Approval[])).catch(() => setApprovals([]));
-        api.get('/contracts').then(r => setContracts((r.data || []) as Contract[])).catch(() => setContracts([]));
     }, [id]);
 
     const handleCreateSite = async () => {
@@ -107,7 +121,6 @@ const ProjectDetail = () => {
         }
     };
 
-    if (loading) return <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading project...</div>;
     if (!project) return <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Project not found.</div>;
 
     const allActivities = sites.flatMap(s => (s.activities || []).map(a => ({ ...a, siteName: s.name })));

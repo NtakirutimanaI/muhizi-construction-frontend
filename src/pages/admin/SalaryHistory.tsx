@@ -1,10 +1,29 @@
 import { useState, useEffect } from 'react';
-import { FaHistory, FaCheckCircle, FaClock, FaBan } from 'react-icons/fa';
+import { FaHistory, FaCheckCircle, FaClock, FaBan, FaDollarSign, FaMoneyBillWave } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
 import { useAuth } from '../../context/AuthContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import type { Payroll } from '../../services/hrService';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+        </div>
+    </div>
+);
 
 const statusIcon: Record<string, React.ReactNode> = {
     paid: <FaCheckCircle style={{ color: '#22c55e' }} />,
@@ -15,20 +34,24 @@ const statusIcon: Record<string, React.ReactNode> = {
 const SalaryHistory = () => {
     const { user } = useAuth();
     const [records, setRecords] = useState<Payroll[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [err, setErr] = useState('');
 
     useEffect(() => {
         const fetch = async () => {
+            const cached = loadPageCache<{ records: Payroll[] }>('pg_salary_history');
+            if (cached) {
+                setRecords(cached.records || []);
+            }
             try {
                 const empId = user?.id;
-                if (!empId) { setLoading(false); return; }
+                if (!empId) return;
                 const res = await hrService.getPayrollByEmployee(empId);
-                setRecords(res.data || []);
+                const freshRecords = res.data || [];
+                setRecords(freshRecords);
+                savePageCache('pg_salary_history', { records: freshRecords });
             } catch (e: any) {
                 setErr(e.response?.data?.message || 'Could not load records.');
-            } finally {
-                setLoading(false);
             }
         };
         fetch();
@@ -43,33 +66,16 @@ const SalaryHistory = () => {
 
     return (
         <div>
-            <div style={{ marginBottom: '1.5rem' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <FaHistory style={{ color: '#1B2042' }} /> Salary History
-                </h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>View your salary and payment records</p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div className="content-card" style={{ padding: '1rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800 }}>RWF {totals.net.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.7rem', opacity: 0.85 }}>Total Net Pay</div>
-                </div>
-                <div className="content-card" style={{ padding: '1rem', textAlign: 'center', border: '1px solid var(--border-color)' }}>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#22c55e' }}>RWF {totals.basic.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Total Basic</div>
-                </div>
-                <div className="content-card" style={{ padding: '1rem', textAlign: 'center', border: '1px solid var(--border-color)' }}>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1B2042' }}>RWF {totals.allowances.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Total Allowances</div>
-                </div>
-                <div className="content-card" style={{ padding: '1rem', textAlign: 'center', border: '1px solid var(--border-color)' }}>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ef4444' }}>RWF {totals.deductions.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Total Deductions</div>
-                </div>
-                <div className="content-card" style={{ padding: '1rem', textAlign: 'center', border: '1px solid var(--border-color)' }}>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1B2042' }}>{records.filter(r => r.status === 'paid').length}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Paid Records</div>
+            <div style={{ marginBottom: '1rem' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
+                    <FaHistory style={{ color: 'var(--primary)' }} /> Salary History
+                </h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginTop: '0.75rem', marginBottom: '1.25rem' }}>
+                    <StatTile icon={<FaDollarSign />} label="Net Pay" value={`RWF ${totals.net.toLocaleString()}`} accent="#1B2042" emphasis />
+                    <StatTile icon={<FaMoneyBillWave />} label="Basic" value={`RWF ${totals.basic.toLocaleString()}`} accent="#22c55e" />
+                    <StatTile icon={<FaCheckCircle />} label="Allowances" value={`RWF ${totals.allowances.toLocaleString()}`} accent="#3b82f6" />
+                    <StatTile icon={<FaBan />} label="Deductions" value={`RWF ${totals.deductions.toLocaleString()}`} accent="#ef4444" />
+                    <StatTile icon={<FaClock />} label="Paid" value={String(records.filter(r => r.status === 'paid').length)} accent="#f59e0b" />
                 </div>
             </div>
 

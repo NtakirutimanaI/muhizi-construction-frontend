@@ -9,6 +9,7 @@ import { constructionService } from '../../services/constructionService';
 import type { Project } from '../../services/constructionService';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -50,7 +51,7 @@ const Expenses = () => {
     const { user } = useAuth();
     const canManage = user?.role !== 'managing_director';
     const [data, setData] = useState<Expense[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Expense | null>(null);
     const [form, setForm] = useState<FormData>(emptyForm);
@@ -65,9 +66,13 @@ const Expenses = () => {
     const [projects, setProjects] = useState<Project[]>([]);
 
     const fetch = async () => {
+        const cached = loadPageCache<Expense[]>('pg_expenses');
+        if (cached) setData(cached);
         try {
             const res = await financeService.getExpenses();
-            setData(res.data || []);
+            const fresh = res.data || [];
+            setData(fresh);
+            savePageCache('pg_expenses', fresh);
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
@@ -247,8 +252,6 @@ const Expenses = () => {
             setSaving(false);
         }
     };
-
-    if (loading) return <div className="admin-page"><div className="inline-spinner">Loading expenses...</div></div>;
 
     return (
         <div className="admin-page">

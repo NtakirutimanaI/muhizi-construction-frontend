@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { FaSpinner, FaTimes, FaImage, FaVideo, FaHardHat, FaMapMarkerAlt, FaCheckCircle, FaClock, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { clientPortalService } from '../../services/clientPortalService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
 import type { Site } from '../../services/sitesService';
 import type { Project } from '../../services/constructionService';
@@ -12,12 +13,18 @@ interface EvidenceWithSite extends ProjectEvidence {
 const ClientSites = () => {
   const [sites, setSites] = useState<Site[]>([]);
   const [allEvidence, setAllEvidence] = useState<EvidenceWithSite[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [activeSite, setActiveSite] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const cached = loadPageCache<{ sites: Site[]; allEvidence: EvidenceWithSite[] }>('pg_client_sites');
+    if (cached) {
+      setSites(cached.sites);
+      setAllEvidence(cached.allEvidence);
+    }
+
     clientPortalService.getMyProjects()
       .then(async (projectsRes) => {
         const projects = (projectsRes.data || []) as Project[];
@@ -32,6 +39,7 @@ const ClientSites = () => {
 
         setAllEvidence(evData);
         setSites(sitesData);
+        savePageCache('pg_client_sites', { sites: sitesData, allEvidence: evData });
       })
       .catch(() => { setAllEvidence([]); setSites([]); })
       .finally(() => setLoading(false));
@@ -50,14 +58,6 @@ const ClientSites = () => {
       scrollRef.current.scrollBy({ left: dir * 300, behavior: 'smooth' });
     }
   };
-
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '0.75rem', color: 'var(--text-muted)' }}>
-        <FaSpinner className="spin" /> Loading sites...
-      </div>
-    );
-  }
 
   return (
     <div>

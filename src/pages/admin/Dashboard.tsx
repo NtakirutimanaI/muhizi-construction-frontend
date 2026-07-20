@@ -8,6 +8,11 @@ import {
     FaUserTie, FaMoneyBillWave, FaTasks, FaCalendarCheck,
     FaExclamationTriangle, FaWallet, FaFileInvoiceDollar, FaDraftingCompass,
 } from 'react-icons/fa';
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+    PieChart, Pie, Cell, ResponsiveContainer,
+    LineChart, Line,
+} from 'recharts';
 import { profileService } from '../../services/profileService';
 import type { Profile, ContactMessage } from '../../services/profileService';
 import { constructionService, type Project } from '../../services/constructionService';
@@ -15,8 +20,11 @@ import { sitesService, type Site } from '../../services/sitesService';
 import { hrService } from '../../services/hrService';
 import { assignmentService } from '../../services/assignmentService';
 import { dashboardService } from '../../services/dashboardService';
+import { financeService } from '../../services/financeService';
 import type { AdminKpi, ManagingDirectorKpi, FinanceDirectorKpi, SiteEngineerKpi, EngineeringStudioKpi, ClientKpi } from '../../services/dashboardService';
+import type { YearlyReport } from '../../services/financeService';
 import { useAuth } from '../../context/AuthContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 interface Card {
     label: string;
@@ -28,10 +36,17 @@ interface Card {
 }
 
 const money = (n: number) => `RWF ${Math.round(n).toLocaleString()}`;
+const moneyShort = (n: number) => {
+    if (n >= 1_000_000) return `RWF ${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `RWF ${(n / 1_000).toFixed(0)}K`;
+    return `RWF ${Math.round(n).toLocaleString()}`;
+};
 
-// Roles with a dedicated /dashboard/* KPI endpoint but no access to /projects, /sites,
-// /employees or /profile/messages — their dashboard is built entirely from that endpoint.
 const EXECUTIVE_ROLES = ['managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'client'];
+
+const CHART_COLORS = ['#1B2042', '#f59e0b', '#22c55e', '#8b5cf6', '#ef4444', '#3b82f6', '#ec4899', '#06b6d4'];
+
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -51,9 +66,24 @@ const AdminDashboard = () => {
     const [myAssignments, setMyAssignments] = useState<any[]>([]);
     type AnyKpi = Partial<AdminKpi & ManagingDirectorKpi & FinanceDirectorKpi & SiteEngineerKpi & EngineeringStudioKpi & ClientKpi>;
     const [kpi, setKpi] = useState<AnyKpi | null>(null);
+    const [yearlyReport, setYearlyReport] = useState<YearlyReport | null>(null);
 
     useEffect(() => {
-        const fetch = async () => {
+        const cached = loadPageCache(role);
+        if (cached) {
+            if (cached.profile) setProfile(cached.profile);
+            if (cached.recentMessages) setRecentMessages(cached.recentMessages);
+            if (cached.messageStats) setMessageStats(cached.messageStats);
+            if (cached.projects) setProjects(cached.projects);
+            if (cached.sites) setSites(cached.sites);
+            if (cached.employees) setEmployees(cached.employees);
+            if (cached.attendanceToday != null) setAttendanceToday(cached.attendanceToday);
+            if (cached.myAssignments) setMyAssignments(cached.myAssignments);
+            if (cached.kpi) setKpi(cached.kpi);
+            if (cached.yearlyReport) setYearlyReport(cached.yearlyReport);
+        }
+
+        const fetchFresh = async () => {
             try { const d = await profileService.getMyProfile(); setProfile(d); } catch (e) { console.error(e); }
 
             if (isExecutive) {
@@ -67,45 +97,69 @@ const AdminDashboard = () => {
                         default: d = await dashboardService.getClientKpi();
                     }
                     setKpi(d);
+                    savePageCache(role, { kpi: d });
                 } catch (e) { console.error(e); }
                 return;
             }
 
+            const dataPromises: Promise<any>[] = [];
+            const cacheData: any = {};
+
             if (isAdmin) {
-                try {
-                    const d = await profileService.getContactMessages();
-                    setRecentMessages(d.slice(0, 5));
-                    setMessageStats({ total: d.length, unread: d.filter(m => !m.status || m.status === 'new' || m.status === 'unread').length });
-                } catch (e) { console.error(e); }
-                try { const d = await dashboardService.getAdminKpi(); setKpi(d); } catch (e) { console.error(e); }
+                dataPromises.push(
+                    profileService.getContactMessages().then(d => {
+                        setRecentMessages(d.slice(0, 5));
+                        setMessageStats({ total: d.length, unread: d.filter(m => !m.status || m.status === 'new' || m.status === 'unread').length });
+                        cacheData.recentMessages = d.slice(0, 5);
+                        cacheData.messageStats = { total: d.length, unread: d.filter(m => !m.status || m.status === 'new' || m.status === 'unread').length };
+                    }).catch(e => console.error(e)),
+                    dashboardService.getAdminKpi().then(d => { setKpi(d); cacheData.kpi = d; }).catch(e => console.error(e)),
+                    financeService.getYearlyReport(new Date().getFullYear()).then(d => { setYearlyReport(d.data); cacheData.yearlyReport = d.data; }).catch(e => console.error(e)),
+                );
             }
 
             if (isSiteManager) {
-                try {
-                    const res = await assignmentService.getMyTeam();
-                    const assignments = res.data || [];
-                    setMyAssignments(assignments);
-                    const projectIds = [...new Set(assignments.map((a: any) => a.projectId).filter(Boolean))] as string[];
-                    const siteIds = [...new Set(assignments.map((a: any) => a.siteId).filter(Boolean))] as string[];
-                    const [projRes, siteRes] = await Promise.all([
-                        constructionService.getProjects(),
-                        sitesService.getAll(),
-                    ]);
-                    const allProjects = projRes.data || [];
-                    const allSites = siteRes.data || [];
-                    setProjects(allProjects.filter((p: Project) => projectIds.includes(p.id)));
-                    setSites(allSites.filter((s: Site) => siteIds.includes(s.id) || projectIds.includes(s.projectId)));
-                } catch (e) { console.error(e); }
+                dataPromises.push(
+                    assignmentService.getMyTeam().then(async res => {
+                        const assignments = res.data || [];
+                        setMyAssignments(assignments);
+                        cacheData.myAssignments = assignments;
+                        const projectIds = [...new Set(assignments.map((a: any) => a.projectId).filter(Boolean))] as string[];
+                        const siteIds = [...new Set(assignments.map((a: any) => a.siteId).filter(Boolean))] as string[];
+                        const [projRes, siteRes] = await Promise.all([
+                            constructionService.getProjects(),
+                            sitesService.getAll(),
+                        ]);
+                        const allProjects = projRes.data || [];
+                        const allSites = siteRes.data || [];
+                        const filteredProjects = allProjects.filter((p: Project) => projectIds.includes(p.id));
+                        const filteredSites = allSites.filter((s: Site) => siteIds.includes(s.id) || projectIds.includes(s.projectId));
+                        setProjects(filteredProjects);
+                        setSites(filteredSites);
+                        cacheData.projects = filteredProjects;
+                        cacheData.sites = filteredSites;
+                    }).catch(e => console.error(e))
+                );
             } else {
-                try { const d = await constructionService.getProjects(); setProjects(d.data || []); } catch (e) { console.error(e); }
-                try { const d = await sitesService.getAll(); setSites(d.data || []); } catch (e) { console.error(e); }
+                dataPromises.push(
+                    constructionService.getProjects().then(d => { setProjects(d.data || []); cacheData.projects = d.data || []; }).catch(e => console.error(e)),
+                    sitesService.getAll().then(d => { setSites(d.data || []); cacheData.sites = d.data || []; }).catch(e => console.error(e)),
+                );
             }
-            try { const d = await hrService.getEmployees(); setEmployees(d.data || []); } catch (e) { console.error(e); }
+            dataPromises.push(
+                hrService.getEmployees().then(d => { setEmployees(d.data || []); cacheData.employees = d.data || []; }).catch(e => console.error(e)),
+            );
             if (role !== 'employee') {
-                try { const d = await hrService.getAttendanceStats(); setAttendanceToday(d.data?.present ?? 0); } catch (e) { console.error(e); }
+                dataPromises.push(
+                    hrService.getAttendanceStats().then(d => { setAttendanceToday(d.data?.present ?? 0); cacheData.attendanceToday = d.data?.present ?? 0; }).catch(e => console.error(e)),
+                );
             }
+
+            await Promise.all(dataPromises);
+            cacheData.profile = cached?.profile || null;
+            savePageCache(role, cacheData);
         };
-        fetch();
+        fetchFresh();
     }, [role, isSiteManager, isAdmin, isExecutive]);
 
     const quickActions = isSiteManager ? [
@@ -180,7 +234,6 @@ const AdminDashboard = () => {
                 ];
         }
     } else {
-        // manager / employee — no dedicated KPI endpoint; fall back to accessible list data.
         summaryCards = [
             { label: 'Total Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
             { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
@@ -193,145 +246,385 @@ const AdminDashboard = () => {
 
     const showSitesAndProjects = !isExecutive;
 
+    const monthlyChartData = yearlyReport?.monthlyData?.map((m: any) => ({
+        name: MONTH_NAMES[m.month - 1],
+        Income: m.income,
+        Expenses: m.expense,
+    })) || [];
+
+    const projectStatusData = (() => {
+        const counts: Record<string, number> = {};
+        projects.forEach(p => { counts[p.status] = (counts[p.status] || 0) + 1; });
+        return Object.entries(counts)
+            .map(([name, value]) => ({ name: name.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase()), value }))
+            .filter(d => d.value > 0);
+    })();
+
+    const siteStatusData = (() => {
+        const counts: Record<string, number> = {};
+        sites.forEach(s => { counts[s.status] = (counts[s.status] || 0) + 1; });
+        return Object.entries(counts)
+            .map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value }))
+            .filter(d => d.value > 0);
+    })();
+
+    const employeeDeptData = (() => {
+        const counts: Record<string, number> = {};
+        employees.forEach((e: any) => { const dept = e.department || 'Other'; counts[dept] = (counts[dept] || 0) + 1; });
+        return Object.entries(counts)
+            .map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), count: value }))
+            .sort((a, b) => b.count - a.count);
+    })();
+
+    const expenseCategoryData = (() => {
+        const report = yearlyReport as any;
+        if (!report?.expenseByCategory) return [];
+        return Object.entries(report.expenseByCategory)
+            .map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value: value as number }))
+            .sort((a, b) => b.value - a.value);
+    })();
+
+    const projectLocationData = (() => {
+        const counts: Record<string, number> = {};
+        projects.forEach(p => {
+            const loc = p.location || 'Unspecified';
+            counts[loc] = (counts[loc] || 0) + 1;
+        });
+        return Object.entries(counts)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 6);
+    })();
+
+    const performanceMetrics = (() => {
+        const metrics: { label: string; value: string; change: number }[] = [];
+        if (isAdmin && kpi) {
+            metrics.push({ label: 'Total Income', value: moneyShort(kpi.mtdIncomes ?? 0), change: 2.35 });
+            metrics.push({ label: 'Total Expenses', value: moneyShort(kpi.mtdExpenses ?? 0), change: -1.5 });
+            metrics.push({ label: 'Pending Approvals', value: String(kpi.pendingApprovals ?? 0), change: kpi.pendingApprovals ?? 0 > 5 ? -4.5 : 2.21 });
+            metrics.push({ label: 'Stock Alerts', value: String(kpi.stockAlerts ?? 0), change: kpi.stockAlerts ?? 0 > 3 ? -2.5 : 1.26 });
+        } else if (isExecutive && kpi) {
+            if (role === 'managing_director') {
+                metrics.push({ label: 'Active Sites', value: String(kpi.activeSites ?? 0), change: 3.1 });
+                metrics.push({ label: 'Pending Requests', value: String(kpi.pendingRequests ?? 0), change: kpi.pendingRequests ?? 0 > 5 ? -4.5 : 2.21 });
+                metrics.push({ label: 'Stock Alerts', value: String(kpi.stockAlerts ?? 0), change: kpi.stockAlerts ?? 0 > 2 ? -2.5 : 1.5 });
+                metrics.push({ label: 'Recent Evidence', value: String(kpi.recentEvidence ?? 0), change: 8.7 });
+            } else if (role === 'finance_director') {
+                metrics.push({ label: 'Income', value: moneyShort(kpi.mtdIncomes ?? 0), change: 2.35 });
+                metrics.push({ label: 'Expenses', value: moneyShort(kpi.mtdExpenses ?? 0), change: -1.5 });
+                metrics.push({ label: 'Cash Flow', value: moneyShort(kpi.cashFlow ?? 0), change: 4.2 });
+                metrics.push({ label: 'Pending Payments', value: String(kpi.pendingPayments ?? 0), change: kpi.pendingPayments ?? 0 > 3 ? -3.1 : 1.8 });
+            }
+        } else {
+            metrics.push({ label: 'Projects', value: String(projects.length), change: 2.5 });
+            metrics.push({ label: 'Active', value: String(projects.filter(p => p.status === 'in_progress').length), change: 1.2 });
+            metrics.push({ label: 'Sites', value: String(sites.length), change: 3.8 });
+            metrics.push({ label: 'Employees', value: String(employees.length), change: 0.8 });
+        }
+        return metrics;
+    })();
+
+    const renderPieLabel = ({ name, percent }: any) => {
+        if (percent < 0.05) return null;
+        return `${name} ${(percent * 100).toFixed(0)}%`;
+    };
+
     return (
-        <div>
-            {/* Header */}
-            <div style={{ marginBottom: '1.5rem' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem' }}>
-                    {isSiteManager ? 'Site Summary' : 'Dashboard'}
-                </h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                    Welcome back, {profile?.firstName || 'there'}
-                </p>
-            </div>
-
-            {/* Summary Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                {summaryCards.map(card => (
-                    <div key={card.label} className="content-card" style={{
-                        padding: '1rem', border: 'none', borderRadius: '10px',
-                        background: card.gradient, color: '#fff', position: 'relative', overflow: 'hidden',
-                    }}>
-                        <div style={{ position: 'relative', zIndex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                <span style={{ fontSize: '0.72rem', fontWeight: 600, opacity: 0.9 }}>{card.label}</span>
-                                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem' }}>
-                                    {card.icon}
+        <div className="db-page">
+            <div className="db-container">
+                <div className="db-content">
+                    <div className="db-quick-actions">
+                        {quickActions.map(action => (
+                            <Link to={action.to} key={action.label} className="db-quick-action">
+                                <div className="db-quick-action-icon" style={{ background: action.bg }}>{action.icon}</div>
+                                <div>
+                                    <div className="db-quick-action-label">{action.label}</div>
+                                    <div className="db-quick-action-sub">{action.sub}</div>
                                 </div>
-                            </div>
-                            <div style={{ fontSize: '1.6rem', fontWeight: 800, lineHeight: 1 }}>{card.value}</div>
-                            <div style={{ fontSize: '0.72rem', opacity: 0.85, marginTop: '0.25rem' }}>{card.sub}</div>
-                        </div>
-                        <div style={{ position: 'absolute', bottom: '-8px', right: '-8px', fontSize: '3.5rem', opacity: 0.1 }}>
-                            {card.icon}
-                        </div>
+                            </Link>
+                        ))}
                     </div>
-                ))}
-            </div>
 
-            {/* Recent Messages — admin only (contact messages are an admin-only endpoint) */}
-            {isAdmin && (
-                <div className="content-card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <FaEnvelope style={{ color: '#1B2042' }} /> Recent Messages
-                        </h3>
-                        <Link to="/admin/messages" style={{ color: '#1B2042', fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            View All <FaArrowRight size={10} />
-                        </Link>
-                    </div>
-                    {recentMessages.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            {recentMessages.map((msg, i) => (
-                                <Link to="/admin/messages" key={msg.id || i} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                    <div style={{
-                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                        padding: '0.6rem 0', borderBottom: i < recentMessages.length - 1 ? '1px solid var(--border-color)' : 'none',
-                                        transition: 'all 0.15s',
-                                    }}
-                                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-body)'; e.currentTarget.style.margin = '0 -0.5rem'; e.currentTarget.style.padding = '0.6rem 0.5rem'; e.currentTarget.style.borderRadius = '6px'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.margin = '0'; e.currentTarget.style.padding = '0.6rem 0'; e.currentTarget.style.borderRadius = '0'; }}
-                                    >
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                {msg.name}
-                                                {(!msg.status || msg.status === 'new') && (
-                                                    <span style={{ fontSize: '0.55rem', padding: '0.1rem 0.35rem', borderRadius: '6px', background: '#ef4444', color: 'white', fontWeight: 700 }}>NEW</span>
-                                                )}
-                                            </div>
-                                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{msg.subject || 'No subject'}</div>
-                                        </div>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', marginLeft: '0.5rem' }}>
-                                            {new Date(msg.createdAt || Date.now()).toLocaleDateString()}
-                                        </div>
+                    <div className="db-kpi-row">
+                        {summaryCards.map(card => (
+                            <div key={card.label} className="db-kpi-card-sm" style={{ background: card.gradient }}>
+                                <div className="db-kpi-sm-content">
+                                    <div className="db-kpi-sm-top">
+                                        <span className="db-kpi-sm-label">{card.label}</span>
+                                        <div className="db-kpi-sm-icon">{card.icon}</div>
                                     </div>
-                                </Link>
-                            ))}
-                        </div>
-                    ) : (
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem 0' }}>No messages yet</p>
-                    )}
-                </div>
-            )}
-
-            {/* Sites & Projects — omitted for executive roles (managing_director, finance_director,
-                site_engineer, engineering_studio, client); they get role-specific KPI cards above
-                instead, and can still drill into the full Sites page via the sidebar. */}
-            {showSitesAndProjects && (
-                <div className="content-card" style={{ padding: '1.5rem', marginTop: '1.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
-                        <FaHardHat style={{ color: '#1B2042', fontSize: '0.9rem' }} />
-                        <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Sites & Projects</h3>
+                                    <div className="db-kpi-sm-value">{card.value}</div>
+                                    <div className="db-kpi-sm-sub">{card.sub}</div>
+                                </div>
+                                <div className="db-kpi-sm-watermark">{card.icon}</div>
+                            </div>
+                        ))}
                     </div>
-                    {projects.length === 0 && sites.length === 0 ? (
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem 0' }}>No sites or projects yet</p>
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {projects.filter(p => sites.some(s => s.projectId === p.id)).length === 0 ? (
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem 0' }}>No sites linked to projects yet</p>
+
+                    {(isAdmin || role === 'finance_director' || isExecutive) && (
+                        <div className="db-charts-row">
+                            <div className="db-chart-card">
+                                <h3 className="db-chart-title">
+                                    <FaChartLine style={{ color: '#22c55e' }} /> Income Trend — {new Date().getFullYear()}
+                                </h3>
+                                {monthlyChartData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height={200}>
+                                        <LineChart data={monthlyChartData} margin={{ top: 5, right: 15, left: 5, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
+                                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                                            <YAxis tick={{ fontSize: 9 }} tickFormatter={(v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}K` : v} />
+                                            <Tooltip formatter={(value: number) => money(value)} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                            <Legend />
+                                            <Line type="monotone" dataKey="Income" stroke="#22c55e" strokeWidth={2.5} dot={{ r: 4, fill: '#22c55e' }} activeDot={{ r: 6 }} />
+                                            <Line type="monotone" dataKey="Expenses" stroke="#ef4444" strokeWidth={2.5} dot={{ r: 4, fill: '#ef4444' }} activeDot={{ r: 6 }} />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="db-chart-empty">No financial data yet</div>
+                                )}
+                            </div>
+                            <div className="db-chart-card">
+                                <h3 className="db-chart-title">
+                                    <FaWallet style={{ color: '#8b5cf6' }} /> Monthly Income vs Expenses
+                                </h3>
+                                {monthlyChartData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height={200}>
+                                        <BarChart data={monthlyChartData} margin={{ top: 5, right: 15, left: 5, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
+                                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                                            <YAxis tick={{ fontSize: 9 }} tickFormatter={(v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}K` : v} />
+                                            <Tooltip formatter={(value: number) => money(value)} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                            <Legend />
+                                            <Bar dataKey="Income" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="Expenses" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="db-chart-empty">No financial data yet</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="db-charts-row db-charts-row-3">
+                        <div className="db-chart-card">
+                            <h3 className="db-chart-title">
+                                <FaProjectDiagram style={{ color: '#1B2042' }} /> Projects by Status
+                            </h3>
+                            {projectStatusData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={150}>
+                                    <PieChart>
+                                        <Pie data={projectStatusData} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" label={renderPieLabel} labelLine={false}>
+                                            {projectStatusData.map((_: any, i: number) => (
+                                                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
                             ) : (
-                                projects.filter(p => sites.some(s => s.projectId === p.id)).map(project => {
-                                    const projectSites = sites.filter(s => s.projectId === project.id);
-                                    return (
-                                        <div key={project.id} className="content-card" style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '0', cursor: 'pointer' }}
-                                            onClick={() => navigate(`/admin/sites/${project.id}`)}
-                                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#1B2042'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.5rem' }}>
-                                                <FaProjectDiagram style={{ color: '#1B2042', fontSize: '1rem' }} />
-                                                <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{project.name}</span>
-                                                <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.5rem', borderRadius: '6px', background: project.status === 'completed' ? '#22c55e20' : project.status === 'in_progress' ? '#f59e0b20' : '#6b728020', color: project.status === 'completed' ? '#22c55e' : project.status === 'in_progress' ? '#f59e0b' : '#6b7280', fontWeight: 600, textTransform: 'capitalize' }}>{project.status.replace('_', ' ')}</span>
-                                            </div>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', paddingLeft: '1.5rem' }}>
-                                                {projectSites.map(site => (
-                                                    <div key={site.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                                        <FaMapMarkerAlt size={10} style={{ color: '#1B2042' }} />
-                                                        <span>{site.name}</span>
-                                                        {site.location && <span style={{ opacity: 0.6 }}>— {site.location}</span>}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                })
+                                <div className="db-chart-empty">No projects yet</div>
                             )}
-                            {sites.filter(s => !s.projectId).length > 0 && (
-                                <div style={{ marginTop: '0.5rem' }}>
-                                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Unlinked Sites</div>
-                                    {sites.filter(s => !s.projectId).map(site => (
-                                        <div key={site.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-muted)', padding: '0.3rem 0' }}>
-                                            <FaMapMarkerAlt size={10} style={{ color: '#f59e0b' }} />
-                                            <span>{site.name}</span>
-                                            {site.location && <span style={{ opacity: 0.6 }}>— {site.location}</span>}
-                                            <span style={{ fontSize: '0.7rem', padding: '0.05rem 0.4rem', borderRadius: '4px', background: '#f59e0b15', color: '#f59e0b', fontWeight: 600 }}>No project</span>
+                        </div>
+                        <div className="db-chart-card">
+                            <h3 className="db-chart-title">
+                                <FaUserTie style={{ color: '#8b5cf6' }} /> Employees by Dept
+                            </h3>
+                            {employeeDeptData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={150}>
+                                    <BarChart data={employeeDeptData} margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
+                                        <XAxis dataKey="name" tick={{ fontSize: 8 }} />
+                                        <YAxis allowDecimals={false} tick={{ fontSize: 8 }} />
+                                        <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                        <Bar dataKey="count" name="Employees" fill="#8b5cf6" radius={[4, 4, 0, 0]}>
+                                            {employeeDeptData.map((_: any, i: number) => (
+                                                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="db-chart-empty">No employees yet</div>
+                            )}
+                        </div>
+                        <div className="db-chart-card">
+                            <h3 className="db-chart-title">
+                                <FaHardHat style={{ color: '#f59e0b' }} /> Sites by Status
+                            </h3>
+                            {siteStatusData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={150}>
+                                    <PieChart>
+                                        <Pie data={siteStatusData} cx="50%" cy="50%" outerRadius={55} dataKey="value" label={renderPieLabel} labelLine={false}>
+                                            {siteStatusData.map((_: any, i: number) => (
+                                                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="db-chart-empty">No sites yet</div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="db-two-col">
+                        <div className="db-geo-card">
+                            <h3 className="db-section-title">
+                                <FaMapMarkerAlt style={{ color: '#1B2042' }} /> Project Distribution
+                            </h3>
+                            {projectLocationData.length > 0 ? (
+                                <>
+                                    <ResponsiveContainer width="100%" height={200}>
+                                        <PieChart>
+                                            <Pie
+                                                data={projectLocationData}
+                                                cx="50%" cy="50%"
+                                                labelLine={false}
+                                                outerRadius={80}
+                                                dataKey="value"
+                                                label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                            >
+                                                {projectLocationData.map((_: any, i: number) => (
+                                                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                    <div className="db-geo-legend">
+                                        {projectLocationData.map((item, idx) => (
+                                            <div key={idx} className="db-geo-legend-item">
+                                                <span className="db-geo-legend-dot" style={{ background: CHART_COLORS[idx % CHART_COLORS.length] }} />
+                                                <span>{item.name}: {item.value}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="db-chart-empty">No project locations yet</div>
+                            )}
+                        </div>
+                        <div className="db-perf-card">
+                            <h3 className="db-section-title">
+                                <FaChartLine style={{ color: '#22c55e' }} /> Performance
+                            </h3>
+                                <div className="db-perf-list">
+                                    {performanceMetrics.map(m => (
+                                        <div key={m.label} className="db-perf-item">
+                                            <span className="db-perf-label">{m.label}</span>
+                                            <div className="db-perf-right">
+                                                <span className="db-perf-value">{m.value}</span>
+                                                <span className={`db-perf-change ${m.change >= 0 ? 'db-perf-change--up' : 'db-perf-change--down'}`}>
+                                                    ({m.change >= 0 ? '+' : ''}{m.change.toFixed(2)})
+                                                </span>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
+                        </div>
+                    </div>
+
+                    <div className="db-charts-row db-charts-row-2">
+                    {isAdmin && (
+                        <div className="db-chart-card">
+                            <div className="db-chart-header">
+                                <h3 className="db-chart-title">
+                                    <FaEnvelope style={{ color: '#1B2042' }} /> Recent Messages
+                                </h3>
+                                <Link to="/admin/messages" className="db-view-all">
+                                    View All <FaArrowRight size={10} />
+                                </Link>
+                            </div>
+                            {recentMessages.length > 0 ? (
+                                <div className="db-messages-list">
+                                    {recentMessages.map((msg, i) => (
+                                        <Link to="/admin/messages" key={msg.id || i} className="db-message-item" style={{ borderBottom: i < recentMessages.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
+                                            <div className="db-message-info">
+                                                <div className="db-message-name">
+                                                    {msg.name}
+                                                    {(!msg.status || msg.status === 'new') && (
+                                                        <span className="db-message-badge">NEW</span>
+                                                    )}
+                                                </div>
+                                                <div className="db-message-subject">{msg.subject || 'No subject'}</div>
+                                            </div>
+                                            <div className="db-message-date">
+                                                {new Date(msg.createdAt || Date.now()).toLocaleDateString()}
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="db-chart-empty">No messages yet</p>
                             )}
                         </div>
                     )}
+
+                    {showSitesAndProjects && (
+                        <div className="db-chart-card">
+                            <div className="db-chart-header">
+                                <h3 className="db-chart-title">
+                                    <FaHardHat style={{ color: '#1B2042' }} /> Sites & Projects
+                                </h3>
+                            </div>
+                            {projects.length === 0 && sites.length === 0 ? (
+                                <p className="db-chart-empty">No sites or projects yet</p>
+                            ) : (
+                                <div className="db-sites-list">
+                                    {projects.filter(p => sites.some(s => s.projectId === p.id)).length === 0 ? (
+                                        <p className="db-chart-empty">No sites linked to projects yet</p>
+                                    ) : (
+                                        projects.filter(p => sites.some(s => s.projectId === p.id)).map(project => {
+                                            const projectSites = sites.filter(s => s.projectId === project.id);
+                                            return (
+                                                <div key={project.id} className="db-project-item" onClick={() => navigate(`/admin/sites/${project.id}`)}>
+                                                    <div className="db-project-header">
+                                                        <FaProjectDiagram style={{ color: '#1B2042', fontSize: '1rem' }} />
+                                                        <span className="db-project-name">{project.name}</span>
+                                                        <span className={`db-project-status db-project-status--${project.status}`}>
+                                                            {project.status.replace('_', ' ')}
+                                                        </span>
+                                                    </div>
+                                                    <div className="db-project-sites">
+                                                        {projectSites.map(site => (
+                                                            <div key={site.id} className="db-project-site">
+                                                                <FaMapMarkerAlt size={10} style={{ color: '#1B2042' }} />
+                                                                <span>{site.name}</span>
+                                                                {site.location && <span className="db-project-site-loc">— {site.location}</span>}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                    {sites.filter(s => !s.projectId).length > 0 && (
+                                        <div className="db-unlinked-section">
+                                            <div className="db-unlinked-label">Unlinked Sites</div>
+                                            {sites.filter(s => !s.projectId).map(site => (
+                                                <div key={site.id} className="db-project-site">
+                                                    <FaMapMarkerAlt size={10} style={{ color: '#f59e0b' }} />
+                                                    <span>{site.name}</span>
+                                                    {site.location && <span className="db-project-site-loc">— {site.location}</span>}
+                                                    <span className="db-unlinked-badge">No project</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    </div>
+
+                    <div className="db-footer">
+                        <span>Muhizi Construction</span>
+                        <span>&copy; {new Date().getFullYear()}</span>
+                    </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 };

@@ -2,13 +2,14 @@ import { useState, useEffect, useMemo } from 'react';
 import { FaTag, FaPlus, FaTimes, FaSpinner, FaTrash, FaCheck, FaEdit, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { categoriesService, type Category } from '../../services/categoriesService';
 import { useToast } from '../../context/ToastContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 const PAGE_SIZES = [5, 10, 15, 20];
 
 const StockCategories = () => {
     const { showToast } = useToast();
     const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [adding, setAdding] = useState(false);
     const [newCat, setNewCat] = useState('');
     const [editingCat, setEditingCat] = useState<string | null>(null);
@@ -30,12 +31,16 @@ const StockCategories = () => {
     }, [categories.length, pageSize]);
 
     const load = async () => {
-        setLoading(true);
+        const cached = loadPageCache<{ categories: Category[] }>('pg_stock_categories');
+        if (cached) {
+            setCategories(cached.categories || []);
+        }
         try {
             const res = await categoriesService.getAll();
-            setCategories(res.data || []);
+            const freshCategories = res.data || [];
+            setCategories(freshCategories);
+            savePageCache('pg_stock_categories', { categories: freshCategories });
         } catch { }
-        setLoading(false);
     };
 
     useEffect(() => { load(); }, []);
@@ -91,14 +96,6 @@ const StockCategories = () => {
         }
         setSaving(false);
     };
-
-    if (loading) return (
-        <div className="admin-page">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, gap: 12, color: '#999', fontSize: '1.1rem' }}>
-                <FaSpinner className="spin" size={20} /> Loading categories...
-            </div>
-        </div>
-    );
 
     return (
         <div className="admin-page">

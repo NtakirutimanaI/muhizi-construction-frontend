@@ -3,6 +3,7 @@ import {
     FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaHandshake, FaFileExcel, FaFilePdf,
     FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye, FaCheck, FaBan, FaExclamationTriangle,
     FaFileUpload, FaFilePdf as FaFileIcon, FaBuilding, FaCoins, FaShieldAlt,
+    FaUsers, FaClock, FaCheckCircle, FaTimesCircle,
 } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import type { Partnership, Project } from '../../services/constructionService';
@@ -10,6 +11,25 @@ import { uploadService } from '../../services/uploadService';
 import { useToast } from '../../context/ToastContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
+
+const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+        </div>
+    </div>
+);
 
 interface FormData {
     entityKind: string;
@@ -74,7 +94,7 @@ const Partnerships = () => {
     const { showToast } = useToast();
     const [data, setData] = useState<Partnership[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Partnership | null>(null);
     const [viewItem, setViewItem] = useState<Partnership | null>(null);
@@ -94,9 +114,14 @@ const Partnerships = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const fetch = async () => {
+        const cached = loadPageCache<{ data: Partnership[] }>('pg_partnerships');
+        if (cached) {
+            setData(cached.data || []);
+        }
         try {
             const res = await constructionService.getPartnerships();
             setData(res.data || []);
+            savePageCache('pg_partnerships', { data: res.data || [] });
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
@@ -370,36 +395,34 @@ const Partnerships = () => {
         }
     };
 
-    if (loading) return <div className="admin-page"><div className="inline-spinner">Loading partnerships...</div></div>;
-
     const statusColors: Record<string, string> = {
         active: '#22c55e', inactive: '#6b7280', pending: '#f59e0b', rejected: '#ef4444',
     };
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ marginBottom: '0.25rem' }}>
                 <div>
                     <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
                         <FaHandshake style={{ color: 'var(--primary)' }} /> Partnerships
                     </h2>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Suppliers, subcontractors, investors and joint-venture partners</span>
                 </div>
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    {([
-                        { key: 'all' as const, label: 'Total', value: stats.total, color: '#1B2042' },
-                        { key: 'pending' as const, label: 'Pending Review', value: stats.pending, color: '#f59e0b' },
-                        { key: 'active' as const, label: 'Active', value: stats.active, color: '#22c55e' },
-                        { key: 'rejected' as const, label: 'Rejected', value: stats.rejected, color: '#ef4444' },
-                    ]).map(s => (
-                        <div key={s.key} className="admin-card" onClick={() => { setStatusFilter(s.key); setPage(1); }} style={{ padding: '0.45rem 2rem', textAlign: 'center', background: s.color, color: '#fff', cursor: 'pointer', opacity: statusFilter === s.key ? 1 : 0.75 }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{s.value}</div>
-                            <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>{s.label}</div>
-                        </div>
-                    ))}
-                    <div className="admin-card" style={{ padding: '0.45rem 2rem', textAlign: 'center', background: '#8b5cf6', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.investors}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Investors/JV</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginTop: '0.75rem', marginBottom: '1.25rem' }}>
+                    <div onClick={() => { setStatusFilter('all'); setPage(1); }} style={{ cursor: 'pointer', opacity: statusFilter === 'all' ? 1 : 0.6 }}>
+                        <StatTile icon={<FaHandshake />} label="Total" value={String(stats.total)} accent="#1B2042" emphasis />
+                    </div>
+                    <div onClick={() => { setStatusFilter('pending'); setPage(1); }} style={{ cursor: 'pointer', opacity: statusFilter === 'pending' ? 1 : 0.6 }}>
+                        <StatTile icon={<FaClock />} label="Pending Review" value={String(stats.pending)} accent="#f59e0b" />
+                    </div>
+                    <div onClick={() => { setStatusFilter('active'); setPage(1); }} style={{ cursor: 'pointer', opacity: statusFilter === 'active' ? 1 : 0.6 }}>
+                        <StatTile icon={<FaCheckCircle />} label="Active" value={String(stats.active)} accent="#22c55e" />
+                    </div>
+                    <div onClick={() => { setStatusFilter('rejected'); setPage(1); }} style={{ cursor: 'pointer', opacity: statusFilter === 'rejected' ? 1 : 0.6 }}>
+                        <StatTile icon={<FaTimesCircle />} label="Rejected" value={String(stats.rejected)} accent="#ef4444" />
+                    </div>
+                    <div>
+                        <StatTile icon={<FaCoins />} label="Investors/JV" value={String(stats.investors)} accent="#8b5cf6" />
                     </div>
                 </div>
             </div>

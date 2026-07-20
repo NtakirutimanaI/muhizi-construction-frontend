@@ -1,31 +1,40 @@
 import { useState, useEffect } from 'react';
-import { FaImage, FaVideo, FaSpinner, FaTimes, FaHardHat, FaProjectDiagram, FaMoneyBillWave, FaCheckCircle, FaClock, FaChartBar } from 'react-icons/fa';
+import { FaImage, FaVideo, FaSpinner, FaTimes, FaHardHat, FaProjectDiagram, FaMoneyBillWave, FaCheckCircle, FaChartBar } from 'react-icons/fa';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { partnerPortalService } from '../../services/partnerPortalService';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
 import type { Project } from '../../services/constructionService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 const COLORS = ['#1a8a6a', '#10b981', '#f59e0b', '#6b7280', '#8b5cf6'];
 
 const ProjectProgress = () => {
     const [items, setItems] = useState<ProjectEvidence[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [filterType, setFilterType] = useState<'all' | 'image' | 'video'>('all');
 
     useEffect(() => {
-        partnerPortalService.getMyProjects()
-            .then(async (projRes) => {
+        const cached = loadPageCache('partner-progress');
+        if (cached) {
+            if (cached.projects) setProjects(cached.projects);
+            if (cached.items) setItems(cached.items);
+        }
+
+        const fetchFresh = async () => {
+            try {
+                const projRes = await partnerPortalService.getMyProjects();
                 const projectsData = (projRes.data || []) as Project[];
                 setProjects(projectsData);
                 const evidenceResults = await Promise.all(
                     projectsData.map((p) => partnerPortalService.getProjectEvidence(p.id).catch(() => ({ data: [] })))
                 );
-                setItems(evidenceResults.flatMap((r) => r.data || []));
-            })
-            .catch(() => { setItems([]); setProjects([]); })
-            .finally(() => setLoading(false));
+                const evData = evidenceResults.flatMap((r) => r.data || []);
+                setItems(evData);
+                savePageCache('partner-progress', { projects: projectsData, items: evData });
+            } catch {}
+        };
+        fetchFresh();
     }, []);
 
     const images = items.filter(i => i.type === 'image');
@@ -45,161 +54,190 @@ const ProjectProgress = () => {
     ].filter(d => d.value > 0);
 
     const progressData = projects.filter(p => p.progress > 0).map(p => ({
-        name: p.name.length > 15 ? p.name.slice(0, 15) + '...' : p.name,
+        name: p.name.length > 12 ? p.name.slice(0, 12) + '...' : p.name,
         progress: p.progress,
-        budget: p.budget ? Math.round((p.budget || 0) / 100000) : 0,
-        spent: p.spent ? Math.round((p.spent || 0) / 100000) : 0,
     }));
 
-    if (loading) {
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '0.75rem', color: 'var(--text-muted)' }}>
-                <FaSpinner className="spin" /> Loading project progress...
-            </div>
-        );
-    }
+    const budgetData = projects.filter(p => (p.budget || 0) > 0).map(p => ({
+        name: p.name.length > 12 ? p.name.slice(0, 12) + '...' : p.name,
+        budget: Math.round((p.budget || 0) / 100000),
+        spent: Math.round((p.spent || 0) / 100000),
+    }));
+
+    const moneyShort = (n: number) => {
+        if (n >= 1_000_000) return `RWF ${(n / 1_000_000).toFixed(1)}M`;
+        if (n >= 1_000) return `RWF ${(n / 1_000).toFixed(0)}K`;
+        return `RWF ${Math.round(n).toLocaleString()}`;
+    };
+
+    const renderPieLabel = ({ name, percent }: any) => {
+        if (percent < 0.05) return null;
+        return `${name} ${(percent * 100).toFixed(0)}%`;
+    };
 
     return (
-        <div>
-            <div style={{ marginBottom: '1.5rem' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <FaHardHat style={{ color: '#1a8a6a' }} /> Project Progress
-                </h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Track the latest progress of your construction projects</p>
+        <div className="dashboard-page">
+            <div className="dashboard-header">
+                <div>
+                    <h1 className="dashboard-title">
+                        <FaHardHat style={{ color: '#1a8a6a' }} /> Project Progress
+                    </h1>
+                    <p className="dashboard-subtitle">Track the latest progress of your construction projects</p>
+                </div>
             </div>
 
-            {/* Summary Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                <div className="content-card" style={{ padding: '1rem', borderLeft: '4px solid #1a8a6a' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Total Evidence</div>
-                    <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#1a8a6a' }}>{items.length}</div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{images.length} images · {videos.length} videos</div>
-                </div>
-                <div className="content-card" style={{ padding: '1rem', borderLeft: '4px solid #10b981' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Active Projects</div>
-                    <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#10b981' }}>{activeProjects.length}</div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{completedProjects.length} completed</div>
-                </div>
-                <div className="content-card" style={{ padding: '1rem', borderLeft: '4px solid #f59e0b' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Avg Progress</div>
-                    <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#f59e0b' }}>{avgProgress}%</div>
-                    <div style={{ marginTop: '0.3rem', height: '4px', background: '#eee', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{ width: `${avgProgress}%`, height: '100%', background: '#10b981', borderRadius: '2px' }} />
-                    </div>
-                </div>
-                <div className="content-card" style={{ padding: '1rem', borderLeft: '4px solid #8b5cf6' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Budget</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#8b5cf6' }}>RWF {totalBudget.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>RWF {totalSpent.toLocaleString()} spent</div>
-                    {totalBudget > 0 && (
-                        <div style={{ marginTop: '0.3rem', height: '4px', background: '#eee', borderRadius: '2px', overflow: 'hidden' }}>
-                            <div style={{ width: `${Math.min(100, Math.round((totalSpent / totalBudget) * 100))}%`, height: '100%', background: totalSpent > totalBudget ? '#ef4444' : '#8b5cf6', borderRadius: '2px' }} />
+            <div className="dashboard-cards">
+                <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, #1a8a6a, #0d4f3c)' }}>
+                    <div className="dashboard-card-content">
+                        <div className="dashboard-card-top">
+                            <span className="dashboard-card-label">Total Evidence</span>
+                            <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}><FaImage /></div>
                         </div>
-                    )}
+                        <div className="dashboard-card-value">{items.length}</div>
+                        <div className="dashboard-card-sub">{images.length} images · {videos.length} videos</div>
+                    </div>
+                    <div className="dashboard-card-watermark"><FaImage /></div>
+                </div>
+                <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+                    <div className="dashboard-card-content">
+                        <div className="dashboard-card-top">
+                            <span className="dashboard-card-label">Active Projects</span>
+                            <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}><FaProjectDiagram /></div>
+                        </div>
+                        <div className="dashboard-card-value">{activeProjects.length}</div>
+                        <div className="dashboard-card-sub">{completedProjects.length} completed</div>
+                    </div>
+                    <div className="dashboard-card-watermark"><FaProjectDiagram /></div>
+                </div>
+                <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
+                    <div className="dashboard-card-content">
+                        <div className="dashboard-card-top">
+                            <span className="dashboard-card-label">Avg Progress</span>
+                            <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}><FaCheckCircle /></div>
+                        </div>
+                        <div className="dashboard-card-value">{avgProgress}%</div>
+                        <div className="dashboard-card-sub">overall completion</div>
+                    </div>
+                    <div className="dashboard-card-watermark"><FaCheckCircle /></div>
+                </div>
+                <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' }}>
+                    <div className="dashboard-card-content">
+                        <div className="dashboard-card-top">
+                            <span className="dashboard-card-label">Budget</span>
+                            <div className="dashboard-card-icon-box" style={{ background: 'rgba(255,255,255,0.2)' }}><FaMoneyBillWave /></div>
+                        </div>
+                        <div className="dashboard-card-value" style={{ fontSize: '1rem' }}>{moneyShort(totalBudget)}</div>
+                        <div className="dashboard-card-sub">{moneyShort(totalSpent)} spent</div>
+                    </div>
+                    <div className="dashboard-card-watermark"><FaMoneyBillWave /></div>
                 </div>
             </div>
 
-            {/* Projects Progress Section */}
             {projects.length > 0 && (
-                <div className="content-card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <FaProjectDiagram style={{ color: '#1a8a6a' }} /> Projects Overview
-                    </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div className="dashboard-chart-card" style={{ marginBottom: '1rem' }}>
+                    <div className="dashboard-chart-header">
+                        <h3 className="dashboard-chart-title">
+                            <FaProjectDiagram style={{ color: '#1a8a6a' }} /> Projects Overview
+                        </h3>
+                    </div>
+                    <div className="dashboard-sites-list">
                         {projects.map(project => (
-                            <div key={project.id}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem', flexWrap: 'wrap', gap: '0.25rem' }}>
-                                    <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{project.name}</span>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.1rem 0.5rem', borderRadius: '10px', background: project.status === 'completed' ? '#10b98120' : project.status === 'in_progress' ? '#1a8a6a20' : project.status === 'planning' ? '#f59e0b20' : '#6b728020', color: project.status === 'completed' ? '#10b981' : project.status === 'in_progress' ? '#1a8a6a' : project.status === 'planning' ? '#f59e0b' : '#6b7280', textTransform: 'capitalize' }}>{project.status.replace('_', ' ')}</span>
-                                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1a8a6a' }}>{project.progress || 0}%</span>
-                                    </div>
+                            <div key={project.id} className="dashboard-project-item">
+                                <div className="dashboard-project-header">
+                                    <FaProjectDiagram style={{ color: '#1a8a6a', fontSize: '0.85rem' }} />
+                                    <span className="dashboard-project-name">{project.name}</span>
+                                    <span className={`dashboard-project-status dashboard-project-status--${project.status}`}>
+                                        {project.status.replace('_', ' ')}
+                                    </span>
+                                    <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#1a8a6a' }}>{project.progress || 0}%</span>
                                 </div>
-                                <div style={{ height: '8px', background: '#f0f0f0', borderRadius: '4px', overflow: 'hidden' }}>
-                                    <div style={{ width: `${project.progress || 0}%`, height: '100%', background: project.status === 'completed' ? '#10b981' : '#1a8a6a', borderRadius: '4px', transition: 'width 0.5s ease' }} />
-                                </div>
-                                {project.budget && (
-                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                        <span>Budget: RWF {project.budget.toLocaleString()}</span>
-                                        {project.spent !== undefined && <span>Spent: RWF {project.spent.toLocaleString()}</span>}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingLeft: '1.25rem' }}>
+                                    <div style={{ flex: 1, height: '5px', background: '#eee', borderRadius: '3px', overflow: 'hidden' }}>
+                                        <div style={{ width: `${project.progress || 0}%`, height: '100%', background: project.status === 'completed' ? '#10b981' : '#1a8a6a', borderRadius: '3px' }} />
                                     </div>
-                                )}
+                                    {project.budget && (
+                                        <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
+                                            {moneyShort(project.budget || 0)}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
             )}
 
-            {/* Charts Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
-                {/* Progress Bar Chart */}
+            <div className="dashboard-charts-row">
                 {progressData.length > 0 && (
-                    <div className="content-card" style={{ padding: '1.25rem' }}>
-                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="dashboard-chart-card dashboard-chart-wide">
+                        <h3 className="dashboard-chart-title">
                             <FaChartBar style={{ color: '#1a8a6a' }} /> Project Progress %
                         </h3>
-                        <ResponsiveContainer width="100%" height={220}>
-                            <BarChart data={progressData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                                <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
-                                <Tooltip formatter={(value: number) => `${value}%`} />
-                                <Bar dataKey="progress" fill="#1a8a6a" radius={[4, 4, 0, 0]} />
+                        <ResponsiveContainer width="100%" height={200}>
+                            <BarChart data={progressData} margin={{ top: 5, right: 15, left: 5, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
+                                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                                <YAxis domain={[0, 100]} tick={{ fontSize: 9 }} />
+                                <Tooltip formatter={(value: number) => `${value}%`} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                <Bar dataKey="progress" fill="#1a8a6a" radius={[4, 4, 0, 0]}>
+                                    {progressData.map((_: any, i: number) => (
+                                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                                    ))}
+                                </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 )}
 
-                {/* Status Distribution Pie Chart */}
                 {statusData.length > 0 && (
-                    <div className="content-card" style={{ padding: '1.25rem' }}>
-                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="dashboard-chart-card">
+                        <h3 className="dashboard-chart-title">
                             <FaCheckCircle style={{ color: '#10b981' }} /> Project Status
                         </h3>
-                        <ResponsiveContainer width="100%" height={220}>
+                        <ResponsiveContainer width="100%" height={200}>
                             <PieChart>
-                                <Pie data={statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, value }) => `${name}: ${value}`}>
-                                    {statusData.map((_, index) => (
+                                <Pie data={statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={renderPieLabel} labelLine={false}>
+                                    {statusData.map((_: any, index: number) => (
                                         <Cell key={index} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
-                                <Tooltip />
-                                <Legend wrapperStyle={{ fontSize: 11 }} />
+                                <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                             </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-                )}
-
-                {/* Budget vs Spent Chart */}
-                {progressData.some(p => p.budget > 0 || p.spent > 0) && (
-                    <div className="content-card" style={{ padding: '1.25rem' }}>
-                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <FaMoneyBillWave style={{ color: '#f59e0b' }} /> Budget vs Spent (RWF 100k)
-                        </h3>
-                        <ResponsiveContainer width="100%" height={220}>
-                            <BarChart data={progressData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                                <YAxis tick={{ fontSize: 11 }} />
-                                <Tooltip formatter={(value: number) => `RWF ${(value * 100000).toLocaleString()}`} />
-                                <Bar dataKey="budget" fill="#1a8a6a" radius={[4, 4, 0, 0]} name="Budget" />
-                                <Bar dataKey="spent" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Spent" />
-                            </BarChart>
                         </ResponsiveContainer>
                     </div>
                 )}
             </div>
 
-            {/* Evidence Section */}
-            <div className="content-card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {budgetData.length > 0 && (
+                <div className="dashboard-chart-card" style={{ marginBottom: '1rem' }}>
+                    <h3 className="dashboard-chart-title">
+                        <FaMoneyBillWave style={{ color: '#f59e0b' }} /> Budget vs Spent (RWF 100k)
+                    </h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={budgetData} margin={{ top: 5, right: 15, left: 5, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
+                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                            <YAxis tick={{ fontSize: 9 }} />
+                            <Tooltip formatter={(value: number) => `RWF ${(value * 100000).toLocaleString()}`} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                            <Legend />
+                            <Bar dataKey="budget" name="Budget" fill="#1a8a6a" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="spent" name="Spent" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            )}
+
+            <div className="dashboard-chart-card">
+                <div className="dashboard-chart-header">
+                    <h3 className="dashboard-chart-title">
                         <FaImage style={{ color: '#1a8a6a' }} /> Evidence Gallery
                     </h3>
-                    <div style={{ display: 'flex', gap: '0.35rem' }}>
+                    <div style={{ display: 'flex', gap: '0.3rem' }}>
                         {(['all', 'image', 'video'] as const).map(t => (
                             <button key={t} onClick={() => setFilterType(t)}
                                 style={{
-                                    padding: '0.25rem 0.6rem', borderRadius: '6px', border: 'none',
-                                    fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer',
+                                    padding: '0.2rem 0.5rem', borderRadius: '5px', border: 'none',
+                                    fontSize: '0.62rem', fontWeight: 600, cursor: 'pointer',
                                     background: filterType === t ? '#1a8a6a' : '#f0f0f0',
                                     color: filterType === t ? '#fff' : '#666',
                                     textTransform: 'capitalize',
@@ -211,26 +249,26 @@ const ProjectProgress = () => {
                 </div>
 
                 {filteredItems.length === 0 ? (
-                    <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        <FaImage size={36} style={{ opacity: 0.3, marginBottom: '0.75rem' }} />
-                        <p style={{ margin: 0 }}>No {filterType !== 'all' ? filterType : ''} evidence available yet.</p>
+                    <div className="dashboard-chart-empty">
+                        <FaImage size={28} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
+                        <p>No {filterType !== 'all' ? filterType : ''} evidence available yet.</p>
                     </div>
                 ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.6rem' }}>
                         {filteredItems.map(item => (
-                            <div key={item.id} className="content-card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                            <div key={item.id} className="dashboard-project-item" style={{ padding: 0, overflow: 'hidden' }}>
                                 <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setPreviewUrl(item.url)}>
-                                    <img src={item.url} alt={item.title} style={{ width: '100%', height: '180px', objectFit: 'cover', display: 'block' }} />
-                                    <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.75rem' }}>
+                                    <img src={item.url} alt={item.title} style={{ width: '100%', height: '140px', objectFit: 'cover', display: 'block' }} />
+                                    <div style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.6rem' }}>
                                         {item.type === 'video' ? <FaVideo /> : <FaImage />}
                                     </div>
-                                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', padding: '1.5rem 0.75rem 0.5rem' }}>
-                                        <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff' }}>{item.title}</div>
-                                        <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)' }}>{item.project} &middot; {item.date}</div>
+                                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', padding: '1.25rem 0.6rem 0.4rem' }}>
+                                        <div style={{ fontWeight: 700, fontSize: '0.72rem', color: '#fff' }}>{item.title}</div>
+                                        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.7)' }}>{item.project} · {item.date}</div>
                                     </div>
                                 </div>
                                 {item.notes && (
-                                    <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)' }}>
+                                    <div style={{ padding: '0.4rem 0.6rem', fontSize: '0.68rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)' }}>
                                         {item.notes}
                                     </div>
                                 )}
@@ -242,7 +280,7 @@ const ProjectProgress = () => {
 
             {previewUrl && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={() => setPreviewUrl(null)}>
-                    <button onClick={() => setPreviewUrl(null)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer', fontSize: '1.1rem' }}>
+                    <button onClick={() => setPreviewUrl(null)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer', fontSize: '1rem' }}>
                         <FaTimes />
                     </button>
                     <img src={previewUrl} alt="Preview" style={{ maxWidth: '92%', maxHeight: '92%', borderRadius: '8px', objectFit: 'contain' }} />

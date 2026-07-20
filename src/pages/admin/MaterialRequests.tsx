@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaTimes as FaTimesIcon, FaTruck, FaSpinner, FaChevronLeft, FaChevronRight, FaCheck, FaBan, FaUser, FaClock, FaCheckDouble, FaArrowsAlt, FaFileExcel, FaFilePdf, FaSearch, FaCalendarAlt } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { materialRequestsService } from '../../services/materialRequestsService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { assignmentService } from '../../services/assignmentService';
 import type { MaterialRequest } from '../../services/materialRequestsService';
 import { useToast } from '../../context/ToastContext';
@@ -21,7 +22,7 @@ const MaterialRequests = () => {
     const { showToast } = useToast();
     const { user } = useAuth();
     const [requests, setRequests] = useState<MaterialRequest[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
     const [selectedProject, setSelectedProject] = useState('all');
     const [showModal, setShowModal] = useState(false);
@@ -45,7 +46,11 @@ const MaterialRequests = () => {
     const isSiteMgr = user?.role === 'site_manager';
 
     const load = async () => {
-        setLoading(true);
+        const cached = loadPageCache<{ requests: MaterialRequest[]; projects: { id: string; name: string }[] }>('pg_material_requests');
+        if (cached) {
+            setRequests(cached.requests || []);
+            setProjects(cached.projects || []);
+        }
         let assignedProjectNames: string[] = [];
 
         if (isSiteMgr) {
@@ -64,15 +69,13 @@ const MaterialRequests = () => {
                 if (allProjects.length > 0) setSelectedProject(allProjects[0].name);
             }
             setProjects(allProjects);
+
+            const res2 = await materialRequestsService.getAll();
+            const data = res2.data || [];
+            const filtered = isSiteMgr ? data.filter((r: any) => assignedProjectNames.includes(r.project)) : data;
+            setRequests(filtered);
+            savePageCache('pg_material_requests', { requests: filtered, projects: allProjects });
         } catch (e) { console.error(e); }
-
-        try {
-            const res = await materialRequestsService.getAll();
-            const data = res.data || [];
-            setRequests(isSiteMgr ? data.filter(r => assignedProjectNames.includes(r.project)) : data);
-        } catch (e) { setRequests([]); }
-
-        setLoading(false);
     };
     useEffect(() => { load(); }, []);
 
@@ -283,8 +286,6 @@ const MaterialRequests = () => {
         document.addEventListener('mousemove', onRejectMouseMove);
         document.addEventListener('mouseup', onRejectMouseUp);
     }, [onRejectMouseMove, onRejectMouseUp]);
-
-    if (loading) return <div className="admin-page"><div className="inline-spinner">Loading material requests...</div></div>;
 
     return (
         <div className="admin-page">

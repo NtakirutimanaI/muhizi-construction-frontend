@@ -3,6 +3,7 @@ import {
     FaDraftingCompass, FaPlus, FaTimes, FaSpinner, FaFileAlt, FaUpload,
     FaCheckCircle, FaEye, FaClock, FaThumbsUp, FaThumbsDown,
 } from 'react-icons/fa';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { engineeringSubmissionsService } from '../../services/engineeringSubmissionsService';
 import type { EngineeringSubmission, SubmissionStatus } from '../../services/engineeringSubmissionsService';
 import { uploadService } from '../../services/uploadService';
@@ -32,7 +33,7 @@ const EngineeringSubmissions = () => {
     const isSubmitter = user?.role === 'engineering_studio';
 
     const [submissions, setSubmissions] = useState<EngineeringSubmission[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [statusFilter, setStatusFilter] = useState<'all' | SubmissionStatus>('all');
     const [viewItem, setViewItem] = useState<EngineeringSubmission | null>(null);
     const [reviewNotes, setReviewNotes] = useState('');
@@ -42,18 +43,19 @@ const EngineeringSubmissions = () => {
     const [form, setForm] = useState({ title: '', description: '' });
     const [documents, setDocuments] = useState<{ name: string; url: string; type: string }[]>([]);
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
     const [saving, setSaving] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const load = async () => {
-        setLoading(true);
+        const cached = loadPageCache<EngineeringSubmission[]>('pg_engineering_submissions');
+        if (cached) setSubmissions(cached);
         try {
             const res = isReviewer ? await engineeringSubmissionsService.getAll() : await engineeringSubmissionsService.getMy();
             setSubmissions(res.data || []);
+            savePageCache('pg_engineering_submissions', res.data || []);
         } catch {
             showToast('Failed to load submissions', 'error');
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -74,9 +76,15 @@ const EngineeringSubmissions = () => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
         setUploading(true);
+        const newProgress: Record<string, number> = {};
+        Array.from(files).forEach(f => { newProgress[f.name] = 0; });
+        setUploadProgress(prev => ({ ...prev, ...newProgress }));
         try {
             const results = await Promise.all(Array.from(files).map(async f => {
-                const uploaded = await uploadService.uploadFile(f);
+                const uploaded = await uploadService.uploadFile(f, pct => {
+                    setUploadProgress(prev => ({ ...prev, [f.name]: pct }));
+                });
+                setUploadProgress(prev => ({ ...prev, [f.name]: 100 }));
                 return { name: f.name, url: uploaded.secureUrl, type: f.type.split('/')[1] || 'file' };
             }));
             setDocuments(prev => [...prev, ...results]);
@@ -84,6 +92,7 @@ const EngineeringSubmissions = () => {
             showToast('Failed to upload document', 'error');
         } finally {
             setUploading(false);
+            setUploadProgress({});
         }
     };
 
@@ -125,14 +134,6 @@ const EngineeringSubmissions = () => {
             setReviewing(false);
         }
     };
-
-    if (loading) return (
-        <div className="admin-page">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, gap: 12, color: '#999', fontSize: '1.1rem' }}>
-                <FaSpinner className="spin" size={20} /> Loading submissions...
-            </div>
-        </div>
-    );
 
     return (
         <div className="admin-page">
@@ -218,6 +219,18 @@ const EngineeringSubmissions = () => {
                                             <FaFileAlt size={12} style={{ color: 'var(--text-muted)' }} />
                                             <span style={{ fontSize: '0.8rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</span>
                                             <button type="button" onClick={() => removeDocument(i)} style={{ color: 'var(--primary-red)' }}><FaTimes size={11} /></button>
+                                        </div>
+                                    ))}
+                                    {Object.entries(uploadProgress).map(([name, pct]) => (
+                                        <div key={name} style={{ padding: '0.4rem 0.6rem', background: 'var(--bg-body)', borderRadius: 6 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                                <FaUpload size={10} style={{ color: 'var(--primary)' }} />
+                                                <span style={{ fontSize: '0.78rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                                                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: pct === 100 ? '#22c55e' : 'var(--primary)', minWidth: 36, textAlign: 'right' }}>{pct}%</span>
+                                            </div>
+                                            <div style={{ height: 4, borderRadius: 2, background: 'var(--border-color)', overflow: 'hidden' }}>
+                                                <div style={{ height: '100%', width: `${pct}%`, borderRadius: 2, background: pct === 100 ? '#22c55e' : 'var(--primary)', transition: 'width 0.3s ease' }} />
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

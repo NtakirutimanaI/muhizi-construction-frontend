@@ -12,6 +12,7 @@ import type { Stock } from '../../services/stockService';
 import { categoriesService, type Category } from '../../services/categoriesService';
 import { uploadService } from '../../services/uploadService';
 import { useToast } from '../../context/ToastContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 const PAGE_SIZES = [5, 10, 15, 20];
 
@@ -46,7 +47,7 @@ const StockPage = () => {
     const outletCtx = useOutletContext<{ searchQuery?: string; setSearchQuery?: (q: string) => void }>();
     const [entries, setEntries] = useState<Stock[]>([]);
     const [stats, setStats] = useState({ totalIn: 0, totalOut: 0, netStock: 0, itemCount: 0 });
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [view, setView] = useState<ViewMode>('summary');
     const pathFilter = location.pathname.endsWith('/in') ? 'in' : location.pathname.endsWith('/out') ? 'out' : 'all';
     const [filter, setFilter] = useState<'all' | 'in' | 'out'>(pathFilter);
@@ -96,16 +97,22 @@ const StockPage = () => {
     };
 
     const load = async () => {
-        setLoading(true);
+        const cached = loadPageCache<{ entries: Stock[]; stats: { totalIn: number; totalOut: number; netStock: number; itemCount: number } }>('pg_stock');
+        if (cached) {
+            setEntries(cached.entries);
+            setStats(cached.stats);
+        }
         try {
             const [eRes, sRes] = await Promise.all([
                 stockService.getAll().catch(() => ({ data: [] })),
                 stockService.getStats().catch(() => ({ data: { totalIn: 0, totalOut: 0, netStock: 0, itemCount: 0 } })),
             ]);
-            setEntries(eRes.data || []);
-            setStats(sRes.data || { totalIn: 0, totalOut: 0, netStock: 0, itemCount: 0 });
+            const entriesData = eRes.data || [];
+            const statsData = sRes.data || { totalIn: 0, totalOut: 0, netStock: 0, itemCount: 0 };
+            setEntries(entriesData);
+            setStats(statsData);
+            savePageCache('pg_stock', { entries: entriesData, stats: statsData });
         } catch { }
-        setLoading(false);
     };
 
     useEffect(() => { load(); loadCategories(); }, []);
@@ -341,14 +348,6 @@ const StockPage = () => {
         if (pct <= 60) return { pct, label: 'Moderate', color: '#3b82f6' };
         return { pct, label: 'Healthy', color: '#22c55e' };
     };
-
-    if (loading) return (
-        <div className="admin-page">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, gap: 12, color: '#999', fontSize: '1.1rem' }}>
-                <FaSpinner className="spin" size={20} /> Loading stock...
-            </div>
-        </div>
-    );
 
     return (
         <div className="admin-page">

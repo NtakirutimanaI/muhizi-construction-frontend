@@ -7,6 +7,7 @@ import { profileService } from '../../services/profileService';
 import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
 import { useToast } from '../../context/ToastContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 const Settings = () => {
     const { user } = useAuth();
@@ -33,6 +34,15 @@ const Settings = () => {
     }, []);
 
     const loadProfile = async () => {
+        const cached = loadPageCache<any>('pg_settings');
+        if (cached) {
+            setProfile(cached);
+            setSettings({
+                maintenanceMode: cached.maintenanceMode || false,
+                enableNotifications: cached.preferences?.enableNotifications !== false,
+            });
+        }
+
         try {
             const data = await profileService.getMyProfile();
             setProfile(data);
@@ -40,9 +50,12 @@ const Settings = () => {
                 maintenanceMode: data.maintenanceMode || false,
                 enableNotifications: data.preferences?.enableNotifications !== false,
             });
+            savePageCache('pg_settings', data);
         } catch (error) {
-            console.error('Failed to load profile', error);
-            showToast('Failed to load settings', 'error');
+            if (!cached) {
+                console.error('Failed to load profile', error);
+                showToast('Failed to load settings', 'error');
+            }
         }
     };
 

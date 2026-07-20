@@ -1,10 +1,27 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaEnvelope, FaUser, FaPhone, FaBuilding, FaCheck, FaClock, FaTrash, FaInbox, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight, FaPaperPlane, FaTimes } from 'react-icons/fa';
+import { FaEnvelope, FaUser, FaPhone, FaBuilding, FaCheck, FaClock, FaCheckCircle, FaTrash, FaInbox, FaChevronLeft, FaChevronRight, FaPaperPlane, FaTimes } from 'react-icons/fa';
 import { profileService, type ContactMessage } from '../../services/profileService';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { mlService, type LeadScoreResult } from '../../services/mlService';
 import { useToast } from '../../context/ToastContext';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+
+const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+        </div>
+    </div>
+);
 
 const PAGE_SIZES = [5, 10, 15, 20];
 
@@ -12,11 +29,9 @@ const MessagesInbox = () => {
     const { showToast } = useToast();
     const [messages, setMessages] = useState<ContactMessage[]>([]);
     const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
     const [search, setSearch] = useState('');
-    const [fromDate, setFromDate] = useState('');
-    const [toDate, setToDate] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -31,8 +46,13 @@ const MessagesInbox = () => {
 
     const loadMessages = async () => {
         try {
+            const cached = loadPageCache<ContactMessage[]>('pg_messages_inbox');
+            if (cached) {
+                setMessages(cached);
+            }
             const data = await profileService.getInboxMessages();
             setMessages(data || []);
+            savePageCache('pg_messages_inbox', data || []);
         } catch (error) {
             console.error(error);
         } finally {
@@ -44,13 +64,11 @@ const MessagesInbox = () => {
         const q = search.toLowerCase().trim();
         return messages.filter(m => {
             if (q && !m.name.toLowerCase().includes(q) && !m.email.toLowerCase().includes(q) && !(m.subject || '').toLowerCase().includes(q) && !(m.message || '').toLowerCase().includes(q) && !(m.phone || '').toLowerCase().includes(q)) return false;
-            if (fromDate && m.createdAt && new Date(m.createdAt) < new Date(fromDate)) return false;
-            if (toDate && m.createdAt) { const end = new Date(toDate); end.setHours(23, 59, 59, 999); if (new Date(m.createdAt) > end) return false; }
             if (filter === 'unread' && (!m.status || m.status === 'read')) return false;
             if (filter === 'read' && (!m.status || m.status === 'unread' || m.status === 'new')) return false;
             return true;
         });
-    }, [messages, search, fromDate, toDate, filter]);
+    }, [messages, search, filter]);
 
     const totalPages = pageSize === 0 ? 1 : Math.ceil(filtered.length / pageSize);
     const paginated = useMemo(() => {
@@ -147,87 +165,25 @@ const MessagesInbox = () => {
         m.createdAt ? new Date(m.createdAt).toLocaleDateString() : '—',
     ]), [filtered]);
 
-    const downloadPDF = () => {
-        const doc = new jsPDF();
-        const brown = '#1B2042';
-        const pageW = doc.internal.pageSize.getWidth();
-        const pageH = doc.internal.pageSize.getHeight();
-        doc.setFontSize(22); doc.setTextColor(brown); doc.setFont('helvetica', 'bold');
-        doc.text('MUHIZI CONSTRUCTION', pageW / 2, 22, { align: 'center' });
-        doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-        doc.text('Building Your Vision, Delivering Excellence', pageW / 2, 30, { align: 'center' });
-        doc.setDrawColor(brown); doc.setLineWidth(0.8); doc.line(14, 34, pageW - 14, 34);
-        doc.setFontSize(13); doc.setTextColor(brown); doc.setFont('helvetica', 'bold');
-        doc.text('Inbox Messages Report', 14, 40);
-        doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor('#666');
-        doc.text(`Generated: ${new Date().toLocaleDateString()}${fromDate && toDate ? ` | Period: ${fromDate} to ${toDate}` : ''}`, pageW - 14, 40, { align: 'right' });
-        autoTable(doc, {
-            head: [['#', 'Name', 'Email', 'Subject', 'Status', 'Date']],
-            body: tableData, startY: 46,
-            styles: { fontSize: 8, textColor: '#333' },
-            headStyles: { fillColor: [139, 69, 19], textColor: [255, 255, 255], fontStyle: 'bold' },
-            alternateRowStyles: { fillColor: [250, 245, 240] },
-            columnStyles: { 0: { cellWidth: 10, halign: 'center' } },
-            didDrawPage: (data: any) => {
-                doc.setDrawColor(brown); doc.setLineWidth(0.5);
-                doc.line(14, pageH - 20, pageW - 14, pageH - 20);
-                doc.setFontSize(8); doc.setTextColor(brown); doc.setFont('helvetica', 'normal');
-                doc.text('Email: info@muhiziconstruction.com  |  Phone: +250 788 000 000  |  Location: Kigali, Rwanda', pageW / 2, pageH - 14, { align: 'center' });
-            },
-        });
-        doc.save('inbox-messages.pdf');
-    };
-
-    const downloadExcel = () => {
-        const brown = '#1B2042';
-        const headers = ['#', 'Name', 'Email', 'Subject', 'Status', 'Date'];
-        const rows = tableData.map(r => `<tr>${r.map(c => `<td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${c}</td>`).join('')}</tr>`).join('');
-        const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>
-            <div style="text-align:center;color:${brown};font-size:20px;font-weight:bold;font-family:Arial">MUHIZI CONSTRUCTION</div>
-            <div style="text-align:center;color:${brown};font-size:11px;font-family:Arial;margin-bottom:4px">Building Your Vision, Delivering Excellence</div>
-            <hr style="border:1px solid ${brown}" />
-            <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:bold;color:${brown};font-family:Arial;margin:6px 0"><span>Inbox Messages Report</span><span>${new Date().toLocaleDateString()}${fromDate && toDate ? ' | ' + fromDate + ' to ' + toDate : ''}</span></div>
-            <table style="border-collapse:collapse;width:100%;font-family:Arial">
-                <tr style="background:${brown};color:#fff">${headers.map(h => `<th style="padding:6px 8px;border:1px solid ${brown};font-size:11px">${h}</th>`).join('')}</tr>${rows}
-            </table>
-            <hr style="border:0.5px solid ${brown};margin-top:12px" />
-            <div style="text-align:center;color:${brown};font-size:10px;font-family:Arial">Email: info@muhiziconstruction.com | Phone: +250 788 000 000 | Location: Kigali, Rwanda</div>
-        </body></html>`;
-        const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'inbox-messages.xls'; a.click();
-        URL.revokeObjectURL(url);
-    };
-
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', gap: '1rem', flexWrap: 'wrap' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
                     <FaEnvelope style={{ color: 'var(--primary)' }} /> Messages
                 </h2>
-                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button onClick={() => {
-                        if (!selectedIds.size) { showToast('Select messages first', 'error'); return; }
-                        setReplySubject(''); setReplyMessage(''); setShowReply(true);
-                    }}
-                        style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <FaPaperPlane size={10} /> Reply {selectedIds.size ? `(${selectedIds.size})` : ''}
-                    </button>
-                <div className="admin-summary-cards">
-                    <div className="admin-summary-card">
-                        <div className="admin-summary-card__value">{messages.length}</div>
-                        <div className="admin-summary-card__label">Total</div>
-                    </div>
-                    <div className="admin-summary-card">
-                        <div className="admin-summary-card__value">{unreadCount}</div>
-                        <div className="admin-summary-card__label">Unread</div>
-                    </div>
-                    <div className="admin-summary-card">
-                        <div className="admin-summary-card__value">{messages.length - unreadCount}</div>
-                        <div className="admin-summary-card__label">Read</div>
-                    </div>
-                </div>
-                </div>
+                <button onClick={() => {
+                    if (!selectedIds.size) { showToast('Select messages first', 'error'); return; }
+                    setReplySubject(''); setReplyMessage(''); setShowReply(true);
+                }}
+                    style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <FaPaperPlane size={10} /> Reply {selectedIds.size ? `(${selectedIds.size})` : ''}
+                </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                <StatTile icon={<FaEnvelope />} label="Total Messages" value={String(messages.length)} accent="#1B2042" emphasis />
+                <StatTile icon={<FaClock />} label="Unread" value={String(unreadCount)} accent="#f59e0b" />
+                <StatTile icon={<FaCheckCircle />} label="Read" value={String(messages.length - unreadCount)} accent="#22c55e" />
             </div>
 
             <div className="admin-card" style={{ marginBottom: '1rem' }}>
@@ -239,14 +195,6 @@ const MessagesInbox = () => {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <input type="text" className="form-input" placeholder="Search name, email, subject..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 280 }} />
-                        <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 130 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
-                        <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 130 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
-                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: 1 }}>
-                            <FaFileExcel /> Excel
-                        </button>
-                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5, opacity: 1 }}>
-                            <FaFilePdf /> PDF
-                        </button>
                     </div>
                 </div>
             </div>
@@ -261,9 +209,7 @@ const MessagesInbox = () => {
                         </label>
                     </div>
                     <div style={{ flex: 1, overflowY: 'auto', maxHeight: '520px' }}>
-                        {loading ? (
-                            <div className="inline-spinner">Loading messages...</div>
-                        ) : paginated.length === 0 ? (
+                        {paginated.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
                                 <FaInbox size={40} style={{ marginBottom: '1rem', opacity: 0.2 }} />
                                 <p style={{ fontSize: '0.95rem' }}>No messages in inbox</p>

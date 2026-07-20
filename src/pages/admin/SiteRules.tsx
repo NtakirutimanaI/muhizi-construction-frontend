@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { siteRulesService, type SiteRule } from '../../services/siteRulesService';
 import {
     FaClock, FaHardHat, FaMoneyCheckAlt, FaLock, FaListAlt, FaExclamationTriangle,
@@ -48,7 +49,7 @@ const SiteRules = () => {
     const canDelete = role === 'admin';
 
     const [rules, setRules] = useState<SiteRule[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [manageMode, setManageMode] = useState(false);
     const [selectedRule, setSelectedRule] = useState<SiteRule | null>(null);
     const [formModal, setFormModal] = useState<{ open: boolean; edit?: SiteRule }>({ open: false });
@@ -58,13 +59,16 @@ const SiteRules = () => {
     const [deleting, setDeleting] = useState(false);
 
     const fetchRules = async () => {
+        const cached = loadPageCache<SiteRule[]>('pg_site_rules');
+        if (cached) setRules(cached);
         try {
             const ep = canManage && manageMode ? siteRulesService.getAllAdmin : siteRulesService.getAll;
             const res = await ep();
             setRules(res.data || []);
+            savePageCache('pg_site_rules', res.data || []);
         } catch {
             showToast('Failed to load site rules', 'error');
-        } finally { setLoading(false); }
+        }
     };
 
     useEffect(() => { fetchRules(); }, [manageMode]);
@@ -232,11 +236,7 @@ const SiteRules = () => {
                     </div>
                 </div>
 
-                {loading ? (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.5)', position: 'relative', zIndex: 1 }}>
-                        Loading notices...
-                    </div>
-                ) : rules.length === 0 ? (
+                {rules.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.5)', position: 'relative', zIndex: 1 }}>
                         No notices posted yet.
                         {manageMode && <div style={{ marginTop: '0.5rem' }}>Click "Add Notice" to create the first one.</div>}

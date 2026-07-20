@@ -4,8 +4,27 @@ import { financeService } from '../../services/financeService';
 import type { MonthlyReport, YearlyReport, ReportTransaction } from '../../services/financeService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+        </div>
+    </div>
+);
 
 const Reports = () => {
     const now = new Date();
@@ -20,15 +39,19 @@ const Reports = () => {
     const transactions: ReportTransaction[] = active?.transactions || [];
 
     const fetchMonthly = async () => {
+        const cached = loadPageCache<Record<string, any>>('pg_reports');
+        if (cached?.monthly) setMonthly(cached.monthly);
         setLoading(true);
-        try { const res = await financeService.getMonthlyReport(year, month); setMonthly(res.data); }
+        try { const res = await financeService.getMonthlyReport(year, month); setMonthly(res.data); savePageCache('pg_reports', { ...(cached || {}), monthly: res.data }); }
         catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
 
     const fetchYearly = async () => {
+        const cached = loadPageCache<Record<string, any>>('pg_reports');
+        if (cached?.yearly) setYearly(cached.yearly);
         setLoading(true);
-        try { const res = await financeService.getYearlyReport(year); setYearly(res.data); }
+        try { const res = await financeService.getYearlyReport(year); setYearly(res.data); savePageCache('pg_reports', { ...(cached || {}), yearly: res.data }); }
         catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
@@ -278,23 +301,11 @@ const Reports = () => {
 
             {!loading && view === 'monthly' && monthly && (
                 <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                        <div className="content-card" style={{ padding: '1.25rem', textAlign: 'center', border: '1px solid var(--border-color)', background: '#22c55e10' }}>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#22c55e' }}>RWF {monthly.totalIncome.toLocaleString()}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Total Income</div>
-                        </div>
-                        <div className="content-card" style={{ padding: '1.25rem', textAlign: 'center', border: '1px solid var(--border-color)', background: '#ef444410' }}>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ef4444' }}>RWF {monthly.totalExpense.toLocaleString()}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Total Expense</div>
-                        </div>
-                        <div className="content-card" style={{ padding: '1.25rem', textAlign: 'center', border: '1px solid var(--border-color)', background: '#1B204210' }}>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1B2042' }}>RWF {monthly.netProfit.toLocaleString()}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Net Profit</div>
-                        </div>
-                        <div className="content-card" style={{ padding: '1.25rem', textAlign: 'center', border: '1px solid var(--border-color)' }}>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)' }}>{monthly.incomeCount + monthly.expenseCount}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Transactions</div>
-                        </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                        <StatTile icon={<FaArrowUp />} label="Income" value={`RWF ${monthly.totalIncome.toLocaleString()}`} accent="#22c55e" emphasis />
+                        <StatTile icon={<FaArrowDown />} label="Expense" value={`RWF ${monthly.totalExpense.toLocaleString()}`} accent="#ef4444" />
+                        <StatTile icon={<FaBalanceScale />} label="Net Profit" value={`RWF ${monthly.netProfit.toLocaleString()}`} accent="#1B2042" />
+                        <StatTile icon={<FaListUl />} label="Transactions" value={String(monthly.incomeCount + monthly.expenseCount)} accent="#f59e0b" />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
@@ -334,19 +345,10 @@ const Reports = () => {
 
             {!loading && view === 'yearly' && yearly && (
                 <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                        <div className="content-card" style={{ padding: '1.25rem', textAlign: 'center', border: '1px solid var(--border-color)', background: '#22c55e10' }}>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#22c55e' }}>RWF {yearly.totalIncome.toLocaleString()}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Total Income</div>
-                        </div>
-                        <div className="content-card" style={{ padding: '1.25rem', textAlign: 'center', border: '1px solid var(--border-color)', background: '#ef444410' }}>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ef4444' }}>RWF {yearly.totalExpense.toLocaleString()}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Total Expense</div>
-                        </div>
-                        <div className="content-card" style={{ padding: '1.25rem', textAlign: 'center', border: '1px solid var(--border-color)', background: '#1B204210' }}>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1B2042' }}>RWF {yearly.netProfit.toLocaleString()}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Net Profit</div>
-                        </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                        <StatTile icon={<FaArrowUp />} label="Income" value={`RWF ${yearly.totalIncome.toLocaleString()}`} accent="#22c55e" emphasis />
+                        <StatTile icon={<FaArrowDown />} label="Expense" value={`RWF ${yearly.totalExpense.toLocaleString()}`} accent="#ef4444" />
+                        <StatTile icon={<FaBalanceScale />} label="Net Profit" value={`RWF ${yearly.netProfit.toLocaleString()}`} accent="#1B2042" />
                     </div>
 
                     <div className="content-card" style={{ padding: '1.25rem' }}>
