@@ -8,6 +8,7 @@ import type { Expense } from '../../services/financeService';
 import { constructionService } from '../../services/constructionService';
 import type { Project } from '../../services/constructionService';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -46,6 +47,8 @@ const PAGE_SIZES = [5, 10, 15, 20];
 
 const Expenses = () => {
     const { showToast } = useToast();
+    const { user } = useAuth();
+    const canManage = user?.role !== 'managing_director';
     const [data, setData] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -268,9 +271,11 @@ const Expenses = () => {
                         <input type="text" className="form-input" placeholder="Search description, category, vendor..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 400 }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
                         <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
-                        <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
-                            <FaPlus style={{ marginRight: 6 }} />Add Expense
-                        </button>
+                        {canManage && (
+                            <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
+                                <FaPlus style={{ marginRight: 6 }} />Add Expense
+                            </button>
+                        )}
                     </div>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
@@ -302,7 +307,9 @@ const Expenses = () => {
                                     <td style={{ whiteSpace: 'nowrap' }}>{new Date(item.date).toLocaleDateString()}</td>
                                     <td>
                                         <div style={{ display: 'flex', gap: 6 }}>
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
+                                            {canManage && (
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
+                                            )}
                                             <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => exportExpense(item)} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence"><FaFileDownload /></button>
                                         </div>
                                     </td>
@@ -311,7 +318,7 @@ const Expenses = () => {
                             {data.length === 0 && (
                                 <tr><td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                                     <FaMoneyBillWave size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
-                                    <div>No expense records found. Click "Add Expense" to create one.</div>
+                                    <div>{canManage ? 'No expense records found. Click "Add Expense" to create one.' : 'No expense records found yet.'}</div>
                                 </td></tr>
                             )}
                         </tbody>

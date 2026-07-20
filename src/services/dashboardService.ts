@@ -14,6 +14,9 @@ export interface ManagingDirectorKpi {
     pendingRequests: number;
     activeSites: number;
     recentEvidence: number;
+    mtdIncomes: number;
+    mtdExpenses: number;
+    cashFlow: number;
 }
 
 export interface FinanceDirectorKpi {
