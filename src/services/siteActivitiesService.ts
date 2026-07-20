@@ -3,6 +3,7 @@ import api from './api';
 export interface SiteActivity {
     id: string;
     project: string;
+    siteId?: string;
     date: string;
     description: string;
     status: 'planned' | 'in_progress' | 'completed';

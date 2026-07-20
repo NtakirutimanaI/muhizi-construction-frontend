@@ -3,16 +3,18 @@ import { FaPlus, FaTrash, FaTimes, FaSave, FaVideo, FaImage, FaSpinner, FaChevro
 import { constructionService } from '../../services/constructionService';
 import { projectEvidenceService } from '../../services/projectEvidenceService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
+import { sitesService, type Site } from '../../services/sitesService';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
 
 const PAGE_SIZES = [5, 10, 15, 20];
 
-const emptyForm = { project: '', type: 'image' as 'image' | 'video', title: '', url: '', date: new Date().toISOString().split('T')[0], notes: '' };
+const emptyForm = { project: '', siteId: '', type: 'image' as 'image' | 'video', title: '', url: '', date: new Date().toISOString().split('T')[0], notes: '' };
 
 const ProjectEvidencePage = () => {
     const [evidences, setEvidences] = useState<ProjectEvidence[]>([]);
     const [loading, setLoading] = useState(false);
     const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+    const [sites, setSites] = useState<Site[]>([]);
     const [selectedProject, setSelectedProject] = useState('all');
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<ProjectEvidence | null>(null);
@@ -23,11 +25,14 @@ const ProjectEvidencePage = () => {
     const [pageSize, setPageSize] = useState(10);
 
     useEffect(() => {
-        const cached = loadPageCache<{ evidences: ProjectEvidence[]; projects: { id: string; name: string }[] }>('pg_project_evidence');
+        const cached = loadPageCache<{ evidences: ProjectEvidence[]; projects: { id: string; name: string }[]; sites: Site[] }>('pg_project_evidence');
         if (cached) {
             setEvidences(cached.evidences || []);
             setProjects(cached.projects || []);
+            setSites(cached.sites || []);
         }
+        let freshSites: Site[] = cached?.sites || [];
+        sitesService.getAll().then(res => { freshSites = res.data || []; setSites(freshSites); }).catch(() => setSites([]));
         constructionService.getProjects().then(res => {
             const freshProjects = res.data || [];
             setProjects(freshProjects);
@@ -35,7 +40,7 @@ const ProjectEvidencePage = () => {
                 .then(res => {
                     const freshEvidences = res.data || [];
                     setEvidences(freshEvidences);
-                    savePageCache('pg_project_evidence', { evidences: freshEvidences, projects: freshProjects });
+                    savePageCache('pg_project_evidence', { evidences: freshEvidences, projects: freshProjects, sites: freshSites });
                 })
                 .catch(() => setEvidences([]));
         }).catch(() => {
@@ -65,11 +70,11 @@ const ProjectEvidencePage = () => {
     }, [totalPages, page]);
 
     const openNew = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
-    const openEdit = (e: ProjectEvidence) => { setEditing(e); setForm({ project: e.project, type: e.type, title: e.title, url: e.url, date: e.date, notes: e.notes || '' }); setShowModal(true); };
+    const openEdit = (e: ProjectEvidence) => { setEditing(e); setForm({ project: e.project, siteId: e.siteId || '', type: e.type, title: e.title, url: e.url, date: e.date, notes: e.notes || '' }); setShowModal(true); };
     const close = () => { setShowModal(false); setEditing(null); setPreviewUrl(null); };
 
     const save = () => {
-        if (!form.project || !form.title || !form.url) return;
+        if (!form.project || !form.title || !form.url || !form.siteId) return;
         if (editing) {
             projectEvidenceService.update(editing.id, form as any)
                 .then(res => setEvidences(prev => prev.map(e => e.id === editing.id ? res.data : e)))
@@ -202,6 +207,13 @@ const ProjectEvidencePage = () => {
                                     <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Date</label>
                                     <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }} />
                                 </div>
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Site</label>
+                                <select value={form.siteId} onChange={e => setForm(p => ({ ...p, siteId: e.target.value }))} className="form-select" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>
+                                    <option value="">Select site</option>
+                                    {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                </select>
                             </div>
                             <div>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Type</label>

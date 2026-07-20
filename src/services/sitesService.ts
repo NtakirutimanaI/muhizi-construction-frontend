@@ -14,6 +14,8 @@ export interface Site {
     images?: string[];
     projectId: string;
     project?: { id: string; name: string };
+    assignedEngineerId?: string;
+    assignedEngineerName?: string;
     rules?: SiteRule[];
     activities?: SiteActivity[];
     evidence?: ProjectEvidence[];

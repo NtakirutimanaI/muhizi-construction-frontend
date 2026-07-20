@@ -3,16 +3,18 @@ import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaHardHat, FaSpinner, FaChevr
 import { constructionService } from '../../services/constructionService';
 import { siteActivitiesService } from '../../services/siteActivitiesService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
+import { sitesService, type Site } from '../../services/sitesService';
 import type { SiteActivity } from '../../services/siteActivitiesService';
 
 const PAGE_SIZES = [5, 10, 15, 20];
 
-const emptyForm: Omit<SiteActivity, 'id' | 'isActive' | 'createdAt'> = { project: '', date: new Date().toISOString().split('T')[0], description: '', status: 'planned', workers: 0, notes: '' };
+const emptyForm: Omit<SiteActivity, 'id' | 'isActive' | 'createdAt'> = { project: '', siteId: '', date: new Date().toISOString().split('T')[0], description: '', status: 'planned', workers: 0, notes: '' };
 
 const SiteActivities = () => {
     const [activities, setActivities] = useState<SiteActivity[]>([]);
     const [loading, setLoading] = useState(false);
     const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+    const [sites, setSites] = useState<Site[]>([]);
     const [selectedProject, setSelectedProject] = useState('all');
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<SiteActivity | null>(null);
@@ -22,11 +24,14 @@ const SiteActivities = () => {
     const [pageSize, setPageSize] = useState(10);
 
     useEffect(() => {
-        const cached = loadPageCache<{ activities: SiteActivity[]; projects: { id: string; name: string }[] }>('pg_site_activities');
+        const cached = loadPageCache<{ activities: SiteActivity[]; projects: { id: string; name: string }[]; sites: Site[] }>('pg_site_activities');
         if (cached) {
             setActivities(cached.activities || []);
             setProjects(cached.projects || []);
+            setSites(cached.sites || []);
         }
+        let freshSites: Site[] = cached?.sites || [];
+        sitesService.getAll().then(res => { freshSites = res.data || []; setSites(freshSites); }).catch(() => setSites([]));
         constructionService.getProjects().then(res => {
             const freshProjects = res.data || [];
             setProjects(freshProjects);
@@ -34,7 +39,7 @@ const SiteActivities = () => {
                 .then(actRes => {
                     const freshActivities = actRes.data || [];
                     setActivities(freshActivities);
-                    savePageCache('pg_site_activities', { activities: freshActivities, projects: freshProjects });
+                    savePageCache('pg_site_activities', { activities: freshActivities, projects: freshProjects, sites: freshSites });
                 })
                 .catch(() => setActivities([]))
                 .finally(() => setLoading(false));
@@ -68,11 +73,11 @@ const SiteActivities = () => {
     }, [totalPages, page]);
 
     const openNew = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
-    const openEdit = (a: SiteActivity) => { setEditing(a); setForm({ project: a.project, date: a.date, description: a.description, status: a.status, workers: a.workers, notes: a.notes || '' }); setShowModal(true); };
+    const openEdit = (a: SiteActivity) => { setEditing(a); setForm({ project: a.project, siteId: a.siteId || '', date: a.date, description: a.description, status: a.status, workers: a.workers, notes: a.notes || '' }); setShowModal(true); };
     const close = () => { setShowModal(false); setEditing(null); };
 
     const save = () => {
-        if (!form.project || !form.date) return;
+        if (!form.project || !form.date || !form.siteId) return;
         if (editing) {
             siteActivitiesService.update(editing.id, form as any)
                 .then(res => setActivities(prev => prev.map(a => a.id === editing.id ? res.data : a)))
@@ -174,6 +179,13 @@ const SiteActivities = () => {
                                 <select value={form.project} onChange={e => setForm(p => ({ ...p, project: e.target.value }))} className="form-select">
                                     <option value="">Select project</option>
                                     {projects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Site</label>
+                                <select value={form.siteId} onChange={e => setForm(p => ({ ...p, siteId: e.target.value }))} className="form-select">
+                                    <option value="">Select site</option>
+                                    {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                 </select>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>

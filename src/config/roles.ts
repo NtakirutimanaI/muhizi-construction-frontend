@@ -38,6 +38,8 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/sites', icon: 'FaProjectDiagram', label: 'Sites', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.ENGINEERING_STUDIO, ROLES.PARTNER, ROLES.MANAGING_DIRECTOR] },
 
             { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests & Approvals', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER] },
+            { path: '/admin/site-activities', icon: 'FaClipboardList', label: 'Site Activities', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.SITE_ENGINEER] },
+            { path: '/admin/project-evidence', icon: 'FaCamera', label: 'Project Evidence', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.SITE_MANAGER, ROLES.SITE_ENGINEER, ROLES.PARTNER, ROLES.CLIENT] },
             { path: '/admin/engineering-submissions', icon: 'FaDraftingCompass', label: 'Engineering Submissions', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/daily-reports', icon: 'FaClipboardCheck', label: 'Daily Reports', roles: [ROLES.ADMIN] },
             { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.MANAGER] },
