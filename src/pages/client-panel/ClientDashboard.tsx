@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-    FaHardHat, FaImage, FaClipboardList, FaProjectDiagram,
-    FaArrowRight, FaCheckCircle, FaClock, FaMapMarkerAlt,
+    FaHardHat, FaImage, FaProjectDiagram,
+    FaArrowRight, FaCheckCircle,
 } from 'react-icons/fa';
 import {
     PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
+    BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
 import { clientPortalService } from '../../services/clientPortalService';
@@ -44,7 +44,7 @@ const ClientDashboard = () => {
         fetchFresh();
     }, []);
 
-    const sites = projects.flatMap((p: any) => p.sites || []);
+    const sites = projects.flatMap(p => p.sites || []);
     const activeProjects = projects.filter(p => p.status === 'in_progress');
     const completedProjects = projects.filter(p => p.status === 'completed');
     const avgProgress = projects.length > 0

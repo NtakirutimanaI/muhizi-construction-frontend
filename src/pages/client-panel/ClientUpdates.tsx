@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaSpinner, FaClipboardList, FaCheckCircle, FaClock, FaHardHat } from 'react-icons/fa';
+import { FaClipboardList, FaCheckCircle, FaClock, FaHardHat } from 'react-icons/fa';
 import { clientPortalService } from '../../services/clientPortalService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
@@ -12,7 +12,6 @@ interface EvidenceWithSite extends ProjectEvidence {
 
 const ClientUpdates = () => {
   const [items, setItems] = useState<EvidenceWithSite[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const cached = loadPageCache<{ items: EvidenceWithSite[] }>('pg_client_updates');
@@ -23,7 +22,7 @@ const ClientUpdates = () => {
     clientPortalService.getMyProjects()
       .then(async (projectsRes) => {
         const projects = (projectsRes.data || []) as Project[];
-        const sitesData = projects.flatMap((p) => (p as any).sites || []) as Site[];
+        const sitesData = projects.flatMap(p => (p.sites || [])) as Site[];
         const siteMap = new Map(sitesData.map(s => [s.id, s.name]));
 
         const evidenceResults = await Promise.all(
@@ -40,8 +39,7 @@ const ClientUpdates = () => {
         setItems(evData);
         savePageCache('pg_client_updates', { items: evData });
       })
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
+      .catch(() => setItems([]));
   }, []);
 
   return (

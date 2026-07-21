@@ -43,7 +43,7 @@ const MaterialRequests = () => {
     const [rejectModalPos, setRejectModalPos] = useState<{ x: number; y: number } | null>(null);
     const rejectDragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
 
-    const isSiteMgr = user?.role === 'site_manager';
+    const isSiteMgr = user?.role === 'storekeeper';
 
     const load = async () => {
         const cached = loadPageCache<{ requests: MaterialRequest[]; projects: { id: string; name: string }[] }>('pg_material_requests');

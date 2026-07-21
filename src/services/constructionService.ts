@@ -19,6 +19,7 @@ export interface Project {
     images?: string[];
     documents?: { name: string; url: string }[];
     milestones?: { title: string; date: string; completed: boolean }[];
+    sites?: { id: string; name: string; progress: number; status: string; location?: string }[];
     createdAt: string;
     updatedAt: string;
 }
