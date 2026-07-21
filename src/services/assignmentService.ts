@@ -9,7 +9,7 @@ export interface EmployeeAssignment {
     siteId?: string;
     site?: { id: string; name: string; location: string };
     task?: string;
-    role: 'manager' | 'site_manager' | 'worker' | 'supervisor';
+    role: 'storekeeper' | 'worker' | 'supervisor';
     startDate: string;
     endDate?: string;
     isActive: boolean;

@@ -9,7 +9,7 @@ import {
     FaMoneyBillWave, FaArrowUp, FaArrowDown, FaChartPie, FaHistory, FaBrain,
     FaInbox, FaPaperPlane, FaArchive, FaLock, FaHardHat, FaTruck, FaCamera, FaGavel,
     FaCheckDouble, FaFileAlt, FaImage, FaHome, FaInfoCircle, FaTag,
-    FaBoxes, FaSpinner, FaClock, FaCertificate, FaNewspaper
+    FaBoxes, FaSpinner, FaClock, FaCertificate, FaNewspaper, FaFileContract, FaShieldAlt
 } from 'react-icons/fa';
 import { useNotification } from '../context/NotificationContext';
 import { profileService, type Profile, type ContactMessage } from '../services/profileService';
@@ -274,6 +274,7 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
         FaHardHat: <FaHardHat />, FaTruck: <FaTruck />, FaCamera: <FaCamera />, FaGavel: <FaGavel />,
         FaCheckDouble: <FaCheckDouble />, FaFileAlt: <FaFileAlt />, FaImage: <FaImage />,
         FaHome: <FaHome />, FaInfoCircle: <FaInfoCircle />, FaGlobe: <FaGlobe />,
+        FaFileContract: <FaFileContract />, FaShieldAlt: <FaShieldAlt />,
     };
 
     const sections = SIDEBAR_SECTIONS
@@ -763,7 +764,7 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
                                         >
                                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                 {item.icon}
-                                                <span>{item.label === 'Sites' && user?.role === 'site_manager' ? 'Site Info' : item.label === 'Dashboard' && user?.role === 'site_manager' ? 'Dashboard' : item.label}</span>
+                                                <span>{item.label}</span>
                                             </span>
                                             {hasSub && (
                                                 <span style={{ fontSize: '0.6rem', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>

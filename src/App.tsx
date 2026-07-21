@@ -31,6 +31,7 @@ const MessagesSent = lazy(() => import('./pages/admin/MessagesSent'));
 const MessagesTrash = lazy(() => import('./pages/admin/MessagesTrash'));
 const Resources = lazy(() => import('./pages/admin/Resources'));
 const Users = lazy(() => import('./pages/admin/Users'));
+const Registration = lazy(() => import('./pages/admin/Registration'));
 const Settings = lazy(() => import('./pages/admin/Settings'));
 const Projects = lazy(() => import('./pages/admin/Projects'));
 const Designs = lazy(() => import('./pages/admin/Designs'));
@@ -50,6 +51,8 @@ const EmployeeAssignments = lazy(() => import('./pages/admin/EmployeeAssignments
 const Requests = lazy(() => import('./pages/admin/Requests'));
 const EngineeringSubmissions = lazy(() => import('./pages/admin/EngineeringSubmissions'));
 const DailyReports = lazy(() => import('./pages/admin/DailyReports'));
+const CreateContract = lazy(() => import('./pages/admin/CreateContract'));
+const InsuranceSettings = lazy(() => import('./pages/admin/InsuranceSettings'));
 const Stock = lazy(() => import('./pages/admin/Stock'));
 const StockCategories = lazy(() => import('./pages/admin/StockCategories'));
 const ProjectDetail = lazy(() => import('./pages/admin/ProjectDetail'));
@@ -59,6 +62,7 @@ const ClientDashboard = lazy(() => import('./pages/client-panel/ClientDashboard'
 const ClientProfile = lazy(() => import('./pages/client-panel/ClientProfile'));
 const ClientSites = lazy(() => import('./pages/client-panel/ClientSites'));
 const ClientUpdates = lazy(() => import('./pages/client-panel/ClientUpdates'));
+const ClientSiteRules = lazy(() => import('./pages/client-panel/ClientSiteRules'));
 
 import { profileService } from './services/profileService';
 import type { Profile } from './services/profileService';
@@ -139,7 +143,7 @@ function App() {
 
                 {/* Admin Routes */}
                 <Route element={<ProtectedRoute />}>
-                  {['admin', 'manager', 'sitemanager', 'site-manager', 'employee', 'partner', 'managingdirector', 'directorfinance', 'siteengineer', 'engineeringstudio'].map(base => {
+                  {['admin', 'storekeeper', 'employee', 'partner', 'managingdirector', 'directorfinance', 'siteengineer', 'engineeringstudio'].map(base => {
                     const b = `/${base}`;
                     return (
                       <Route key={base} path={b} element={<AdminLayout basePath={b} />}>
@@ -152,6 +156,7 @@ function App() {
                         <Route path="messages/trash" element={<MessagesTrash />} />
                         <Route path="resources" element={<Resources />} />
                         <Route path="users" element={<Users />} />
+                        <Route path="registration" element={<Registration />} />
                         <Route path="settings" element={<Settings />} />
                         <Route path="sites" element={<Projects />} />
                         <Route path="projects" element={<Navigate to="../sites" replace />} />
@@ -170,10 +175,12 @@ function App() {
                         <Route path="requests" element={<Requests />} />
                         <Route path="engineering-submissions" element={<EngineeringSubmissions />} />
                         <Route path="daily-reports" element={<DailyReports />} />
+                        <Route path="insurance" element={<InsuranceSettings />} />
+                        <Route path="create-contract" element={<CreateContract />} />
                         <Route path="project-evidence" element={<ProjectEvidence />} />
-                        <Route path="site-rules" element={<SiteRules />} />
+                    <Route path="site-rules" element={<ClientSiteRules />} />
                         <Route path="approvals" element={<Navigate to="../requests" replace />} />
-                        <Route path="contracts" element={<Navigate to="../employees" replace />} />
+                        <Route path="contracts" element={<CreateContract />} />
                         <Route path="project-progress" element={<ProjectProgress />} />
                         <Route path="updates" element={<PartnerUpdates />} />
                         <Route path="approvements" element={<Navigate to="../requests" replace />} />
