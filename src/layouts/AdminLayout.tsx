@@ -275,6 +275,7 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
         FaCheckDouble: <FaCheckDouble />, FaFileAlt: <FaFileAlt />, FaImage: <FaImage />,
         FaHome: <FaHome />, FaInfoCircle: <FaInfoCircle />, FaGlobe: <FaGlobe />,
         FaFileContract: <FaFileContract />, FaShieldAlt: <FaShieldAlt />,
+        FaNewspaper: <FaNewspaper />,
     };
 
     const sections = SIDEBAR_SECTIONS
