@@ -46,6 +46,11 @@ export const authService = {
         return response.data;
     },
 
+    createUser: async (data: { email: string; password: string; firstName: string; lastName: string; role?: string; phone?: string }) => {
+        const response = await api.post('/auth/users', data);
+        return response.data;
+    },
+
     getUser: async (id: string) => {
         const response = await api.get(`/auth/users/${id}`);
         return response.data;

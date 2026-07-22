@@ -52,6 +52,8 @@ const Projects = () => {
     });
     const [editingSiteEngineer, setEditingSiteEngineer] = useState<Site | null>(null);
     const [savingSiteEngineer, setSavingSiteEngineer] = useState(false);
+    const [savingProject, setSavingProject] = useState(false);
+    const [siteSearch, setSiteSearch] = useState('');
     const [pendingEngineerId, setPendingEngineerId] = useState('');
     const [searchParams, setSearchParams] = useSearchParams();
     const createProjectForSite = searchParams.get('createProject');
@@ -207,6 +209,7 @@ const Projects = () => {
             showToast('Please select a site to link this project to.', 'error');
             return;
         }
+        setSavingProject(true);
         try {
             const payload = {
                 ...form,
@@ -237,6 +240,8 @@ const Projects = () => {
             const errData = e?.response?.data;
             const errMsg = errData ? JSON.stringify(errData) : (e?.message || 'Unknown error');
             showToast(errMsg, 'error');
+        } finally {
+            setSavingProject(false);
         }
     };
 
@@ -270,6 +275,27 @@ const Projects = () => {
     const openEditSiteEngineer = (site: Site) => {
         setEditingSiteEngineer(site);
         setPendingEngineerId(site.assignedEngineerId || '');
+    };
+
+    const openEditProject = (item: Project) => {
+        setEditing(item);
+        setForm({
+            name: item.name,
+            description: item.description || '',
+            type: item.type || 'construction',
+            status: item.status,
+            startDate: item.startDate || '',
+            endDate: item.endDate || '',
+            budget: item.budget || '',
+            location: item.location || '',
+            clientName: (item as any).clientName || '',
+            clientContact: (item as any).clientContact || '',
+            clientUserId: (item as any).clientUserId || '',
+            partnerUserId: (item as any).partnerUserId || '',
+            progress: item.progress || '',
+        });
+        setModalPos(null);
+        setShowModal(true);
     };
 
     const handleSaveSiteEngineer = async () => {
@@ -373,7 +399,7 @@ const Projects = () => {
                             <tbody>
                                 {paginated.map(item => (
                                 <tr key={item.id}>
-                                    <td><Link to={`/admin/projects/${item.id}`} style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit' }}>{item.name}</Link></td>
+                                    <td><Link to={`/admin/sites/${item.id}`} style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit' }}>{item.name}</Link></td>
                                     <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>{item.type || 'construction'}</td>
                                     <td>
                                         <span style={{
@@ -393,26 +419,7 @@ const Projects = () => {
                                     <td>
                                         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                                             <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => setViewProject(item)} title="View Details"><FaEye /></button>
-                                            {isAdmin && (<><button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={async () => {
-                                                setEditing(item);
-                                                setForm({
-                                                    name: item.name,
-                                                    description: item.description || '',
-                                                    type: item.type || 'construction',
-                                                    status: item.status,
-                                                    startDate: item.startDate || '',
-                                                    endDate: item.endDate || '',
-                                                    budget: item.budget || '',
-                                                    location: item.location || '',
-                                                    clientName: (item as any).clientName || '',
-                                                    clientContact: (item as any).clientContact || '',
-                                                    clientUserId: (item as any).clientUserId || '',
-                                                    partnerUserId: (item as any).partnerUserId || '',
-                                                    progress: item.progress || '',
-                                                });
-                                                setModalPos(null);
-                                                setShowModal(true);
-                                            }} title="Edit"><FaEdit /></button>
+                                            {isAdmin && (<><button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEditProject(item)} title="Edit"><FaEdit /></button>
                                             <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={async () => {
                                                 if (!window.confirm('Delete this project?')) return;
                                                 try { await constructionService.deleteProject(item.id); fetch(); window.dispatchEvent(new CustomEvent('projects-updated')); showToast('Project deleted', 'success'); } catch { showToast('Failed to delete', 'error'); }
@@ -458,30 +465,97 @@ const Projects = () => {
                         </div>
                     </div>
                 </div>
-            ) : (
+            ) : allSites.length === 0 ? (
                 <div className="admin-card" style={{ padding: '3rem', textAlign: 'center' }}>
-                    {allSites.length === 0 ? (
-                        <>
-                            <FaHardHat size={48} style={{ opacity: 0.2, marginBottom: 12, color: 'var(--text-muted)' }} />
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--text-muted)' }}>No Sites Yet</h3>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Create a site first to link it to a project.</p>
-                            {isAdmin && <Link to="#"
-                                onClick={() => setShowCreateSite(true)}
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 1.25rem', borderRadius: '8px', background: '#1B2042', color: '#fff', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
-                                <FaPlus size={12} /> Create Site
-                            </Link>}
-                        </>
-                    ) : (
-                        <>
-                            <FaHardHat size={48} style={{ opacity: 0.15, marginBottom: 12, color: 'var(--text-muted)' }} />
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--text-muted)' }}>Select a Site</h3>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Choose a site from the sidebar to view its projects.</p>
-                        </>
-                    )}
+                    <FaHardHat size={48} style={{ opacity: 0.2, marginBottom: 12, color: 'var(--text-muted)' }} />
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--text-muted)' }}>No Sites Yet</h3>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Create a site first to link it to a project.</p>
+                    {isAdmin && <Link to="#"
+                        onClick={() => setShowCreateSite(true)}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 1.25rem', borderRadius: '8px', background: '#1B2042', color: '#fff', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
+                        <FaPlus size={12} /> Create Site
+                    </Link>}
+                </div>
+            ) : (
+                <div className="admin-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.35rem' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>All Sites ({allSites.length})</span>
+                        <input type="text" className="form-input" placeholder="Search sites..." value={siteSearch} onChange={e => setSiteSearch(e.target.value)} style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 220 }} />
+                    </div>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Site Name</th><th>Location</th><th>Site Engineer</th><th>Linked Project</th><th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {allSites
+                                    .filter(s => {
+                                        const q = siteSearch.trim().toLowerCase();
+                                        if (!q) return true;
+                                        return s.name.toLowerCase().includes(q) || (s.location || '').toLowerCase().includes(q) || (s.project?.name || '').toLowerCase().includes(q);
+                                    })
+                                    .map(site => {
+                                        const fullProject = site.project ? projects.find(p => p.id === site.project!.id) : undefined;
+                                        return (
+                                            <tr key={site.id}>
+                                                <td>
+                                                    <button
+                                                        onClick={() => setSearchParams({ siteId: site.id, siteName: site.name })}
+                                                        style={{ background: 'none', border: 'none', padding: 0, fontWeight: 700, color: 'inherit', cursor: 'pointer', textAlign: 'left', font: 'inherit' }}
+                                                        title="View projects in this site"
+                                                    >
+                                                        {site.name}
+                                                    </button>
+                                                </td>
+                                                <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{site.location || '—'}</td>
+                                                <td style={{ fontSize: '0.85rem' }}>
+                                                    {site.assignedEngineerName || <span style={{ color: 'var(--text-muted)' }}>Unassigned</span>}
+                                                </td>
+                                                <td>
+                                                    {site.project ? (
+                                                        <Link to={`/admin/sites/${site.project.id}`} style={{ fontWeight: 600, color: '#1B2042', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                                                            <FaProjectDiagram size={10} />{site.project.name}
+                                                        </Link>
+                                                    ) : (
+                                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>— Not linked —</span>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                                                        {site.project && fullProject && isAdmin && (
+                                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEditProject(fullProject)} title="Edit linked project"><FaEdit /></button>
+                                                        )}
+                                                        {!site.project && isAdmin && (
+                                                            <button className="admin-btn" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', background: '#1B2042', borderColor: '#1B2042' }}
+                                                                onClick={() => { setForm(emptyForm); setEditing(null); setSelectedSiteId(site.id); setModalPos(null); setShowModal(true); }}
+                                                            >
+                                                                <FaPlus size={9} style={{ marginRight: 4 }} />Link Project
+                                                            </button>
+                                                        )}
+                                                        {isAdmin && (
+                                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEditSiteEngineer(site)} title="Assign Site Engineer"><FaUser /></button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                {allSites.filter(s => {
+                                    const q = siteSearch.trim().toLowerCase();
+                                    if (!q) return true;
+                                    return s.name.toLowerCase().includes(q) || (s.location || '').toLowerCase().includes(q) || (s.project?.name || '').toLowerCase().includes(q);
+                                }).length === 0 && (
+                                    <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No sites match your search.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
             {showModal && (
-                <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
+                <div className="admin-modal-overlay" onClick={() => !savingProject && setShowModal(false)}>
                     <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'Add'} Project</h3>
@@ -578,8 +652,8 @@ const Projects = () => {
                             </div>
                         </div>
                         <div className="admin-modal-footer">
-                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button className="admin-btn" onClick={handleSave}>Save</button>
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)} disabled={savingProject}>Cancel</button>
+                            <button className="admin-btn" onClick={handleSave} disabled={savingProject}>{savingProject ? 'Saving...' : 'Save'}</button>
                         </div>
                     </div>
                 </div>

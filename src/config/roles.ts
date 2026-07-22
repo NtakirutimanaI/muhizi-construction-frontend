@@ -76,7 +76,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     {
         label: 'Admin',
         items: [
-            { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.EMPLOYEE, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO, ROLES.SITE_ENGINEER] },
+            { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.EMPLOYEE, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/users', icon: 'FaUsers', label: 'Users', roles: [ROLES.ADMIN] },
             { path: '/admin/resources', icon: 'FaDatabase', label: 'CMS', roles: [ROLES.ADMIN] },
             { path: '/admin/subscribers', icon: 'FaEnvelope', label: 'Subscribers', roles: [ROLES.ADMIN] },
@@ -147,7 +147,11 @@ export function canAccess(path: string, role: string): boolean {
     const normalizedPath = path.replace(/^\/(admin|manager|sitemanager|site-manager|employee|partner|client-panel|managingdirector|directorfinance|siteengineer|engineeringstudio)/, '/admin').split('?')[0];
     for (const section of SIDEBAR_SECTIONS) {
         for (const item of section.items) {
-            if (item.path.split('?')[0] === normalizedPath) {
+            const itemPath = item.path.split('?')[0];
+            // Match the sidebar item's own path, and also any of its nested sub-pages
+            // (e.g. /admin/messages/inbox falls under the /admin/messages sidebar entry)
+            // so hiding a nav item also blocks direct navigation to its sub-routes.
+            if (itemPath === normalizedPath || normalizedPath.startsWith(`${itemPath}/`)) {
                 return item.roles.includes(role as Role);
             }
         }

@@ -3,6 +3,7 @@ import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDraftingCompass, FaC
 import { constructionService } from '../../services/constructionService';
 import type { Design, Project } from '../../services/constructionService';
 import { uploadService } from '../../services/uploadService';
+import { useToast } from '../../context/ToastContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
@@ -16,6 +17,7 @@ const emptyForm: FormData = { title: '', description: '', type: 'architectural',
 const PAGE_SIZES = [5, 10, 15, 20];
 
 const Designs = () => {
+    const { showToast } = useToast();
     const [data, setData] = useState<Design[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(false);
@@ -33,6 +35,7 @@ const Designs = () => {
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploadingThumb, setUploadingThumb] = useState(false);
     const [thumbUploadProgress, setThumbUploadProgress] = useState(0);
+    const [saving, setSaving] = useState(false);
 
     const fetch = async () => {
         const cached = loadPageCache<{ designs: Design[]; projects: Project[] }>('pg_designs');
@@ -238,12 +241,24 @@ const Designs = () => {
     };
 
     const handleSave = async () => {
+        setSaving(true);
         try {
-            if (editing) await constructionService.updateDesign(editing.id, form);
-            else await constructionService.createDesign(form);
+            if (editing) {
+                await constructionService.updateDesign(editing.id, form);
+                showToast('Design updated successfully', 'success');
+            } else {
+                await constructionService.createDesign(form);
+                showToast('Design created successfully', 'success');
+            }
             setShowModal(false);
             fetch();
-        } catch (e) { console.error(e); }
+        } catch (e: any) {
+            console.error(e);
+            const errMsg = e?.response?.data?.message || e?.message || 'Failed to save design';
+            showToast(Array.isArray(errMsg) ? errMsg.join('. ') : errMsg, 'error');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleDelete = async (id: string) => {
@@ -380,11 +395,11 @@ const Designs = () => {
                 </div>
             </div>
             {showModal && (
-                <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
+                <div className="admin-modal-overlay" onClick={() => !saving && setShowModal(false)}>
                     <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'Add'} Design</h3>
-                            <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>
+                            <button onClick={() => !saving && setShowModal(false)}><FaTimesIcon /></button>
                         </div>
                         <div className="admin-modal-body">
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -473,8 +488,8 @@ const Designs = () => {
                             </div>
                         </div>
                         <div className="admin-modal-footer">
-                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button className="admin-btn" onClick={handleSave}>Save</button>
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)} disabled={saving}>Cancel</button>
+                            <button className="admin-btn" onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
                         </div>
                     </div>
                 </div>
