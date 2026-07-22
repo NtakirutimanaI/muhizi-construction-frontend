@@ -31,7 +31,7 @@ const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
     }, [next]);
 
     return (
-        <section data-nav-theme="light" className="section section-indicator" id="commitment" style={{ background: '#F5F7FA', position: 'relative', overflow: 'hidden' }}>
+        <section data-nav-theme="light" className="section section-indicator" id="commitment" style={{ background: '#F5F7FA', position: 'relative', overflow: 'hidden', textDecoration: 'none' }}>
             <style>{`
                 .commitment-carousel { position: relative; width: 100%; height: 100%; overflow: hidden; cursor: pointer; }
                 .commitment-carousel__overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; opacity: 0; transition: opacity 0.4s ease; z-index: 2; padding: 2rem; }
@@ -43,6 +43,7 @@ const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
                 .commitment-carousel__slide--active { transform: translateX(0); opacity: 1; z-index: 1; }
                 .commitment-carousel__slide--exit-right { transform: translateX(100%); opacity: 0; }
                 .commitment-carousel__slide--exit-left { transform: translateX(-100%); opacity: 0; }
+                #commitment h3, #commitment p, #commitment span, #commitment a { text-decoration: none !important; }
                 .commitment-main-card { transition: transform 0.3s ease, border 0.3s ease; border: 1px solid rgba(15,18,34,0.06); }
                 .commitment-main-card:hover { animation: commitment-bounce 0.5s ease; border: 3px solid #fff; }
                 @keyframes commitment-bounce {
@@ -57,20 +58,20 @@ const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
                 <div style={{ maxWidth: '1200px', margin: '0 auto 3rem' }}>
                     <div style={{ marginBottom: '0.75rem', marginLeft: '-20px' }}>
                         <span style={{ fontFamily: 'Poppins', fontSize: '28px', fontWeight: 700, fontStyle: 'normal', color: '#1A1A1A', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                            <span style={{ color: '#999', fontWeight: 400 }}>---</span> Our Commitment <span style={{ color: '#999', fontWeight: 400 }}>---</span>
+                            <span style={{ color: '#999', fontWeight: 400, textDecoration: 'none' }}>---</span> Our Commitment <span style={{ color: '#999', fontWeight: 400, textDecoration: 'none' }}>---</span>
                         </span>
                     </div>
                     <div style={{ textAlign: 'center', maxWidth: '650px', margin: '0 auto' }}>
-                        <h3 style={{ fontFamily: 'Poppins', color: '#1A1A1A', fontSize: '22px', fontWeight: 600, fontStyle: 'normal', margin: '0 0 0.75rem', lineHeight: 1.3 }}>
+                        <h3 style={{ fontFamily: 'Poppins', color: '#1A1A1A', fontSize: '22px', fontWeight: 600, fontStyle: 'normal', margin: '0 0 0.75rem', lineHeight: 1.3, textDecoration: 'none' }}>
                             What Makes Us Different
                         </h3>
-                        <p style={{ fontFamily: 'Poppins', color: '#555', fontSize: '17px', fontWeight: 400, fontStyle: 'normal', lineHeight: 1.7, margin: 0 }}>
+                        <p style={{ fontFamily: 'Poppins', color: '#555', fontSize: '17px', fontWeight: 400, fontStyle: 'normal', lineHeight: 1.7, margin: 0, textDecoration: 'none' }}>
                             It's not just about constructing buildings; it's about engineering trust, safety, and lasting value into every project we deliver.
                         </p>
                     </div>
                 </div>
 
-                <div className="commitment-main-card" style={{ display: 'flex', maxWidth: '1200px', margin: '0 auto', background: 'transparent', borderRadius: '5px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(15,18,34,0.08)', minHeight: '420px' }}>
+                <div className="commitment-main-card" style={{ display: 'flex', maxWidth: '1390px', margin: '0 auto', background: 'transparent', borderRadius: '5px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(15,18,34,0.08)', minHeight: '420px' }}>
                     <div style={{ flex: '0 0 50%', position: 'relative' }}>
                         <div className="commitment-carousel">
                             {CAROUSEL_IMAGES.map((src, i) => {
@@ -97,13 +98,37 @@ const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
                         </div>
                     </div>
                     <div style={{ flex: '1', padding: '3rem 2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <h3 style={{ fontFamily: 'Poppins', color: '#1A1A1A', fontSize: '22px', fontWeight: 600, fontStyle: 'normal', margin: '0 0 1rem', lineHeight: 1.3 }}>
+                        <h3 style={{ fontFamily: 'Poppins', color: '#1A1A1A', fontSize: '22px', fontWeight: 600, fontStyle: 'normal', margin: '0 0 1rem', lineHeight: 1.3, textDecoration: 'none' }}>
                             {c?.anchorTitle || 'Client-Focused Delivery'}
                         </h3>
                         <div style={{ height: '1px', background: '#e0e0e0', margin: '0 0 1.2rem' }} />
-                        <p style={{ fontFamily: 'Poppins', color: '#555', fontSize: '17px', fontWeight: 400, fontStyle: 'normal', lineHeight: 1.7, margin: 0 }}>
-                            {c?.anchorDescription || 'We prioritize clear communication and transparency, making your construction journey smooth and stress-free. Our team is dedicated to delivering projects on time, within budget, and to the highest standards of quality.'}
+                        <p style={{ fontFamily: 'Poppins', color: '#555', fontSize: '17px', fontWeight: 400, fontStyle: 'normal', lineHeight: 1.7, margin: '0 0 1.5rem', textDecoration: 'none' }}>
+                            {c?.anchorDescription || 'Our licensed engineers and skilled crews bring decades of hands-on experience to every site.'}
                         </p>
+                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'nowrap' }}>
+                            {[
+                                'Space Planning',
+                                'Materials & Finishes',
+                                'Furniture & Lighting',
+                            ].map((title) => (
+                                <div key={title} style={{
+                                    flex: '1 1 0',
+                                    minWidth: 0,
+                                    background: '#F5F7FA',
+                                    borderRadius: '8px',
+                                    padding: '0.5rem 1rem',
+                                    textAlign: 'center',
+                                    border: '1px solid rgba(15,18,34,0.06)',
+                                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                    cursor: 'default',
+                                }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(15,18,34,0.1)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                                >
+                                    <div style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: 600, color: '#1A1A1A', textDecoration: 'none' }}>{title}</div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
