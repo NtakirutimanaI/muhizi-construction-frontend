@@ -187,6 +187,10 @@ export interface Profile {
             imageCardImage?: string;
         };
         teamSection?: {
+            eyebrow?: string;
+            heading?: string;
+            description?: string;
+            badge?: string;
             brands?: Array<{ name: string; logoUrl?: string }>;
         };
         mission?: { title: string; text: string; icon: string };
@@ -211,6 +215,7 @@ export interface Profile {
             secondaryButtonLink: string;
         };
         projectsSection?: {
+            eyebrow?: string;
             heading?: string;
             subtitle?: string;
         };
@@ -236,6 +241,8 @@ export interface Profile {
         contactSection?: {
             heading?: string;
             subtitle?: string;
+            location?: string;
+            hours?: string;
         };
         footer?: {
             companyDescription?: string;
@@ -244,6 +251,13 @@ export interface Profile {
             servicesList?: Array<{ label: string }>;
             showSocialLinks?: boolean;
             showContactInfo?: boolean;
+            mapEmbedUrl?: string;
+            mapDestinationUrl?: string;
+            mapAddress?: string;
+            newsletterTitle?: string;
+            newsletterSubtitle?: string;
+            poweredByText?: string;
+            poweredByUrl?: string;
         };
         showTeamSection?: boolean;
     };

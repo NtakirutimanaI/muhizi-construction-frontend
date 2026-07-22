@@ -179,7 +179,7 @@ const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
                 .commitment-carousel__slide--active { transform: translateX(0); opacity: 1; z-index: 1; }
                 .commitment-carousel__slide--exit-right { transform: translateX(100%); opacity: 0; }
                 .commitment-carousel__slide--exit-left { transform: translateX(-100%); opacity: 0; }
-                #commitment h3, #commitment p, #commitment span, #commitment a { text-decoration: none !important; }
+                #commitment h3, #commitment p, #commitment a { text-decoration: none !important; }
                 .commitment-main-card { transition: transform 0.3s ease, border 0.3s ease; border: 4px solid #444; margin-bottom: 20px; }
                 .commitment-main-card:last-child { margin-bottom: 0; }
                 .commitment-main-card:hover { animation: commitment-bounce 0.5s ease; border: 4px solid #fff; }
@@ -190,12 +190,34 @@ const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
                     70% { transform: translateY(-8px) scale(1.01); }
                     100% { transform: translateY(0) scale(1); }
                 }
+                .commitment-title-animate {
+                    position: relative;
+                    display: inline-block;
+                    padding-bottom: 6px;
+                    animation: commitmentTitlePulse 3s ease-in-out infinite;
+                }
+                .commitment-title-animate::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 0;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 60px;
+                    height: 3px;
+                    background: #B27340;
+                    border-radius: 2px;
+                }
+                @keyframes commitmentTitlePulse {
+                    0% { transform: translateY(0) scale(1); opacity: 1; }
+                    50% { transform: translateY(-6px) scale(1.03); opacity: 0.85; }
+                    100% { transform: translateY(0) scale(1); opacity: 1; }
+                }
             `}</style>
             <div className="container" style={{ position: 'relative', zIndex: 1 }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto 3rem' }}>
                     <div style={{ marginBottom: '0.75rem', marginLeft: '-20px' }}>
-                        <span style={{ fontFamily: 'Poppins', fontSize: '28px', fontWeight: 700, fontStyle: 'normal', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                            <span style={{ color: '#888', fontWeight: 400, textDecoration: 'none' }}>---</span> Our Commitment <span style={{ color: '#888', fontWeight: 400, textDecoration: 'none' }}>---</span>
+                        <span className="commitment-title-animate" style={{ fontFamily: 'Poppins', fontSize: '36px', fontWeight: 700, fontStyle: 'normal', color: '#FFFFFF' }}>
+                            What We Offer
                         </span>
                     </div>
                     <div style={{ textAlign: 'center', maxWidth: '650px', margin: '0 auto' }}>

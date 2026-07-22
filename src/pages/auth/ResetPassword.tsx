@@ -54,6 +54,9 @@ const ResetPassword = () => {
                         <span className="auth-eyebrow-line" />
                         PASSWORD RESET
                     </div>
+                    <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                        <img src="/logo.jpeg" alt="MUHIZI CONSTRUCTION" style={{ width: '56px', height: '56px', borderRadius: '12px', objectFit: 'cover', margin: '0 auto', display: 'block', border: '2px solid rgba(255,255,255,0.1)' }} />
+                    </div>
                     <h1 className="auth-heading">Reset Password</h1>
                     <p className="auth-subtext">Enter the code we emailed you and choose a new password</p>
 

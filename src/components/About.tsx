@@ -36,26 +36,48 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                 .about-card:hover .about-card-title { color: #fff !important; }
                 .about-card:hover .about-card-divider { background: rgba(255,255,255,0.2) !important; }
                 .about-card:hover .about-card-desc { color: #fff !important; }
+                .services-title-animate {
+                    position: relative;
+                    display: inline-block;
+                    padding-bottom: 6px;
+                    animation: servicesTitlePulse 3s ease-in-out infinite;
+                }
+                .services-title-animate::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 0;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 60px;
+                    height: 3px;
+                    background: #B27340;
+                    border-radius: 2px;
+                }
+                @keyframes servicesTitlePulse {
+                    0% { transform: translateY(0) scale(1); opacity: 1; }
+                    50% { transform: translateY(-6px) scale(1.03); opacity: 0.85; }
+                    100% { transform: translateY(0) scale(1); opacity: 1; }
+                }
             `}</style>
             <div className="container">
                 {/* Highlighted Text + Design Cards Row */}
                 <div style={{ width: '100vw', margin: '2rem calc(-50vw + 50%) 0', padding: '0.5rem 3.5rem 3rem', background: '#f5f5f5' }}>
                     <div style={{ textAlign: 'left', marginBottom: '1.5rem', maxWidth: '1400px', margin: '0 auto 1.5rem', paddingLeft: '150px' }}>
-                        <h2 style={{ fontFamily: 'Poppins', fontSize: '28px', fontWeight: 700, color: '#1A1A1A', margin: 0, display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                            <span style={{ color: '#999', fontWeight: 400 }}>---</span> Our Services <span style={{ color: '#999', fontWeight: 400 }}>---</span>
+                        <h2 style={{ fontFamily: 'Poppins', fontSize: '36px', fontWeight: 700, color: '#1A1A1A', margin: 0 }}>
+                            <span className="services-title-animate">Our Services</span>
                         </h2>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 230px)', gap: '1.25rem', maxWidth: '1400px', margin: '0 auto', justifyContent: 'center' }}>
                         {mergedFirstFour.map((item, idx) => {
                             const Icon = DESIGN_ICONS[idx % DESIGN_ICONS.length];
                             return (
-                                <div key={idx} className="about-card" style={{ borderRadius: '8px', background: '#fff', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 2px 12px rgba(15,18,34,0.06)', padding: '1.25rem 1.3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', transition: 'background 0.3s ease, border-color 0.3s ease' }}>
-                                    <div className="about-card-icon" style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#ffffff', border: '1px solid rgba(15,18,34,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.6rem', transition: 'border-color 0.3s ease, background 0.3s ease' }}>
-                                        <Icon style={{ color: '#111827', fontSize: '1.1rem' }} />
+                                <div key={idx} className="about-card" style={{ borderRadius: '8px', background: '#fff', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 2px 12px rgba(15,18,34,0.06)', padding: '0.9rem 1.1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', transition: 'background 0.3s ease, border-color 0.3s ease' }}>
+                                    <div className="about-card-icon" style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#ffffff', border: '1px solid rgba(15,18,34,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.4rem', transition: 'border-color 0.3s ease, background 0.3s ease' }}>
+                                        <Icon style={{ color: '#111827', fontSize: '0.95rem' }} />
                                     </div>
-                                    <h3 className="about-card-title" style={{ fontFamily: 'Poppins', color: '#1A1A1A', fontSize: '17px', fontWeight: 600, fontStyle: 'normal', margin: '0 0 0.5rem', lineHeight: 1.3, transition: 'color 0.3s ease' }}>{item.title}</h3>
-                                    <div className="about-card-divider" style={{ height: '1px', background: 'var(--border-color)', margin: '0 0 0.6rem', width: '100%', transition: 'background 0.3s ease' }} />
-                                    <p className="about-card-desc" style={{ fontFamily: 'Poppins', color: '#1A1A1A', fontSize: '17px', fontWeight: 400, fontStyle: 'normal', lineHeight: 1.55, margin: 0, transition: 'color 0.3s ease', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{item.description}</p>
+                                    <h3 className="about-card-title" style={{ fontFamily: 'Poppins', color: '#1A1A1A', fontSize: '15px', fontWeight: 600, fontStyle: 'normal', margin: '0 0 0.3rem', lineHeight: 1.3, transition: 'color 0.3s ease' }}>{item.title}</h3>
+                                    <div className="about-card-divider" style={{ height: '1px', background: 'var(--border-color)', margin: '0 0 0.4rem', width: '100%', transition: 'background 0.3s ease' }} />
+                                    <p className="about-card-desc" style={{ fontFamily: 'Poppins', color: '#1A1A1A', fontSize: '13px', fontWeight: 400, fontStyle: 'normal', lineHeight: 1.5, margin: 0, transition: 'color 0.3s ease', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{item.description}</p>
                                 </div>
                             );
                         })}

@@ -34,6 +34,8 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
         { icon: FaYoutube, href: member.socialLinks?.youtube || profile.socialLinks?.youtube },
     ].filter((s): s is { icon: typeof FaTwitter; href: string } => Boolean(s.href));
 
+    const teamData = profile.pageContent?.teamSection;
+
     return (
         <section data-nav-theme="light" className="section team-v2" id="team">
             <div className="team-v2__inner">
@@ -79,13 +81,12 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
                 <div className="team-v2__content">
                     <div className="team-v2__eyebrow">
                         <span className="team-v2__eyebrow-line" />
-                        OUR EXPERT MEMBER
+                        {teamData?.eyebrow || 'OUR EXPERT MEMBER'}
                         <span className="team-v2__eyebrow-line" />
                     </div>
-                    <h2 className="team-v2__heading">You Meet<br />Expert Team</h2>
+                    <h2 className="team-v2__heading">{teamData?.heading?.replace('\\n', '\n') || 'You Meet\nExpert Team'}</h2>
                     <p className="team-v2__text">
-                        We are driven to improve the lives of our clients, our employees,
-                        our community through our commitment to leadership.
+                        {teamData?.description || 'We are driven to improve the lives of our clients, our employees, our community through our commitment to leadership.'}
                     </p>
 
                     {minis.length > 0 && (
@@ -117,7 +118,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({ profile }) => {
             {brands.length > 0 && (
                 <>
                     <div className="team-v2__badge-wrap">
-                        <span className="team-v2__badge">We're proud to work with best-in-class clients</span>
+                        <span className="team-v2__badge">{teamData?.badge || "We're proud to work with best-in-class clients"}</span>
                     </div>
 
                     <div className="team-v2__logos">

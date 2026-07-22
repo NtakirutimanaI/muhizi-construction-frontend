@@ -25,8 +25,33 @@ const Faq: React.FC<FaqProps> = ({ profile }) => {
             <style>{`
                 .faq-grid { display: grid; grid-template-columns: minmax(280px, 400px) 1fr; gap: 3rem; align-items: start; max-width: 1150px; margin: 0 auto; }
 
-                .faq-eyebrow { display: flex; align-items: center; gap: 0.75rem; color: var(--accent, #D97706); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase; margin: 0 0 1rem; }
-                .faq-eyebrow::before { content: ''; width: 30px; height: 0; border-top: 2px dashed var(--accent, #D97706); display: inline-block; }
+                .faq-eyebrow { margin: 0 0 1rem; }
+                .faq-title-animate {
+                    position: relative;
+                    display: inline-block;
+                    padding-bottom: 6px;
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 36px;
+                    font-weight: 700;
+                    color: var(--text-main);
+                    animation: faqTitlePulse 3s ease-in-out infinite;
+                }
+                .faq-title-animate::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 0;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 60px;
+                    height: 3px;
+                    background: #B27340;
+                    border-radius: 2px;
+                }
+                @keyframes faqTitlePulse {
+                    0% { transform: translateY(0) scale(1); opacity: 1; }
+                    50% { transform: translateY(-6px) scale(1.03); opacity: 0.85; }
+                    100% { transform: translateY(0) scale(1); opacity: 1; }
+                }
                 .faq-heading { font-family: var(--font-display); color: var(--text-main); font-size: clamp(1.9rem, 3.2vw, 2.5rem); font-weight: 800; line-height: 1.2; margin: 0 0 1.1rem; }
                 .faq-subtitle { color: var(--text-muted); font-size: 0.92rem; line-height: 1.7; max-width: 340px; margin: 0 0 3rem; }
 
@@ -57,7 +82,6 @@ const Faq: React.FC<FaqProps> = ({ profile }) => {
             <div className="container">
                 <div className="faq-grid">
                     <div className="faq-left">
-                        <p className="faq-eyebrow">Construction Company</p>
                         <h2 className="faq-heading">{heading}</h2>
                         <p className="faq-subtitle">
                             Real stories from homeowners and investors who trusted us to guide their construction journey.

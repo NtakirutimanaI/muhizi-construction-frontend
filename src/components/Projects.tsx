@@ -115,11 +115,35 @@ const Projects: React.FC<ProjectsProps> = ({ profile }) => {
 
     return (
         <section data-nav-theme="light" className="section projects-v2" id="projects">
+            <style>{`
+                .projects-title-animate {
+                    position: relative;
+                    display: inline-block;
+                    padding-bottom: 6px;
+                    animation: projectsTitlePulse 3s ease-in-out infinite;
+                }
+                .projects-title-animate::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 0;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 60px;
+                    height: 3px;
+                    background: #B27340;
+                    border-radius: 2px;
+                }
+                @keyframes projectsTitlePulse {
+                    0% { transform: translateY(0) scale(1); opacity: 1; }
+                    50% { transform: translateY(-6px) scale(1.03); opacity: 0.85; }
+                    100% { transform: translateY(0) scale(1); opacity: 1; }
+                }
+            `}</style>
             <div className="container">
-                <div className="projects-v2__eyebrow">
-                    <span className="projects-v2__eyebrow-line" />
-                    OUR PROJECTS
-                    <span className="projects-v2__eyebrow-line" />
+                <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
+                    <span className="projects-title-animate" style={{ fontFamily: 'Poppins', fontSize: '36px', fontWeight: 700, color: '#1A1A1A' }}>
+                        Our Projects
+                    </span>
                 </div>
                 <h2 className="projects-v2__heading">{ps?.heading || 'We Provide Effective Solution in Construction'}</h2>
 
