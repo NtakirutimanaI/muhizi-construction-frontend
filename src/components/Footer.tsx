@@ -15,7 +15,8 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
     const footerContent = profile.pageContent?.footer;
     const companyDesc = footerContent?.companyDescription || profile.about?.split('.')[0];
     const copyright = footerContent?.copyrightText || `Copyright © ${new Date().getFullYear()} ${profile.company || 'Muhizi Construction'}. All Rights Reserved`;
-    const poweredBy = profile.poweredBy;
+    const poweredBy = footerContent?.poweredByText || profile.poweredBy;
+    const poweredByUrl = footerContent?.poweredByUrl || 'https://mis-frontend-eta.vercel.app';
     const quickLinks = footerContent?.quickLinks;
     const pageServices = profile.pageContent?.services?.items;
     const aboutCards = profile.pageContent?.aboutSection?.cards;
@@ -25,6 +26,11 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
         : (aboutCards && aboutCards.length > 0)
             ? aboutCards.map(c => ({ label: c.title }))
             : footerServices;
+    const mapEmbedUrl = footerContent?.mapEmbedUrl || 'https://maps.google.com/maps?q=COSMOS+Nyamirambo+Nyarugenge+Kigali+Rwanda&t=&z=15&ie=UTF8&iwloc=&output=embed';
+    const mapDestinationUrl = footerContent?.mapDestinationUrl || 'https://www.google.com/maps/dir/?api=1&destination=COSMOS+Nyamirambo+Nyarugenge+Kigali+Rwanda';
+    const mapAddress = footerContent?.mapAddress || 'Kigali, Nyamirambo';
+    const newsletterTitle = footerContent?.newsletterTitle || 'Subscribe Newsletter';
+    const newsletterSub = footerContent?.newsletterSubtitle || 'Sign up today to get the latest updates & insights';
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -57,8 +63,8 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                 {/* Newsletter */}
                 <div className="ark-footer__newsletter">
                     <div className="ark-footer__newsletter-text">
-                        <h3 className="ark-footer__newsletter-title">Subscribe Newsletter</h3>
-                        <p className="ark-footer__newsletter-sub">Sign up today to get the latest updates &amp; insights</p>
+                    <h3 className="ark-footer__newsletter-title">{newsletterTitle}</h3>
+                    <p className="ark-footer__newsletter-sub">{newsletterSub}</p>
                     </div>
                     <div>
                         <form onSubmit={handleSubscribe} className="ark-footer__subscribe-form">
@@ -136,7 +142,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                                 </a>
                                 <div style={{ marginTop: '0.75rem', borderRadius: 0, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', width: '100%', maxWidth: '220px' }}>
                                     <iframe
-                                        src="https://maps.google.com/maps?q=COSMOS+Nyamirambo+Nyarugenge+Kigali+Rwanda&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                                        src={mapEmbedUrl}
                                         width="100%"
                                         height="130"
                                         style={{ border: 0, display: 'block' }}
@@ -147,7 +153,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                                     />
                                 </div>
                                 <a
-                                    href="https://www.google.com/maps/dir/?api=1&destination=COSMOS+Nyamirambo+Nyarugenge+Kigali+Rwanda"
+                                    href={mapDestinationUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="ark-footer__nav-link"
@@ -156,7 +162,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                                     <span style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                         <FaMapMarkerAlt size={11} />
                                     </span>
-                                    Kigali, Nyamirambo
+                                    {mapAddress}
                                 </a>
                             </>
                         )}
@@ -167,7 +173,7 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                 <div className="ark-footer__bottom">
                     <p className="ark-footer__copy">{copyright}</p>
                     <p className="ark-footer__copy ark-footer__copy--muted">
-                        Powered by <a href="https://mis-frontend-eta.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #D97706)', textDecoration: 'none' }}>MIS</a>
+                        Powered by <a href={poweredByUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #D97706)', textDecoration: 'none' }}>{poweredBy || 'MIS'}</a>
                     </p>
                 </div>
             </div>

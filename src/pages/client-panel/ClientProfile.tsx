@@ -5,15 +5,12 @@ import { uploadService } from '../../services/uploadService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
-import Loading from '../../components/Loading';
 import type { Profile } from '../../services/profileService';
 
 const ClientProfile = () => {
   const { updateUser, user } = useAuth();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -31,14 +28,12 @@ const ClientProfile = () => {
   useEffect(() => {
     const cached = loadPageCache<{ profile: Profile; formData: { firstName: string; lastName: string; email: string; phone: string; location: string; title: string; bio: string; avatar: string } }>('pg_client_profile');
     if (cached) {
-      setProfile(cached.profile);
       setFormData(cached.formData);
       updateUser({ firstName: cached.profile.firstName, lastName: cached.profile.lastName, email: cached.profile.email, avatar: cached.profile.avatar });
     }
 
     profileService.getMyProfile()
       .then(data => {
-        setProfile(data);
         const newFormData = {
           firstName: data.firstName || '',
           lastName: data.lastName || '',
@@ -53,8 +48,7 @@ const ClientProfile = () => {
         updateUser({ firstName: data.firstName, lastName: data.lastName, email: data.email, avatar: data.avatar });
         savePageCache('pg_client_profile', { profile: data, formData: newFormData });
       })
-      .catch(() => showToast('Failed to load profile', 'error'))
-      .finally(() => setLoading(false));
+      .catch(() => showToast('Failed to load profile', 'error'));
   }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,7 +82,6 @@ const ClientProfile = () => {
         bio: formData.bio,
         location: formData.location,
       });
-      setProfile(updated);
       updateUser({ firstName: updated.firstName, lastName: updated.lastName, email: updated.email, avatar: updated.avatar });
       showToast('Profile updated', 'success');
     } catch (err: any) {

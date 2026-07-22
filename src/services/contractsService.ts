@@ -10,6 +10,10 @@ export interface Contract {
     startDate: string;
     endDate?: string;
     status: 'active' | 'expiring_soon' | 'expired' | 'draft';
+    basicSalary: number;
+    netSalary: number;
+    paymentFrequency?: string;
+    workingConditions?: string;
     fileUrl?: string;
     fileSize?: string;
     body?: string;
@@ -20,10 +24,10 @@ export interface Contract {
 const baseUrl = '/contracts';
 
 export const contractsService = {
-    getAll: () => api.get(`${baseUrl}`),
-    getOne: (id: string) => api.get(`${baseUrl}/${id}`),
-    getByEmployee: (employeeId: string) => api.get(`${baseUrl}/employee/${employeeId}`),
-    create: (data: Partial<Contract>) => api.post(`${baseUrl}`, data),
-    update: (id: string, data: Partial<Contract>) => api.put(`${baseUrl}/${id}`, data),
+    getAll: () => api.get<Contract[]>(`${baseUrl}`),
+    getOne: (id: string) => api.get<Contract>(`${baseUrl}/${id}`),
+    getByEmployee: (employeeId: string) => api.get<Contract[]>(`${baseUrl}/employee/${employeeId}`),
+    create: (data: Partial<Contract>) => api.post<Contract>(`${baseUrl}`, data),
+    update: (id: string, data: Partial<Contract>) => api.put<Contract>(`${baseUrl}/${id}`, data),
     delete: (id: string) => api.delete(`${baseUrl}/${id}`),
 };

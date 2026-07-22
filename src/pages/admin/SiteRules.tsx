@@ -44,8 +44,8 @@ const SiteRules = () => {
     const { user } = useAuth();
     const { showToast } = useToast();
     const role = user?.role || '';
-    // Matches backend RolesGuard: admin + site_manager may create/edit, delete is admin-only.
-    const canManage = role === 'admin' || role === 'site_manager';
+    // Matches backend RolesGuard: admin + storekeeper may create/edit, delete is admin-only.
+    const canManage = role === 'admin' || role === 'storekeeper';
     const canDelete = role === 'admin';
 
     const [rules, setRules] = useState<SiteRule[]>([]);

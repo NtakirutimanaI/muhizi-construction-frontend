@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaHome, FaConciergeBell, FaSave, FaPlus, FaEdit, FaTrash, FaTimes, FaEnvelope, FaQuestionCircle, FaUpload, FaVideo, FaGem, FaEye, FaBullseye, FaStar } from 'react-icons/fa';
+import { FaHome, FaConciergeBell, FaSave, FaPlus, FaEdit, FaTrash, FaTimes, FaEnvelope, FaQuestionCircle, FaUpload, FaVideo, FaGem, FaEye, FaBullseye, FaStar, FaUsers, FaProjectDiagram, FaMapMarkedAlt } from 'react-icons/fa';
 import type { Profile } from '../../../services/profileService';
 import { profileService } from '../../../services/profileService';
 import { useToast } from '../../../context/ToastContext';
@@ -9,7 +9,7 @@ import { uploadService } from '../../../services/uploadService';
 // Projects and Team each have their own dedicated top-level CMS tab already
 // (ProjectsTab.tsx / TeamTab.tsx) — no nested duplicate here, so there's only
 // ever one place that writes profile.projects / profile.teamMembers.
-type HomeTab = 'hero-slides' | 'services' | 'commitment' | 'vmv' | 'follow-us' | 'get-in-touch' | 'faq';
+type HomeTab = 'hero-slides' | 'services' | 'commitment' | 'vmv' | 'follow-us' | 'get-in-touch' | 'faq' | 'team-section' | 'footer' | 'projects-settings' | 'contact-extra';
 
 interface Props {
     profile: Profile;
@@ -23,8 +23,12 @@ const SUB_TABS: { id: HomeTab; label: string; icon: React.ReactNode }[] = [
     { id: 'commitment', label: 'What Makes Us Different', icon: <FaGem /> },
     { id: 'vmv', label: 'Vision / Mission / Values', icon: <FaEye /> },
     { id: 'follow-us', label: 'Follow Us (Videos)', icon: <FaVideo /> },
+    { id: 'projects-settings', label: 'Projects Settings', icon: <FaProjectDiagram /> },
+    { id: 'team-section', label: 'Team Section', icon: <FaUsers /> },
+    { id: 'contact-extra', label: 'Contact Details', icon: <FaMapMarkedAlt /> },
     { id: 'get-in-touch', label: 'Get in Touch', icon: <FaEnvelope /> },
     { id: 'faq', label: 'FAQ', icon: <FaQuestionCircle /> },
+    { id: 'footer', label: 'Footer', icon: <FaMapMarkedAlt /> },
 ];
 
 const HomeSectionsTab: React.FC<Props> = ({ profile, onSave, saving }) => {
@@ -55,8 +59,12 @@ const HomeSectionsTab: React.FC<Props> = ({ profile, onSave, saving }) => {
                     {subTab === 'commitment' && <CommitmentEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'vmv' && <VMVEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'follow-us' && <FollowUsEditor profile={profile} onSave={onSave} saving={saving} />}
+                    {subTab === 'projects-settings' && <ProjectsSettingsEditor profile={profile} onSave={onSave} saving={saving} />}
+                    {subTab === 'team-section' && <TeamSectionEditor profile={profile} onSave={onSave} saving={saving} />}
+                    {subTab === 'contact-extra' && <ContactExtraEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'get-in-touch' && <GetInTouchEditor profile={profile} onSave={onSave} saving={saving} />}
                     {subTab === 'faq' && <FaqEditor profile={profile} onSave={onSave} saving={saving} />}
+                    {subTab === 'footer' && <FooterEditor profile={profile} onSave={onSave} saving={saving} />}
                 </motion.div>
             </AnimatePresence>
         </div>
@@ -1055,6 +1063,302 @@ const FaqEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save FAQ</>}</button>
+            </div>
+        </div>
+    );
+};
+
+/* ───── Projects Settings Editor ───── */
+const ProjectsSettingsEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
+    const { showToast } = useToast();
+    const ps = profile.pageContent?.projectsSection;
+    const [eyebrow, setEyebrow] = useState(ps?.eyebrow || '');
+    const [heading, setHeading] = useState(ps?.heading || '');
+    const [subtitle, setSubtitle] = useState(ps?.subtitle || '');
+    const [localSaving, setLocalSaving] = useState(false);
+
+    useEffect(() => {
+        const s = profile.pageContent?.projectsSection;
+        setEyebrow(s?.eyebrow || '');
+        setHeading(s?.heading || '');
+        setSubtitle(s?.subtitle || '');
+    }, [profile.pageContent?.projectsSection]);
+
+    const save = async () => {
+        setLocalSaving(true);
+        try {
+            const pc = { ...(profile.pageContent || {}), projectsSection: { eyebrow, heading, subtitle } };
+            await onSave({ pageContent: pc });
+            showToast('Projects settings saved!', 'success');
+        } catch (e: any) {
+            showToast(e?.response?.data?.message || e?.message || 'Failed to save', 'error');
+        } finally {
+            setLocalSaving(false);
+        }
+    };
+
+    const isSaving = saving || localSaving;
+
+    return (
+        <div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                Controls the eyebrow, heading, and subtitle of the Projects section on the homepage.
+            </p>
+            <div className="content-card" style={{ padding: '1rem' }}>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Eyebrow Text</label>
+                    <input value={eyebrow} onChange={e => setEyebrow(e.target.value)} className="form-input" placeholder="OUR PROJECTS" />
+                </div>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Heading</label>
+                    <input value={heading} onChange={e => setHeading(e.target.value)} className="form-input" placeholder="We Provide Effective Solution in Construction" />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Subtitle</label>
+                    <textarea value={subtitle} onChange={e => setSubtitle(e.target.value)} className="form-textarea" rows={2} placeholder="Optional subtitle" />
+                </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
+            </div>
+        </div>
+    );
+};
+
+/* ───── Team Section Editor ───── */
+const TeamSectionEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
+    const { showToast } = useToast();
+    const ts = profile.pageContent?.teamSection;
+    const [eyebrow, setEyebrow] = useState(ts?.eyebrow || '');
+    const [heading, setHeading] = useState(ts?.heading || '');
+    const [description, setDescription] = useState(ts?.description || '');
+    const [badge, setBadge] = useState(ts?.badge || '');
+    const [localSaving, setLocalSaving] = useState(false);
+
+    useEffect(() => {
+        const t = profile.pageContent?.teamSection;
+        setEyebrow(t?.eyebrow || '');
+        setHeading(t?.heading || '');
+        setDescription(t?.description || '');
+        setBadge(t?.badge || '');
+    }, [profile.pageContent?.teamSection]);
+
+    const save = async () => {
+        setLocalSaving(true);
+        try {
+            const pc = { ...(profile.pageContent || {}), teamSection: { eyebrow, heading, description, badge, brands: ts?.brands || [] } };
+            await onSave({ pageContent: pc });
+            showToast('Team section saved!', 'success');
+        } catch (e: any) {
+            showToast(e?.response?.data?.message || e?.message || 'Failed to save', 'error');
+        } finally {
+            setLocalSaving(false);
+        }
+    };
+
+    const isSaving = saving || localSaving;
+
+    return (
+        <div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                Controls the text displayed in the Team section on the homepage. The team members themselves are managed in the dedicated "Team" tab.
+            </p>
+            <div className="content-card" style={{ padding: '1rem' }}>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Eyebrow Text</label>
+                    <input value={eyebrow} onChange={e => setEyebrow(e.target.value)} className="form-input" placeholder="OUR EXPERT MEMBER" />
+                </div>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Heading (use \n for line break)</label>
+                    <input value={heading} onChange={e => setHeading(e.target.value)} className="form-input" placeholder="You Meet\nExpert Team" />
+                </div>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Description</label>
+                    <textarea value={description} onChange={e => setDescription(e.target.value)} className="form-textarea" rows={3} placeholder="We are driven to improve the lives of our clients..." />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Badge Text</label>
+                    <input value={badge} onChange={e => setBadge(e.target.value)} className="form-input" placeholder="We're proud to work with best-in-class clients" />
+                </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
+            </div>
+        </div>
+    );
+};
+
+/* ───── Contact Extra Editor ───── */
+const ContactExtraEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
+    const { showToast } = useToast();
+    const cs = profile.pageContent?.contactSection;
+    const [location, setLocation] = useState(cs?.location || '');
+    const [hours, setHours] = useState(cs?.hours || '');
+    const [localSaving, setLocalSaving] = useState(false);
+
+    useEffect(() => {
+        const c = profile.pageContent?.contactSection;
+        setLocation(c?.location || '');
+        setHours(c?.hours || '');
+    }, [profile.pageContent?.contactSection]);
+
+    const save = async () => {
+        setLocalSaving(true);
+        try {
+            const pc = { ...(profile.pageContent || {}), contactSection: { ...cs, location, hours } };
+            await onSave({ pageContent: pc });
+            showToast('Contact details saved!', 'success');
+        } catch (e: any) {
+            showToast(e?.response?.data?.message || e?.message || 'Failed to save', 'error');
+        } finally {
+            setLocalSaving(false);
+        }
+    };
+
+    const isSaving = saving || localSaving;
+
+    return (
+        <div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                Controls the location and opening hours displayed in the Contact section. The heading and subtitle are in the "Get in Touch" tab.
+            </p>
+            <div className="content-card" style={{ padding: '1rem' }}>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Location</label>
+                    <input value={location} onChange={e => setLocation(e.target.value)} className="form-input" placeholder="Rwanda, Kigali, Nyarugenge, Nyamirambo" />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Opening Hours</label>
+                    <input value={hours} onChange={e => setHours(e.target.value)} className="form-input" placeholder="Mon – Fri, 8:00 – 18:00" />
+                </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save</>}</button>
+            </div>
+        </div>
+    );
+};
+
+/* ───── Footer Editor ───── */
+const FooterEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
+    const { showToast } = useToast();
+    const fc = profile.pageContent?.footer;
+    const [companyDescription, setCompanyDescription] = useState(fc?.companyDescription || '');
+    const [copyrightText, setCopyrightText] = useState(fc?.copyrightText || '');
+    const [newsletterTitle, setNewsletterTitle] = useState(fc?.newsletterTitle || '');
+    const [newsletterSubtitle, setNewsletterSubtitle] = useState(fc?.newsletterSubtitle || '');
+    const [mapEmbedUrl, setMapEmbedUrl] = useState(fc?.mapEmbedUrl || '');
+    const [mapDestinationUrl, setMapDestinationUrl] = useState(fc?.mapDestinationUrl || '');
+    const [mapAddress, setMapAddress] = useState(fc?.mapAddress || '');
+    const [poweredByText, setPoweredByText] = useState(fc?.poweredByText || '');
+    const [poweredByUrl, setPoweredByUrl] = useState(fc?.poweredByUrl || '');
+    const [localSaving, setLocalSaving] = useState(false);
+
+    useEffect(() => {
+        const f = profile.pageContent?.footer;
+        setCompanyDescription(f?.companyDescription || '');
+        setCopyrightText(f?.copyrightText || '');
+        setNewsletterTitle(f?.newsletterTitle || '');
+        setNewsletterSubtitle(f?.newsletterSubtitle || '');
+        setMapEmbedUrl(f?.mapEmbedUrl || '');
+        setMapDestinationUrl(f?.mapDestinationUrl || '');
+        setMapAddress(f?.mapAddress || '');
+        setPoweredByText(f?.poweredByText || '');
+        setPoweredByUrl(f?.poweredByUrl || '');
+    }, [profile.pageContent?.footer]);
+
+    const save = async () => {
+        setLocalSaving(true);
+        try {
+            const pc = {
+                ...(profile.pageContent || {}),
+                footer: {
+                    ...fc,
+                    companyDescription,
+                    copyrightText,
+                    newsletterTitle,
+                    newsletterSubtitle,
+                    mapEmbedUrl,
+                    mapDestinationUrl,
+                    mapAddress,
+                    poweredByText,
+                    poweredByUrl,
+                },
+            };
+            await onSave({ pageContent: pc });
+            showToast('Footer settings saved!', 'success');
+        } catch (e: any) {
+            showToast(e?.response?.data?.message || e?.message || 'Failed to save', 'error');
+        } finally {
+            setLocalSaving(false);
+        }
+    };
+
+    const isSaving = saving || localSaving;
+
+    const cardStyle: React.CSSProperties = { padding: '1rem', marginBottom: '1rem' };
+    const labelStyle: React.CSSProperties = { fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.3rem', display: 'block' };
+
+    return (
+        <div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                Controls the footer content — company description, newsletter, map, and powered-by text.
+            </p>
+
+            <div className="content-card" style={cardStyle}>
+                <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Company Info</h4>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Company Description</label>
+                    <textarea value={companyDescription} onChange={e => setCompanyDescription(e.target.value)} className="form-textarea" rows={2} placeholder="Short company description for footer" />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Copyright Text</label>
+                    <input value={copyrightText} onChange={e => setCopyrightText(e.target.value)} className="form-input" placeholder="Copyright © 2024 Muhizi Construction. All Rights Reserved" />
+                </div>
+            </div>
+
+            <div className="content-card" style={cardStyle}>
+                <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Newsletter</h4>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Newsletter Title</label>
+                    <input value={newsletterTitle} onChange={e => setNewsletterTitle(e.target.value)} className="form-input" placeholder="Subscribe Newsletter" />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Newsletter Subtitle</label>
+                    <input value={newsletterSubtitle} onChange={e => setNewsletterSubtitle(e.target.value)} className="form-input" placeholder="Sign up today to get the latest updates & insights" />
+                </div>
+            </div>
+
+            <div className="content-card" style={cardStyle}>
+                <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Google Map</h4>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Map Embed URL</label>
+                    <input value={mapEmbedUrl} onChange={e => setMapEmbedUrl(e.target.value)} className="form-input" placeholder="https://maps.google.com/maps?q=..." />
+                </div>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Directions URL</label>
+                    <input value={mapDestinationUrl} onChange={e => setMapDestinationUrl(e.target.value)} className="form-input" placeholder="https://www.google.com/maps/dir/?api=1&destination=..." />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Map Address Label</label>
+                    <input value={mapAddress} onChange={e => setMapAddress(e.target.value)} className="form-input" placeholder="Kigali, Nyamirambo" />
+                </div>
+            </div>
+
+            <div className="content-card" style={cardStyle}>
+                <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Powered By</h4>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label">Text</label>
+                    <input value={poweredByText} onChange={e => setPoweredByText(e.target.value)} className="form-input" placeholder="MIS" />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">URL</label>
+                    <input value={poweredByUrl} onChange={e => setPoweredByUrl(e.target.value)} className="form-input" placeholder="https://mis-frontend-eta.vercel.app" />
+                </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={save} disabled={isSaving} className="btn-primary">{isSaving ? 'Saving...' : <><FaSave /> Save Footer</>}</button>
             </div>
         </div>
     );

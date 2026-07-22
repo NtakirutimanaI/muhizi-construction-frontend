@@ -79,6 +79,9 @@ const ConstructionIllustration: React.FC = () => (
 const Contact: React.FC<ContactProps> = ({ profile }) => {
     const { showToast } = useToast();
     const contactHeading = profile.pageContent?.contactSection?.heading;
+    const contactSubtitle = profile.pageContent?.contactSection?.subtitle;
+    const contactLocation = profile.pageContent?.contactSection?.location;
+    const contactHours = profile.pageContent?.contactSection?.hours;
     const [localData, setLocalData] = useState({
         firstName: '',
         lastName: '',
@@ -164,7 +167,7 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                             </div>
                             <div>
                                 <h4>Location</h4>
-                                <p>Rwanda, Kigali, Nyarugenge, Nyamirambo</p>
+                                <p>{contactLocation || 'Rwanda, Kigali, Nyarugenge, Nyamirambo'}</p>
                             </div>
                         </div>
                         <div className="contact-v2__info-item">
@@ -173,7 +176,7 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                             </div>
                             <div>
                                 <h4>Opening Hours</h4>
-                                <p>Mon – Fri, 8:00 – 18:00</p>
+                                <p>{contactHours || 'Mon – Fri, 8:00 – 18:00'}</p>
                             </div>
                         </div>
                     </div>
@@ -186,7 +189,7 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                         CONTACT US
                     </div>
                     <h2 className="contact-v2__heading">Let's Work<br />Together</h2>
-                    <p className="contact-v2__subtext">{contactHeading || 'Have a project in mind? We\'d love to hear from you.'}</p>
+                    <p className="contact-v2__subtext">{contactSubtitle || contactHeading || 'Have a project in mind? We\'d love to hear from you.'}</p>
 
                     <form onSubmit={handleSubmit} className="contact-v2__form">
                         <div className="contact-v2__form-row">

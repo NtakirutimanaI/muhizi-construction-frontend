@@ -52,7 +52,7 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const role = user?.role || '';
-    const isSiteManager = role === 'site_manager';
+    const isStorekeeper = role === 'storekeeper';
     const isAdmin = role === 'admin';
     const isExecutive = EXECUTIVE_ROLES.includes(role);
 
@@ -118,7 +118,7 @@ const AdminDashboard = () => {
                 );
             }
 
-            if (isSiteManager) {
+            if (isStorekeeper) {
                 dataPromises.push(
                     assignmentService.getMyTeam().then(async res => {
                         const assignments = res.data || [];
@@ -160,9 +160,9 @@ const AdminDashboard = () => {
             savePageCache(role, cacheData);
         };
         fetchFresh();
-    }, [role, isSiteManager, isAdmin, isExecutive]);
+    }, [role, isStorekeeper, isAdmin, isExecutive]);
 
-    const quickActions = isSiteManager ? [
+    const quickActions = isStorekeeper ? [
         { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} my sites` },
         { to: '/admin/material-requests', icon: <FaTruck />, bg: '#1B2042', label: 'Material Requests', sub: `${projects.length} my projects` },
         { to: '/admin/employee-assignments', icon: <FaTasks />, bg: '#8b5cf6', label: 'My Team', sub: `${myAssignments.length} assignments` },
@@ -176,7 +176,7 @@ const AdminDashboard = () => {
 
     let summaryCards: Card[];
 
-    if (isSiteManager) {
+    if (isStorekeeper) {
         summaryCards = [
             { label: 'My Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
             { label: 'My Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
@@ -239,7 +239,7 @@ const AdminDashboard = () => {
             { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
             { label: 'Employees', value: employees.length, sub: `${employees.filter(e => e.status === 'active').length} active`, icon: <FaUserTie />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
         ];
-        if (role === 'manager') {
+        if (role === 'storekeeper') {
             summaryCards.push({ label: 'Attendance', value: attendanceToday, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' });
         }
     }
