@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { FaNewspaper, FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaSearch, FaTimes, FaUpload, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaNewspaper, FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaSearch, FaTimes, FaUpload, FaChevronLeft, FaChevronRight, FaImage, FaSpinner } from 'react-icons/fa';
 import { updatesService, type Update, type CreateUpdateDto } from '../../services/updatesService';
 import { useAuth } from '../../context/AuthContext';
+import { uploadService } from '../../services/uploadService';
+import { useToast } from '../../context/ToastContext';
 
 const PAGE_SIZES = [5, 10, 15, 20];
 
 const AdminUpdates = () => {
     const { user } = useAuth();
+    const { showToast } = useToast();
     const [items, setItems] = useState<Update[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -15,6 +18,8 @@ const AdminUpdates = () => {
     const [saving, setSaving] = useState(false);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const imageInputRef = useRef<HTMLInputElement>(null);
     const modalRef = useRef<HTMLDivElement>(null);
     const [form, setForm] = useState<CreateUpdateDto>({
         title: '',
@@ -69,6 +74,22 @@ const AdminUpdates = () => {
         });
         setEditingId(item.id);
         setShowModal(true);
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { showToast('Image must be smaller than 5MB', 'error'); return; }
+        setUploadingImage(true);
+        try {
+            const uploaded = await uploadService.uploadFile(file);
+            setForm(prev => ({ ...prev, image: uploaded.secureUrl }));
+        } catch {
+            showToast('Failed to upload image', 'error');
+        } finally {
+            setUploadingImage(false);
+            if (imageInputRef.current) imageInputRef.current.value = '';
+        }
     };
 
     const closeModal = () => {
@@ -352,15 +373,24 @@ const AdminUpdates = () => {
                                         <input style={inputStyle} type="text" value={form.readTime} onChange={e => setForm({ ...form, readTime: e.target.value })} placeholder="e.g. 5 min read" />
                                     </div>
                                     <div className="upd-form-full" style={{ marginBottom: '1rem' }}>
-                                        <label style={labelStyle}>Image URL</label>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <input style={{ ...inputStyle, flex: 1 }} type="text" value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} placeholder="https://example.com/image.jpg" />
-                                            {form.image && (
-                                                <div style={{ width: '40px', height: '40px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)', flexShrink: 0 }}>
-                                                    <img src={form.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                                                </div>
-                                            )}
-                                        </div>
+                                        <label style={labelStyle}>Image</label>
+                                        <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+                                        {form.image ? (
+                                            <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden' }}>
+                                                <img src={form.image} alt="Preview" style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                                                <button type="button" onClick={() => setForm({ ...form, image: '' })} style={{ position: 'absolute', top: 8, right: 8, background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <FaTimes /> Remove
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage} style={{ width: '100%', padding: '2rem 1rem', border: '2px dashed #888', borderRadius: '8px', background: '#1a1d23', color: '#fff', cursor: uploadingImage ? 'default' : 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                                {uploadingImage ? (
+                                                    <><FaSpinner size={20} style={{ animation: 'spin 1s linear infinite' }} /><span>Uploading...</span></>
+                                                ) : (
+                                                    <><FaImage size={24} /><span>Click to upload image</span><span style={{ fontSize: '12px', color: '#aaa' }}>JPG, PNG, WebP up to 5MB</span></>
+                                                )}
+                                            </button>
+                                        )}
                                     </div>
                                     <div className="upd-form-full" style={{ marginBottom: '1rem' }}>
                                         <label style={labelStyle}>Summary</label>
