@@ -19,6 +19,7 @@ const AdminUpdates = () => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [viewingItem, setViewingItem] = useState<Update | null>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const modalRef = useRef<HTMLDivElement>(null);
     const [form, setForm] = useState<CreateUpdateDto>({
@@ -318,6 +319,10 @@ const AdminUpdates = () => {
                                                 style={{ padding: '0.3rem 0.6rem', borderRadius: '6px', border: 'none', cursor: 'pointer', background: item.isPublished ? '#fef3c7' : '#dcfce7', color: item.isPublished ? '#d97706' : '#16a34a', fontSize: '0.7rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontFamily: 'inherit' }}>
                                                 {item.isPublished ? <><FaEyeSlash size={10} /> Unpublish</> : <><FaEye size={10} /> Publish</>}
                                             </button>
+                                            <button onClick={() => setViewingItem(item)} title="View"
+                                                style={{ padding: '0.35rem 0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', background: '#dbeafe', color: '#2563eb', fontSize: '0.75rem' }}>
+                                                <FaEye />
+                                            </button>
                                             <button onClick={() => openEdit(item)} title="Edit"
                                                 style={{ padding: '0.35rem 0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', background: '#e0e7ff', color: '#4f46e5', fontSize: '0.75rem' }}>
                                                 <FaEdit />
@@ -442,6 +447,46 @@ const AdminUpdates = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {viewingItem && (
+                <div className="upd-overlay" onClick={(e) => { if (e.target === e.currentTarget) setViewingItem(null); }}>
+                    <div className="upd-modal" ref={modalRef} style={{ maxWidth: '720px' }}>
+                        <div className="upd-modal-header">
+                            <h3>{viewingItem.title}</h3>
+                            <button className="upd-modal-close" onClick={() => setViewingItem(null)}><FaTimes size={14} /></button>
+                        </div>
+                        <div className="upd-modal-body" style={{ padding: 0 }}>
+                            {viewingItem.image && (
+                                <img src={viewingItem.image} alt={viewingItem.title} style={{ width: '100%', height: '280px', objectFit: 'cover' }} />
+                            )}
+                            <div style={{ padding: '1.5rem' }}>
+                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                                    <span className={`upd-badge ${viewingItem.isPublished ? 'upd-badge-published' : 'upd-badge-draft'}`}>
+                                        {viewingItem.isPublished ? <><FaEye size={10} /> Published</> : <><FaEyeSlash size={10} /> Draft</>}
+                                    </span>
+                                    {viewingItem.category && (
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 700, background: '#e0e7ff', color: '#4f46e5' }}>
+                                            {viewingItem.category}
+                                        </span>
+                                    )}
+                                </div>
+                                {viewingItem.summary && (
+                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem', lineHeight: 1.5, fontStyle: 'italic' }}>{viewingItem.summary}</p>
+                                )}
+                                {viewingItem.content && (
+                                    <div style={{ fontSize: '0.88rem', color: 'var(--text-main)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{viewingItem.content}</div>
+                                )}
+                                <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                    {viewingItem.author && <span>By <strong>{viewingItem.author}</strong></span>}
+                                    {viewingItem.readTime && <span>{viewingItem.readTime}</span>}
+                                    {viewingItem.publishedAt && <span>Published {new Date(viewingItem.publishedAt).toLocaleDateString()}</span>}
+                                    <span>Created {new Date(viewingItem.createdAt).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
