@@ -43,6 +43,7 @@ const Users = () => {
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState<'add' | 'edit' | 'view' | null>(null);
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+    const [saving, setSaving] = useState(false);
     const [form, setForm] = useState({
         firstName: '', lastName: '', email: '', password: '', role: 'site_engineer', isActive: true, phone: '',
     });
@@ -261,17 +262,26 @@ const Users = () => {
     };
 
     const handleSave = async () => {
+        if (showModal === 'add') {
+            const err = validatePassword(form.password);
+            if (err) { setPasswordError(err); return; }
+        } else if (showModal === 'edit' && form.password) {
+            const err = validatePassword(form.password);
+            if (err) { setPasswordError(err); return; }
+        }
+        setSaving(true);
         try {
             if (showModal === 'add') {
-                const err = validatePassword(form.password);
-                if (err) { setPasswordError(err); return; }
-                await authService.register(form);
+                await authService.createUser({
+                    email: form.email,
+                    password: form.password,
+                    firstName: form.firstName,
+                    lastName: form.lastName,
+                    role: form.role,
+                    phone: form.phone,
+                });
                 showToast('User created successfully', 'success');
             } else if (showModal === 'edit' && selectedUser) {
-                if (form.password) {
-                    const err = validatePassword(form.password);
-                    if (err) { setPasswordError(err); return; }
-                }
                 const payload: any = {
                     firstName: form.firstName,
                     lastName: form.lastName,
@@ -289,6 +299,8 @@ const Users = () => {
         } catch (e: any) {
             const msg = e?.response?.data?.message || e?.message || 'Operation failed';
             showToast(msg, 'error');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -444,11 +456,11 @@ const Users = () => {
             </div>
 
             {(showModal === 'add' || showModal === 'edit') && (
-                <div className="admin-modal-overlay" onClick={() => setShowModal(null)}>
+                <div className="admin-modal-overlay" onClick={() => !saving && setShowModal(null)}>
                     <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{modalTitle}</h3>
-                            <button onClick={() => setShowModal(null)}><FaTimesIcon /></button>
+                            <button onClick={() => setShowModal(null)} disabled={saving}><FaTimesIcon /></button>
                         </div>
                         <div className="admin-modal-body">
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -499,8 +511,10 @@ const Users = () => {
                             </div>
                         </div>
                         <div className="admin-modal-footer">
-                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(null)}>Cancel</button>
-                            <button className="admin-btn" onClick={handleSave}>{showModal === 'add' ? 'Create' : 'Update'}</button>
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(null)} disabled={saving}>Cancel</button>
+                            <button className="admin-btn" onClick={handleSave} disabled={saving}>
+                                {saving ? (showModal === 'add' ? 'Creating...' : 'Updating...') : (showModal === 'add' ? 'Create' : 'Update')}
+                            </button>
                         </div>
                     </div>
                 </div>

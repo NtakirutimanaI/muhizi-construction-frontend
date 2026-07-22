@@ -136,7 +136,11 @@ export function canAccess(path: string, role: string): boolean {
     const normalizedPath = path.replace(/^\/(admin|storekeeper|employee|partner|client-panel|managingdirector|directorfinance|siteengineer|engineeringstudio)/, '/admin').split('?')[0];
     for (const section of SIDEBAR_SECTIONS) {
         for (const item of section.items) {
-            if (item.path.split('?')[0] === normalizedPath) {
+            const itemPath = item.path.split('?')[0];
+            // Match the sidebar item's own path, and also any of its nested sub-pages
+            // (e.g. /admin/messages/inbox falls under the /admin/messages sidebar entry)
+            // so hiding a nav item also blocks direct navigation to its sub-routes.
+            if (itemPath === normalizedPath || normalizedPath.startsWith(`${itemPath}/`)) {
                 return item.roles.includes(role as Role);
             }
         }
