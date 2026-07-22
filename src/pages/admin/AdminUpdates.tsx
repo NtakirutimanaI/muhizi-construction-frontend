@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import { FaNewspaper, FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaSearch, FaTimes, FaUpload } from 'react-icons/fa';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { FaNewspaper, FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaSearch, FaTimes, FaUpload, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { updatesService, type Update, type CreateUpdateDto } from '../../services/updatesService';
 import { useAuth } from '../../context/AuthContext';
+
+const PAGE_SIZES = [5, 10, 15, 20];
 
 const AdminUpdates = () => {
     const { user } = useAuth();
@@ -11,6 +13,8 @@ const AdminUpdates = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [saving, setSaving] = useState(false);
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
     const modalRef = useRef<HTMLDivElement>(null);
     const [form, setForm] = useState<CreateUpdateDto>({
         title: '',
@@ -114,6 +118,17 @@ const AdminUpdates = () => {
         i.title.toLowerCase().includes(search.toLowerCase()) ||
         (i.category || '').toLowerCase().includes(search.toLowerCase())
     );
+
+    const totalPages = pageSize === 0 ? 1 : Math.ceil(filtered.length / pageSize);
+    const paginated = useMemo(() => {
+        if (pageSize === 0) return filtered;
+        const start = (page - 1) * pageSize;
+        return filtered.slice(start, start + pageSize);
+    }, [filtered, page, pageSize]);
+
+    useEffect(() => {
+        if (page > totalPages) setPage(totalPages || 1);
+    }, [totalPages, page]);
 
     const inputStyle: React.CSSProperties = {
         width: '100%', padding: '0.65rem 0.85rem', border: '1px solid var(--border-color)', borderRadius: '8px',
@@ -244,7 +259,7 @@ const AdminUpdates = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.map(item => (
+                            {paginated.map(item => (
                                 <tr key={item.id}>
                                     <td style={{ fontWeight: 600, maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</td>
                                     <td>{item.category || '—'}</td>
@@ -278,6 +293,36 @@ const AdminUpdates = () => {
                     </table>
                 )}
             </div>
+            {filtered.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.5rem 0', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Per page:</span>
+                            <select
+                                className="form-select"
+                                style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.75rem' }}
+                                value={pageSize}
+                                onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}
+                            >
+                                {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                                <option value={0}>All</option>
+                            </select>
+                        </div>
+                        {pageSize > 0 && totalPages > 1 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 28, fontSize: '0.78rem' }} onClick={() => setPage(p)}>{p}</button>
+                                ))}
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Modal */}
             {showModal && (
