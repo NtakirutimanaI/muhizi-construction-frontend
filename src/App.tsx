@@ -53,6 +53,7 @@ const EngineeringSubmissions = lazy(() => import('./pages/admin/EngineeringSubmi
 const DailyReports = lazy(() => import('./pages/admin/DailyReports'));
 const CreateContract = lazy(() => import('./pages/admin/CreateContract'));
 const InsuranceSettings = lazy(() => import('./pages/admin/InsuranceSettings'));
+const MoneyRequisitions = lazy(() => import('./pages/admin/MoneyRequisitions'));
 const Stock = lazy(() => import('./pages/admin/Stock'));
 const StockCategories = lazy(() => import('./pages/admin/StockCategories'));
 const ProjectDetail = lazy(() => import('./pages/admin/ProjectDetail'));
@@ -176,6 +177,7 @@ function App() {
                         <Route path="engineering-submissions" element={<EngineeringSubmissions />} />
                         <Route path="daily-reports" element={<DailyReports />} />
                         <Route path="insurance" element={<InsuranceSettings />} />
+                        <Route path="money-requisition" element={<MoneyRequisitions />} />
                         <Route path="create-contract" element={<CreateContract />} />
                         <Route path="project-evidence" element={<ProjectEvidence />} />
                     <Route path="site-rules" element={<ClientSiteRules />} />

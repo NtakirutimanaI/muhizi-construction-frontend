@@ -1,19 +1,13 @@
-import { LuKeyRound, LuHandshake, LuGem, LuWorkflow } from 'react-icons/lu';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Profile } from '../services/profileService';
 
-const CARD_ICONS = [LuHandshake, LuGem, LuWorkflow];
-const DEFAULT_CARDS = [
-    { title: 'Expertise You Can Trust', description: 'Our licensed engineers and skilled crews bring decades of hands-on experience to every site.' },
-    { title: 'Built for Long-Term Value', description: 'Every project we deliver is built with quality materials and vision, designed to last for generations.' },
-    { title: 'Hassle-Free Process', description: 'Our project managers guide you through every step with clear timelines, updates, and dedicated support.' },
+const CAROUSEL_IMAGES = [
+    'https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1513828583688-c52646db42da?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1486718448742-163732cd1544?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
 ];
-const GRID_SLOTS = [
-    { gridColumn: '2', gridRow: '1', tiltClass: 'commitment-card--tilt-a' },
-    { gridColumn: '3', gridRow: '1', tiltClass: 'commitment-card--tilt-b' },
-    { gridColumn: '2', gridRow: '2', tiltClass: 'commitment-card--tilt-c' },
-];
-const DEFAULT_ANCHOR_IMAGE = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
-const DEFAULT_IMAGE_CARD_IMAGE = 'https://images.unsplash.com/photo-1486718448742-163732cd1544?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
 
 interface CommitmentProps {
     profile?: Profile | null;
@@ -21,96 +15,95 @@ interface CommitmentProps {
 
 const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
     const c = profile?.pageContent?.commitment;
-    const cards = c?.cards && c.cards.length > 0 ? c.cards : DEFAULT_CARDS;
-    const textCards = GRID_SLOTS.map((slot, i) => ({ ...slot, ...cards[i], icon: CARD_ICONS[i % CARD_ICONS.length] })).filter(card => card.title);
+    const [current, setCurrent] = useState(0);
+    const [direction, setDirection] = useState<'left' | 'right'>('right');
+    const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+
+    const next = useCallback(() => {
+        const dir = Math.random() > 0.5 ? 'left' : 'right';
+        setDirection(dir);
+        setCurrent((prev) => (prev + 1) % CAROUSEL_IMAGES.length);
+    }, []);
+
+    useEffect(() => {
+        timerRef.current = setInterval(next, 4000);
+        return () => clearInterval(timerRef.current);
+    }, [next]);
 
     return (
         <section data-nav-theme="light" className="section section-indicator" id="commitment" style={{ background: '#F5F7FA', position: 'relative', overflow: 'hidden' }}>
             <style>{`
-                .commitment-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-                .commitment-card:hover { transform: rotate(0deg) translateY(0) scale(1.03) !important; box-shadow: 0 16px 40px rgba(15,18,34,0.16) !important; z-index: 5; }
-                .commitment-card--anchor { transform: rotate(-1deg); }
-                .commitment-card--tilt-a { transform: rotate(-2deg); }
-                .commitment-card--tilt-b { transform: rotate(2deg) translateY(16px); }
-                .commitment-card--tilt-c { transform: rotate(-2deg) translateY(-6px); }
-                .commitment-card--tilt-d { transform: rotate(2deg) translateY(-16px); }
+                .commitment-carousel { position: relative; width: 100%; height: 100%; overflow: hidden; cursor: pointer; }
+                .commitment-carousel__overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; opacity: 0; transition: opacity 0.4s ease; z-index: 2; padding: 2rem; }
+                .commitment-carousel:hover .commitment-carousel__overlay { opacity: 1; }
+                .commitment-carousel__overlay p { font-family: 'Poppins'; color: #fff; font-size: 17px; font-weight: 400; font-style: normal; text-align: center; line: 1.55; }
+                .commitment-carousel__slide { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out; }
+                .commitment-carousel__slide--enter-right { transform: translateX(100%); opacity: 0; }
+                .commitment-carousel__slide--enter-left { transform: translateX(-100%); opacity: 0; }
+                .commitment-carousel__slide--active { transform: translateX(0); opacity: 1; z-index: 1; }
+                .commitment-carousel__slide--exit-right { transform: translateX(100%); opacity: 0; }
+                .commitment-carousel__slide--exit-left { transform: translateX(-100%); opacity: 0; }
+                .commitment-main-card { transition: transform 0.3s ease, border 0.3s ease; border: 1px solid rgba(15,18,34,0.06); }
+                .commitment-main-card:hover { animation: commitment-bounce 0.5s ease; border: 3px solid #fff; }
+                @keyframes commitment-bounce {
+                    0% { transform: translateY(0) scale(1); }
+                    30% { transform: translateY(-15px) scale(1.02); }
+                    50% { transform: translateY(0) scale(1); }
+                    70% { transform: translateY(-8px) scale(1.01); }
+                    100% { transform: translateY(0) scale(1); }
+                }
             `}</style>
-            <div style={{
-                position: 'absolute', inset: 0,
-                backgroundImage: 'url(/bg1.png)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'bottom',
-                backgroundRepeat: 'no-repeat',
-                filter: 'grayscale(1)',
-                opacity: 0.12,
-                pointerEvents: 'none',
-            }} />
-
             <div className="container" style={{ position: 'relative', zIndex: 1 }}>
-                <div style={{ textAlign: 'center', maxWidth: '650px', margin: '0 auto 3rem' }}>
-                    <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: 'var(--accent, #D97706)', fontWeight: 700, fontSize: '0.78rem', letterSpacing: '0.15em', textTransform: 'uppercase', margin: '0 0 1rem' }}>
-                        <span style={{ width: '30px', height: '0', borderTop: '2px dashed var(--accent, #D97706)', display: 'inline-block' }} />
-                        Our Commitment
-                        <span style={{ width: '30px', height: '0', borderTop: '2px dashed var(--accent, #D97706)', display: 'inline-block' }} />
-                    </p>
-                    <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: 'clamp(1.9rem, 4vw, 2.6rem)', fontWeight: 800, margin: '0 0 1rem', lineHeight: 1.15 }}>
-                        What Makes Us Different
-                    </h2>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.7, margin: 0 }}>
-                        It's not just about constructing buildings; it's about engineering trust, safety, and lasting value into every project we deliver.
-                    </p>
+                <div style={{ maxWidth: '1200px', margin: '0 auto 3rem' }}>
+                    <div style={{ marginBottom: '0.75rem', marginLeft: '-20px' }}>
+                        <span style={{ fontFamily: 'Poppins', fontSize: '28px', fontWeight: 700, fontStyle: 'normal', color: '#1A1A1A', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                            <span style={{ color: '#999', fontWeight: 400 }}>---</span> Our Commitment <span style={{ color: '#999', fontWeight: 400 }}>---</span>
+                        </span>
+                    </div>
+                    <div style={{ textAlign: 'center', maxWidth: '650px', margin: '0 auto' }}>
+                        <h3 style={{ fontFamily: 'Poppins', color: '#1A1A1A', fontSize: '22px', fontWeight: 600, fontStyle: 'normal', margin: '0 0 0.75rem', lineHeight: 1.3 }}>
+                            What Makes Us Different
+                        </h3>
+                        <p style={{ fontFamily: 'Poppins', color: '#555', fontSize: '17px', fontWeight: 400, fontStyle: 'normal', lineHeight: 1.7, margin: 0 }}>
+                            It's not just about constructing buildings; it's about engineering trust, safety, and lasting value into every project we deliver.
+                        </p>
+                    </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr 1fr', gridTemplateRows: 'auto auto', gap: '1.5rem', maxWidth: '1200px', margin: '0 auto', alignItems: 'start' }}>
-                    {/* Tall image + caption card */}
-                    <div className="commitment-card commitment-card--anchor" style={{ gridColumn: '1', gridRow: '1 / 3', borderRadius: '0', overflow: 'hidden', background: '#fff', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 10px 30px rgba(15,18,34,0.08)', display: 'flex', flexDirection: 'column' }}>
-                        <img
-                            src={c?.anchorImage || DEFAULT_ANCHOR_IMAGE}
-                            alt="Modern residential development"
-                            style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
-                        />
-                        <div style={{ padding: '1.5rem 1.6rem 1.7rem' }}>
-                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--accent, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.1rem' }}>
-                                <LuKeyRound style={{ color: '#fff', fontSize: '1.3rem' }} />
+                <div className="commitment-main-card" style={{ display: 'flex', maxWidth: '1200px', margin: '0 auto', background: 'transparent', borderRadius: '5px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(15,18,34,0.08)', minHeight: '420px' }}>
+                    <div style={{ flex: '0 0 50%', position: 'relative' }}>
+                        <div className="commitment-carousel">
+                            {CAROUSEL_IMAGES.map((src, i) => {
+                                let className = 'commitment-carousel__slide';
+                                if (i === current) {
+                                    className += ' commitment-carousel__slide--active';
+                                } else {
+                                    className += direction === 'right'
+                                        ? ' commitment-carousel__slide--exit-left'
+                                        : ' commitment-carousel__slide--exit-right';
+                                }
+                                return (
+                                    <img
+                                        key={i}
+                                        src={src}
+                                        alt={`Commitment ${i + 1}`}
+                                        className={className}
+                                    />
+                                );
+                            })}
+                            <div className="commitment-carousel__overlay">
+                                <p>Quality you can trust<br/>Built to last generations<br/>Delivered with integrity</p>
                             </div>
-                            <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.9rem' }}>{c?.anchorTitle || 'Client-Focused Delivery'}</h3>
-                            <div style={{ height: '1px', background: 'var(--border-color)', margin: '0 0 1rem' }} />
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.65, margin: 0 }}>
-                                {c?.anchorDescription || 'We prioritize clear communication and transparency, making your construction journey smooth and stress-free.'}
-                            </p>
                         </div>
                     </div>
-
-                    {textCards.map((card, i) => (
-                        <div
-                            key={i}
-                            className={`commitment-card ${card.tiltClass}`}
-                            style={{
-                                gridColumn: card.gridColumn,
-                                gridRow: card.gridRow,
-                                borderRadius: '0',
-                                background: '#fff',
-                                border: '1px solid rgba(15,18,34,0.06)',
-                                boxShadow: '0 10px 30px rgba(15,18,34,0.08)',
-                                padding: '1.6rem 1.7rem 1.8rem',
-                            }}
-                        >
-                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--accent, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.1rem' }}>
-                                <card.icon style={{ color: '#fff', fontSize: '1.3rem' }} />
-                            </div>
-                            <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.9rem', lineHeight: 1.3 }}>{card.title}</h3>
-                            <div style={{ height: '1px', background: 'var(--border-color)', margin: '0 0 1rem' }} />
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.65, margin: 0 }}>{card.description}</p>
-                        </div>
-                    ))}
-
-                    {/* Image-only card */}
-                    <div className="commitment-card commitment-card--tilt-d" style={{ gridColumn: '3', gridRow: '2', borderRadius: '0', overflow: 'hidden', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 10px 30px rgba(15,18,34,0.08)' }}>
-                        <img
-                            src={c?.imageCardImage || DEFAULT_IMAGE_CARD_IMAGE}
-                            alt="Contemporary building exterior"
-                            style={{ width: '100%', height: '280px', objectFit: 'cover', display: 'block' }}
-                        />
+                    <div style={{ flex: '1', padding: '3rem 2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <h3 style={{ fontFamily: 'Poppins', color: '#1A1A1A', fontSize: '22px', fontWeight: 600, fontStyle: 'normal', margin: '0 0 1rem', lineHeight: 1.3 }}>
+                            {c?.anchorTitle || 'Client-Focused Delivery'}
+                        </h3>
+                        <div style={{ height: '1px', background: '#e0e0e0', margin: '0 0 1.2rem' }} />
+                        <p style={{ fontFamily: 'Poppins', color: '#555', fontSize: '17px', fontWeight: 400, fontStyle: 'normal', lineHeight: 1.7, margin: 0 }}>
+                            {c?.anchorDescription || 'We prioritize clear communication and transparency, making your construction journey smooth and stress-free. Our team is dedicated to delivering projects on time, within budget, and to the highest standards of quality.'}
+                        </p>
                     </div>
                 </div>
             </div>

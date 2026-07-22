@@ -1,6 +1,5 @@
 import Hero from '../../components/Hero';
 import About from '../../components/About';
-import AboutPage from './About';
 import WhatWeOffer from '../../components/WhatWeOffer';
 import Commitment from '../../components/Commitment';
 import Projects from '../../components/Projects';
@@ -31,7 +30,6 @@ const Home = () => {
     return (
         <>
             <Hero slides={pc?.heroSlides} videoUrl={pc?.heroVideoUrl} />
-            <AboutPage />
             <About profile={profile} />
             <WhatWeOffer heading={pc?.services?.heading} subtitle={pc?.services?.subtitle} items={pc?.services?.items} />
             <Commitment profile={profile} />

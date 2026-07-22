@@ -34,10 +34,10 @@
   --primary-red: #ff5252;
   --primary-teal: #4ecdc4;
 
-  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-  --font-heading: 'Archivo', 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-  --font-display: 'Big Shoulders Display', 'Archivo', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  --font-main: 'Poppins', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  --font-body: 'Poppins', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  --font-heading: 'Poppins', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  --font-display: 'Poppins', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
   --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   --spacing-section: 30px;
   --nav-offset: 92px;
@@ -103,8 +103,11 @@ body {
 body {
   font-family: var(--font-main);
   background-color: var(--bg-body);
-  color: var(--text-main);
+  color: #1A1A1A;
   line-height: 1.6;
+  font-size: 17px;
+  font-weight: 600;
+  font-style: normal;
 }
 
 /* Clears the fixed navbar for routes without a full-bleed hero.
@@ -2216,7 +2219,7 @@ img {
    ============================================= */
 .projects-v2 {
   --projects-accent: var(--accent);
-  background: #fff;
+  background: #F5F7FA;
   padding: clamp(3rem, 8vw, 5.5rem) 0 clamp(2.5rem, 6vw, 4rem);
   overflow: visible;
 }
@@ -2265,10 +2268,12 @@ img {
 .projects-v2__card {
   position: relative;
   background: #fff;
-  border-radius: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(15,18,34,0.06);
   box-shadow: 0 22px 45px rgba(20, 20, 30, 0.13);
   padding: 14px 14px 30px;
   margin-bottom: clamp(2rem, 5vw, 3rem);
+  overflow: hidden;
 }
 
 .projects-v2__grid > .projects-v2__card:nth-child(n+3) {
@@ -2276,8 +2281,9 @@ img {
 }
 
 .projects-v2__photo-wrap {
-  border-radius: 0;
+  border-radius: 8px;
   overflow: hidden;
+  position: relative;
 }
 
 .projects-v2__photo {
@@ -2285,7 +2291,7 @@ img {
   aspect-ratio: 4 / 3;
   object-fit: cover;
   display: block;
-  border-radius: 0;
+  border-radius: 8px;
 }
 
 .projects-v2__photo--empty {
@@ -2301,6 +2307,8 @@ img {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  overflow: hidden;
 }
 .projects-v2__carousel .projects-v2__photo {
   position: absolute;
@@ -2309,6 +2317,7 @@ img {
   transition: opacity 0.6s ease;
   width: 100%;
   height: 100%;
+  border-radius: 8px;
 }
 .projects-v2__carousel .projects-v2__photo--active {
   opacity: 1;
@@ -5121,7 +5130,7 @@ img {
   border: 1px solid var(--border-color);
   border-radius: 16px;
   overflow: hidden;
-  background: #fff;
+  background: transparent;
 }
 
 .news-v2__card {
