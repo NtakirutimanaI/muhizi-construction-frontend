@@ -313,10 +313,10 @@ const AdminUpdates = () => {
                                     <td>{item.publishedAt ? new Date(item.publishedAt).toLocaleDateString() : '—'}</td>
                                     <td>{new Date(item.createdAt).toLocaleDateString()}</td>
                                     <td style={{ textAlign: 'right' }}>
-                                        <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'flex-end' }}>
+                                        <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                                             <button onClick={() => handleTogglePublish(item)} title={item.isPublished ? 'Unpublish' : 'Publish'}
-                                                style={{ padding: '0.35rem 0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', background: item.isPublished ? '#fef3c7' : '#dcfce7', color: item.isPublished ? '#d97706' : '#16a34a', fontSize: '0.75rem' }}>
-                                                {item.isPublished ? <FaEyeSlash /> : <FaEye />}
+                                                style={{ padding: '0.3rem 0.6rem', borderRadius: '6px', border: 'none', cursor: 'pointer', background: item.isPublished ? '#fef3c7' : '#dcfce7', color: item.isPublished ? '#d97706' : '#16a34a', fontSize: '0.7rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontFamily: 'inherit' }}>
+                                                {item.isPublished ? <><FaEyeSlash size={10} /> Unpublish</> : <><FaEye size={10} /> Publish</>}
                                             </button>
                                             <button onClick={() => openEdit(item)} title="Edit"
                                                 style={{ padding: '0.35rem 0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', background: '#e0e7ff', color: '#4f46e5', fontSize: '0.75rem' }}>
