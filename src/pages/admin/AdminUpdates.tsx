@@ -246,6 +246,7 @@ const AdminUpdates = () => {
                         <p>No updates found.</p>
                     </div>
                 ) : (
+                    <>
                     <table className="upd-table">
                         <thead>
                             <tr>
@@ -291,38 +292,37 @@ const AdminUpdates = () => {
                             ))}
                         </tbody>
                     </table>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap', gap: 6 }}>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Per page:</span>
+                                <select
+                                    className="form-select"
+                                    style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.75rem' }}
+                                    value={pageSize}
+                                    onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}
+                                >
+                                    {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                                    <option value={0}>All</option>
+                                </select>
+                            </div>
+                            {pageSize > 0 && totalPages > 1 && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                        <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 28, fontSize: '0.78rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    ))}
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    </>
                 )}
             </div>
-            {filtered.length > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.5rem 0', flexWrap: 'wrap', gap: 6 }}>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                        Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
-                    </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Per page:</span>
-                            <select
-                                className="form-select"
-                                style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.75rem' }}
-                                value={pageSize}
-                                onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}
-                            >
-                                {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                                <option value={0}>All</option>
-                            </select>
-                        </div>
-                        {pageSize > 0 && totalPages > 1 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 28, fontSize: '0.78rem' }} onClick={() => setPage(p)}>{p}</button>
-                                ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
 
             {/* Modal */}
             {showModal && (
