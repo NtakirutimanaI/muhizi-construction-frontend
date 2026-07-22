@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaImage, FaVideo, FaSpinner, FaTimes, FaHardHat, FaProjectDiagram, FaMoneyBillWave, FaCheckCircle, FaChartBar } from 'react-icons/fa';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { partnerPortalService } from '../../services/partnerPortalService';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
 import type { Project } from '../../services/constructionService';

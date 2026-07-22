@@ -28,11 +28,12 @@ const FollowUs: React.FC<FollowUsProps> = ({ profile }) => {
     const [showAll, setShowAll] = useState(false);
     const extraRef = useRef<HTMLDivElement>(null);
     const sideRef = useRef<HTMLDivElement>(null);
+    const mainRef = useRef<HTMLDivElement>(null);
+    const [mainBounce, setMainBounce] = useState(false);
 
     const mainVideo = videos[0] || null;
     const sideVideos = videos.slice(1, 3);
     const extraVideos = videos.slice(3);
-    const mainId = mainVideo ? extractYouTubeId(mainVideo.url) : null;
 
     const restartAnimation = useCallback(() => {
         const el = sideRef.current;
@@ -61,33 +62,42 @@ const FollowUs: React.FC<FollowUsProps> = ({ profile }) => {
         return () => observer.disconnect();
     }, [restartAnimation]);
 
-    const renderCard = (video: { url: string; title?: string; description?: string }, i: number, className: string) => {
+    useEffect(() => {
+        const el = mainRef.current;
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setMainBounce(entry.isIntersecting);
+            },
+            { threshold: 0.4 }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+
+    const renderCard = (video: { url: string; title?: string; description?: string }, i: number, className: string, extraClass?: string) => {
         const vid = extractYouTubeId(video.url);
         return vid ? (
-            <div key={`${vid}-${i}`} className={`follow-us-video-card ${className}`}>
+            <div key={`${vid}-${i}`} className={`follow-us-video-card ${className} ${extraClass || ''}`}>
                 <iframe
                     src={`https://www.youtube.com/embed/${vid}`}
                     title={video.title || `YouTube video`}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                 />
-                {video.title && (
-                    <div className="follow-us-video-info">
-                        <h3>{video.title}</h3>
-                        {video.description && <p>{video.description}</p>}
-                    </div>
-                )}
+                <div className="follow-us-video-info">
+                    <h3>{video.title || 'YouTube video'}</h3>
+                    {video.description && <p>{video.description}</p>}
+                </div>
             </div>
         ) : video.url ? (
-            <a key={i} href={video.url} target="_blank" rel="noopener noreferrer" className={`follow-us-video-card ${className} follow-us-video-card--placeholder`}>
+            <a key={i} href={video.url} target="_blank" rel="noopener noreferrer" className={`follow-us-video-card ${className} follow-us-video-card--placeholder ${extraClass || ''}`}>
                 <div className="follow-us-placeholder-inner">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
                 </div>
-                {video.title && (
-                    <div className="follow-us-video-info">
-                        <h3>{video.title}</h3>
-                    </div>
-                )}
+                <div className="follow-us-video-info">
+                    <h3>{video.title || 'Watch on YouTube'}</h3>
+                </div>
             </a>
         ) : null;
     };
@@ -109,35 +119,8 @@ const FollowUs: React.FC<FollowUsProps> = ({ profile }) => {
                     </div>
                 ) : (
                     <div className="follow-us-grid">
-                        <div className="follow-us-main">
-                            {mainId ? (
-                                <div className="follow-us-video-card follow-us-video-card--main">
-                                    <iframe
-                                        src={`https://www.youtube.com/embed/${mainId}`}
-                                        title={mainVideo!.title || 'YouTube video'}
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    />
-                                    {mainVideo!.title && (
-                                        <div className="follow-us-video-info">
-                                            <h3>{mainVideo!.title}</h3>
-                                            {mainVideo!.description && <p>{mainVideo!.description}</p>}
-                                        </div>
-                                    )}
-                                </div>
-                            ) : mainVideo?.url ? (
-                                <a href={mainVideo.url} target="_blank" rel="noopener noreferrer" className="follow-us-video-card follow-us-video-card--main follow-us-video-card--placeholder">
-                                    <div className="follow-us-placeholder-inner">
-                                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
-                                        <span>Watch on YouTube</span>
-                                    </div>
-                                    {mainVideo.title && (
-                                        <div className="follow-us-video-info">
-                                            <h3>{mainVideo.title}</h3>
-                                        </div>
-                                    )}
-                                </a>
-                            ) : null}
+                        <div className="follow-us-main" ref={mainRef}>
+                            {mainVideo && renderCard(mainVideo, 0, 'follow-us-video-card--main', mainBounce ? 'follow-us-main-bounce' : '')}
                         </div>
 
                         <div className="follow-us-side" ref={sideRef}>
