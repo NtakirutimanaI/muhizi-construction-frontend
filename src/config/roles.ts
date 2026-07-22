@@ -70,6 +70,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/registration', icon: 'FaUserPlus', label: 'Registration', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/resources', icon: 'FaDatabase', label: 'CMS', roles: [ROLES.ADMIN] },
             { path: '/admin/subscribers', icon: 'FaEnvelope', label: 'Subscribers', roles: [ROLES.ADMIN] },
+            { path: '/admin/admin-updates', icon: 'FaNewspaper', label: 'Updates', roles: [ROLES.ADMIN] },
             { path: '/admin/settings', icon: 'FaCog', label: 'Settings', roles: [ROLES.ADMIN] },
             { path: '/admin/insurance', icon: 'FaShieldAlt', label: 'Insurance', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/money-requisition', icon: 'FaMoneyBillWave', label: 'Money Requisition', roles: [ROLES.FINANCE_DIRECTOR, ROLES.ADMIN] },

@@ -2,15 +2,59 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { LuUserRound, LuMessageCircle, LuArrowRight, LuClock } from 'react-icons/lu';
 import { NEWS_POSTS } from '../../data/newsData';
+import { updatesService, type Update } from '../../services/updatesService';
 import type { Profile } from '../../services/profileService';
+
+interface UnifiedPost {
+  slug: string;
+  title: string;
+  summary: string;
+  image: string;
+  date: string;
+  author: string;
+  comments: number;
+  category: string;
+  readTime?: string;
+}
 
 const NewsList = () => {
   const outlet = useOutletContext<{ profile: Profile | null } | undefined>();
-  const posts = outlet?.profile?.pageContent?.news && outlet.profile.pageContent.news.length > 0 ? outlet.profile.pageContent.news : NEWS_POSTS;
+  const staticPosts = outlet?.profile?.pageContent?.news && outlet.profile.pageContent.news.length > 0 ? outlet.profile.pageContent.news : NEWS_POSTS;
+  const [updates, setUpdates] = useState<Update[]>([]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    updatesService.getPublished()
+      .then(data => setUpdates(Array.isArray(data) ? data : []))
+      .catch(() => {});
   }, []);
+
+  const updatePosts: UnifiedPost[] = updates.map(u => ({
+    slug: u.slug,
+    title: u.title,
+    summary: u.summary || u.content || '',
+    image: u.image || 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    date: u.publishedAt || u.createdAt,
+    author: u.author || 'Admin',
+    comments: u.comments || 0,
+    category: u.category || 'Update',
+    readTime: u.readTime,
+  }));
+
+  const posts: UnifiedPost[] = useMemo(() => {
+    const mapped = staticPosts.map((p: any) => ({
+      slug: p.slug,
+      title: p.title,
+      summary: p.summary,
+      image: p.image,
+      date: p.date,
+      author: p.author,
+      comments: p.comments,
+      category: p.category,
+      readTime: p.readTime,
+    }));
+    return [...updatePosts, ...mapped];
+  }, [updatePosts, staticPosts]);
 
   const categories = useMemo(
     () => ['All', ...Array.from(new Set(posts.map((p) => p.category)))],
