@@ -198,8 +198,27 @@ const AdminUpdates = () => {
                     cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.4rem;
                     font-family: inherit;
                 }
-                .upd-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.25rem; }
+                .upd-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1.25rem; }
                 .upd-form-full { grid-column: 1 / -1; }
+                .upd-form-half { grid-column: auto; }
+                .upd-img-upload {
+                    width: 100%; height: 110px; border: 2px dashed #555; border-radius: 8px;
+                    background: var(--bg-body); cursor: pointer; display: flex; flex-direction: column;
+                    align-items: center; justify-content: center; gap: 6px; color: var(--text-muted);
+                    transition: border-color 0.2s, background 0.2s;
+                }
+                .upd-img-upload:hover { border-color: var(--primary); background: rgba(0,0,0,0.03); }
+                .upd-img-upload span { font-size: 0.7rem; color: var(--text-muted); }
+                .upd-img-thumb {
+                    width: 100%; height: 110px; border-radius: 8px; overflow: hidden; position: relative;
+                    border: 1px solid var(--border-color); background: #000;
+                }
+                .upd-img-thumb img { width: 100%; height: 100%; object-fit: cover; }
+                .upd-img-remove {
+                    position: absolute; top: 4px; right: 4px; background: #dc3545; color: #fff;
+                    border: none; border-radius: 4px; padding: 3px 6px; cursor: pointer;
+                    font-size: 0.65rem; display: flex; align-items: center; gap: 3px;
+                }
                 .upd-toggle-wrap { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; user-select: none; }
                 .upd-toggle {
                     width: 40px; height: 22px; border-radius: 11px; position: relative; transition: background 0.2s;
@@ -355,62 +374,62 @@ const AdminUpdates = () => {
                         </div>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
                             <div className="upd-modal-body">
+                                <div style={{ marginBottom: '0.75rem' }}>
+                                    <label style={labelStyle}>Title *</label>
+                                    <input style={inputStyle} type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required placeholder="Enter update title" />
+                                </div>
                                 <div className="upd-form-row">
-                                    <div style={{ marginBottom: '1rem' }}>
-                                        <label style={labelStyle}>Title *</label>
-                                        <input style={inputStyle} type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required placeholder="Enter update title" />
-                                    </div>
-                                    <div style={{ marginBottom: '1rem' }}>
+                                    <div>
                                         <label style={labelStyle}>Category</label>
                                         <input style={inputStyle} type="text" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="e.g. Project Update, Company News" />
                                     </div>
-                                    <div style={{ marginBottom: '1rem' }}>
+                                    <div>
                                         <label style={labelStyle}>Author</label>
                                         <input style={inputStyle} type="text" value={form.author} onChange={e => setForm({ ...form, author: e.target.value })} placeholder="Author name" />
                                     </div>
-                                    <div style={{ marginBottom: '1rem' }}>
+                                </div>
+                                <div className="upd-form-row" style={{ marginTop: '0.75rem' }}>
+                                    <div>
                                         <label style={labelStyle}>Read Time</label>
                                         <input style={inputStyle} type="text" value={form.readTime} onChange={e => setForm({ ...form, readTime: e.target.value })} placeholder="e.g. 5 min read" />
                                     </div>
-                                    <div className="upd-form-full" style={{ marginBottom: '1rem' }}>
+                                    <div>
                                         <label style={labelStyle}>Image</label>
                                         <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
                                         {form.image ? (
-                                            <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden' }}>
-                                                <img src={form.image} alt="Preview" style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
-                                                <button type="button" onClick={() => setForm({ ...form, image: '' })} style={{ position: 'absolute', top: 8, right: 8, background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    <FaTimes /> Remove
-                                                </button>
+                                            <div className="upd-img-thumb">
+                                                <img src={form.image} alt="Preview" />
+                                                <button type="button" className="upd-img-remove" onClick={() => setForm({ ...form, image: '' })}><FaTimes /> Remove</button>
                                             </div>
                                         ) : (
-                                            <button type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage} style={{ width: '100%', padding: '2rem 1rem', border: '2px dashed #888', borderRadius: '8px', background: '#1a1d23', color: '#fff', cursor: uploadingImage ? 'default' : 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                            <button type="button" className="upd-img-upload" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage}>
                                                 {uploadingImage ? (
-                                                    <><FaSpinner size={20} style={{ animation: 'spin 1s linear infinite' }} /><span>Uploading...</span></>
+                                                    <><FaSpinner size={16} style={{ animation: 'spin 1s linear infinite' }} /><span>Uploading...</span></>
                                                 ) : (
-                                                    <><FaImage size={24} /><span>Click to upload image</span><span style={{ fontSize: '12px', color: '#aaa' }}>JPG, PNG, WebP up to 5MB</span></>
+                                                    <><FaImage size={18} /><span>Click to upload</span><span>JPG, PNG, WebP</span></>
                                                 )}
                                             </button>
                                         )}
                                     </div>
-                                    <div className="upd-form-full" style={{ marginBottom: '1rem' }}>
-                                        <label style={labelStyle}>Summary</label>
-                                        <textarea style={{ ...inputStyle, minHeight: '70px', resize: 'vertical' }} value={form.summary} onChange={e => setForm({ ...form, summary: e.target.value })} placeholder="Brief summary for the news card..." />
-                                    </div>
-                                    <div className="upd-form-full" style={{ marginBottom: '1rem' }}>
-                                        <label style={labelStyle}>Content</label>
-                                        <textarea style={{ ...inputStyle, minHeight: '130px', resize: 'vertical' }} value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} placeholder="Full article content..." />
-                                    </div>
-                                    <div className="upd-form-full" style={{ marginBottom: '0.5rem' }}>
-                                        <label
-                                            className="upd-toggle-wrap"
-                                            onClick={() => setForm({ ...form, isPublished: !form.isPublished })}
-                                        >
-                                            <span className={`upd-toggle ${form.isPublished ? 'on' : 'off'}`} />
-                                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>
-                                                {form.isPublished ? 'Published — Visible on website & client panel' : 'Draft — Not visible publicly'}
-                                            </span>
-                                        </label>
-                                    </div>
+                                </div>
+                                <div style={{ marginTop: '0.75rem' }}>
+                                    <label style={labelStyle}>Summary</label>
+                                    <textarea style={{ ...inputStyle, minHeight: '60px', resize: 'vertical' }} value={form.summary} onChange={e => setForm({ ...form, summary: e.target.value })} placeholder="Brief summary for the news card..." />
+                                </div>
+                                <div style={{ marginTop: '0.75rem' }}>
+                                    <label style={labelStyle}>Content</label>
+                                    <textarea style={{ ...inputStyle, minHeight: '110px', resize: 'vertical' }} value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} placeholder="Full article content..." />
+                                </div>
+                                <div style={{ marginTop: '0.75rem' }}>
+                                    <label
+                                        className="upd-toggle-wrap"
+                                        onClick={() => setForm({ ...form, isPublished: !form.isPublished })}
+                                    >
+                                        <span className={`upd-toggle ${form.isPublished ? 'on' : 'off'}`} />
+                                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                                            {form.isPublished ? 'Published — Visible on website & client panel' : 'Draft — Not visible publicly'}
+                                        </span>
+                                    </label>
                                 </div>
                             </div>
                             <div className="upd-modal-footer">
