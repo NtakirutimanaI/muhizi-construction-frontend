@@ -127,7 +127,7 @@ const FollowUs: React.FC<FollowUsProps> = ({ profile }) => {
     };
 
     return (
-        <section data-nav-theme="light" className="section projects-v2" id="follow-us">
+        <section data-nav-theme="light" className="section" id="follow-us" style={{ background: '#f5f5f5', padding: 'clamp(3rem, 8vw, 5.5rem) 0 clamp(2.5rem, 6vw, 4rem)' }}>
             <style>{`
                 .follow-us-title-animate {
                     position: relative;
@@ -158,7 +158,9 @@ const FollowUs: React.FC<FollowUsProps> = ({ profile }) => {
                         Follow Us
                     </span>
                 </div>
-                <h2 className="projects-v2__heading">{heading}</h2>
+                <p style={{ fontFamily: 'Poppins', fontSize: '15px', fontWeight: 400, color: '#1A1A1A', textAlign: 'left', margin: '0 0 2rem', lineHeight: 1.6 }}>
+                    {heading}
+                </p>
 
                 {videos.length === 0 ? (
                     <div className="follow-us-empty">

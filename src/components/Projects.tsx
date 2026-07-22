@@ -141,11 +141,13 @@ const Projects: React.FC<ProjectsProps> = ({ profile }) => {
             `}</style>
             <div className="container">
                 <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
-                    <span className="projects-title-animate" style={{ fontFamily: 'Poppins', fontSize: '36px', fontWeight: 700, color: '#1A1A1A' }}>
+                    <span className="projects-title-animate" style={{ fontFamily: 'Poppins', fontSize: '36px', fontWeight: 700, color: '#FFFFFF' }}>
                         Our Projects
                     </span>
                 </div>
-                <h2 className="projects-v2__heading">{ps?.heading || 'We Provide Effective Solution in Construction'}</h2>
+                <p style={{ fontFamily: 'Poppins', fontSize: '15px', fontWeight: 400, color: '#FFFFFF', textAlign: 'left', margin: '0 0 2rem', lineHeight: 1.6 }}>
+                    {ps?.heading || 'We Provide Effective Solution in Construction'}
+                </p>
 
                 {displayProjects.length > 0 && (
                     <div className="projects-v2__grid">

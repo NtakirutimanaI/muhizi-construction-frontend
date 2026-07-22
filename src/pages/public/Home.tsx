@@ -33,8 +33,8 @@ const Home = () => {
             <About profile={profile} />
             <WhatWeOffer heading={pc?.services?.heading} subtitle={pc?.services?.subtitle} items={pc?.services?.items} />
             <Commitment profile={profile} />
-            <Projects profile={profile} />
             <FollowUs profile={profile} />
+            <Projects profile={profile} />
             <TeamMembers profile={profile} />
             <Certifications profile={profile} />
             <Faq profile={profile} />

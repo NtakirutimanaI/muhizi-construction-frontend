@@ -220,10 +220,7 @@ const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
                             What We Offer
                         </span>
                     </div>
-                    <div style={{ textAlign: 'center', maxWidth: '650px', margin: '0 auto' }}>
-                        <h3 style={{ fontFamily: 'Poppins', color: '#FFFFFF', fontSize: '22px', fontWeight: 600, fontStyle: 'normal', margin: '0 0 0.75rem', lineHeight: 1.3, textDecoration: 'none' }}>
-                            What Makes Us Different
-                        </h3>
+                    <div style={{ textAlign: 'left', maxWidth: '650px', marginLeft: '-20px' }}>
                         <p style={{ fontFamily: 'Poppins', color: '#BBBBBB', fontSize: '17px', fontWeight: 400, fontStyle: 'normal', lineHeight: 1.7, margin: 0, textDecoration: 'none' }}>
                             It's not just about constructing buildings; it's about engineering trust, safety, and lasting value into every project we deliver.
                         </p>

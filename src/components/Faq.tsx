@@ -62,10 +62,10 @@ const Faq: React.FC<FaqProps> = ({ profile }) => {
                 .faq-support-btn { display: inline-block; background: var(--accent, #D97706); color: #fff; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; padding: 0.55rem 1.1rem; border-radius: 9999px; text-decoration: none; transition: background 0.2s ease; }
                 .faq-support-btn:hover { background: var(--accent-dark, #B45309); }
 
-                .faq-list { display: flex; flex-direction: column; gap: 1rem; }
-                .faq-item { border: 1px solid var(--border-color); border-radius: 0; background: #F5F7FA; box-shadow: 0 2px 10px rgba(15,18,34,0.04); cursor: pointer; transition: background 0.2s ease, box-shadow 0.2s ease; padding: 1.3rem 1.5rem; }
-                .faq-item:hover { box-shadow: 0 6px 18px rgba(15,18,34,0.08); }
-                .faq-item--open { background: #ffffff; box-shadow: 0 10px 26px rgba(15,18,34,0.1); }
+                .faq-list { display: flex; flex-direction: column; gap: 0; }
+                .faq-item { border: none; border-bottom: 1px solid var(--border-color); border-radius: 0; background: transparent; box-shadow: none; cursor: pointer; transition: background 0.2s ease; padding: 1.3rem 0; }
+                .faq-item:hover { background: rgba(0,0,0,0.02); }
+                .faq-item--open { background: transparent; box-shadow: none; }
                 .faq-item__q { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; background: none; border: none; padding: 0; margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-main); text-align: left; cursor: pointer; }
                 .faq-item__icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--accent, #D97706); color: #fff; transition: background 0.2s ease; }
                 .faq-item__icon svg { transition: transform 0.2s ease; }

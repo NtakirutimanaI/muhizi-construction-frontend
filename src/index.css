@@ -2219,7 +2219,7 @@ img {
    ============================================= */
 .projects-v2 {
   --projects-accent: var(--accent);
-  background: #F5F7FA;
+  background: #31353A;
   padding: clamp(3rem, 8vw, 5.5rem) 0 clamp(2.5rem, 6vw, 4rem);
   overflow: visible;
 }
@@ -2432,19 +2432,19 @@ img {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.95rem;
-  color: var(--text-main);
+  color: #fff;
   text-decoration: none;
   padding: 0.7rem 1.5rem;
-  border: 2px solid var(--text-main);
+  border: 2px solid #fff;
   border-radius: 8px;
   background: transparent;
   transition: background 0.25s, border-color 0.25s, color 0.25s;
 }
 
 .projects-v2__view-all:hover {
-  background: var(--projects-accent);
-  border-color: var(--projects-accent);
-  color: #fff;
+  background: #fff;
+  border-color: #fff;
+  color: #1A1A1A;
 }
 
 @media (max-width: 700px) {
@@ -4118,7 +4118,7 @@ img {
    ============================================= */
 .team-v2 {
   --team-accent: var(--accent);
-  background: #fff;
+  background: #31353A;
   padding: clamp(3rem, 8vw, 5.5rem) 0 clamp(2.5rem, 6vw, 4rem);
   overflow: visible;
 }
@@ -5138,6 +5138,7 @@ img {
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
+  background: transparent;
 }
 
 .news-v2__card:last-child {
@@ -5199,10 +5200,10 @@ img {
 }
 
 .news-v2__desc {
-  font-size: 0.88rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  line-height: 1.65;
-  margin: 0 0 1.1rem;
+  line-height: 1.4;
+  margin: 0 0 0.5rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
