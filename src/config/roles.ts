@@ -64,6 +64,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/expenses', icon: 'FaArrowDown', label: 'Expenses', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/stock/in', icon: 'FaBoxes', label: 'Stock', roles: [ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/reports', icon: 'FaChartPie', label: 'Reports', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/money-requisition', icon: 'FaMoneyBillWave', label: 'Money Requisition', roles: [ROLES.FINANCE_DIRECTOR, ROLES.ADMIN] },
         ],
     },
     {
@@ -76,7 +77,6 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/admin-updates', icon: 'FaNewspaper', label: 'Updates', roles: [ROLES.ADMIN] },
             { path: '/admin/settings', icon: 'FaCog', label: 'Settings', roles: [ROLES.ADMIN] },
             { path: '/admin/insurance', icon: 'FaShieldAlt', label: 'Insurance', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
-            { path: '/admin/money-requisition', icon: 'FaMoneyBillWave', label: 'Money Requisition', roles: [ROLES.FINANCE_DIRECTOR, ROLES.ADMIN] },
         ],
     },
     {
