@@ -1,5 +1,5 @@
-import { LuBuilding2, LuRoute, LuDraftingCompass } from 'react-icons/lu';
-import { FaArrowRight } from 'react-icons/fa';
+import { LuConstruction, LuHardHat } from 'react-icons/lu';
+import { FaSatellite, FaClipboardCheck, FaArrowRight } from 'react-icons/fa';
 import Marquee from './Marquee';
 import type { Profile } from '../services/profileService';
 
@@ -7,18 +7,19 @@ interface AboutProps {
     profile: Profile;
 }
 
-const DESIGN_ICONS = [LuBuilding2, LuRoute, LuDraftingCompass];
+const DESIGN_ICONS = [LuConstruction, FaSatellite, FaClipboardCheck, LuHardHat];
 
 const DEFAULT_SERVICE_ITEMS = [
-    { title: 'Building Construction', description: 'We deliver high-quality residential and commercial building construction with precision and excellence.', images: ['https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'], tags: ['Construction'], color: '#16324F' },
-    { title: 'Road Infrastructure', description: 'Design and construction of roads, drainage systems, and large-scale infrastructure projects.', images: ['https://images.unsplash.com/photo-1513828583688-c52646db42da?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'], tags: ['Infrastructure'], color: '#16324F' },
-    { title: 'Architectural Design', description: 'Modern architectural design, 3D modeling, and sustainable building design for contemporary spaces.', images: ['https://images.unsplash.com/photo-1486718448742-163732cd1544?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'], tags: ['Design'], color: '#16324F' },
+    { title: 'Design & Build Civil Structures', description: 'Planning and construction of roads, bridges, and drainage from concept to handover.', images: ['https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'], tags: ['Construction'], color: '#16324F' },
+    { title: 'Geomatics Services', description: 'Drone surveying, mapping, and GIS data for precise project planning.', images: ['https://images.unsplash.com/photo-1513828583688-c52646db42da?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'], tags: ['Surveying'], color: '#16324F' },
+    { title: 'Building Permit Application', description: 'Fast-track your building permits through expert regulatory handling.', images: ['https://images.unsplash.com/photo-1486718448742-163732cd1544?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'], tags: ['Permits'], color: '#16324F' },
+    { title: 'Contracting & Site Supervision', description: 'Quality and safety-driven on-site project management.', images: [], tags: ['Supervision'], color: '#16324F' },
 ];
 
 const About: React.FC<AboutProps> = ({ profile }) => {
     const serviceItems = profile.pageContent?.services?.items || [];
-    const firstThree = serviceItems.length >= 3 ? serviceItems.slice(0, 3) : DEFAULT_SERVICE_ITEMS;
-    const mergedFirstThree = firstThree.map((item, idx) => ({
+    const firstFour = serviceItems.length >= 4 ? serviceItems.slice(0, 4) : DEFAULT_SERVICE_ITEMS;
+    const mergedFirstFour = firstFour.map((item, idx) => ({
         ...item,
         images: item.images?.length ? item.images : (DEFAULT_SERVICE_ITEMS[idx]?.images || []),
     }));
@@ -26,73 +27,81 @@ const About: React.FC<AboutProps> = ({ profile }) => {
     return (
         <section data-nav-theme="light" className="section section-indicator" id="about" style={{
             paddingBottom: '5px',
-            background: '#ffffff',
+            background: '#f5f5f5',
         }}>
+            <style>{`
+                .about-card:hover { background: #000 !important; }
+                .about-card:hover .about-card-icon { border-color: rgba(255,255,255,0.2) !important; background: transparent !important; }
+                .about-card:hover .about-card-icon svg { color: #fff !important; }
+                .about-card:hover .about-card-title { color: #fff !important; }
+                .about-card:hover .about-card-divider { background: rgba(255,255,255,0.2) !important; }
+                .about-card:hover .about-card-desc { color: #fff !important; }
+                .services-title-animate {
+                    position: relative;
+                    display: inline-block;
+                    padding-bottom: 6px;
+                    animation: servicesTitlePulse 3s ease-in-out infinite;
+                }
+                .services-title-animate::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 0;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 60px;
+                    height: 3px;
+                    background: #B27340;
+                    border-radius: 2px;
+                }
+                @keyframes servicesTitlePulse {
+                    0% { transform: translateY(0) scale(1); opacity: 1; }
+                    50% { transform: translateY(-6px) scale(1.03); opacity: 0.85; }
+                    100% { transform: translateY(0) scale(1); opacity: 1; }
+                }
+            `}</style>
             <div className="container">
                 {/* Highlighted Text + Design Cards Row */}
-                <div style={{ width: '100vw', margin: '3rem calc(-50vw + 50%) 0', padding: '3rem 3.5rem 4rem', background: '#ffffff' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '280px repeat(3, 1fr)', gap: '1.75rem', maxWidth: '1400px', margin: '0 auto' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <p style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--accent, #D97706)', fontWeight: 700, fontSize: '0.78rem', letterSpacing: '0.15em', textTransform: 'uppercase', margin: '0 0 1rem' }}>
-                                <span style={{ width: '34px', height: '0', borderTop: '2px dashed var(--accent, #D97706)', display: 'inline-block' }} />
-                                What We Offer
-                            </p>
-                            <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: 'clamp(1.9rem, 4vw, 2.6rem)', fontWeight: 800, lineHeight: 1.2, margin: '0 0 2rem' }}>
-                                Driven By Quality, Defined By Results
-                            </h2>
-                            <a href="#services" className="learn-more" style={{ background: 'var(--accent, #D97706)', borderColor: 'var(--accent, #D97706)', color: '#fff', display: 'inline-flex', alignItems: 'center', gap: '0.75rem', padding: '0 0 0 1.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: 500, letterSpacing: '0.025em', textDecoration: 'none', transition: 'all 0.2s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', width: 'fit-content' }}>
-                                VIEW ALL SERVICES
-                                <span className="learn-more-circle" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', flexShrink: 0 }}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(295deg)' }}>
-                                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                                        <polyline points="12 5 19 12 12 19"></polyline>
-                                    </svg>
-                                </span>
-                            </a>
-                            <a href="/vision-mission-values" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', marginTop: '1rem', padding: '0.7rem 1.4rem', borderRadius: 0, border: '2px solid var(--border-color)', color: 'var(--text-main)', fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none', transition: 'all 0.3s ease', width: 'fit-content' }}>
-                                More About Us <FaArrowRight />
-                            </a>
-                        </div>
-                        {mergedFirstThree.map((item, idx) => {
+                <div style={{ width: '100vw', margin: '2rem calc(-50vw + 50%) 0', padding: '0.5rem 3.5rem 3rem', background: '#f5f5f5' }}>
+                    <div style={{ textAlign: 'left', marginBottom: '1.5rem', maxWidth: '1400px', margin: '0 auto 1.5rem', paddingLeft: '150px' }}>
+                        <h2 style={{ fontFamily: 'Poppins', fontSize: '36px', fontWeight: 700, color: '#1A1A1A', margin: 0 }}>
+                            <span className="services-title-animate">Our Services</span>
+                        </h2>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 230px)', gap: '1.25rem', maxWidth: '1400px', margin: '0 auto', justifyContent: 'center' }}>
+                        {mergedFirstFour.map((item, idx) => {
                             const Icon = DESIGN_ICONS[idx % DESIGN_ICONS.length];
-                            const imgSrc = item.images?.[0] || 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
                             return (
-                                <div key={idx} style={{ borderRadius: '0', overflow: 'hidden', background: '#fff', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 4px 20px rgba(15,18,34,0.07)' }}>
-                                    <div style={{ position: 'relative' }}>
-                                        <img
-                                            src={imgSrc}
-                                            alt={item.title}
-                                            style={{ width: '100%', height: '210px', objectFit: 'cover', display: 'block' }}
-                                            onError={e => {
-                                                const t = e.target as HTMLImageElement;
-                                                t.style.display = 'none';
-                                                const parent = t.parentElement!;
-                                                parent.style.background = '#D97706';
-                                                parent.style.minHeight = '210px';
-                                                const fallbackTxt = document.createElement('div');
-                                                fallbackTxt.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:#fff;';
-                                                fallbackTxt.textContent = item.title.charAt(0);
-                                                parent.style.position = 'relative';
-                                                parent.appendChild(fallbackTxt);
-                                            }}
-                                        />
-                                        <div style={{ position: 'absolute', bottom: '15px', right: '15px', width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
-                                            <span style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 700, transform: 'rotate(290deg)', display: 'inline-block' }}>&rarr;</span>
-                                        </div>
+                                <div key={idx} className="about-card" style={{ borderRadius: '8px', background: '#fff', border: '1px solid rgba(15,18,34,0.06)', boxShadow: '0 2px 12px rgba(15,18,34,0.06)', padding: '0.9rem 1.1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', transition: 'background 0.3s ease, border-color 0.3s ease' }}>
+                                    <div className="about-card-icon" style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#ffffff', border: '1px solid rgba(15,18,34,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.4rem', transition: 'border-color 0.3s ease, background 0.3s ease' }}>
+                                        <Icon style={{ color: '#111827', fontSize: '0.95rem' }} />
                                     </div>
-                                    <div style={{ padding: '1.5rem 1.6rem 1.7rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.1rem' }}>
-                                            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#FBE8D3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                                <Icon style={{ color: 'var(--accent, #D97706)', fontSize: '1.2rem' }} />
-                                            </div>
-                                            <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-main)', fontSize: '1.1rem', fontWeight: 700, margin: 0, lineHeight: 1.3 }}>{item.title}</h3>
-                                        </div>
-                                        <div style={{ height: '1px', background: 'var(--border-color)', margin: '0 0 1rem' }} />
-                                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.65, margin: 0 }}>{item.description}</p>
-                                    </div>
+                                    <h3 className="about-card-title" style={{ fontFamily: 'Poppins', color: '#1A1A1A', fontSize: '15px', fontWeight: 600, fontStyle: 'normal', margin: '0 0 0.3rem', lineHeight: 1.3, transition: 'color 0.3s ease' }}>{item.title}</h3>
+                                    <div className="about-card-divider" style={{ height: '1px', background: 'var(--border-color)', margin: '0 0 0.4rem', width: '100%', transition: 'background 0.3s ease' }} />
+                                    <p className="about-card-desc" style={{ fontFamily: 'Poppins', color: '#1A1A1A', fontSize: '13px', fontWeight: 400, fontStyle: 'normal', lineHeight: 1.5, margin: 0, transition: 'color 0.3s ease', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{item.description}</p>
                                 </div>
                             );
                         })}
+                    </div>
+                    <div style={{ maxWidth: '1400px', margin: '1.25rem auto 0', marginTop: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ paddingLeft: '135px' }}>
+                            <a href="/vision-mission-values" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1.4rem', borderRadius: 5, border: '2px solid var(--border-color)', color: 'var(--text-main)', fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none', transition: 'all 0.3s ease' }}>
+                                More About Us <FaArrowRight />
+                            </a>
+                        </div>
+                        <div style={{ display: 'flex', gap: '3rem', paddingRight: '135px' }}>
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>6+</p>
+                                <p style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: 400, color: '#666', margin: '4px 0 0' }}>Years of Experience</p>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>200+</p>
+                                <p style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: 400, color: '#666', margin: '4px 0 0' }}>Projects Completed</p>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>11+</p>
+                                <p style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: 400, color: '#666', margin: '4px 0 0' }}>Team Members</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

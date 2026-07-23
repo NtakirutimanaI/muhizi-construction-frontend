@@ -82,7 +82,7 @@ const Employees = () => {
     // Matches the backend RolesGuard's effective roles (including the Finance Director →
     // Site Manager alias) — only these roles can actually write, so only these see the
     // manage affordances. Admin's registry view is deliberately read-only.
-    const canManage = role === 'site_manager' || role === 'site_engineer' || role === 'finance_director';
+    const canManage = role === 'storekeeper' || role === 'site_engineer' || role === 'finance_director';
     // Contract terms are Finance Director's domain (backend: @Roles(FINANCE_DIRECTOR) on
     // write). Admin sees them as a read-only report on the employee's profile.
     const canSeeContracts = role === 'admin' || role === 'finance_director';

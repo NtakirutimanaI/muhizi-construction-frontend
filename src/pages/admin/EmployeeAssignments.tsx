@@ -44,7 +44,7 @@ const EmployeeAssignments = () => {
         return sites.filter(s => s.projectId === form.projectId);
     }, [sites, form.projectId]);
 
-    const isSiteManager = user?.role === 'site_manager' || user?.role === 'manager';
+    const isSiteManager = user?.role === 'storekeeper';
 
     const fetch = async () => {
         const cached = loadPageCache<{ data: EmployeeAssignment[]; employees: Employee[]; projects: Project[]; sites: Site[] }>('pg_employee_assignments');
@@ -96,7 +96,7 @@ const EmployeeAssignments = () => {
     }, [totalPages, page]);
 
     const roleColors: Record<string, string> = {
-        manager: '#8b5cf6', site_manager: '#f59e0b', worker: '#22c55e', supervisor: '#1B2042',
+        storekeeper: '#8b5cf6', worker: '#22c55e', supervisor: '#1B2042',
     };
 
     const openNew = () => { setEditing(null); setForm(emptyForm); setModalPos(null); setShowModal(true); };
@@ -321,9 +321,8 @@ const EmployeeAssignments = () => {
                                     <label className="form-label">Role</label>
                                     <select className="form-select" value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
                                         <option value="worker">Worker</option>
-                                        <option value="site_manager">Site Manager</option>
+                                        <option value="storekeeper">Storekeeper</option>
                                         <option value="supervisor">Supervisor</option>
-                                        <option value="manager">Manager</option>
                                     </select>
                                 </div>
                                 <div className="form-group">

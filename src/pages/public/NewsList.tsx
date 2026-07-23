@@ -2,15 +2,59 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { LuUserRound, LuMessageCircle, LuArrowRight, LuClock } from 'react-icons/lu';
 import { NEWS_POSTS } from '../../data/newsData';
+import { updatesService, type Update } from '../../services/updatesService';
 import type { Profile } from '../../services/profileService';
+
+interface UnifiedPost {
+  slug: string;
+  title: string;
+  summary: string;
+  image: string;
+  date: string;
+  author: string;
+  comments: number;
+  category: string;
+  readTime?: string;
+}
 
 const NewsList = () => {
   const outlet = useOutletContext<{ profile: Profile | null } | undefined>();
-  const posts = outlet?.profile?.pageContent?.news && outlet.profile.pageContent.news.length > 0 ? outlet.profile.pageContent.news : NEWS_POSTS;
+  const staticPosts = outlet?.profile?.pageContent?.news && outlet.profile.pageContent.news.length > 0 ? outlet.profile.pageContent.news : NEWS_POSTS;
+  const [updates, setUpdates] = useState<Update[]>([]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    updatesService.getPublished()
+      .then(data => setUpdates(Array.isArray(data) ? data : []))
+      .catch(() => {});
   }, []);
+
+  const updatePosts: UnifiedPost[] = updates.map(u => ({
+    slug: u.slug,
+    title: u.title,
+    summary: u.summary || u.content || '',
+    image: u.image || 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    date: u.publishedAt || u.createdAt,
+    author: u.author || 'Admin',
+    comments: u.comments || 0,
+    category: u.category || 'Update',
+    readTime: u.readTime,
+  }));
+
+  const posts: UnifiedPost[] = useMemo(() => {
+    const mapped = staticPosts.map((p: any) => ({
+      slug: p.slug,
+      title: p.title,
+      summary: p.summary,
+      image: p.image,
+      date: p.date,
+      author: p.author,
+      comments: p.comments,
+      category: p.category,
+      readTime: p.readTime,
+    }));
+    return [...updatePosts, ...mapped];
+  }, [updatePosts, staticPosts]);
 
   const categories = useMemo(
     () => ['All', ...Array.from(new Set(posts.map((p) => p.category)))],
@@ -48,7 +92,7 @@ const NewsList = () => {
         .news-list-filter-btn:hover { border-color: var(--accent); color: var(--accent); }
         .news-list-filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-        .news-featured { display: grid; grid-template-columns: 1.1fr 1fr; gap: 2.5rem; align-items: center; background: #fff; border-radius: 0; overflow: hidden; box-shadow: 0 20px 45px rgba(15,18,34,0.08); margin-bottom: 3.5rem; }
+        .news-featured { display: grid; grid-template-columns: 1.1fr 1fr; gap: 2.5rem; align-items: center; background: transparent; border-radius: 0; overflow: hidden; box-shadow: none; margin-bottom: 3.5rem; }
         .news-featured-image-wrap { position: relative; height: 100%; min-height: 340px; }
         .news-featured-image-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .news-featured-badge { position: absolute; top: 1.25rem; left: 1.25rem; background: var(--accent); color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.4rem 0.85rem; border-radius: 6px; }
@@ -66,8 +110,8 @@ const NewsList = () => {
         .news-read-more-circle { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #16324F; color: #fff; font-size: 1.05rem; flex-shrink: 0; }
 
         .news-list-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.75rem; }
-        .news-list-card { background: #fff; border-radius: 0; overflow: hidden; box-shadow: 0 10px 30px rgba(15,18,34,0.06); display: flex; flex-direction: column; transition: transform 0.25s ease, box-shadow 0.25s ease; }
-        .news-list-card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(15,18,34,0.12); }
+        .news-list-card { background: transparent; border-radius: 0; overflow: hidden; box-shadow: none; display: flex; flex-direction: column; transition: transform 0.25s ease; }
+        .news-list-card:hover { transform: translateY(-4px); box-shadow: none; }
         .news-list-card-image-wrap { position: relative; display: block; height: 190px; }
         .news-list-card-image-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .news-list-card-date { position: absolute; bottom: 10px; right: 10px; background: #16324F; color: #fff; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.35rem 0.65rem; border-radius: 6px; }
@@ -76,7 +120,7 @@ const NewsList = () => {
         .news-list-card-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; line-height: 1.4; color: #111827; margin: 0 0 0.6rem; }
         .news-list-card-title a { color: inherit; text-decoration: none; }
         .news-list-card-title a:hover { color: var(--accent); }
-        .news-list-card-desc { font-size: 0.87rem; color: #64748B; line-height: 1.65; margin: 0 0 1.1rem; }
+        .news-list-card-desc { font-size: 0.75rem; color: #64748B; line-height: 1.4; margin: 0 0 0.5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .news-list-card-divider { height: 1px; background: #EEF0F4; margin: 0 0 1rem; margin-top: auto; }
         .news-list-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-size: 0.76rem; color: #64748B; }
         .news-list-card-footer span { display: inline-flex; align-items: center; gap: 0.4rem; }

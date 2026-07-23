@@ -34,7 +34,7 @@ interface UserData {
     updatedAt?: string;
 }
 
-const ROLES = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'site_manager', 'manager', 'employee', 'partner'];
+const ROLES = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper', 'employee', 'partner'];
 const PAGE_SIZES = [5, 10, 15, 20];
 
 const Users = () => {
@@ -317,7 +317,7 @@ const Users = () => {
 
     const roleColors: Record<string, string> = {
         admin: '#ef4444', managing_director: '#1B2042', finance_director: '#f59e0b', site_engineer: '#22c55e', engineering_studio: '#3b82f6',
-        site_manager: '#f59e0b', manager: '#8b5cf6', employee: '#6b7280', partner: '#1a8a6a',
+        storekeeper: '#8b5cf6', employee: '#6b7280', partner: '#1a8a6a',
     };
 
     const modalTitle = showModal === 'add' ? 'Add User' : showModal === 'edit' ? 'Edit User' : 'User Details';

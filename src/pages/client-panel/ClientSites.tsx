@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaSpinner, FaTimes, FaImage, FaVideo, FaHardHat, FaMapMarkerAlt, FaCheckCircle, FaClock, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaTimes, FaImage, FaVideo, FaHardHat, FaMapMarkerAlt, FaCheckCircle, FaClock, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { clientPortalService } from '../../services/clientPortalService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
@@ -13,7 +13,6 @@ interface EvidenceWithSite extends ProjectEvidence {
 const ClientSites = () => {
   const [sites, setSites] = useState<Site[]>([]);
   const [allEvidence, setAllEvidence] = useState<EvidenceWithSite[]>([]);
-  const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [activeSite, setActiveSite] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -28,7 +27,7 @@ const ClientSites = () => {
     clientPortalService.getMyProjects()
       .then(async (projectsRes) => {
         const projects = (projectsRes.data || []) as Project[];
-        const sitesData = projects.flatMap((p) => (p as any).sites || []) as Site[];
+        const sitesData = projects.flatMap(p => (p.sites || [])) as Site[];
         const siteMap = new Map(sitesData.map(s => [s.id, s.name]));
 
         const evidenceResults = await Promise.all(
@@ -41,8 +40,7 @@ const ClientSites = () => {
         setSites(sitesData);
         savePageCache('pg_client_sites', { sites: sitesData, allEvidence: evData });
       })
-      .catch(() => { setAllEvidence([]); setSites([]); })
-      .finally(() => setLoading(false));
+      .catch(() => { setAllEvidence([]); setSites([]); });
   }, []);
 
   const active = activeSite

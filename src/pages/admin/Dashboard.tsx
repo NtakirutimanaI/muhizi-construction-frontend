@@ -53,7 +53,7 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const role = user?.role || '';
-    const isSiteManager = role === 'site_manager';
+    const isStorekeeper = role === 'storekeeper';
     const isAdmin = role === 'admin';
     const isExecutive = EXECUTIVE_ROLES.includes(role);
 
@@ -119,7 +119,7 @@ const AdminDashboard = () => {
                 );
             }
 
-            if (isSiteManager) {
+            if (isStorekeeper) {
                 dataPromises.push(
                     assignmentService.getMyTeam().then(async res => {
                         const assignments = res.data || [];
@@ -155,8 +155,8 @@ const AdminDashboard = () => {
                     hrService.getAttendanceStats().then(d => { setAttendanceToday(d.data?.present ?? 0); cacheData.attendanceToday = d.data?.present ?? 0; }).catch(e => console.error(e)),
                 );
             }
-            // Only Site Manager and Manager have Messages in their sidebar in this branch.
-            if (isSiteManager || role === 'manager') {
+            // Only Storekeeper and Manager have Messages in their sidebar in this branch.
+            if (isStorekeeper || role === 'manager') {
                 dataPromises.push(
                     profileService.getContactMessages().then(d => {
                         const stats = { total: d.length, unread: d.filter(m => !m.status || m.status === 'new' || m.status === 'unread').length };
@@ -171,7 +171,7 @@ const AdminDashboard = () => {
             savePageCache(role, cacheData);
         };
         fetchFresh();
-    }, [role, isSiteManager, isAdmin, isExecutive]);
+    }, [role, isStorekeeper, isAdmin, isExecutive]);
 
     // Every set below is built strictly from links that actually exist in that role's own
     // sidebar (see config/roles.ts SIDEBAR_SECTIONS) — a role should never get a shortcut to
@@ -179,7 +179,7 @@ const AdminDashboard = () => {
     const sitesWithMedia = sites.filter(s => (s.evidence?.length ?? 0) > 0).length;
     let quickActions: { to: string; icon: React.ReactNode; bg: string; label: string; sub: string }[];
 
-    if (isSiteManager) {
+    if (isStorekeeper) {
         quickActions = [
             { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} my sites` },
             { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} my sites with media` },
@@ -248,7 +248,7 @@ const AdminDashboard = () => {
 
     let summaryCards: Card[];
 
-    if (isSiteManager) {
+    if (isStorekeeper) {
         summaryCards = [
             { label: 'My Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
             { label: 'My Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
@@ -311,7 +311,7 @@ const AdminDashboard = () => {
             { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
             { label: 'Employees', value: employees.length, sub: `${employees.filter(e => e.status === 'active').length} active`, icon: <FaUserTie />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
         ];
-        if (role === 'manager') {
+        if (role === 'storekeeper') {
             summaryCards.push({ label: 'Attendance', value: attendanceToday, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' });
         }
     }

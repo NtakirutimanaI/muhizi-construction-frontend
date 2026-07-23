@@ -65,4 +65,9 @@ export const authService = {
         const response = await api.delete(`/auth/users/${id}`);
         return response.data;
     },
+
+    createUser: async (data: any) => {
+        const response = await api.post('/auth/users', data);
+        return response.data;
+    },
 };
