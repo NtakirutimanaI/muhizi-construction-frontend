@@ -1,6 +1,7 @@
 export const ROLES = {
     ADMIN: 'admin',
     STOREKEEPER: 'storekeeper',
+    MANAGER: 'manager',
     EMPLOYEE: 'employee',
     CLIENT: 'client',
     PARTNER: 'partner',
@@ -36,8 +37,8 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         items: [
             { path: '/admin/sites', icon: 'FaProjectDiagram', label: 'Sites', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests & Approvals', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER] },
-            { path: '/admin/site-activities', icon: 'FaClipboardList', label: 'Site Activities', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.SITE_ENGINEER] },
-            { path: '/admin/project-evidence', icon: 'FaCamera', label: 'Project Evidence', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.SITE_MANAGER, ROLES.SITE_ENGINEER, ROLES.CLIENT] },
+            { path: '/admin/site-activities', icon: 'FaClipboardList', label: 'Site Activities', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.SITE_ENGINEER] },
+            { path: '/admin/project-evidence', icon: 'FaCamera', label: 'Project Evidence', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.STOREKEEPER, ROLES.SITE_ENGINEER, ROLES.CLIENT] },
             { path: '/admin/daily-tasks', icon: 'FaClipboardList', label: 'Daily Tasks', roles: [ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/engineering-submissions', icon: 'FaDraftingCompass', label: 'Engineering Submissions', roles: [ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/designs', icon: 'FaDraftingCompass', label: 'Designs', roles: [ROLES.ADMIN, ROLES.ENGINEERING_STUDIO] },
@@ -45,7 +46,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/daily-reports', icon: 'FaClipboardCheck', label: 'Daily Reports', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.MANAGER] },
             // Site safety/operating rules apply to everyone on the platform, not just operations roles.
-            { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.EMPLOYEE, ROLES.CLIENT, ROLES.PARTNER] },
+            { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.EMPLOYEE, ROLES.CLIENT, ROLES.PARTNER] },
         ],
     },
     {
@@ -77,6 +78,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/settings', icon: 'FaCog', label: 'Settings', roles: [ROLES.ADMIN] },
             { path: '/admin/insurance', icon: 'FaShieldAlt', label: 'Insurance', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/money-requisition', icon: 'FaMoneyBillWave', label: 'Money Requisition', roles: [ROLES.FINANCE_DIRECTOR, ROLES.ADMIN] },
+            { path: '/admin/client-reports', icon: 'FaFileAlt', label: 'Client Reports', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR] },
         ],
     },
     {
@@ -91,6 +93,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         items: [
             { path: '/admin/profile', icon: 'FaUser', label: 'My Profile', roles: [ROLES.CLIENT] },
             { path: '/admin/sites', icon: 'FaImage', label: 'Sites', roles: [ROLES.CLIENT] },
+            { path: '/admin/progress-reports', icon: 'FaFileAlt', label: 'Progress Reports', roles: [ROLES.CLIENT] },
             { path: '/admin/updates', icon: 'FaClipboardList', label: 'Updates', roles: [ROLES.CLIENT] },
         ],
     },
@@ -138,6 +141,7 @@ export function getRolePath(role: string): string {
 
 export function canAccess(path: string, role: string): boolean {
     const normalizedPath = path.replace(/^\/(admin|storekeeper|employee|partner|client-panel|managingdirector|directorfinance|siteengineer|engineeringstudio)/, '/admin').split('?')[0];
+    let matched = false;
     for (const section of SIDEBAR_SECTIONS) {
         for (const item of section.items) {
             const itemPath = item.path.split('?')[0];
@@ -145,9 +149,14 @@ export function canAccess(path: string, role: string): boolean {
             // (e.g. /admin/messages/inbox falls under the /admin/messages sidebar entry)
             // so hiding a nav item also blocks direct navigation to its sub-routes.
             if (itemPath === normalizedPath || normalizedPath.startsWith(`${itemPath}/`)) {
-                return item.roles.includes(role as Role);
+                matched = true;
+                // A path can appear in more than one section with a different role list
+                // (e.g. Sites is both an Operations page and its own Client-only entry) —
+                // grant access if ANY matching entry includes this role, not just the first
+                // one found, otherwise an earlier entry silently shadows a later one.
+                if (item.roles.includes(role as Role)) return true;
             }
         }
     }
-    return true;
+    return !matched;
 }

@@ -12,6 +12,7 @@ export interface ClientReport {
     project?: Project;
     createdById: string;
     createdBy?: { id: string; firstName?: string; lastName?: string };
+    media?: { url: string; type: 'image' | 'video' }[];
     createdAt: string;
     updatedAt: string;
 }
