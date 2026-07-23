@@ -38,7 +38,10 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests & Approvals', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER] },
             { path: '/admin/site-activities', icon: 'FaClipboardList', label: 'Site Activities', roles: [ROLES.ADMIN, ROLES.SITE_MANAGER, ROLES.SITE_ENGINEER] },
             { path: '/admin/project-evidence', icon: 'FaCamera', label: 'Project Evidence', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.SITE_MANAGER, ROLES.SITE_ENGINEER, ROLES.CLIENT] },
-            { path: '/admin/engineering-submissions', icon: 'FaDraftingCompass', label: 'Engineering Submissions', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/daily-tasks', icon: 'FaClipboardList', label: 'Daily Tasks', roles: [ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/engineering-submissions', icon: 'FaDraftingCompass', label: 'Engineering Submissions', roles: [ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/designs', icon: 'FaDraftingCompass', label: 'Designs', roles: [ROLES.ADMIN, ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/engineering-studio', icon: 'FaDraftingCompass', label: 'Engineering Studio', roles: [ROLES.ADMIN] },
             { path: '/admin/daily-reports', icon: 'FaClipboardCheck', label: 'Daily Reports', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.MANAGER] },
             // Site safety/operating rules apply to everyone on the platform, not just operations roles.

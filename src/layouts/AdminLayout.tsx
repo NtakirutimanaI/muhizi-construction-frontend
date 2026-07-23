@@ -9,7 +9,7 @@ import {
     FaMoneyBillWave, FaArrowUp, FaArrowDown, FaChartPie, FaHistory, FaBrain,
     FaInbox, FaPaperPlane, FaArchive, FaLock, FaHardHat, FaTruck, FaCamera, FaGavel,
     FaCheckDouble, FaFileAlt, FaImage, FaHome, FaInfoCircle, FaTag,
-    FaBoxes, FaSpinner, FaClock, FaCertificate, FaNewspaper, FaFileContract, FaShieldAlt
+    FaBoxes, FaSpinner, FaClock, FaCertificate, FaNewspaper, FaFileContract, FaShieldAlt, FaUserPlus, FaShareSquare,
 } from 'react-icons/fa';
 import { useNotification } from '../context/NotificationContext';
 import { profileService, type Profile, type ContactMessage } from '../services/profileService';
@@ -80,10 +80,11 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
     const isOnCms = location.pathname.startsWith(`${basePath}/resources`);
     const isOnStock = location.pathname.startsWith(`${basePath}/stock`);
     const isOnAttendance = location.pathname.startsWith(`${basePath}/attendance`);
+    const isOnEngineeringStudio = location.pathname.startsWith(`${basePath}/engineering-studio`);
     const isOnProjectDetail = new RegExp(`^${basePath}/(projects|sites)/[^/]+$`).test(location.pathname);
     const currentProjectId = isOnProjectDetail ? location.pathname.split('/').pop() : null;
     const isOnProjectsList = location.pathname === `${basePath}/projects` || location.pathname === `${basePath}/sites`;
-    const hasSubsidebar = isOnMessages || isOnCms || isOnStock || isOnAttendance || isOnProjectsList || isOnProjectDetail;
+    const hasSubsidebar = isOnMessages || isOnCms || isOnStock || isOnAttendance || isOnProjectsList || isOnProjectDetail || isOnEngineeringStudio;
     const notifRef = useRef<HTMLDivElement>(null);
     const addMenuRef = useRef<HTMLDivElement>(null);
     const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -276,6 +277,7 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
         FaHome: <FaHome />, FaInfoCircle: <FaInfoCircle />, FaGlobe: <FaGlobe />,
         FaFileContract: <FaFileContract />, FaShieldAlt: <FaShieldAlt />,
         FaNewspaper: <FaNewspaper />,
+        FaUserPlus: <FaUserPlus />,
     };
 
     const sections = SIDEBAR_SECTIONS
@@ -743,7 +745,6 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
                                         { path: `${basePath}/messages/sent`, icon: <FaPaperPlane />, label: 'Sent' },
                                         { path: `${basePath}/messages/trash`, icon: <FaArchive />, label: 'Trash' },
                                     ],
-
                                 };
                                 const hasSub = subItems[item.label];
                                 return (
@@ -1003,6 +1004,33 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
                         style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.5rem', fontSize: '0.78rem', color: 'var(--primary)', textDecoration: 'none', borderRadius: 6, cursor: 'pointer' }}>
                         <FaPlus size={10} /> Add Site
                     </Link>}
+                </aside>
+            )}
+
+            {/* Engineering Studio Sub-Sidebar */}
+            {isOnEngineeringStudio && (
+                <aside className="admin-subsidebar">
+                    <div style={{ padding: '1.2rem 1rem 0.6rem', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
+                        Engineering Studio
+                    </div>
+                    <Link to={`${basePath}/engineering-studio/submissions`}
+                        className={`admin-nav-item ${location.pathname.startsWith(`${basePath}/engineering-studio/submissions`) ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaDraftingCompass /> <span>Manage Submissions</span>
+                    </Link>
+                    <Link to={`${basePath}/engineering-studio/designs`}
+                        className={`admin-nav-item ${location.pathname.startsWith(`${basePath}/engineering-studio/designs`) ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaClipboardList /> <span>Designs</span>
+                    </Link>
+                    <Link to={`${basePath}/engineering-studio/share`}
+                        className={`admin-nav-item ${location.pathname.startsWith(`${basePath}/engineering-studio/share`) ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem' }}>
+                        <FaShareSquare /> <span>Share</span>
+                    </Link>
                 </aside>
             )}
 

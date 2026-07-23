@@ -1,23 +1,30 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDraftingCompass, FaCheckCircle, FaRegClock, FaRegTimesCircle, FaFileAlt, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDraftingCompass, FaFileAlt, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaClipboardList, FaArrowLeft } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import type { Design, Project } from '../../services/constructionService';
+import { engineeringSubmissionsService } from '../../services/engineeringSubmissionsService';
+import type { EngineeringSubmission } from '../../services/engineeringSubmissionsService';
 import { uploadService } from '../../services/uploadService';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
 interface FormData {
-    title: string; description: string; type: string; status: string;
+    title: string; description: string; type: string; status: string; source: string;
     fileUrl: string; thumbnailUrl: string; projectId: string;
 }
 
-const emptyForm: FormData = { title: '', description: '', type: 'architectural', status: 'draft', fileUrl: '', thumbnailUrl: '', projectId: '' };
+const emptyForm: FormData = { title: '', description: '', type: 'architectural', status: 'draft', source: 'external', fileUrl: '', thumbnailUrl: '', projectId: '' };
 const PAGE_SIZES = [5, 10, 15, 20];
 
 const Designs = () => {
+    const { user } = useAuth();
     const { showToast } = useToast();
+    const navigate = useNavigate();
+    const isSubmitter = user?.role === 'engineering_studio' || user?.role === 'managing_director';
     const [data, setData] = useState<Design[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(false);
@@ -36,6 +43,11 @@ const Designs = () => {
     const [uploadingThumb, setUploadingThumb] = useState(false);
     const [thumbUploadProgress, setThumbUploadProgress] = useState(0);
     const [saving, setSaving] = useState(false);
+    const [sourceFilter, setSourceFilter] = useState<'all' | 'submission' | 'external'>('all');
+
+    const [showSubmissions, setShowSubmissions] = useState(false);
+    const [mySubmissions, setMySubmissions] = useState<EngineeringSubmission[]>([]);
+    const [loadingSubs, setLoadingSubs] = useState(false);
 
     const fetch = async () => {
         const cached = loadPageCache<{ designs: Design[]; projects: Project[] }>('pg_designs');
@@ -57,17 +69,57 @@ const Designs = () => {
 
     useEffect(() => { fetch(); }, []);
 
+    const loadSubmissions = async () => {
+        setLoadingSubs(true);
+        try {
+            const res = await engineeringSubmissionsService.getAll();
+            setMySubmissions((res.data || []).filter((s: EngineeringSubmission) => s.status === 'approved' || s.status === 'submitted'));
+        } catch {
+            showToast('Failed to load submissions', 'error');
+        } finally {
+            setLoadingSubs(false);
+        }
+    };
+
+    const saveSubmissionAsDesign = async (sub: EngineeringSubmission) => {
+        const exists = data.some(d => d.source === 'submission' && d.title === sub.title);
+        if (exists) {
+            showToast('This submission is already saved in Designs', 'error');
+            return;
+        }
+        try {
+            const firstDoc = sub.documentUrls?.[0];
+            await constructionService.createDesign({
+                title: sub.title,
+                description: sub.description,
+                type: 'architectural',
+                status: 'draft',
+                source: 'submission',
+                fileUrl: firstDoc?.url || '',
+                thumbnailUrl: '',
+                savedBy: user?.id || '',
+            });
+            showToast('Submission saved to Designs', 'success');
+            setShowSubmissions(false);
+            fetch();
+        } catch (e: any) {
+            const msg = e?.response?.data?.message || 'Failed to save submission';
+            showToast(Array.isArray(msg) ? msg.join('. ') : msg, 'error');
+        }
+    };
+
     const getProjectName = (id: string) => projects.find(p => p.id === id)?.name || '—';
 
     const filtered = useMemo(() => {
         const q = search.toLowerCase().trim();
         return data.filter(d => {
+            if (sourceFilter !== 'all' && d.source !== sourceFilter) return false;
             if (q && !d.title.toLowerCase().includes(q) && !d.type.toLowerCase().includes(q) && !(d.project?.name || getProjectName(d.projectId || '') || '').toLowerCase().includes(q)) return false;
             if (fromDate && new Date(d.createdAt) < new Date(fromDate)) return false;
             if (toDate) { const end = new Date(toDate); end.setHours(23, 59, 59, 999); if (new Date(d.createdAt) > end) return false; }
             return true;
         });
-    }, [data, search, fromDate, toDate]);
+    }, [data, search, fromDate, toDate, sourceFilter]);
 
     const totalPages = pageSize === 0 ? 1 : Math.ceil(filtered.length / pageSize);
     const paginated = useMemo(() => {
@@ -83,6 +135,7 @@ const Designs = () => {
     const tableData = useMemo(() => filtered.map((d, i) => [
         String(i + 1),
         d.title,
+        d.source === 'submission' ? 'Submission' : 'External',
         d.type,
         d.status,
         d.project?.name || getProjectName(d.projectId || '') || '—',
@@ -120,7 +173,7 @@ const Designs = () => {
         doc.text(`Generated: ${today}${fromDate && toDate ? ` | Period: ${fromDate} to ${toDate}` : ''}`, pageW - 14, titleY, { align: 'right' });
 
         autoTable(doc, {
-            head: [['#', 'Title', 'Type', 'Status', 'Project', 'Has File', 'Created']],
+            head: [['#', 'Title', 'Source', 'Type', 'Status', 'Project', 'Has File', 'Created']],
             body: tableData,
             startY: 46,
             styles: { fontSize: 8, textColor: '#333' },
@@ -145,7 +198,7 @@ const Designs = () => {
         const brown = '#1B2042';
         const today = new Date().toLocaleDateString();
         const period = fromDate && toDate ? `Period: ${fromDate} to ${toDate}` : '';
-        const headers = ['#', 'Title', 'Type', 'Status', 'Project', 'Has File', 'Created'];
+        const headers = ['#', 'Title', 'Source', 'Type', 'Status', 'Project', 'Has File', 'Created'];
         const rows = tableData.map(r => `<tr>${r.map(c => `<td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${c}</td>`).join('')}</tr>`).join('');
 
         const html = `
@@ -201,17 +254,14 @@ const Designs = () => {
     }, [onMouseMove, onMouseUp]);
 
     const stats = useMemo(() => ({
-        total: data.length,
-        approved: data.filter(d => d.status === 'approved').length,
-        draft: data.filter(d => d.status === 'draft').length,
-        rejected: data.filter(d => d.status === 'rejected').length,
-        architectural: data.filter(d => d.type === 'architectural').length,
+        submission: data.filter(d => d.source === 'submission').length,
+        external: data.filter(d => d.source === 'external').length,
     }), [data]);
 
     const openNew = () => { setEditing(null); setForm(emptyForm); setModalPos(null); setShowModal(true); };
     const openEdit = (item: Design) => {
         setEditing(item);
-        setForm({ title: item.title, description: item.description || '', type: item.type, status: item.status, fileUrl: item.fileUrl || '', thumbnailUrl: item.thumbnailUrl || '', projectId: item.projectId || '' });
+        setForm({ title: item.title, description: item.description || '', type: item.type, status: item.status, source: item.source || 'external', fileUrl: item.fileUrl || '', thumbnailUrl: item.thumbnailUrl || '', projectId: item.projectId || '' });
         setModalPos(null);
         setShowModal(true);
     };
@@ -247,7 +297,7 @@ const Designs = () => {
                 await constructionService.updateDesign(editing.id, form);
                 showToast('Design updated successfully', 'success');
             } else {
-                await constructionService.createDesign(form);
+                await constructionService.createDesign({ ...form, savedBy: user?.id || '' });
                 showToast('Design created successfully', 'success');
             }
             setShowModal(false);
@@ -276,36 +326,71 @@ const Designs = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '0.5rem' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0, fontSize: '1.2rem' }}>
-                    <FaDraftingCompass style={{ color: 'var(--primary)' }} /> Designs
-                </h2>
-                <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.total}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total</div>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.75rem 0', fontSize: '1.2rem' }}>
+                <FaDraftingCompass style={{ color: 'var(--primary)' }} /> Designs
+            </h2>
+
+            <div className="es-summary-cards" style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                <div style={{
+                    flex: '1 1 200px', padding: '1.2rem 1rem', borderRadius: 12, background: 'var(--bg-white)',
+                    border: '2px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.75rem',
+                }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 10, background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FaClipboardList size={20} color="#6366f1" />
                     </div>
-                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.approved}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Approved</div>
+                    <div>
+                        <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>From Submission</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{stats.submission} design{stats.submission !== 1 ? 's' : ''}</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.draft}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Draft</div>
+                </div>
+                <div style={{
+                    flex: '1 1 200px', padding: '1.2rem 1rem', borderRadius: 12, background: 'var(--bg-white)',
+                    border: '2px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.75rem',
+                }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 10, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FaPlus size={20} color="#d97706" />
                     </div>
-                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.rejected}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Rejected</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.architectural}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Architect</div>
+                    <div>
+                        <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>External Upload</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{stats.external} design{stats.external !== 1 ? 's' : ''}</div>
                     </div>
                 </div>
             </div>
 
+            <div className="es-flex-between" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {(['all', 'submission', 'external'] as const).map(f => (
+                        <button
+                            key={f}
+                            onClick={() => { setSourceFilter(f); setPage(1); }}
+                            style={{
+                                padding: '0.3rem 0.85rem', borderRadius: 20, border: '1px solid var(--border-color)',
+                                background: sourceFilter === f ? 'var(--primary)' : 'transparent',
+                                color: sourceFilter === f ? '#fff' : 'var(--text-muted)',
+                                fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
+                            }}
+                        >
+                            {f === 'all' ? 'All' : f === 'submission' ? 'From Submission' : 'External Upload'}
+                        </button>
+                    ))}
+                </div>
+                <button
+                    onClick={() => navigate('/admin/engineering-studio')}
+                    title="Back to Engineering Studio"
+                    style={{
+                        padding: '0.35rem 0.6rem', borderRadius: 8, border: '1px solid var(--border-color)',
+                        background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4,
+                        color: 'var(--text-muted)', fontSize: '0.78rem', fontWeight: 600, transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-body)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                    <FaArrowLeft size={11} /> Back
+                </button>
+            </div>
+
             <div className="admin-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.35rem' }}>
+                <div className="design-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.35rem' }}>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>All Designs</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
                         <input type="text" className="form-input" placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 220 }} />
@@ -320,19 +405,31 @@ const Designs = () => {
                         <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 1rem', fontSize: '0.82rem' }}>
                             <FaPlus style={{ marginRight: 4 }} />Add Design
                         </button>
+                        {isSubmitter && (
+                            <button className="admin-btn" onClick={() => { loadSubmissions(); setShowSubmissions(true); }} style={{ background: 'var(--primary)', borderColor: 'var(--primary)', color: '#fff', borderRadius: 5, padding: '0.4rem 1rem', fontSize: '0.82rem' }}>
+                                <FaClipboardList style={{ marginRight: 4 }} />Save from Submission
+                            </button>
+                        )}
                     </div>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <th>Title</th><th>Type</th><th>Status</th><th>Project</th><th>File</th><th>Created</th><th>Actions</th>
+                                <th>Title</th><th>Source</th><th>Type</th><th>Status</th><th>Project</th><th>File</th><th>Created</th><th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {paginated.map(item => (
                                 <tr key={item.id}>
                                     <td><strong>{item.title}</strong></td>
+                                    <td>
+                                        <span style={{
+                                            display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.78rem', fontWeight: 600,
+                                            color: item.source === 'submission' ? '#6366f1' : '#d97706',
+                                            background: item.source === 'submission' ? '#eef2ff' : '#fef3c7',
+                                        }}>{item.source === 'submission' ? 'Submission' : 'External'}</span>
+                                    </td>
                                     <td>
                                         <span style={{
                                             display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
@@ -357,7 +454,7 @@ const Designs = () => {
                                 </tr>
                             ))}
                             {data.length === 0 && (
-                                <tr><td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                <tr><td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                                     <FaDraftingCompass size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
                                     <div>No designs found. Click "Add New" to create one.</div>
                                 </td></tr>
@@ -402,7 +499,7 @@ const Designs = () => {
                             <button onClick={() => !saving && setShowModal(false)}><FaTimesIcon /></button>
                         </div>
                         <div className="admin-modal-body">
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div className="es-modal-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
                                     <label className="form-label">Title</label>
                                     <input className="form-input" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="Design title" />
@@ -490,6 +587,56 @@ const Designs = () => {
                         <div className="admin-modal-footer">
                             <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)} disabled={saving}>Cancel</button>
                             <button className="admin-btn" onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* SAVE FROM SUBMISSION MODAL */}
+            {showSubmissions && (
+                <div className="admin-modal-overlay" onClick={() => setShowSubmissions(false)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 560, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+                        <div className="admin-modal-header">
+                            <h3><FaClipboardList style={{ marginRight: 8 }} />Save Submission to Designs</h3>
+                            <button onClick={() => setShowSubmissions(false)}><FaTimesIcon /></button>
+                        </div>
+                        <div className="admin-modal-body" style={{ overflowY: 'auto', flex: 1 }}>
+                            {loadingSubs ? (
+                                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Loading...</div>
+                            ) : mySubmissions.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                                    <FaDraftingCompass size={28} style={{ opacity: 0.2, marginBottom: 8 }} />
+                                    <div>No submissions available to save</div>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'grid', gap: '0.6rem' }}>
+                                    {mySubmissions.map(sub => {
+                                        const alreadySaved = data.some(d => d.source === 'submission' && d.title === sub.title);
+                                        return (
+                                            <div key={sub.id} style={{
+                                                padding: '0.7rem', borderRadius: 8, border: '1px solid var(--border-color)',
+                                                background: 'var(--bg-body)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem',
+                                                opacity: alreadySaved ? 0.55 : 1,
+                                            }}>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub.title}</div>
+                                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub.description}</div>
+                                                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 3 }}>
+                                                        {sub.documentUrls?.length || 0} document(s) — {new Date(sub.createdAt).toLocaleDateString()}
+                                                    </div>
+                                                </div>
+                                                {alreadySaved ? (
+                                                    <span style={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: 600, flexShrink: 0 }}>Saved</span>
+                                                ) : (
+                                                    <button onClick={() => saveSubmissionAsDesign(sub)} className="admin-btn" style={{ padding: '0.3rem 0.8rem', fontSize: '0.75rem', flexShrink: 0 }}>
+                                                        <FaPlus size={10} /> Save
+                                                    </button>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

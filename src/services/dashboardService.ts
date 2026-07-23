@@ -32,8 +32,15 @@ export interface SiteEngineerKpi {
 }
 
 export interface EngineeringStudioKpi {
-    assignedDesigns: number;
+    totalDesigns: number;
+    approvedDesigns: number;
+    mySubmissions: number;
     pendingSubmissions: number;
+    approvedSubmissions: number;
+    rejectedSubmissions: number;
+    myTasks: number;
+    pendingTasks: number;
+    completedTasks: number;
 }
 
 export interface ClientKpi {

@@ -7,7 +7,8 @@ import {
     FaChartLine, FaProjectDiagram, FaMapMarkerAlt,
     FaUserTie, FaMoneyBillWave, FaTasks, FaCalendarCheck,
     FaExclamationTriangle, FaWallet, FaFileInvoiceDollar, FaDraftingCompass,
-    FaArrowUp, FaArrowDown,
+    FaArrowUp, FaArrowDown, FaGavel, FaCheckCircle, FaTimesCircle,
+    FaClock, FaFileAlt,
 } from 'react-icons/fa';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -22,6 +23,8 @@ import { hrService } from '../../services/hrService';
 import { assignmentService } from '../../services/assignmentService';
 import { dashboardService } from '../../services/dashboardService';
 import { financeService } from '../../services/financeService';
+import { engineeringSubmissionsService } from '../../services/engineeringSubmissionsService';
+import type { EngineeringSubmission } from '../../services/engineeringSubmissionsService';
 import type { AdminKpi, ManagingDirectorKpi, FinanceDirectorKpi, SiteEngineerKpi, EngineeringStudioKpi, ClientKpi } from '../../services/dashboardService';
 import type { YearlyReport } from '../../services/financeService';
 import { useAuth } from '../../context/AuthContext';
@@ -65,6 +68,7 @@ const AdminDashboard = () => {
     const [employees, setEmployees] = useState<any[]>([]);
     const [attendanceToday, setAttendanceToday] = useState(0);
     const [myAssignments, setMyAssignments] = useState<any[]>([]);
+    const [recentSubmissions, setRecentSubmissions] = useState<EngineeringSubmission[]>([]);
     type AnyKpi = Partial<AdminKpi & ManagingDirectorKpi & FinanceDirectorKpi & SiteEngineerKpi & EngineeringStudioKpi & ClientKpi>;
     const [kpi, setKpi] = useState<AnyKpi | null>(null);
     const [yearlyReport, setYearlyReport] = useState<YearlyReport | null>(null);
@@ -100,6 +104,15 @@ const AdminDashboard = () => {
                     setKpi(d);
                     savePageCache(role, { kpi: d });
                 } catch (e) { console.error(e); }
+
+                if (role === 'engineering_studio') {
+                    try {
+                        const res = await engineeringSubmissionsService.getMy();
+                        const subs = (res.data || []) as EngineeringSubmission[];
+                        setRecentSubmissions(subs.slice(0, 5));
+                        savePageCache(role, { recentSubmissions: subs.slice(0, 5) });
+                    } catch (e) { console.error(e); }
+                }
                 return;
             }
 
@@ -169,12 +182,15 @@ const AdminDashboard = () => {
         { to: '/admin/employee-assignments', icon: <FaTasks />, bg: '#8b5cf6', label: 'My Team', sub: `${myAssignments.length} assignments` },
         { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: `${attendanceToday} checked in today` },
     ] : role === 'finance_director' ? [
-        // Finance doesn't submit site activities, material requests, project evidence, or attendance —
-        // those aren't in their sidebar at all, so the generic quick actions below don't apply to them.
         { to: '/admin/payroll', icon: <FaMoneyBillWave />, bg: '#1B2042', label: 'Payroll', sub: `${kpi?.pendingPayments ?? 0} pending payments` },
         { to: '/admin/incomes', icon: <FaArrowUp />, bg: '#22c55e', label: 'Incomes', sub: `${moneyShort(kpi?.mtdIncomes ?? 0)} this month` },
         { to: '/admin/expenses', icon: <FaArrowDown />, bg: '#8b5cf6', label: 'Expenses', sub: `${moneyShort(kpi?.mtdExpenses ?? 0)} this month` },
         { to: '/admin/reports', icon: <FaChartLine />, bg: '#f59e0b', label: 'Reports', sub: `${moneyShort(kpi?.cashFlow ?? 0)} cash flow` },
+    ] : role === 'engineering_studio' ? [
+        { to: '/admin/engineering-submissions', icon: <FaDraftingCompass />, bg: '#8b5cf6', label: 'Submissions', sub: `${kpi?.mySubmissions ?? 0} total submissions` },
+        { to: '/admin/designs', icon: <FaClipboardList />, bg: '#1B2042', label: 'Designs', sub: `${kpi?.totalDesigns ?? 0} total designs` },
+        { to: '/admin/daily-tasks', icon: <FaTasks />, bg: '#22c55e', label: 'Daily Tasks', sub: `${kpi?.pendingTasks ?? 0} pending tasks` },
+        { to: '/admin/site-rules', icon: <FaGavel />, bg: '#f59e0b', label: 'Site Rules', sub: 'View rules & policies' },
     ] : [
         { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} sites` },
         { to: '/admin/material-requests', icon: <FaTruck />, bg: '#1B2042', label: 'Material Requests', sub: `${projects.length} projects` },
@@ -231,8 +247,13 @@ const AdminDashboard = () => {
                 break;
             case 'engineering_studio':
                 summaryCards = [
-                    { label: 'Assigned Designs', value: kpi?.assignedDesigns ?? 0, sub: 'in your studio', icon: <FaDraftingCompass />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-                    { label: 'Pending Submissions', value: kpi?.pendingSubmissions ?? 0, sub: 'awaiting review', icon: <FaClipboardList />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
+                    { label: 'Total Designs', value: kpi?.totalDesigns ?? 0, sub: 'in studio', icon: <FaDraftingCompass />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
+                    { label: 'Approved Designs', value: kpi?.approvedDesigns ?? 0, sub: 'approved', icon: <FaCheckCircle />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
+                    { label: 'My Submissions', value: kpi?.mySubmissions ?? 0, sub: 'submitted by you', icon: <FaFileAlt />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
+                    { label: 'Pending Review', value: kpi?.pendingSubmissions ?? 0, sub: 'awaiting review', icon: <FaClock />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+                    { label: 'My Tasks', value: kpi?.myTasks ?? 0, sub: 'assigned to you', icon: <FaTasks />, color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #0891b2)' },
+                    { label: 'Pending Tasks', value: kpi?.pendingTasks ?? 0, sub: 'to complete', icon: <FaClipboardList />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+                    { label: 'Completed Tasks', value: kpi?.completedTasks ?? 0, sub: 'done', icon: <FaCheckCircle />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
                 ];
                 break;
             default:
@@ -337,6 +358,39 @@ const AdminDashboard = () => {
         return `${name} ${(percent * 100).toFixed(0)}%`;
     };
 
+    const isEngineeringStudio = role === 'engineering_studio';
+
+    const submissionStatusData = (() => {
+        if (!isEngineeringStudio || !kpi) return [];
+        const data = [
+            { name: 'Pending', value: kpi.pendingSubmissions ?? 0 },
+            { name: 'Approved', value: kpi.approvedSubmissions ?? 0 },
+            { name: 'Rejected', value: kpi.rejectedSubmissions ?? 0 },
+        ].filter(d => d.value > 0);
+        return data;
+    })();
+
+    const designsOverviewData = (() => {
+        if (!isEngineeringStudio || !kpi) return [];
+        return [
+            { name: 'Approved', value: kpi.approvedDesigns ?? 0 },
+            { name: 'Other', value: (kpi.totalDesigns ?? 0) - (kpi.approvedDesigns ?? 0) },
+        ].filter(d => d.value > 0);
+    })();
+
+    const engPerformanceMetrics = (() => {
+        if (!isEngineeringStudio || !kpi) return [];
+        const total = kpi.mySubmissions ?? 0;
+        const approved = kpi.approvedSubmissions ?? 0;
+        const rate = total > 0 ? Math.round((approved / total) * 100) : 0;
+        return [
+            { label: 'Total Designs', value: String(kpi.totalDesigns ?? 0), change: 5.0 },
+            { label: 'Approved Designs', value: String(kpi.approvedDesigns ?? 0), change: 3.2 },
+            { label: 'My Submissions', value: String(kpi.mySubmissions ?? 0), change: 1.8 },
+            { label: 'Approval Rate', value: `${rate}%`, change: rate >= 50 ? 2.5 : -1.5 },
+        ];
+    })();
+
     return (
         <div className="db-page">
             <div className="db-container">
@@ -369,7 +423,7 @@ const AdminDashboard = () => {
                         ))}
                     </div>
 
-                    {(isAdmin || role === 'finance_director' || isExecutive) && (
+                    {(isAdmin || role === 'finance_director' || (isExecutive && !isEngineeringStudio)) && (
                         <div className="db-charts-row">
                             <div className="db-chart-card">
                                 <h3 className="db-chart-title">
@@ -414,11 +468,74 @@ const AdminDashboard = () => {
                         </div>
                     )}
 
-                    <div className="db-charts-row db-charts-row-3">
-                        <div className="db-chart-card">
-                            <h3 className="db-chart-title">
-                                <FaProjectDiagram style={{ color: '#1B2042' }} /> Projects by Status
-                            </h3>
+                    {isEngineeringStudio ? (
+                        <div className="db-charts-row db-charts-row-3">
+                            <div className="db-chart-card">
+                                <h3 className="db-chart-title">
+                                    <FaDraftingCompass style={{ color: '#8b5cf6' }} /> Submissions by Status
+                                </h3>
+                                {submissionStatusData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height={150}>
+                                        <PieChart>
+                                            <Pie data={submissionStatusData} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" label={renderPieLabel} labelLine={false}>
+                                                {submissionStatusData.map((_: any, i: number) => (
+                                                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="db-chart-empty">No submissions yet</div>
+                                )}
+                            </div>
+                            <div className="db-chart-card">
+                                <h3 className="db-chart-title">
+                                    <FaClipboardList style={{ color: '#1B2042' }} /> Designs Overview
+                                </h3>
+                                {designsOverviewData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height={150}>
+                                        <BarChart data={designsOverviewData} margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
+                                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                                            <YAxis allowDecimals={false} tick={{ fontSize: 9 }} />
+                                            <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                            <Bar dataKey="value" name="Designs" fill="#8b5cf6" radius={[4, 4, 0, 0]}>
+                                                {designsOverviewData.map((_: any, i: number) => (
+                                                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="db-chart-empty">No designs yet</div>
+                                )}
+                            </div>
+                            <div className="db-chart-card">
+                                <h3 className="db-chart-title">
+                                    <FaChartLine style={{ color: '#22c55e' }} /> Performance
+                                </h3>
+                                <div className="db-perf-list">
+                                    {engPerformanceMetrics.map(m => (
+                                        <div key={m.label} className="db-perf-item">
+                                            <span className="db-perf-label">{m.label}</span>
+                                            <div className="db-perf-right">
+                                                <span className="db-perf-value">{m.value}</span>
+                                                <span className={`db-perf-change ${m.change >= 0 ? 'db-perf-change--up' : 'db-perf-change--down'}`}>
+                                                    ({m.change >= 0 ? '+' : ''}{m.change.toFixed(2)})
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="db-charts-row db-charts-row-3">
+                            <div className="db-chart-card">
+                                <h3 className="db-chart-title">
+                                    <FaProjectDiagram style={{ color: '#1B2042' }} /> Projects by Status
+                                </h3>
                             {projectStatusData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height={150}>
                                     <PieChart>
@@ -476,11 +593,69 @@ const AdminDashboard = () => {
                             )}
                         </div>
                     </div>
+                    )}
 
-                    <div className="db-two-col">
-                        <div className="db-geo-card">
-                            <h3 className="db-section-title">
-                                <FaMapMarkerAlt style={{ color: '#1B2042' }} /> Project Distribution
+                    {isEngineeringStudio ? (
+                        <div className="db-two-col">
+                            <div className="db-geo-card">
+                                <h3 className="db-section-title">
+                                    <FaDraftingCompass style={{ color: '#8b5cf6' }} /> Recent Submissions
+                                </h3>
+                                {recentSubmissions.length > 0 ? (
+                                    <div className="db-sites-list">
+                                        {recentSubmissions.map((sub) => (
+                                            <Link
+                                                key={sub.id}
+                                                to="/admin/engineering-submissions"
+                                                className="db-project-item"
+                                                style={{ textDecoration: 'none', color: 'inherit' }}
+                                            >
+                                                <div className="db-project-header">
+                                                    <FaDraftingCompass style={{ color: '#8b5cf6', fontSize: '1rem' }} />
+                                                    <span className="db-project-name">{sub.title}</span>
+                                                    <span style={{
+                                                        fontSize: '0.65rem', fontWeight: 700, padding: '0.15rem 0.5rem',
+                                                        borderRadius: 10, textTransform: 'capitalize',
+                                                        background: sub.status === 'approved' ? '#22c55e18' : sub.status === 'rejected' ? '#ef444418' : '#f59e0b18',
+                                                        color: sub.status === 'approved' ? '#22c55e' : sub.status === 'rejected' ? '#ef4444' : '#f59e0b',
+                                                    }}>
+                                                        {sub.status}
+                                                    </span>
+                                                </div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                                                    {sub.documentUrls?.length || 0} document(s) — {new Date(sub.createdAt).toLocaleDateString()}
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="db-chart-empty">No submissions yet</p>
+                                )}
+                            </div>
+                            <div className="db-perf-card">
+                                <h3 className="db-section-title">
+                                    <FaChartLine style={{ color: '#22c55e' }} /> Your Performance
+                                </h3>
+                                <div className="db-perf-list">
+                                    {engPerformanceMetrics.map(m => (
+                                        <div key={m.label} className="db-perf-item">
+                                            <span className="db-perf-label">{m.label}</span>
+                                            <div className="db-perf-right">
+                                                <span className="db-perf-value">{m.value}</span>
+                                                <span className={`db-perf-change ${m.change >= 0 ? 'db-perf-change--up' : 'db-perf-change--down'}`}>
+                                                    ({m.change >= 0 ? '+' : ''}{m.change.toFixed(2)})
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="db-two-col">
+                            <div className="db-geo-card">
+                                <h3 className="db-section-title">
+                                    <FaMapMarkerAlt style={{ color: '#1B2042' }} /> Project Distribution
                             </h3>
                             {projectLocationData.length > 0 ? (
                                 <>
@@ -533,6 +708,7 @@ const AdminDashboard = () => {
                                 </div>
                         </div>
                     </div>
+                    )}
 
                     <div className="db-charts-row db-charts-row-2">
                     {isAdmin && (
