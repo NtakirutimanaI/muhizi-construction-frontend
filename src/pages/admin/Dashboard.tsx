@@ -3,11 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
     FaEnvelope,
     FaArrowRight,
-    FaHardHat, FaTruck, FaCamera, FaClipboardList,
+    FaHardHat, FaCamera, FaClipboardList,
     FaChartLine, FaProjectDiagram, FaMapMarkerAlt,
-    FaUserTie, FaMoneyBillWave, FaTasks, FaCalendarCheck,
+    FaUserTie, FaMoneyBillWave, FaCalendarCheck,
     FaExclamationTriangle, FaWallet, FaFileInvoiceDollar, FaDraftingCompass,
-    FaArrowUp, FaArrowDown,
+    FaArrowUp, FaArrowDown, FaChartPie,
 } from 'react-icons/fa';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -155,6 +155,16 @@ const AdminDashboard = () => {
                     hrService.getAttendanceStats().then(d => { setAttendanceToday(d.data?.present ?? 0); cacheData.attendanceToday = d.data?.present ?? 0; }).catch(e => console.error(e)),
                 );
             }
+            // Only Site Manager and Manager have Messages in their sidebar in this branch.
+            if (isSiteManager || role === 'manager') {
+                dataPromises.push(
+                    profileService.getContactMessages().then(d => {
+                        const stats = { total: d.length, unread: d.filter(m => !m.status || m.status === 'new' || m.status === 'unread').length };
+                        setMessageStats(stats);
+                        cacheData.messageStats = stats;
+                    }).catch(e => console.error(e)),
+                );
+            }
 
             await Promise.all(dataPromises);
             cacheData.profile = cached?.profile || null;
@@ -163,24 +173,78 @@ const AdminDashboard = () => {
         fetchFresh();
     }, [role, isSiteManager, isAdmin, isExecutive]);
 
-    const quickActions = isSiteManager ? [
-        { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} my sites` },
-        { to: '/admin/material-requests', icon: <FaTruck />, bg: '#1B2042', label: 'Material Requests', sub: `${projects.length} my projects` },
-        { to: '/admin/employee-assignments', icon: <FaTasks />, bg: '#8b5cf6', label: 'My Team', sub: `${myAssignments.length} assignments` },
-        { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: `${attendanceToday} checked in today` },
-    ] : role === 'finance_director' ? [
-        // Finance doesn't submit site activities, material requests, project evidence, or attendance —
-        // those aren't in their sidebar at all, so the generic quick actions below don't apply to them.
-        { to: '/admin/payroll', icon: <FaMoneyBillWave />, bg: '#1B2042', label: 'Payroll', sub: `${kpi?.pendingPayments ?? 0} pending payments` },
-        { to: '/admin/incomes', icon: <FaArrowUp />, bg: '#22c55e', label: 'Incomes', sub: `${moneyShort(kpi?.mtdIncomes ?? 0)} this month` },
-        { to: '/admin/expenses', icon: <FaArrowDown />, bg: '#8b5cf6', label: 'Expenses', sub: `${moneyShort(kpi?.mtdExpenses ?? 0)} this month` },
-        { to: '/admin/reports', icon: <FaChartLine />, bg: '#f59e0b', label: 'Reports', sub: `${moneyShort(kpi?.cashFlow ?? 0)} cash flow` },
-    ] : [
-        { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} sites` },
-        { to: '/admin/material-requests', icon: <FaTruck />, bg: '#1B2042', label: 'Material Requests', sub: `${projects.length} projects` },
-        { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sites.filter(s => (s.evidence?.length ?? 0) > 0).length} sites with media` },
-        { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: `${attendanceToday} checked in today` },
-    ];
+    // Every set below is built strictly from links that actually exist in that role's own
+    // sidebar (see config/roles.ts SIDEBAR_SECTIONS) — a role should never get a shortcut to
+    // a page it doesn't otherwise have access to.
+    const sitesWithMedia = sites.filter(s => (s.evidence?.length ?? 0) > 0).length;
+    let quickActions: { to: string; icon: React.ReactNode; bg: string; label: string; sub: string }[];
+
+    if (isSiteManager) {
+        quickActions = [
+            { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} my sites` },
+            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} my sites with media` },
+            { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: `${attendanceToday} checked in today` },
+            { to: '/admin/messages', icon: <FaEnvelope />, bg: '#1B2042', label: 'Messages', sub: `${messageStats.unread} unread` },
+        ];
+    } else if (isAdmin) {
+        quickActions = [
+            { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} sites` },
+            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} sites with media` },
+            { to: '/admin/requests', icon: <FaClipboardList />, bg: '#1B2042', label: 'Requests & Approvals', sub: `${kpi?.pendingApprovals ?? 0} pending` },
+            { to: '/admin/messages', icon: <FaEnvelope />, bg: '#22c55e', label: 'Messages', sub: `${messageStats.unread} unread` },
+        ];
+    } else if (role === 'manager') {
+        quickActions = [
+            { to: '/admin/sites', icon: <FaProjectDiagram />, bg: '#1B2042', label: 'Sites', sub: `${sites.length} sites` },
+            { to: '/admin/employees', icon: <FaUserTie />, bg: '#8b5cf6', label: 'Employees', sub: `${employees.length} employees` },
+            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} sites with media` },
+            { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: `${attendanceToday} checked in today` },
+        ];
+    } else if (role === 'employee') {
+        // Employee no longer has Site Rules or Messages in their sidebar — nothing left to shortcut to.
+        quickActions = [];
+    } else if (role === 'finance_director') {
+        quickActions = [
+            { to: '/admin/payroll', icon: <FaMoneyBillWave />, bg: '#1B2042', label: 'Payroll', sub: `${kpi?.pendingPayments ?? 0} pending payments` },
+            { to: '/admin/incomes', icon: <FaArrowUp />, bg: '#22c55e', label: 'Incomes', sub: `${moneyShort(kpi?.mtdIncomes ?? 0)} this month` },
+            { to: '/admin/expenses', icon: <FaArrowDown />, bg: '#8b5cf6', label: 'Expenses', sub: `${moneyShort(kpi?.mtdExpenses ?? 0)} this month` },
+            { to: '/admin/reports', icon: <FaChartPie />, bg: '#f59e0b', label: 'Reports', sub: `${moneyShort(kpi?.cashFlow ?? 0)} cash flow` },
+        ];
+    } else if (role === 'managing_director') {
+        quickActions = [
+            { to: '/admin/requests', icon: <FaClipboardList />, bg: '#1B2042', label: 'Requests & Approvals', sub: `${kpi?.pendingRequests ?? 0} pending` },
+            { to: '/admin/incomes', icon: <FaArrowUp />, bg: '#22c55e', label: 'Incomes', sub: `${moneyShort(kpi?.mtdIncomes ?? 0)} this month` },
+            { to: '/admin/expenses', icon: <FaArrowDown />, bg: '#8b5cf6', label: 'Expenses', sub: `${moneyShort(kpi?.mtdExpenses ?? 0)} this month` },
+            { to: '/admin/reports', icon: <FaChartPie />, bg: '#f59e0b', label: 'Reports', sub: `${moneyShort(kpi?.cashFlow ?? 0)} cash flow` },
+        ];
+    } else if (role === 'site_engineer') {
+        quickActions = [
+            { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: 'Log daily site work' },
+            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: 'Upload photos & videos' },
+            { to: '/admin/requests', icon: <FaClipboardList />, bg: '#1B2042', label: 'Requests & Approvals', sub: `${kpi?.pendingRequests ?? 0} pending requests` },
+            { to: '/admin/attendance', icon: <FaCalendarCheck />, bg: '#22c55e', label: 'Attendance', sub: 'Mark attendance' },
+        ];
+    } else if (role === 'engineering_studio') {
+        quickActions = [
+            { to: '/admin/engineering-submissions', icon: <FaDraftingCompass />, bg: '#8b5cf6', label: 'Engineering Submissions', sub: `${kpi?.pendingSubmissions ?? 0} pending review` },
+            { to: '/admin/sites', icon: <FaProjectDiagram />, bg: '#1B2042', label: 'Sites', sub: 'View assigned sites' },
+            { to: '/admin/attendance', icon: <FaCalendarCheck />, bg: '#22c55e', label: 'Attendance', sub: 'Mark attendance' },
+            { to: '/admin/messages', icon: <FaEnvelope />, bg: '#f59e0b', label: 'Messages', sub: 'View messages' },
+        ];
+    } else if (role === 'partner') {
+        quickActions = [
+            { to: '/admin/sites', icon: <FaProjectDiagram />, bg: '#1B2042', label: 'Sites', sub: `${sites.length} sites` },
+            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} sites with media` },
+            { to: '/admin/project-progress', icon: <FaMapMarkerAlt />, bg: '#f59e0b', label: 'Project Progress', sub: 'View progress updates' },
+            { to: '/admin/updates', icon: <FaClipboardList />, bg: '#22c55e', label: 'Updates', sub: 'Latest updates' },
+        ];
+    } else {
+        quickActions = [
+            { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} sites` },
+            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} sites with media` },
+            { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: `${attendanceToday} checked in today` },
+        ];
+    }
 
     let summaryCards: Card[];
 
