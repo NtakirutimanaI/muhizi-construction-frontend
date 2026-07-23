@@ -6,7 +6,7 @@ import {
 } from 'react-icons/fa';
 import {
     PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
-    BarChart, Bar, XAxis, YAxis, CartesianGrid,
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
 } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
 import { clientPortalService } from '../../services/clientPortalService';
@@ -262,12 +262,13 @@ const ClientDashboard = () => {
                         <FaCheckCircle style={{ color: '#0d9488' }} /> Project Status
                     </h3>
                     {statusData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={200}>
+                        <ResponsiveContainer width="100%" height={220}>
                             <PieChart>
                                 <Pie
                                     data={statusData}
                                     cx="50%" cy="50%"
-                                    outerRadius={80}
+                                    innerRadius={30}
+                                    outerRadius={55}
                                     dataKey="value"
                                     label={renderPieLabel}
                                     labelLine={false}
@@ -277,6 +278,7 @@ const ClientDashboard = () => {
                                     ))}
                                 </Pie>
                                 <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                <Legend />
                             </PieChart>
                         </ResponsiveContainer>
                     ) : (
