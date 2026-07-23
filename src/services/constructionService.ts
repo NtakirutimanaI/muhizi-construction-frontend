@@ -30,10 +30,12 @@ export interface Design {
     description?: string;
     type: 'architectural' | 'structural' | 'interior' | 'landscape';
     status: 'draft' | 'approved' | 'rejected';
+    source: 'submission' | 'external';
     fileUrl?: string;
     thumbnailUrl?: string;
     projectId?: string;
     project?: Project;
+    savedBy?: string;
     metadata?: { architect?: string; scale?: string; version?: string; dimensions?: string };
     createdAt: string;
 }
