@@ -1455,6 +1455,44 @@ img {
   .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  /* ShareFiles — still 2-col but tighter gap */
+  .es-share-layout {
+    gap: 1rem !important;
+  }
+}
+
+@media (max-width: 900px) {
+  /* On medium screens, show engineering sub-sidebar as a top bar or collapsible */
+  .admin-subsidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    top: 0;
+    left: 0;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0.3rem 0.5rem;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: none;
+    gap: 0.25rem;
+    z-index: auto;
+  }
+
+  .admin-subsidebar .admin-nav-item {
+    white-space: nowrap;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.78rem;
+  }
+
+  .admin-subsidebar > div:first-child {
+    display: none;
+  }
+
+  .admin-content--with-subsidebar {
+    margin-left: 160px;
+  }
 }
 
 .profile-sidebar {
@@ -1696,6 +1734,107 @@ img {
   .admin-table th,
   .admin-table td {
     padding: 0.3rem 0.4rem !important;
+  }
+
+  /* Engineering Studio — flex rows that must wrap */
+  .es-flex-between {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .es-flex-between > * {
+    width: 100%;
+  }
+
+  .es-stats {
+    flex-direction: column;
+    gap: 0.5rem !important;
+  }
+
+  .es-toolbar {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+
+  .es-toolbar > div:last-child {
+    margin-left: 0 !important;
+  }
+
+  /* ShareFiles — stack columns */
+  .es-share-layout {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Modals — ensure small-screen fit */
+  .admin-modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh;
+  }
+
+  .admin-modal-header {
+    padding: 0.8rem 1rem;
+  }
+
+  .admin-modal-body {
+    padding: 1rem;
+  }
+
+  .admin-modal-footer {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .admin-modal-footer .admin-btn {
+    flex: 1;
+    min-width: 100px;
+    justify-content: center;
+  }
+
+  /* Modal form 2-col grids → 1-col */
+  .es-modal-grid,
+  .admin-modal-body div[style*="1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 0.6rem !important;
+  }
+
+  /* Design table toolbar — stack */
+  .design-toolbar {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+
+  .design-toolbar > div:last-child {
+    flex-wrap: wrap;
+  }
+
+  /* Summary cards — full width on mobile */
+  .es-summary-cards {
+    flex-direction: column;
+    gap: 0.5rem !important;
+  }
+
+  .es-summary-cards > * {
+    min-width: 0;
+  }
+
+  /* Report table responsive */
+  .report-admin-table td > div {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* Engineer/Partner tabs in ShareFiles */
+  .es-recipient-tabs {
+    flex-direction: column;
+  }
+
+  .es-recipient-tabs button {
+    flex: none !important;
   }
 }
 

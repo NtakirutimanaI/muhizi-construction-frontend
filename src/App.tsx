@@ -57,6 +57,11 @@ const MoneyRequisitions = lazy(() => import('./pages/admin/MoneyRequisitions'));
 const AdminUpdates = lazy(() => import('./pages/admin/AdminUpdates'));
 const Stock = lazy(() => import('./pages/admin/Stock'));
 const StockCategories = lazy(() => import('./pages/admin/StockCategories'));
+const DailyTasks = lazy(() => import('./pages/admin/DailyTasks'));
+const AssignTasks = lazy(() => import('./pages/admin/AssignTasks'));
+const EngineeringStudio = lazy(() => import('./pages/admin/EngineeringStudio'));
+const ReportToAdmin = lazy(() => import('./pages/admin/ReportToAdmin'));
+const ShareFiles = lazy(() => import('./pages/admin/ShareFiles'));
 const ProjectDetail = lazy(() => import('./pages/admin/ProjectDetail'));
 const ProjectProgress = lazy(() => import('./pages/partner/ProjectProgress'));
 const PartnerUpdates = lazy(() => import('./pages/partner/PartnerUpdates'));
@@ -193,6 +198,14 @@ function App() {
                         <Route path="stock/categories" element={<StockCategories />} />
                         <Route path="sites/:id" element={<ProjectDetail />} />
                         <Route path="projects/:id" element={<Navigate to="../sites" replace />} />
+                        <Route path="daily-tasks" element={<DailyTasks />} />
+                        <Route path="assign-tasks" element={<AssignTasks />} />
+                        <Route path="engineering-studio" element={<EngineeringStudio />} />
+                        <Route path="engineering-studio/submissions" element={<EngineeringSubmissions />} />
+                        <Route path="engineering-studio/designs" element={<Designs />} />
+                        <Route path="engineering-studio/create-tasks" element={<AssignTasks />} />
+                        <Route path="engineering-studio/report-to-admin" element={<ReportToAdmin />} />
+                        <Route path="engineering-studio/share" element={<ShareFiles />} />
                       </Route>
                     );
                   })}
