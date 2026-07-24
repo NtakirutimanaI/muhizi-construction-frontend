@@ -73,7 +73,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         label: 'Admin',
         items: [
             { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
-            { path: '/admin/users', icon: 'FaUsers', label: 'Users', roles: [ROLES.ADMIN] },
+            { path: '/admin/users', icon: 'FaUsers', label: 'Users', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/registration', icon: 'FaUserPlus', label: 'Registration', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/resources', icon: 'FaDatabase', label: 'CMS', roles: [ROLES.ADMIN] },
             { path: '/admin/subscribers', icon: 'FaEnvelope', label: 'Subscribers', roles: [ROLES.ADMIN] },

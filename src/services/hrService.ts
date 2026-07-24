@@ -56,11 +56,38 @@ export interface Payroll {
     createdAt: string;
 }
 
+export interface EmployedUser {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    address?: string;
+    gender?: string;
+    maritalStatus?: string;
+    nationalId?: string;
+    educationLevel?: string;
+    role: string;
+    employmentStatus?: string;
+    employmentCategory?: string;
+    workShift?: string;
+    basicSalary: number;
+    isActive: boolean;
+    profile?: {
+        id: string;
+        firstName?: string;
+        lastName?: string;
+        avatar?: string;
+    };
+    createdAt: string;
+}
+
 const baseUrl = '';
 
 export const hrService = {
     // Employees
     getEmployees: () => api.get(`${baseUrl}/employees`),
+    getEmployedUsers: () => api.get(`${baseUrl}/auth/users/employed`),
     getEmployee: (id: string) => api.get(`${baseUrl}/employees/${id}`),
     createEmployee: (data: Partial<Employee>) => api.post(`${baseUrl}/employees`, data),
     updateEmployee: (id: string, data: Partial<Employee>) => api.put(`${baseUrl}/employees/${id}`, data),
