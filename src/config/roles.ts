@@ -1,8 +1,7 @@
 export const ROLES = {
     ADMIN: 'admin',
     STOREKEEPER: 'storekeeper',
-    MANAGER: 'manager',
-    EMPLOYEE: 'employee',
+
     CLIENT: 'client',
     PARTNER: 'partner',
     MANAGING_DIRECTOR: 'managing_director',
@@ -29,7 +28,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     {
         label: 'Main',
         items: [
-            { path: '/admin', icon: 'FaChartBar', label: 'Dashboard', roles: [ROLES.ADMIN, ROLES.EMPLOYEE, ROLES.STOREKEEPER, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.PARTNER] },
+            { path: '/admin', icon: 'FaChartBar', label: 'Dashboard', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.PARTNER] },
         ],
     },
     {
@@ -38,15 +37,15 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/sites', icon: 'FaProjectDiagram', label: 'Sites', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests & Approvals', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER] },
             { path: '/admin/site-activities', icon: 'FaClipboardList', label: 'Site Activities', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.SITE_ENGINEER] },
-            { path: '/admin/project-evidence', icon: 'FaCamera', label: 'Project Evidence', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.STOREKEEPER, ROLES.SITE_ENGINEER, ROLES.CLIENT] },
+            { path: '/admin/project-evidence', icon: 'FaCamera', label: 'Project Evidence', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.SITE_ENGINEER, ROLES.CLIENT] },
             { path: '/admin/daily-tasks', icon: 'FaClipboardList', label: 'Daily Tasks', roles: [ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/engineering-submissions', icon: 'FaDraftingCompass', label: 'Engineering Submissions', roles: [ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/designs', icon: 'FaDraftingCompass', label: 'Designs', roles: [ROLES.ADMIN, ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/engineering-studio', icon: 'FaDraftingCompass', label: 'Engineering Studio', roles: [ROLES.ADMIN] },
             { path: '/admin/daily-reports', icon: 'FaClipboardCheck', label: 'Daily Reports', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN, ROLES.MANAGER] },
+            { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN] },
             // Site safety/operating rules apply to everyone on the platform, not just operations roles.
-            { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.MANAGER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.CLIENT, ROLES.PARTNER] },
+            { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.CLIENT, ROLES.PARTNER] },
         ],
     },
     {
@@ -73,7 +72,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     {
         label: 'Admin',
         items: [
-            { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.MANAGER, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/users', icon: 'FaUsers', label: 'Users', roles: [ROLES.ADMIN] },
             { path: '/admin/registration', icon: 'FaUserPlus', label: 'Registration', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/resources', icon: 'FaDatabase', label: 'CMS', roles: [ROLES.ADMIN] },
@@ -106,7 +105,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
 export const ROLE_PATH_MAP: Record<string, string> = {
   [ROLES.ADMIN]: '/admin',
   [ROLES.STOREKEEPER]: '/storekeeper',
-  [ROLES.EMPLOYEE]: '/employee',
+
   [ROLES.MANAGING_DIRECTOR]: '/managingdirector',
   [ROLES.FINANCE_DIRECTOR]: '/directorfinance',
   [ROLES.SITE_ENGINEER]: '/siteengineer',
@@ -118,7 +117,7 @@ export const ROLE_PATH_MAP: Record<string, string> = {
 export const ROLE_AREA_TITLE: Record<string, string> = {
   [ROLES.ADMIN]: 'Administrator Area',
   [ROLES.STOREKEEPER]: 'Storekeeper Area',
-  [ROLES.EMPLOYEE]: 'Employee Area',
+
   [ROLES.MANAGING_DIRECTOR]: 'Managing Director Area',
   [ROLES.FINANCE_DIRECTOR]: 'Finance Director Area',
   [ROLES.SITE_ENGINEER]: 'Site Engineer Area',
@@ -130,7 +129,7 @@ export const ROLE_AREA_TITLE: Record<string, string> = {
 export const ROLE_AREA_BG: Record<string, string> = {
   [ROLES.ADMIN]: 'linear-gradient(135deg, #1a1a2e, #16213e)',
   [ROLES.STOREKEEPER]: 'linear-gradient(135deg, #0f3443, #34e89e)',
-  [ROLES.EMPLOYEE]: 'linear-gradient(135deg, #2c3e50, #3498db)',
+
   [ROLES.MANAGING_DIRECTOR]: 'linear-gradient(135deg, #4a0e4e, #801336)',
   [ROLES.FINANCE_DIRECTOR]: 'linear-gradient(135deg, #1B2042, #2a2f5e)',
   [ROLES.SITE_ENGINEER]: 'linear-gradient(135deg, #e67e22, #f39c12)',
@@ -144,7 +143,7 @@ export function getRolePath(role: string): string {
 }
 
 export function canAccess(path: string, role: string): boolean {
-    const normalizedPath = path.replace(/^\/(admin|storekeeper|employee|partner|client-panel|managingdirector|directorfinance|siteengineer|engineeringstudio)/, '/admin').split('?')[0];
+    const normalizedPath = path.replace(/^\/(admin|storekeeper|partner|client-panel|managingdirector|directorfinance|siteengineer|engineeringstudio)/, '/admin').split('?')[0];
     let matched = false;
     for (const section of SIDEBAR_SECTIONS) {
         for (const item of section.items) {

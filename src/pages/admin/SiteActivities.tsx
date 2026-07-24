@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaHardHat, FaSpinner, FaChevronLeft, FaChevronRight, FaUserTie } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaHardHat, FaSpinner, FaChevronLeft, FaChevronRight, FaUserTie, FaCheckCircle, FaCalendarAlt } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { siteActivitiesService } from '../../services/siteActivitiesService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
@@ -9,8 +9,32 @@ import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import ConfirmDialog from '../../components/ConfirmDialog';
 
+const StatTile = ({ icon, label, value, accent, emphasis }: {
+    icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean
+}) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white, #fff)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color, #e5e7eb)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #6b7280)' }}>{label}</div>
+            <div style={{
+                fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700,
+                color: 'var(--text-main, #111)', whiteSpace: 'nowrap',
+                overflow: 'hidden', textOverflow: 'ellipsis'
+            }}>{value}</div>
+        </div>
+    </div>
+);
+
 const PAGE_SIZES = [5, 10, 15, 20];
-const FIELD_ROLES = ['site_engineer', 'site_manager'];
+const FIELD_ROLES = ['site_engineer'];
 
 const emptyForm: Omit<SiteActivity, 'id' | 'isActive' | 'createdAt'> = { project: '', siteId: '', date: new Date().toISOString().split('T')[0], description: '', status: 'planned', workers: 0, notes: '' };
 
@@ -141,6 +165,13 @@ const SiteActivities = () => {
                     <FaHardHat style={{ color: '#1B2042' }} /> Site Activities
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Track daily construction site activities</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(4, 1fr)`, gap: '0.6rem', marginBottom: '1rem' }}>
+                <StatTile icon={<FaHardHat />} label="Total Activities" value={String(activities.length)} accent="#1B2042" emphasis />
+                <StatTile icon={<FaCheckCircle />} label="Completed" value={String(activities.filter(a => a.status === 'completed').length)} accent="#22c55e" />
+                <StatTile icon={<FaSpinner />} label="In Progress" value={String(activities.filter(a => a.status === 'in_progress').length)} accent="#f59e0b" />
+                <StatTile icon={<FaCalendarAlt />} label="Planned" value={String(activities.filter(a => a.status === 'planned').length)} accent="#8b5cf6" />
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>

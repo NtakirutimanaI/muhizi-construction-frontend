@@ -6,7 +6,7 @@ import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
-const ROLES_LIST = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper', 'employee', 'partner', 'client'];
+const ROLES_LIST = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper', 'partner', 'client'];
 const GENDERS = ['Male', 'Female', 'Other'];
 const MARITAL_STATUSES = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
 const EDUCATION_LEVELS = ["High School", "Diploma", "Bachelor's Degree", "Master's Degree", "PhD", "Vocational Training", "Other"];
@@ -14,7 +14,7 @@ const MEDICAL_INSURANCES = ['Mutuelle de Sante', 'RSSB', 'RAMA', 'Radiant', 'Oth
 const EMPLOYMENT_STATUSES = ['employed', 'contract', 'external'];
 const EMPLOYMENT_CATEGORIES = ['Helper', 'Masonry', 'Plumber', 'Charpantier', 'Electrician', 'Painter', 'Welder', 'Roofer', 'Tiler', 'Heavy Equipment Operator', 'Supervisor', 'Foreman', 'Internal Department (Office)', 'Other'];
 const WORK_SHIFTS = ['day', 'night'];
-const EMPLOYER_ROLES = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper', 'employee'];
+const EMPLOYER_ROLES = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper'];
 const PAGE_SIZES = [5, 10, 15, 20, 50];
 
 interface UserData {
@@ -65,7 +65,7 @@ interface FormState {
 }
 
 const emptyForm: FormState = {
-    firstName: '', lastName: '', email: '', password: '', role: 'employee',
+    firstName: '', lastName: '', email: '', password: '', role: 'storekeeper',
     phone: '', address: '', gender: '', maritalStatus: '', nationalId: '',
     educationLevel: '', medicalInsurance: '', contractUrl: '', bankAccount: '',
     employmentStatus: '', employmentCategory: '', workShift: '', basicSalary: '', isActive: true,
@@ -116,7 +116,7 @@ const PasswordStrengthBar = ({ password }: { password: string }) => {
 
 const roleColors: Record<string, string> = {
     admin: '#ef4444', managing_director: '#1B2042', finance_director: '#f59e0b', site_engineer: '#22c55e',
-    engineering_studio: '#3b82f6', storekeeper: '#8b5cf6', employee: '#6b7280',
+    engineering_studio: '#3b82f6', storekeeper: '#8b5cf6',
     partner: '#1a8a6a', client: '#6c3096',
 };
 
@@ -386,7 +386,7 @@ const Registration = () => {
                 <StatTile icon={<FaUsers />} label="Total Users" value={String(users.length)} accent="#1B2042" emphasis />
                 <StatTile icon={<FaCheckCircle />} label="Active" value={String(users.filter(u => u.isActive).length)} accent="#22c55e" />
                 <StatTile icon={<FaTimesCircle />} label="Inactive" value={String(users.filter(u => !u.isActive).length)} accent="#6b7280" />
-                <StatTile icon={<FaShieldAlt />} label="Employees" value={String(users.filter(u => u.role === 'employee').length)} accent="#3b82f6" />
+                <StatTile icon={<FaShieldAlt />} label="Storekeepers" value={String(users.filter(u => u.role === 'storekeeper').length)} accent="#3b82f6" />
                 <StatTile icon={<FaUserTie />} label="Engineers" value={String(users.filter(u => u.role === 'site_engineer' || u.role === 'engineering_studio').length)} accent="#8b5cf6" />
             </div>
 

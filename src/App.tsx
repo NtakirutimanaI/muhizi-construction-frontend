@@ -154,7 +154,7 @@ function App() {
 
                 {/* Admin Routes */}
                 <Route element={<ProtectedRoute />}>
-                  {['admin', 'storekeeper', 'employee', 'partner', 'managingdirector', 'directorfinance', 'siteengineer', 'engineeringstudio'].map(base => {
+                  {['admin', 'storekeeper', 'partner', 'managingdirector', 'directorfinance', 'siteengineer', 'engineeringstudio'].map(base => {
                     const b = `/${base}`;
                     return (
                       <Route key={base} path={b} element={<AdminLayout basePath={b} />}>

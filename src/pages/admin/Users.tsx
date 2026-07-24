@@ -34,7 +34,7 @@ interface UserData {
     updatedAt?: string;
 }
 
-const ROLES = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper', 'employee', 'partner'];
+const ROLES = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper', 'partner'];
 const PAGE_SIZES = [5, 10, 15, 20];
 
 const Users = () => {

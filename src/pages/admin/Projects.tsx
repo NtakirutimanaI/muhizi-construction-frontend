@@ -9,6 +9,30 @@ import { useAuth } from '../../context/AuthContext';
 import type { Project } from '../../services/constructionService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
+const StatTile = ({ icon, label, value, accent, emphasis }: {
+    icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean
+}) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white, #fff)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color, #e5e7eb)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #6b7280)' }}>{label}</div>
+            <div style={{
+                fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700,
+                color: 'var(--text-main, #111)', whiteSpace: 'nowrap',
+                overflow: 'hidden', textOverflow: 'ellipsis'
+            }}>{value}</div>
+        </div>
+    </div>
+);
+
 interface FormData {
     name: string; description: string; type: string; status: string;
     startDate: string; endDate: string; budget: number | ''; location: string;
@@ -346,19 +370,10 @@ const Projects = () => {
                     )}
                 </div>
                 {siteLabel && (
-                    <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                        <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{filteredStats.total}</div>
-                            <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total</div>
-                        </div>
-                        <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#f59e0b', color: '#fff' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{filteredStats.active}</div>
-                            <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>In Progress</div>
-                        </div>
-                        <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#22c55e', color: '#fff' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{filteredStats.completed}</div>
-                            <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Completed</div>
-                        </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(3, 1fr)`, gap: '0.6rem', marginBottom: '1rem' }}>
+                        <StatTile icon={<FaProjectDiagram />} label="Total Sites" value={String(filteredStats.total)} accent="#1B2042" emphasis />
+                        <StatTile icon={<FaHardHat />} label="In Progress" value={String(filteredStats.active)} accent="#f59e0b" />
+                        <StatTile icon={<FaCheckCircle />} label="Completed" value={String(filteredStats.completed)} accent="#22c55e" />
                     </div>
                 )}
             </div>

@@ -36,7 +36,6 @@ interface Card {
     sub: string;
     icon: React.ReactNode;
     color: string;
-    gradient: string;
 }
 
 const money = (n: number) => `RWF ${Math.round(n).toLocaleString()}`;
@@ -163,13 +162,11 @@ const AdminDashboard = () => {
             dataPromises.push(
                 hrService.getEmployees().then(d => { setEmployees(d.data || []); cacheData.employees = d.data || []; }).catch(e => console.error(e)),
             );
-            if (role !== 'employee') {
-                dataPromises.push(
-                    hrService.getAttendanceStats().then(d => { setAttendanceToday(d.data?.present ?? 0); cacheData.attendanceToday = d.data?.present ?? 0; }).catch(e => console.error(e)),
-                );
-            }
-            // Only Storekeeper and Manager have Messages in their sidebar in this branch.
-            if (isStorekeeper || role === 'manager') {
+            dataPromises.push(
+                hrService.getAttendanceStats().then(d => { setAttendanceToday(d.data?.present ?? 0); cacheData.attendanceToday = d.data?.present ?? 0; }).catch(e => console.error(e)),
+            );
+            // Only Storekeeper has Messages in their sidebar in this branch.
+            if (isStorekeeper) {
                 dataPromises.push(
                     profileService.getContactMessages().then(d => {
                         const stats = { total: d.length, unread: d.filter(m => !m.status || m.status === 'new' || m.status === 'unread').length };
@@ -206,16 +203,6 @@ const AdminDashboard = () => {
             { to: '/admin/requests', icon: <FaClipboardList />, bg: '#1B2042', label: 'Requests & Approvals', sub: `${kpi?.pendingApprovals ?? 0} pending` },
             { to: '/admin/messages', icon: <FaEnvelope />, bg: '#22c55e', label: 'Messages', sub: `${messageStats.unread} unread` },
         ];
-    } else if (role === 'manager') {
-        quickActions = [
-            { to: '/admin/sites', icon: <FaProjectDiagram />, bg: '#1B2042', label: 'Sites', sub: `${sites.length} sites` },
-            { to: '/admin/employees', icon: <FaUserTie />, bg: '#8b5cf6', label: 'Employees', sub: `${employees.length} employees` },
-            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} sites with media` },
-            { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: `${attendanceToday} checked in today` },
-        ];
-    } else if (role === 'employee') {
-        // Employee no longer has Site Rules or Messages in their sidebar — nothing left to shortcut to.
-        quickActions = [];
     } else if (role === 'finance_director') {
         quickActions = [
             { to: '/admin/payroll', icon: <FaMoneyBillWave />, bg: '#1B2042', label: 'Payroll', sub: `${kpi?.pendingPayments ?? 0} pending payments` },
@@ -263,74 +250,74 @@ const AdminDashboard = () => {
 
     if (isStorekeeper) {
         summaryCards = [
-            { label: 'My Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-            { label: 'My Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-            { label: 'Leading Members', value: myAssignments.length, sub: 'assigned workers', icon: <FaUserTie />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-            { label: 'Attendance', value: attendanceToday, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
+            { label: 'My Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042' },
+            { label: 'My Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b' },
+            { label: 'Leading Members', value: myAssignments.length, sub: 'assigned workers', icon: <FaUserTie />, color: '#8b5cf6' },
+            { label: 'Attendance', value: attendanceToday, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e' },
         ];
     } else if (isAdmin) {
         summaryCards = [
-            { label: 'Total Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-            { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-            { label: 'Employees', value: employees.length, sub: `${employees.filter(e => e.status === 'active').length} active`, icon: <FaUserTie />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-            { label: 'Messages', value: messageStats.total, sub: `${messageStats.unread} unread`, icon: <FaEnvelope />, color: '#7BC043', gradient: 'linear-gradient(135deg, #7BC043, #4a8f2f)' },
-            { label: 'Pending Approvals', value: kpi?.pendingApprovals ?? 0, sub: 'awaiting decision', icon: <FaClipboardList />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #b45309)' },
-            { label: 'Stock Alerts', value: kpi?.stockAlerts ?? 0, sub: 'items out of stock', icon: <FaExclamationTriangle />, color: '#ef4444', gradient: 'linear-gradient(135deg, #ef4444, #b91c1c)' },
-            { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
-            { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
+            { label: 'Total Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042' },
+            { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b' },
+            { label: 'Employees', value: employees.length, sub: `${employees.filter(e => e.status === 'active').length} active`, icon: <FaUserTie />, color: '#8b5cf6' },
+            { label: 'Messages', value: messageStats.total, sub: `${messageStats.unread} unread`, icon: <FaEnvelope />, color: '#7BC043' },
+            { label: 'Pending Approvals', value: kpi?.pendingApprovals ?? 0, sub: 'awaiting decision', icon: <FaClipboardList />, color: '#f59e0b' },
+            { label: 'Stock Alerts', value: kpi?.stockAlerts ?? 0, sub: 'items out of stock', icon: <FaExclamationTriangle />, color: '#ef4444' },
+            { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e' },
+            { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6' },
         ];
     } else if (isExecutive) {
         switch (role) {
             case 'managing_director':
                 summaryCards = [
-                    { label: 'Active Sites', value: kpi?.activeSites ?? 0, sub: 'currently active', icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-                    { label: 'Pending Requests', value: kpi?.pendingRequests ?? 0, sub: 'material requests', icon: <FaClipboardList />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-                    { label: 'Stock Alerts', value: kpi?.stockAlerts ?? 0, sub: 'items out of stock', icon: <FaExclamationTriangle />, color: '#ef4444', gradient: 'linear-gradient(135deg, #ef4444, #b91c1c)' },
-                    { label: 'Recent Evidence', value: kpi?.recentEvidence ?? 0, sub: 'project evidence items', icon: <FaCamera />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-                    { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
-                    { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-                    { label: 'Cash Flow (MTD)', value: money(kpi?.cashFlow ?? 0), sub: 'income minus expenses', icon: <FaChartLine />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
+                    { label: 'Active Sites', value: kpi?.activeSites ?? 0, sub: 'currently active', icon: <FaHardHat />, color: '#f59e0b' },
+                    { label: 'Pending Requests', value: kpi?.pendingRequests ?? 0, sub: 'material requests', icon: <FaClipboardList />, color: '#1B2042' },
+                    { label: 'Stock Alerts', value: kpi?.stockAlerts ?? 0, sub: 'items out of stock', icon: <FaExclamationTriangle />, color: '#ef4444' },
+                    { label: 'Recent Evidence', value: kpi?.recentEvidence ?? 0, sub: 'project evidence items', icon: <FaCamera />, color: '#8b5cf6' },
+                    { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e' },
+                    { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6' },
+                    { label: 'Cash Flow (MTD)', value: money(kpi?.cashFlow ?? 0), sub: 'income minus expenses', icon: <FaChartLine />, color: '#1B2042' },
                 ];
                 break;
             case 'finance_director':
                 summaryCards = [
-                    { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
-                    { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-                    { label: 'Cash Flow (MTD)', value: money(kpi?.cashFlow ?? 0), sub: 'income minus expenses', icon: <FaChartLine />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-                    { label: 'Pending Payments', value: kpi?.pendingPayments ?? 0, sub: 'awaiting approval', icon: <FaFileInvoiceDollar />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+                    { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e' },
+                    { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6' },
+                    { label: 'Cash Flow (MTD)', value: money(kpi?.cashFlow ?? 0), sub: 'income minus expenses', icon: <FaChartLine />, color: '#1B2042' },
+                    { label: 'Pending Payments', value: kpi?.pendingPayments ?? 0, sub: 'awaiting approval', icon: <FaFileInvoiceDollar />, color: '#f59e0b' },
                 ];
                 break;
             case 'site_engineer':
                 summaryCards = [
-                    { label: 'Assigned Sites', value: kpi?.assignedSites ?? 0, sub: 'total sites', icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-                    { label: 'Pending Requests', value: kpi?.pendingRequests ?? 0, sub: 'your material requests', icon: <FaClipboardList />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
+                    { label: 'Assigned Sites', value: kpi?.assignedSites ?? 0, sub: 'total sites', icon: <FaHardHat />, color: '#f59e0b' },
+                    { label: 'Pending Requests', value: kpi?.pendingRequests ?? 0, sub: 'your material requests', icon: <FaClipboardList />, color: '#1B2042' },
                 ];
                 break;
             case 'engineering_studio':
                 summaryCards = [
-                    { label: 'Total Designs', value: kpi?.totalDesigns ?? 0, sub: 'in studio', icon: <FaDraftingCompass />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-                    { label: 'Approved Designs', value: kpi?.approvedDesigns ?? 0, sub: 'approved', icon: <FaCheckCircle />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
-                    { label: 'My Submissions', value: kpi?.mySubmissions ?? 0, sub: 'submitted by you', icon: <FaFileAlt />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-                    { label: 'Pending Review', value: kpi?.pendingSubmissions ?? 0, sub: 'awaiting review', icon: <FaClock />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-                    { label: 'My Tasks', value: kpi?.myTasks ?? 0, sub: 'assigned to you', icon: <FaTasks />, color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #0891b2)' },
-                    { label: 'Pending Tasks', value: kpi?.pendingTasks ?? 0, sub: 'to complete', icon: <FaClipboardList />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-                    { label: 'Completed Tasks', value: kpi?.completedTasks ?? 0, sub: 'done', icon: <FaCheckCircle />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
+                    { label: 'Total Designs', value: kpi?.totalDesigns ?? 0, sub: 'in studio', icon: <FaDraftingCompass />, color: '#8b5cf6' },
+                    { label: 'Approved Designs', value: kpi?.approvedDesigns ?? 0, sub: 'approved', icon: <FaCheckCircle />, color: '#22c55e' },
+                    { label: 'My Submissions', value: kpi?.mySubmissions ?? 0, sub: 'submitted by you', icon: <FaFileAlt />, color: '#1B2042' },
+                    { label: 'Pending Review', value: kpi?.pendingSubmissions ?? 0, sub: 'awaiting review', icon: <FaClock />, color: '#f59e0b' },
+                    { label: 'My Tasks', value: kpi?.myTasks ?? 0, sub: 'assigned to you', icon: <FaTasks />, color: '#06b6d4' },
+                    { label: 'Pending Tasks', value: kpi?.pendingTasks ?? 0, sub: 'to complete', icon: <FaClipboardList />, color: '#f59e0b' },
+                    { label: 'Completed Tasks', value: kpi?.completedTasks ?? 0, sub: 'done', icon: <FaCheckCircle />, color: '#22c55e' },
                 ];
                 break;
             default:
                 summaryCards = [
-                    { label: 'Total Projects', value: kpi?.totalProjects ?? 0, sub: 'your projects', icon: <FaProjectDiagram />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-                    { label: 'Active Projects', value: kpi?.activeProjects ?? 0, sub: 'in progress', icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+                    { label: 'Total Projects', value: kpi?.totalProjects ?? 0, sub: 'your projects', icon: <FaProjectDiagram />, color: '#1B2042' },
+                    { label: 'Active Projects', value: kpi?.activeProjects ?? 0, sub: 'in progress', icon: <FaHardHat />, color: '#f59e0b' },
                 ];
         }
     } else {
         summaryCards = [
-            { label: 'Total Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-            { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-            { label: 'Employees', value: employees.length, sub: `${employees.filter(e => e.status === 'active').length} active`, icon: <FaUserTie />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
+            { label: 'Total Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042' },
+            { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b' },
+            { label: 'Employees', value: employees.length, sub: `${employees.filter(e => e.status === 'active').length} active`, icon: <FaUserTie />, color: '#8b5cf6' },
         ];
         if (role === 'storekeeper') {
-            summaryCards.push({ label: 'Attendance', value: attendanceToday, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' });
+            summaryCards.push({ label: 'Attendance', value: attendanceToday, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e' });
         }
     }
 
@@ -468,18 +455,22 @@ const AdminDashboard = () => {
                         ))}
                     </div>
 
-                    <div className="db-kpi-row">
+                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${summaryCards.length}, minmax(150px, 1fr))`, gap: '0.6rem', marginBottom: '1.25rem', overflowX: 'auto' }}>
                         {summaryCards.map(card => (
-                            <div key={card.label} className="db-kpi-card-sm" style={{ background: card.gradient }}>
-                                <div className="db-kpi-sm-content">
-                                    <div className="db-kpi-sm-top">
-                                        <span className="db-kpi-sm-label">{card.label}</span>
-                                        <div className="db-kpi-sm-icon">{card.icon}</div>
-                                    </div>
-                                    <div className="db-kpi-sm-value">{card.value}</div>
-                                    <div className="db-kpi-sm-sub">{card.sub}</div>
+                            <div key={card.label} style={{
+                                display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+                                background: 'var(--bg-white, #fff)',
+                                border: '1px solid var(--border-color, #e5e7eb)',
+                                borderRadius: 10, padding: '0.8rem 1rem',
+                            }}>
+                                <div style={{
+                                    width: 36, height: 36, borderRadius: 9, background: `${card.color}18`, color: card.color,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+                                }}>{card.icon}</div>
+                                <div style={{ minWidth: 0 }}>
+                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #6b7280)' }}>{card.label}</div>
+                                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main, #111)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.value}</div>
                                 </div>
-                                <div className="db-kpi-sm-watermark">{card.icon}</div>
                             </div>
                         ))}
                     </div>

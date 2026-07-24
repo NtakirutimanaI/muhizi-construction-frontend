@@ -44,7 +44,7 @@ const EmployeeAssignments = () => {
         return sites.filter(s => s.projectId === form.projectId);
     }, [sites, form.projectId]);
 
-    const isSiteManager = user?.role === 'storekeeper';
+    const isStorekeeper = user?.role === 'storekeeper';
 
     const fetch = async () => {
         const cached = loadPageCache<{ data: EmployeeAssignment[]; employees: Employee[]; projects: Project[]; sites: Site[] }>('pg_employee_assignments');
@@ -55,7 +55,7 @@ const EmployeeAssignments = () => {
             setSites(cached.sites || []);
         }
         try {
-            const assPromise = isSiteManager ? assignmentService.getMyTeam() : assignmentService.getAll();
+            const assPromise = isStorekeeper ? assignmentService.getMyTeam() : assignmentService.getAll();
             const [assRes, empRes, projRes, siteRes] = await Promise.all([
                 assPromise,
                 hrService.getEmployees(),
@@ -186,7 +186,7 @@ const EmployeeAssignments = () => {
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
                     <FaTasks style={{ color: 'var(--primary)' }} /> Employee Assignments
                 </h2>
-                {!isSiteManager && (
+                {!isStorekeeper && (
                     <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
                         <FaPlus style={{ marginRight: 6 }} />Assign Employee
                     </button>
@@ -233,11 +233,11 @@ const EmployeeAssignments = () => {
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', gap: 6 }}>
-                                            {!isSiteManager && (
+                                            {!isStorekeeper && (
                                                 <><button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)}><FaEdit /></button>
                                                 <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)}><FaTrash /></button></>
                                             )}
-                                            {isSiteManager && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>—</span>}
+                                            {isStorekeeper && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>—</span>}
                                         </div>
                                     </td>
                                 </tr>

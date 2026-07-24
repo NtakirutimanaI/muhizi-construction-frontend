@@ -11,7 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 import ConfirmDialog from '../../components/ConfirmDialog';
 
 const PAGE_SIZES = [5, 10, 15, 20];
-const FIELD_ROLES = ['site_engineer', 'site_manager'];
+const FIELD_ROLES = ['site_engineer'];
 
 const emptyForm = { project: '', siteId: '', type: 'image' as 'image' | 'video', title: '', url: '', date: new Date().toISOString().split('T')[0], notes: '' };
 
