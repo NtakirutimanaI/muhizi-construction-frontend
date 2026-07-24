@@ -1249,10 +1249,13 @@ img {
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.5);
   z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-modal {
-  position: fixed;
+  position: relative;
   background: var(--bg-white);
   border-radius: 0;
   width: 90%;
@@ -1260,6 +1263,11 @@ img {
   max-height: 85vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  transition: box-shadow 0.2s;
+}
+
+.admin-modal.dragging {
+  box-shadow: 0 25px 80px rgba(0,0,0,0.4);
 }
 
 .admin-modal-header {
@@ -5713,16 +5721,14 @@ img {
 
 /* Admin modal — override inline fixed widths on small screens */
 @media (max-width: 768px) {
+  .admin-modal-overlay {
+    padding: 0;
+  }
+
   .admin-modal {
-    width: calc(100% - 1rem) !important;
-    max-width: calc(100% - 1rem) !important;
-    left: 0.5rem !important;
-    right: 0.5rem !important;
-    top: 0.5rem !important;
-    bottom: 0.5rem !important;
-    transform: none !important;
-    max-height: calc(100vh - 1rem) !important;
-    border-radius: 8px;
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh;
   }
 
   .admin-modal .form-grid-2,
@@ -5817,9 +5823,142 @@ img {
   }
 }
 
-/* =============================================
-   Follow Us / Video Section
-   ============================================= */
+/* ═══════════════════════════════════════════
+   Petty Cash — Responsive Styles
+   ═══════════════════════════════════════════ */
+
+/* Tablet (≤ 768px) */
+@media (max-width: 768px) {
+  .petty-cash-tabs {
+    flex-wrap: wrap;
+  }
+  .petty-cash-tabs button {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.8rem !important;
+  }
+  .petty-cash-search-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .petty-cash-search-row input {
+    width: 100% !important;
+  }
+  .petty-cash-search-row .admin-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .petty-cash-summary-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .petty-cash-footer-summary {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+  .petty-cash-footer-actions {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+  .petty-cash-footer-actions-btns {
+    flex-wrap: wrap !important;
+  }
+  .petty-cash-voucher-table {
+    font-size: 0.7rem !important;
+  }
+  .petty-cash-voucher-table th,
+  .petty-cash-voucher-table td {
+    padding: 0.3rem 0.4rem !important;
+  }
+  .petty-cash-approval-table {
+    font-size: 0.65rem !important;
+  }
+  .petty-cash-approval-table th,
+  .petty-cash-approval-table td {
+    padding: 0.3rem !important;
+  }
+  .petty-cash-summary-split {
+    grid-template-columns: 1fr !important;
+  }
+  .petty-cash-summary-split > div:first-child {
+    border-right: none !important;
+    border-bottom: 1px solid #d1d5db;
+  }
+  .petty-cash-month-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .petty-cash-payee-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Mobile (≤ 480px) */
+@media (max-width: 480px) {
+  .petty-cash-tabs {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0.35rem !important;
+  }
+  .petty-cash-tabs button {
+    padding: 0.6rem !important;
+    justify-content: center;
+  }
+  .petty-cash-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .petty-cash-month-summary {
+    grid-template-columns: 1fr !important;
+  }
+  .petty-cash-footer-summary {
+    padding: 0.75rem !important;
+  }
+  .petty-cash-footer-summary > div {
+    grid-column: 1 / -1;
+  }
+  .petty-cash-voucher-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .petty-cash-voucher-table thead,
+  .petty-cash-voucher-table tbody,
+  .petty-cash-voucher-table tr,
+  .petty-cash-voucher-table th,
+  .petty-cash-voucher-table td {
+    display: revert;
+  }
+  .petty-cash-header-meta {
+    grid-template-columns: 1fr !important;
+  }
+  .petty-cash-footer-actions-btns {
+    justify-content: flex-start !important;
+  }
+  .petty-cash-footer-actions-btns .admin-btn--secondary {
+    padding: 0.2rem 0.35rem !important;
+    font-size: 0.7rem !important;
+  }
+  .petty-cash-footer-actions-btns .admin-btn--secondary svg {
+    display: none;
+  }
+}
+
+/* Desktop (≥ 1024px) */
+@media (min-width: 1024px) {
+  .petty-cash-summary-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Print */
+@media print {
+  .petty-cash-tabs,
+  .petty-cash-footer-actions,
+  .petty-cash-footer-summary,
+  .petty-cash-search-row {
+    display: none !important;
+  }
+}
 .follow-us-grid {
   display: flex;
   flex-direction: column;

@@ -55,6 +55,8 @@ const CreateContract = lazy(() => import('./pages/admin/CreateContract'));
 const InsuranceSettings = lazy(() => import('./pages/admin/InsuranceSettings'));
 const MoneyRequisitions = lazy(() => import('./pages/admin/MoneyRequisitions'));
 const ClientReports = lazy(() => import('./pages/admin/ClientReports'));
+const PettyCash = lazy(() => import('./pages/admin/PettyCash'));
+const PettyCashVoucher = lazy(() => import('./pages/admin/PettyCashVoucher'));
 const AdminUpdates = lazy(() => import('./pages/admin/AdminUpdates'));
 const Stock = lazy(() => import('./pages/admin/Stock'));
 const StockCategories = lazy(() => import('./pages/admin/StockCategories'));
@@ -187,10 +189,12 @@ function App() {
                         <Route path="insurance" element={<InsuranceSettings />} />
                         <Route path="money-requisition" element={<MoneyRequisitions />} />
                         <Route path="client-reports" element={<ClientReports />} />
+                        <Route path="petty-cash" element={<PettyCash />} />
+                        <Route path="petty-cash-voucher" element={<PettyCashVoucher />} />
                         <Route path="admin-updates" element={<AdminUpdates />} />
                         <Route path="create-contract" element={<CreateContract />} />
                         <Route path="project-evidence" element={<ProjectEvidence />} />
-                    <Route path="site-rules" element={<ClientSiteRules />} />
+                    <Route path="site-rules" element={<SiteRules />} />
                         <Route path="approvals" element={<Navigate to="../requests" replace />} />
                         <Route path="contracts" element={<CreateContract />} />
                         <Route path="project-progress" element={<ProjectProgress />} />
@@ -222,7 +226,7 @@ function App() {
                     <Route path="sites" element={<ClientSites />} />
                     <Route path="updates" element={<ClientUpdates />} />
                     <Route path="progress-reports" element={<ClientProgressReports />} />
-                    <Route path="site-rules" element={<SiteRules />} />
+                    <Route path="site-rules" element={<ClientSiteRules />} />
                   </Route>
                 </Route>
 

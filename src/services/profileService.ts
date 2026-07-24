@@ -36,6 +36,8 @@ export interface Profile {
     website: string;
     company?: string;
     companyLogo?: string;
+    digitalSignature?: string;
+    stampUrl?: string;
     avatar: string;
     cvUrl: string;
     yearsOfExperience: number;

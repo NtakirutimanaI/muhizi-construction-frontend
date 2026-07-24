@@ -33,12 +33,14 @@ interface FormData {
     title: string;
     iconName: string;
     pinColor: string;
+    category: string;
     items: string;
     order: number;
     isActive: boolean;
 }
 
-const emptyForm: FormData = { title: '', iconName: 'FaBullhorn', pinColor: '#e74c3c', items: '', order: 0, isActive: true };
+const CATEGORIES = ['Safety', 'Security', 'Operating', 'Access', 'Emergency', 'General'];
+const emptyForm: FormData = { title: '', iconName: 'FaBullhorn', pinColor: '#e74c3c', category: 'General', items: '', order: 0, isActive: true };
 
 const SiteRules = () => {
     const { user } = useAuth();
@@ -57,6 +59,7 @@ const SiteRules = () => {
     const [saving, setSaving] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<SiteRule | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [activeCategory, setActiveCategory] = useState<string>('All');
 
     const fetchRules = async () => {
         const cached = loadPageCache<SiteRule[]>('pg_site_rules');
@@ -78,6 +81,7 @@ const SiteRules = () => {
             title: rule.title,
             iconName: rule.iconName || 'FaBullhorn',
             pinColor: rule.pinColor || '#e74c3c',
+            category: rule.category || 'General',
             items: rule.items.join('\n'),
             order: rule.order,
             isActive: rule.isActive,
@@ -104,6 +108,7 @@ const SiteRules = () => {
             title: form.title.trim(),
             iconName: form.iconName,
             pinColor: form.pinColor,
+            category: form.category,
             items,
             order: form.order,
             isActive: form.isActive,
@@ -148,6 +153,9 @@ const SiteRules = () => {
     }, null);
     const lastUpdatedLabel = lastUpdated ? lastUpdated.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
 
+    const usedCategories = [...new Set(rules.map(r => r.category).filter(Boolean))];
+    const filteredRules = activeCategory === 'All' ? rules : rules.filter(r => r.category === activeCategory);
+
     return (
         <div>
             <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -185,6 +193,24 @@ const SiteRules = () => {
                     </div>
                 )}
             </div>
+
+            {usedCategories.length > 0 && (
+                <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginRight: '0.25rem' }}>Filter:</span>
+                    {['All', ...usedCategories].map(cat => (
+                        <button key={cat} onClick={() => setActiveCategory(cat)}
+                            style={{
+                                padding: '0.3rem 0.8rem', borderRadius: '999px', border: '1px solid',
+                                borderColor: activeCategory === cat ? '#1B2042' : 'var(--border-color)',
+                                background: activeCategory === cat ? '#1B2042' : 'transparent',
+                                color: activeCategory === cat ? '#fff' : 'var(--text-main)',
+                                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
+                            }}>
+                            {cat}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             <div style={{
                 background: 'linear-gradient(135deg, #1B2042 0%, #1B2042 30%, #1B2042 60%, #1B2042 100%)',
@@ -236,7 +262,7 @@ const SiteRules = () => {
                     </div>
                 </div>
 
-                {rules.length === 0 ? (
+                {filteredRules.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.5)', position: 'relative', zIndex: 1 }}>
                         No notices posted yet.
                         {manageMode && <div style={{ marginTop: '0.5rem' }}>Click "Add Notice" to create the first one.</div>}
@@ -246,7 +272,7 @@ const SiteRules = () => {
                         display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
                         gap: '1.25rem', position: 'relative', zIndex: 1,
                     }}>
-                        {rules.map((section, idx) => (
+                        {filteredRules.map((section, idx) => (
                             <div key={section.id}>
                                 <div
                                     className="notice-card"
@@ -334,6 +360,16 @@ const SiteRules = () => {
                                         <h2 style={{ fontSize: '0.85rem', fontWeight: 700, margin: 0, letterSpacing: '0.01em' }}>
                                             {section.title}
                                         </h2>
+                                        {section.category && (
+                                            <span style={{
+                                                marginLeft: 'auto', fontSize: '0.55rem', fontWeight: 700,
+                                                padding: '2px 8px', borderRadius: '999px',
+                                                background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.8)',
+                                                textTransform: 'uppercase', letterSpacing: '0.04em',
+                                            }}>
+                                                {section.category}
+                                            </span>
+                                        )}
                                     </div>
 
                                     <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
@@ -423,6 +459,18 @@ const SiteRules = () => {
                             {selectedRule.title}
                         </h2>
 
+                        {selectedRule.category && (
+                            <div style={{ marginBottom: '0.75rem' }}>
+                                <span style={{
+                                    fontSize: '0.7rem', fontWeight: 700, padding: '3px 12px', borderRadius: '999px',
+                                    background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.8)',
+                                    textTransform: 'uppercase', letterSpacing: '0.05em',
+                                }}>
+                                    {selectedRule.category}
+                                </span>
+                            </div>
+                        )}
+
                         <div style={{ width: '60px', height: '3px', borderRadius: '2px', background: selectedRule.pinColor || '#e74c3c', marginBottom: '1.25rem' }} />
 
                         <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -487,6 +535,21 @@ const SiteRules = () => {
                                                 }} />
                                         ))}
                                     </div>
+                                </div>
+                            </div>
+
+                            <div className="es-modal-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                <div>
+                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem', display: 'block' }}>Category</label>
+                                    <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
+                                        style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.9rem' }}>
+                                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem', display: 'block' }}>Order</label>
+                                    <input type="number" value={form.order} onChange={(e) => setForm({ ...form, order: parseInt(e.target.value) || 0 })}
+                                        style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.9rem' }} />
                                 </div>
                             </div>
 
