@@ -676,7 +676,7 @@ const Registration = () => {
 
             {viewUser && (
                 <div className="admin-modal-overlay" onClick={() => setViewUser(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 580, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 580 }}>
                         <div className="admin-modal-header">
                             <h3><FaUser style={{ marginRight: 8 }} /> {viewUser.firstName || viewUser.profile?.firstName || ''} {viewUser.lastName || viewUser.profile?.lastName || ''}</h3>
                             <button onClick={() => setViewUser(null)}><FaTimesIcon /></button>
@@ -743,7 +743,7 @@ const Registration = () => {
 
             {contractModalUser && (
                 <div className="admin-modal-overlay" onClick={() => setContractModalUser(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
                         <div className="admin-modal-header">
                             <h3><FaFilePdf style={{ marginRight: 8 }} /> Upload Contract — {contractModalUser.firstName} {contractModalUser.lastName}</h3>
                             <button onClick={() => setContractModalUser(null)}><FaTimesIcon /></button>
@@ -771,7 +771,7 @@ const Registration = () => {
 
             {pdfViewerUrl && (
                 <div className="admin-modal-overlay" onClick={() => setPdfViewerUrl(null)} style={{ zIndex: 9999 }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 900, width: '95vw', height: '85vh', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'column' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 900, width: '95vw', height: '85vh', display: 'flex', flexDirection: 'column' }}>
                         <div className="admin-modal-header">
                             <h3><FaFilePdf style={{ marginRight: 8 }} /> Contract Document</h3>
                             <button onClick={() => setPdfViewerUrl(null)}><FaTimesIcon /></button>
