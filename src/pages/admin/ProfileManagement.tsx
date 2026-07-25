@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaUserCircle } from 'react-icons/fa';
+import { FaUserCircle, FaSpinner } from 'react-icons/fa';
 import { profileService } from '../../services/profileService';
 import type { Profile } from '../../services/profileService';
 import { useAuth } from '../../context/AuthContext';
@@ -39,6 +39,8 @@ const ProfileManagement = () => {
         setProfile(updatedProfile);
         updateUser({ firstName: updatedProfile.firstName, lastName: updatedProfile.lastName, email: updatedProfile.email, avatar: updatedProfile.avatar });
     };
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     if (!profile) return <div style={{ textAlign: 'center', padding: '2rem' }}>Failed to load profile</div>;
 

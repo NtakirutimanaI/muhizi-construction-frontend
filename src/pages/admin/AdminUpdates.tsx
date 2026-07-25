@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaNewspaper, FaPlus, FaEdit, FaTrash, FaCheck, FaTimes, FaEye, FaEyeSlash, FaSearch } from 'react-icons/fa';
+import { FaNewspaper, FaPlus, FaEdit, FaTrash, FaCheck, FaTimes, FaEye, FaEyeSlash, FaSearch, FaSpinner } from 'react-icons/fa';
 import { updatesService, type Update, type CreateUpdateDto } from '../../services/updatesService';
 import { useAuth } from '../../context/AuthContext';
 
@@ -95,6 +95,8 @@ const AdminUpdates = () => {
         i.title.toLowerCase().includes(search.toLowerCase()) ||
         (i.category || '').toLowerCase().includes(search.toLowerCase())
     );
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDraftingCompass, FaFileAlt, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaClipboardList, FaArrowLeft } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDraftingCompass, FaFileAlt, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaClipboardList, FaArrowLeft, FaSpinner } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import type { Design, Project } from '../../services/constructionService';
 import { engineeringSubmissionsService } from '../../services/engineeringSubmissionsService';
@@ -323,6 +323,8 @@ const Designs = () => {
     const typeColors: Record<string, string> = {
         architectural: '#1B2042', structural: '#8b5cf6', interior: '#f59e0b', landscape: '#22c55e',
     };
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div className="admin-page">

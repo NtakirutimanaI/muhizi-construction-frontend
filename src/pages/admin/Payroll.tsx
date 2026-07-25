@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDollarSign, FaMoneyBillWave, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaCheckCircle, FaBan, FaHourglassHalf, FaClock, FaArrowUp, FaMinusCircle, FaHashtag } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDollarSign, FaMoneyBillWave, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaCheckCircle, FaBan, FaHourglassHalf, FaClock, FaArrowUp, FaMinusCircle, FaHashtag, FaSpinner } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
 import { authService } from '../../services/authService';
 import { useToast } from '../../context/ToastContext';
@@ -416,6 +416,8 @@ const PayrollPage = () => {
     const statusColors: Record<string, string> = {
         draft: '#6b7280', paid: '#22c55e', pending: '#f59e0b',
     };
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div className="admin-page">

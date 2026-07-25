@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaTasks, FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaExchangeAlt, FaEnvelope } from 'react-icons/fa';
+import { FaTasks, FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaExchangeAlt, FaEnvelope, FaSpinner } from 'react-icons/fa';
 import { assignmentService, type EmployeeAssignment } from '../../services/assignmentService';
 import { hrService, type Employee } from '../../services/hrService';
 import { constructionService, type Project } from '../../services/constructionService';
@@ -179,6 +179,8 @@ const EmployeeAssignments = () => {
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     }, [onMouseMove, onMouseUp]);
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div className="admin-page">

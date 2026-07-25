@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaUsers, FaEnvelope, FaUser, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaArrowsAlt, FaDownload, FaFileExcel, FaFilePdf, FaCheckCircle, FaTimesCircle, FaUserTie } from 'react-icons/fa';
+import { FaUsers, FaEnvelope, FaUser, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaArrowsAlt, FaDownload, FaFileExcel, FaFilePdf, FaCheckCircle, FaTimesCircle, FaUserTie, FaSpinner } from 'react-icons/fa';
 import { authService } from '../../services/authService';
 import { useToast } from '../../context/ToastContext';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
@@ -321,6 +321,8 @@ const Users = () => {
     };
 
     const modalTitle = showModal === 'add' ? 'Add User' : showModal === 'edit' ? 'Edit User' : 'User Details';
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div className="admin-page">

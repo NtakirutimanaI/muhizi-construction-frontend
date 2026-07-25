@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaProjectDiagram, FaCheckCircle, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye, FaHardHat, FaMapMarkerAlt, FaUser, FaCalendarAlt } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaProjectDiagram, FaCheckCircle, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye, FaHardHat, FaMapMarkerAlt, FaUser, FaCalendarAlt, FaSpinner } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { sitesService, type Site } from '../../services/sitesService';
 import { authService } from '../../services/authService';
@@ -346,6 +346,8 @@ const Projects = () => {
     const statusColors: Record<string, string> = {
         planning: '#8b5cf6', in_progress: '#f59e0b', completed: '#22c55e', cancelled: '#ef4444',
     };
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div className="admin-page">

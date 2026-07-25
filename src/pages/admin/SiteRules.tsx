@@ -7,7 +7,7 @@ import { siteRulesService, type SiteRule } from '../../services/siteRulesService
 import {
     FaClock, FaHardHat, FaMoneyCheckAlt, FaLock, FaListAlt, FaExclamationTriangle,
     FaPhone, FaBullhorn, FaCheckCircle, FaRegNewspaper, FaClipboardCheck,
-    FaTimes, FaExpandAlt, FaGavel, FaEdit, FaTrash, FaPlus, FaCog, FaSave, FaEyeSlash
+    FaTimes, FaExpandAlt, FaGavel, FaEdit, FaTrash, FaPlus, FaCog, FaSave, FaEyeSlash, FaSpinner
 } from 'react-icons/fa';
 
 /** NestJS validation errors arrive as string[]; render them as one readable sentence instead of raw concatenated text. */
@@ -155,6 +155,8 @@ const SiteRules = () => {
 
     const usedCategories = [...new Set(rules.map(r => r.category).filter(Boolean))];
     const filteredRules = activeCategory === 'All' ? rules : rules.filter(r => r.category === activeCategory);
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div>

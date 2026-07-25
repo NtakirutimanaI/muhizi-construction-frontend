@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaEnvelope, FaPaperPlane, FaChevronLeft, FaChevronRight, FaTrash, FaReply, FaTimes } from 'react-icons/fa';
+import { FaEnvelope, FaPaperPlane, FaChevronLeft, FaChevronRight, FaTrash, FaReply, FaTimes, FaSpinner } from 'react-icons/fa';
 import { profileService, type ContactMessage } from '../../services/profileService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { useToast } from '../../context/ToastContext';
@@ -112,6 +112,8 @@ const MessagesSent = () => {
         String(i + 1), m.name, m.email, m.subject || '—',
         m.createdAt ? new Date(m.createdAt).toLocaleDateString() : '—',
     ]), [filtered]);
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div className="admin-page">

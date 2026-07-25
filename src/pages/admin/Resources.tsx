@@ -5,7 +5,7 @@ import {
     FaHome, FaInfoCircle, FaSave, FaCopyright,
     FaPlus, FaEdit, FaTrash, FaCode,
     FaProjectDiagram, FaUsers, FaUser, FaPhone, FaEnvelope, FaLink, FaUpload,
-    FaTag, FaCertificate, FaNewspaper
+    FaTag, FaCertificate, FaNewspaper, FaSpinner
 } from 'react-icons/fa';
 import { profileService } from '../../services/profileService';
 import type { Profile } from '../../services/profileService';
@@ -97,6 +97,8 @@ const Resources = () => {
             case 'general': return <GeneralTab profile={profile} onUpdate={setProfile} />;
         }
     };
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>

@@ -3,7 +3,7 @@ import {
     FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaHandshake, FaFileExcel, FaFilePdf,
     FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye, FaCheck, FaBan, FaExclamationTriangle,
     FaFileUpload, FaFilePdf as FaFileIcon, FaBuilding, FaCoins, FaShieldAlt,
-    FaUsers, FaClock, FaCheckCircle, FaTimesCircle,
+    FaUsers, FaClock, FaCheckCircle, FaTimesCircle, FaSpinner,
 } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import type { Partnership, Project } from '../../services/constructionService';
@@ -398,6 +398,8 @@ const Partnerships = () => {
     const statusColors: Record<string, string> = {
         active: '#22c55e', inactive: '#6b7280', pending: '#f59e0b', rejected: '#ef4444',
     };
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div className="admin-page">

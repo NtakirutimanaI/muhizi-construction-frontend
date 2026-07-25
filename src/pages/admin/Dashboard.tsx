@@ -8,7 +8,7 @@ import {
     FaUserTie, FaMoneyBillWave, FaCalendarCheck,
     FaExclamationTriangle, FaWallet, FaFileInvoiceDollar, FaDraftingCompass,
     FaArrowUp, FaArrowDown, FaChartPie, FaGavel, FaCheckCircle, FaTimesCircle,
-    FaClock, FaFileAlt, FaTasks,
+    FaClock, FaFileAlt, FaTasks, FaSpinner,
 } from 'react-icons/fa';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -71,6 +71,7 @@ const AdminDashboard = () => {
     type AnyKpi = Partial<AdminKpi & ManagingDirectorKpi & FinanceDirectorKpi & SiteEngineerKpi & EngineeringStudioKpi & ClientKpi>;
     const [kpi, setKpi] = useState<AnyKpi | null>(null);
     const [yearlyReport, setYearlyReport] = useState<YearlyReport | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const cached = loadPageCache(role);
@@ -180,7 +181,7 @@ const AdminDashboard = () => {
             cacheData.profile = cached?.profile || null;
             savePageCache(role, cacheData);
         };
-        fetchFresh();
+        fetchFresh().finally(() => setLoading(false));
     }, [role, isStorekeeper, isAdmin, isExecutive]);
 
     // Every set below is built strictly from links that actually exist in that role's own
@@ -438,6 +439,8 @@ const AdminDashboard = () => {
             { label: 'Approval Rate', value: `${rate}%`, change: rate >= 50 ? 2.5 : -1.5 },
         ];
     })();
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div className="db-page">

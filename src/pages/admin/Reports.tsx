@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaFileExcel, FaFilePdf, FaArrowUp, FaArrowDown, FaBalanceScale, FaListUl, FaUserEdit } from 'react-icons/fa';
+import { FaFileExcel, FaFilePdf, FaArrowUp, FaArrowDown, FaBalanceScale, FaListUl, FaUserEdit, FaSpinner } from 'react-icons/fa';
 import { financeService } from '../../services/financeService';
 import type { MonthlyReport, YearlyReport, ReportTransaction } from '../../services/financeService';
 import jsPDF from 'jspdf';
@@ -257,6 +257,8 @@ const Reports = () => {
         a.href = url; a.download = `report_${view}_${periodStr.replace(' ', '_')}.xls`; a.click();
         URL.revokeObjectURL(url);
     };
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div>

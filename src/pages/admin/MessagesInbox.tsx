@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaEnvelope, FaUser, FaPhone, FaBuilding, FaCheck, FaClock, FaCheckCircle, FaTrash, FaInbox, FaChevronLeft, FaChevronRight, FaPaperPlane, FaTimes } from 'react-icons/fa';
+import { FaEnvelope, FaUser, FaPhone, FaBuilding, FaCheck, FaClock, FaCheckCircle, FaTrash, FaInbox, FaChevronLeft, FaChevronRight, FaPaperPlane, FaTimes, FaSpinner } from 'react-icons/fa';
 import { profileService, type ContactMessage } from '../../services/profileService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { mlService, type LeadScoreResult } from '../../services/mlService';
@@ -164,6 +164,8 @@ const MessagesInbox = () => {
         m.status === 'new' || m.status === 'unread' ? 'Unread' : 'Read',
         m.createdAt ? new Date(m.createdAt).toLocaleDateString() : '—',
     ]), [filtered]);
+
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
 
     return (
         <div className="admin-page">

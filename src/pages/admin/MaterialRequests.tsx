@@ -287,6 +287,8 @@ const MaterialRequests = () => {
         document.addEventListener('mouseup', onRejectMouseUp);
     }, [onRejectMouseMove, onRejectMouseUp]);
 
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
+
     return (
         <div className="admin-page">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
