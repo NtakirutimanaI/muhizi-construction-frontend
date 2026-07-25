@@ -246,6 +246,15 @@ const MaterialRequests = () => {
         );
     }
 
+    if (loading) {
+        return (
+            <div className="admin-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh' }}>
+                <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                <span style={{ marginLeft: '0.75rem', fontSize: '0.9rem' }}>Loading...</span>
+            </div>
+        );
+    }
+
     return (
         <div className="admin-page">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '0.5rem' }}>
