@@ -38,6 +38,7 @@ const Designs = lazy(() => import('./pages/admin/Designs'));
 const Partnerships = lazy(() => import('./pages/admin/Partnerships'));
 const Employees = lazy(() => import('./pages/admin/Employees'));
 const Attendance = lazy(() => import('./pages/admin/Attendance'));
+const AttendanceReports = lazy(() => import('./pages/admin/AttendanceReports'));
 const Payroll = lazy(() => import('./pages/admin/Payroll'));
 const Incomes = lazy(() => import('./pages/admin/Incomes'));
 const Expenses = lazy(() => import('./pages/admin/Expenses'));
@@ -176,6 +177,7 @@ function App() {
                         <Route path="partnerships" element={<Partnerships />} />
                         <Route path="employees" element={<Employees />} />
                         <Route path="attendance" element={<Attendance />} />
+                        <Route path="attendance-reports" element={<AttendanceReports />} />
                         <Route path="employee-assignments" element={<EmployeeAssignments />} />
                         <Route path="payroll" element={<Payroll />} />
                         <Route path="incomes" element={<Incomes />} />

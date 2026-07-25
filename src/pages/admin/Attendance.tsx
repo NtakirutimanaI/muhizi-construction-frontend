@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { FaEdit, FaTrash, FaTimes as FaTimesIcon, FaClock, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight, FaProjectDiagram, FaSave, FaUsers, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaBan, FaUserShield, FaSpinner } from 'react-icons/fa';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { FaEdit, FaTrash, FaTimes as FaTimesIcon, FaClock, FaChevronLeft, FaChevronRight, FaProjectDiagram, FaSave, FaUsers, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaBan, FaUserShield, FaSpinner, FaClipboardList, FaCalendarAlt } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { authService } from '../../services/authService';
@@ -10,8 +10,6 @@ import { sitesService } from '../../services/sitesService';
 import { useAuth } from '../../context/AuthContext';
 import type { Attendance, Employee } from '../../services/hrService';
 import { useToast } from '../../context/ToastContext';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 type AttendanceStatus = 'present' | 'absent' | 'late' | 'half_day' | 'on_leave' | 'permission' | 'suspended';
 
@@ -25,6 +23,15 @@ const STATUS_OPTIONS: { value: AttendanceStatus; label: string; color: string }[
     { value: 'permission', label: 'Permission', color: '#8b5cf6' },
     { value: 'suspended', label: 'Suspended', color: '#6b7280' },
 ];
+
+const deduplicateAttendanceRecords = (records: Attendance[]) => {
+    const unique = new Map<string, Attendance>();
+    records.forEach((record) => {
+        if (!record.employeeId || !record.date) return;
+        unique.set(`${record.employeeId}:${record.date}`, record);
+    });
+    return Array.from(unique.values());
+};
 
 const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
     <div style={{
@@ -47,7 +54,9 @@ const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactN
 const AttendancePage = () => {
     const { showToast } = useToast();
     const { user } = useAuth();
+    const location = useLocation();
     const role = user?.role || '';
+    const basePath = location.pathname.split('/').slice(0, 2).join('/') || '/admin';
     const isSiteEngineer = role === 'site_engineer';
     const [searchParams, setSearchParams] = useSearchParams();
     const urlSite = searchParams.get('site') || '';
@@ -70,6 +79,7 @@ const AttendancePage = () => {
     const [siteAttendance, setSiteAttendance] = useState<Attendance[]>([]);
     const [siteProjectId, setSiteProjectId] = useState('');
     const [projectAttendance, setProjectAttendance] = useState<Attendance[]>([]);
+    const [projectLeader, setProjectLeader] = useState<{ id?: string; name?: string }>({});
     const [projectAttendanceLoading, setProjectAttendanceLoading] = useState(false);
     const [expandedDate, setExpandedDate] = useState<string | null>(null);
     const [showReport, setShowReport] = useState(false);
@@ -99,7 +109,7 @@ const AttendancePage = () => {
                 authService.getAllUsers().catch(() => []),
                 constructionService.getProjects().catch(() => ({ data: [] })),
             ]);
-            setData(attRes.data || []);
+            setData(deduplicateAttendanceRecords(attRes.data || []));
             setProjects(projRes.data || []);
             const empData = empRes.data || [];
             const users = Array.isArray(usersRes) ? usersRes : [];
@@ -158,7 +168,7 @@ const AttendancePage = () => {
 
     useEffect(() => {
         if (urlSite) {
-            hrService.getAttendanceBySite(urlSite).then(res => setSiteAttendance(res.data || [])).catch(() => setSiteAttendance([]));
+            hrService.getAttendanceBySite(urlSite).then(res => setSiteAttendance(deduplicateAttendanceRecords(res.data || []))).catch(() => setSiteAttendance([]));
             sitesService.getAll().then(r => {
                 const s = (r.data || []).find((s: any) => s.name === urlSite);
                 if (s?.projectId) { setSiteProjectId(s.projectId); setSelectedProjectId(s.projectId); }
@@ -188,19 +198,49 @@ const AttendancePage = () => {
             setBatchData([]);
             setProjectAttendanceLoading(true);
             hrService.getAttendanceByProject(selectedProjectId)
-                .then(res => setProjectAttendance(res.data || []))
+                .then(res => setProjectAttendance(deduplicateAttendanceRecords(res.data || [])))
                 .catch(() => setProjectAttendance([]))
                 .finally(() => setProjectAttendanceLoading(false));
+            sitesService.getByProject(selectedProjectId)
+                .then(res => {
+                    const sites = (res.data || []) as Array<{ assignedEngineerId?: string; assignedEngineerName?: string }>;
+                    const assignedSite = sites.find(site => site.assignedEngineerId || site.assignedEngineerName) || sites[0];
+                    const leaderId = assignedSite?.assignedEngineerId || '';
+                    const leaderName = assignedSite?.assignedEngineerName || '';
+                    setProjectLeader({ id: leaderId, name: leaderName });
+                })
+                .catch(() => setProjectLeader({}));
         } else {
             setAssignments([]);
             setSelectedDate('');
             setBatchData([]);
             setProjectAttendance([]);
+            setProjectLeader({});
         }
     }, [selectedProjectId, fetchAssignments]);
 
+    const dedupedData = useMemo(() => deduplicateAttendanceRecords(data), [data]);
+    const dedupedProjectAttendance = useMemo(() => deduplicateAttendanceRecords(projectAttendance), [projectAttendance]);
+    const dedupedSiteAttendance = useMemo(() => deduplicateAttendanceRecords(siteAttendance), [siteAttendance]);
+
+    const sortByProjectLeader = useCallback((items: Array<{ employeeId?: string }>) => {
+        const leaderId = projectLeader.id;
+        const leaderName = (projectLeader.name || '').trim().toLowerCase();
+        return [...items].sort((a, b) => {
+            const aMatchesLeader = leaderId ? a.employeeId === leaderId : false;
+            const bMatchesLeader = leaderId ? b.employeeId === leaderId : false;
+            if (aMatchesLeader !== bMatchesLeader) return aMatchesLeader ? -1 : 1;
+            const aName = getEmployeeName(a.employeeId || '').toLowerCase();
+            const bName = getEmployeeName(b.employeeId || '').toLowerCase();
+            const aMatchesName = leaderName ? aName.includes(leaderName) : false;
+            const bMatchesName = leaderName ? bName.includes(leaderName) : false;
+            if (aMatchesName !== bMatchesName) return aMatchesName ? -1 : 1;
+            return aName.localeCompare(bName);
+        });
+    }, [getEmployeeName, projectLeader.id, projectLeader.name]);
+
     const reportHierarchy = useMemo(() => {
-        const source = projectAttendance.length > 0 ? projectAttendance : data;
+        const source = dedupedProjectAttendance.length > 0 ? dedupedProjectAttendance : dedupedData;
         const years: Record<string, Record<string, Record<string, Attendance[]>>> = {};
         source.forEach(a => {
             if (!a.date) return;
@@ -211,6 +251,13 @@ const AttendancePage = () => {
             if (!years[yr][mo]) years[yr][mo] = {};
             if (!years[yr][mo][a.date]) years[yr][mo][a.date] = [];
             years[yr][mo][a.date].push(a);
+        });
+        Object.keys(years).forEach((yr) => {
+            Object.keys(years[yr]).forEach((mo) => {
+                Object.keys(years[yr][mo]).forEach((dt) => {
+                    years[yr][mo][dt] = sortByProjectLeader(years[yr][mo][dt]) as Attendance[];
+                });
+            });
         });
         return Object.keys(years).sort((a, b) => Number(b) - Number(a)).map(yr => {
             const allYearRecords = Object.keys(years[yr]).flatMap(mo =>
@@ -238,11 +285,11 @@ const AttendancePage = () => {
                 totalRecords: allYearRecords.length,
             };
         });
-    }, [data, projectAttendance]);
+    }, [dedupedData, dedupedProjectAttendance, sortByProjectLeader]);
 
     useEffect(() => {
         if (selectedProjectId && selectedDate) {
-            const existingForDate = data.filter(d => d.date === selectedDate && d.projectId === selectedProjectId);
+            const existingForDate = dedupedData.filter(d => d.date === selectedDate && d.projectId === selectedProjectId);
             const existingMap = new Map(existingForDate.map(d => [d.employeeId, d]));
             const assigned = assignments
                 .filter(a => a.employee)
@@ -259,6 +306,21 @@ const AttendancePage = () => {
                         notes: existing?.notes || '',
                     };
                 });
+            const leaderRecord = projectLeader.id
+                ? employees.find(emp => emp.id === projectLeader.id)
+                : undefined;
+            if (leaderRecord && !assigned.some(item => item.employeeId === leaderRecord.id)) {
+                assigned.unshift({
+                    employeeId: leaderRecord.id,
+                    firstName: leaderRecord.firstName,
+                    lastName: leaderRecord.lastName,
+                    checkIn: existingMap.get(leaderRecord.id)?.checkIn || '09:00',
+                    checkOut: existingMap.get(leaderRecord.id)?.checkOut || '17:00',
+                    status: (existingMap.get(leaderRecord.id)?.status || 'present') as AttendanceStatus,
+                    existingId: existingMap.get(leaderRecord.id)?.id,
+                    notes: existingMap.get(leaderRecord.id)?.notes || '',
+                });
+            }
             const extraExisting = existingForDate.filter(d => !assignments.some(a => a.employeeId === d.employeeId));
             extraExisting.forEach(d => {
                 const emp = employees.find(e => e.id === d.employeeId);
@@ -290,26 +352,43 @@ const AttendancePage = () => {
                         notes: selfExisting?.notes || '',
                         isSelf: true,
                     };
-                    setBatchData([selfEntry, ...assigned.filter(a => a.employeeId !== selfEntry.employeeId)]);
+                    const merged = [selfEntry, ...assigned.filter(a => a.employeeId !== selfEntry.employeeId)];
+                    setBatchData(sortByProjectLeader(merged));
                     return;
                 }
             }
-            setBatchData(assigned);
+            setBatchData(sortByProjectLeader(assigned));
         } else {
             setBatchData([]);
         }
-    }, [selectedProjectId, selectedDate, assignments, data, employees, isSiteEngineer, user]);
+    }, [selectedProjectId, selectedDate, assignments, dedupedData, employees, isSiteEngineer, user, sortByProjectLeader]);
 
     const filtered = useMemo(() => {
-        const source = urlSite ? siteAttendance : data;
+        const source = urlSite ? dedupedSiteAttendance : dedupedData;
         const q = search.toLowerCase().trim();
-        return source.filter(d => {
+        const filtered = source.filter(d => {
             const name = getEmployeeName(d.employeeId).toLowerCase();
             if (q && !name.includes(q) && !d.status.toLowerCase().includes(q)) return false;
             if (d.date !== dailyDate) return false;
             return true;
         });
-    }, [data, siteAttendance, urlSite, search, dailyDate, getEmployeeName]);
+        const leaderRecord = projectLeader.id
+            ? employees.find(emp => emp.id === projectLeader.id)
+            : undefined;
+        if (leaderRecord && !filtered.some(item => item.employeeId === leaderRecord.id)) {
+            filtered.unshift({
+                ...source.find(item => item.employeeId === leaderRecord.id),
+                employeeId: leaderRecord.id,
+                projectId: selectedProjectId || undefined,
+                date: dailyDate,
+                status: 'present',
+                checkIn: '09:00',
+                checkOut: '17:00',
+                notes: '',
+            } as Attendance);
+        }
+        return sortByProjectLeader(filtered);
+    }, [dedupedData, dedupedSiteAttendance, urlSite, search, dailyDate, getEmployeeName, sortByProjectLeader]);
 
     const totalPages = pageSize === 0 ? 1 : Math.ceil(filtered.length / pageSize);
     const paginated = useMemo(() => {
@@ -339,113 +418,8 @@ const AttendancePage = () => {
         d.status.replace('_', ' '),
     ]), [filtered, employeeMap]);
 
-    const downloadPDF = () => {
-        const source = projectAttendance.length > 0 ? projectAttendance : data;
-        if (source.length === 0) { showToast('No attendance data to export', 'error'); return; }
-        const doc = new jsPDF();
-        const brown = '#1B2042';
-        const pageW = doc.internal.pageSize.getWidth();
-        const pageH = doc.internal.pageSize.getHeight();
-        doc.setFontSize(22);
-        doc.setTextColor(brown);
-        doc.setFont('helvetica', 'bold');
-        doc.text('MUHIZI CONSTRUCTION', pageW / 2, 22, { align: 'center' });
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text('Building Your Vision, Delivering Excellence', pageW / 2, 30, { align: 'center' });
-        doc.setDrawColor(brown);
-        doc.setLineWidth(0.8);
-        doc.line(14, 34, pageW - 14, 34);
-        doc.setFontSize(13);
-        doc.setTextColor(brown);
-        doc.setFont('helvetica', 'bold');
-        const titleY = 40;
-        doc.text(`Attendance Report — ${selectedProject?.name || 'All Projects'}`, 14, titleY);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor('#666');
-        const genDate = new Date().toLocaleDateString();
-        doc.text(`Generated: ${genDate} | Records: ${source.length}`, pageW - 14, titleY, { align: 'right' });
-        const rows = source
-            .sort((a, b) => a.date.localeCompare(b.date))
-            .map((d, i) => [
-                String(i + 1),
-                employeeMap[d.employeeId] || d.employeeId,
-                new Date(d.date).toLocaleDateString(),
-                d.project?.name || '—',
-                d.site || '—',
-                d.checkIn || '—',
-                d.checkOut || '—',
-                d.status.replace('_', ' '),
-            ]);
-        autoTable(doc, {
-            head: [['#', 'Employee', 'Date', 'Project', 'Site', 'Check In', 'Check Out', 'Status']],
-            body: rows,
-            startY: 46,
-            styles: { fontSize: 8, textColor: '#333' },
-            headStyles: { fillColor: [139, 69, 19], textColor: [255, 255, 255], fontStyle: 'bold' },
-            alternateRowStyles: { fillColor: [250, 245, 240] },
-            columnStyles: { 0: { cellWidth: 10, halign: 'center' } },
-            didDrawPage: (data: any) => {
-                doc.setDrawColor(brown);
-                doc.setLineWidth(0.5);
-                doc.line(14, pageH - 20, pageW - 14, pageH - 20);
-                doc.setFontSize(8);
-                doc.setTextColor(brown);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Email: info@muhiziconstruction.com  |  Phone: +250 788 000 000  |  Location: Kigali, Rwanda', pageW / 2, pageH - 14, { align: 'center' });
-            },
-        });
-        doc.save(`attendance-${selectedProject?.name || 'all'}.pdf`);
-    };
-
-    const downloadExcel = () => {
-        const source = projectAttendance.length > 0 ? projectAttendance : data;
-        if (source.length === 0) { showToast('No attendance data to export', 'error'); return; }
-        const wb = XLSX.utils.book_new();
-        const grouped: Record<string, Attendance[]> = {};
-        source.forEach(a => {
-            if (!a.date) return;
-            const d = new Date(a.date);
-            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-            if (!grouped[key]) grouped[key] = [];
-            grouped[key].push(a);
-        });
-        const sortedKeys = Object.keys(grouped).sort();
-        sortedKeys.forEach(key => {
-            const [yr, mo] = key.split('-');
-            const monthName = new Date(Number(yr), Number(mo) - 1).toLocaleString('en', { month: 'long' });
-            const sheetName = `${yr}-${monthName}`;
-            const sorted = grouped[key].sort((a, b) => a.date.localeCompare(b.date) || (a.checkIn || '').localeCompare(b.checkIn || ''));
-            const ws = XLSX.utils.json_to_sheet([
-                ['MUHIZI CONSTRUCTION — Attendance Report'],
-                [`${monthName} ${yr}  |  Generated: ${new Date().toLocaleDateString()}`],
-                [],
-                ['#', 'Employee', 'Date', 'Project', 'Site', 'Check In', 'Check Out', 'Status', 'Notes'],
-                ...sorted.map((a, i) => [
-                    i + 1,
-                    employeeMap[a.employeeId] || a.employeeId,
-                    new Date(a.date).toLocaleDateString(),
-                    a.project?.name || '—',
-                    a.site || '—',
-                    a.checkIn || '—',
-                    a.checkOut || '—',
-                    a.status.replace('_', ' '),
-                    a.notes || '',
-                ]),
-            ]);
-            ws['!cols'] = [
-                { wch: 5 }, { wch: 22 }, { wch: 12 }, { wch: 20 }, { wch: 18 },
-                { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 25 },
-            ];
-            XLSX.utils.book_append_sheet(wb, ws, sheetName);
-        });
-        const projectName = selectedProject?.name || 'All';
-        XLSX.writeFile(wb, `attendance-${projectName}.xlsx`);
-    };
-
     const stats = useMemo(() => {
-        const source = urlSite ? siteAttendance : data;
+        const source = urlSite ? dedupedSiteAttendance : dedupedData;
         const hours = source.reduce((sum, d) => {
             if (d.checkIn && d.checkOut) {
                 const [ih, im] = d.checkIn.split(':').map(Number);
@@ -582,46 +556,31 @@ const AttendancePage = () => {
                 </div>
             </div>
 
-            <div className="attendance-toolbar">
-            <div className="attendance-export-actions" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
-                    <FaFileExcel /> Excel
-                </button>
-                <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
-                    <FaFilePdf /> PDF
-                </button>
-            </div>
-
-            <div className="admin-card attendance-report-card" style={{ border: '2px solid var(--primary)', padding: '0.4rem 0.75rem' }}>
-                <h3 style={{ margin: '0 0 0.3rem', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
-                    <FaProjectDiagram /> Daily Attendance Report
-                </h3>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <select className="form-select" value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} style={{ width: '100%', padding: '0.3rem', fontSize: '0.8rem' }}>
-                            <option value="">— Choose a project —</option>
-                            {projects.filter(p => !urlSite || p.id === siteProjectId).map(p => (
-                                <option key={p.id} value={p.id}>{p.name} {p.location ? `(${p.location})` : ''}</option>
-                            ))}
-                        </select>
+            <div className="attendance-toolbar" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+                    <div className="admin-card attendance-report-card" style={{ border: '2px solid var(--primary)', padding: '0.25rem 0.6rem', margin: 0, flex: 1, minWidth: 0 }}>
+                        <h3 style={{ margin: '0 0 0.2rem', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.82rem' }}>
+                            <FaProjectDiagram /> Daily Attendance Report
+                        </h3>
+                        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'flex-end' }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <select className="form-select" value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} style={{ width: '100%', padding: '0.25rem', fontSize: '0.78rem' }}>
+                                    <option value="">— Choose a project —</option>
+                                    {projects.filter(p => !urlSite || p.id === siteProjectId).map(p => (
+                                        <option key={p.id} value={p.id}>{p.name} {p.location ? `(${p.location})` : ''}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div style={{ width: 132, flexShrink: 0 }}>
+                                <input type="date" className="form-input" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} disabled={!selectedProjectId} style={{ width: '100%', padding: '0.25rem', fontSize: '0.78rem' }} />
+                            </div>
+                        </div>
                     </div>
-                    <div style={{ width: 142, flexShrink: 0 }}>
-                        <input type="date" className="form-input" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} disabled={!selectedProjectId} style={{ width: '100%', padding: '0.3rem', fontSize: '0.8rem' }} />
-                    </div>
-                </div>
 
-                <div style={{ display: 'flex', gap: '0.35rem' }}>
-                    <button className="admin-btn" onClick={() => setShowReport(!showReport)} style={{ background: showReport ? '#b45309' : '#1B2042', borderColor: showReport ? '#b45309' : '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.6rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1 }}>
+                    <Link className="admin-btn" to={`${basePath}/attendance-reports`} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.2rem 0.7rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1, alignSelf: 'flex-start', width: '100%', maxWidth: '180px', minHeight: '28px', justifyContent: 'center', marginLeft: 0, textDecoration: 'none' }}>
                         <FaClipboardList size={12} /> Attendance Report
-                    </button>
-                    <button className="admin-btn" onClick={downloadExcel} title="Download as Excel" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.6rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1 }}>
-                        <FaFileExcel size={12} /> Excel
-                    </button>
-                    <button className="admin-btn" onClick={downloadPDF} title="Download as PDF" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.6rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1 }}>
-                        <FaFilePdf size={12} /> PDF
-                    </button>
+                    </Link>
                 </div>
-            </div>
 
             </div>
 
@@ -685,155 +644,76 @@ const AttendancePage = () => {
                 </div>
             )}
 
-            <div className="admin-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem', flexWrap: 'wrap', gap: '0.3rem' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{selectedProjectId ? 'Project Attendance Report' : 'All Attendance Records'}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        {!selectedProjectId && (
+            {!selectedProjectId && (
+                <div className="admin-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem', flexWrap: 'wrap', gap: '0.3rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                             <input type="text" className="form-input" placeholder="Search employee, status..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 280 }} />
-                        )}
-                    </div>
-                    {reportHierarchy.length === 0 ? (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                            <FaClock size={28} style={{ opacity: 0.3, marginBottom: 8 }} />
-                            <div>No attendance records saved yet.</div>
-                            <div style={{ fontSize: '0.78rem', marginTop: 4 }}>Select a project, pick a date, mark attendance and save — records will appear here grouped by year and month.</div>
                         </div>
-                    ) : (
-                        <div style={{ border: '1px solid #e5e5e5', borderRadius: 6, overflow: 'hidden' }}>
-                            {reportHierarchy.map(yrBlock => {
-                                const isYearOpen = expandedYear === yrBlock.year;
-                                return (
-                                    <div key={yrBlock.year}>
-                                        <div
-                                            onClick={() => { setExpandedYear(isYearOpen ? null : yrBlock.year); setExpandedMonth(null); setExpandedDate(null); }}
-                                            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.55rem 0.8rem', borderBottom: '1px solid #e5e5e5', background: isYearOpen ? '#f9f6f0' : '#fafafa', cursor: 'pointer', userSelect: 'none' }}
-                                        >
-                                            <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1B2042' }}>
-                                                <FaCalendarDay style={{ marginRight: 6, fontSize: '0.75rem' }} />{yrBlock.year}
-                                                <span style={{ marginLeft: 8, fontSize: '0.72rem', fontWeight: 400, color: 'var(--text-muted)' }}>
-                                                    {yrBlock.months.reduce((s, m) => s + m.totalRecords, 0)} records
-                                                </span>
-                                            </span>
-                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{isYearOpen ? '▲' : '▼'}</span>
-                                        </div>
-                                        {isYearOpen && yrBlock.months.map(moBlock => {
-                                            const monthKey = moBlock.key;
-                                            const isMonthOpen = expandedMonth === monthKey;
-                                            return (
-                                                <div key={monthKey} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                                    <div
-                                                        onClick={() => setExpandedMonth(isMonthOpen ? null : monthKey)}
-                                                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.45rem 0.8rem 0.45rem 1.8rem', borderBottom: isMonthOpen ? '1px solid #f0f0f0' : 'none', background: isMonthOpen ? '#fef3c7' : '#fff', cursor: 'pointer', userSelect: 'none' }}
-                                                    >
-                                                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#92400e' }}>
-                                                            {moBlock.monthName}
-                                                            <span style={{ marginLeft: 6, fontSize: '0.7rem', fontWeight: 400, color: 'var(--text-muted)' }}>
-                                                                {moBlock.totalRecords} records
-                                                                <span style={{ marginLeft: 6, color: '#22c55e' }}>{moBlock.present}P</span>
-                                                                <span style={{ marginLeft: 3, color: '#ef4444' }}>{moBlock.absent}A</span>
-                                                                <span style={{ marginLeft: 3, color: '#f59e0b' }}>{moBlock.late}L</span>
-                                                            </span>
-                                                        </span>
-                                                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{isMonthOpen ? '▲' : '▼'}</span>
-                                                    </div>
-                                                    {isMonthOpen && moBlock.dates.map(dayBlock => {
-                                                        const isDayOpen = expandedDate === dayBlock.date;
-                                                        const dayPresent = dayBlock.records.filter(r => r.status === 'present').length;
-                                                        const dayAbsent = dayBlock.records.filter(r => r.status === 'absent').length;
-                                                        const dayLate = dayBlock.records.filter(r => r.status === 'late').length;
-                                                        return (
-                                                            <div key={dayBlock.date} style={{ borderBottom: '1px solid #f5f5f5' }}>
-                                                                <div
-                                                                    onClick={() => setExpandedDate(isDayOpen ? null : dayBlock.date)}
-                                                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0.8rem 0.4rem 3.2rem', background: isDayOpen ? '#fef9ee' : '#fff', cursor: 'pointer', userSelect: 'none' }}
-                                                                >
-                                                                    <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>
-                                                                        <strong>{new Date(dayBlock.date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}</strong>
-                                                                        <span style={{ marginLeft: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                                                                            {dayBlock.records.length} people
-                                                                            <span style={{ marginLeft: 5, color: '#22c55e' }}>{dayPresent}P</span>
-                                                                            <span style={{ marginLeft: 2, color: '#ef4444' }}>{dayAbsent}A</span>
-                                                                            <span style={{ marginLeft: 2, color: '#f59e0b' }}>{dayLate}L</span>
-                                                                        </span>
-                                                                    </span>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
+                    </div>
+
+                    <div style={{ overflowX: 'auto' }}>
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th><th>Date</th><th>Project</th><th>Site</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {paginated.map(item => (
+                                    <tr key={item.id}>
+                                        <td><strong>{getEmployeeName(item.employeeId)}</strong></td>
+                                        <td style={{ whiteSpace: 'nowrap' }}>{new Date(item.date).toLocaleDateString()}</td>
+                                        <td>{item.project?.name || '—'}</td>
+                                        <td>{item.site || '—'}</td>
+                                        <td>{item.checkIn || '—'}</td>
+                                        <td>{item.checkOut || '—'}</td>
+                                        <td>
+                                            <span style={{
+                                                display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
+                                                color: '#fff', background: STATUS_OPTIONS.find(s => s.value === item.status)?.color || '#6b7280',
+                                            }}>{item.status.replace('_', ' ')}</span>
+                                        </td>
+                                        <td>
+                                            <div style={{ display: 'flex', gap: 4 }}>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => openEdit(item)}><FaEdit /></button>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)}><FaTrash /></button>
                                             </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <>
-                        <div style={{ overflowX: 'auto' }}>
-                            <table className="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>Employee</th><th>Date</th><th>Project</th><th>Site</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Actions</th>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {paginated.map(item => (
-                                        <tr key={item.id}>
-                                            <td><strong>{getEmployeeName(item.employeeId)}</strong></td>
-                                            <td style={{ whiteSpace: 'nowrap' }}>{new Date(item.date).toLocaleDateString()}</td>
-                                            <td>{item.project?.name || '—'}</td>
-                                            <td>{item.site || '—'}</td>
-                                            <td>{item.checkIn || '—'}</td>
-                                            <td>{item.checkOut || '—'}</td>
-                                            <td>
-                                                <span style={{
-                                                    display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
-                                                    color: '#fff', background: STATUS_OPTIONS.find(s => s.value === item.status)?.color || '#6b7280',
-                                                }}>{item.status.replace('_', ' ')}</span>
-                                            </td>
-                                            <td>
-                                                <div style={{ display: 'flex', gap: 4 }}>
-                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => openEdit(item)}><FaEdit /></button>
-                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)}><FaTrash /></button>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                ))}
+                                {data.length === 0 && (
+                                    <tr><td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                        <FaClock size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
+                                        <div>No attendance records found.</div>
+                                    </td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.3rem 0', flexWrap: 'wrap', gap: 4 }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Per page:</span>
+                                <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.7rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
+                                    {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                                    <option value={0}>All</option>
+                                </select>
+                            </div>
+                            {pageSize > 0 && totalPages > 1 && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                        <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 26, fontSize: '0.75rem' }} onClick={() => setPage(p)}>{p}</button>
                                     ))}
-                                    {data.length === 0 && (
-                                        <tr><td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                            <FaClock size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
-                                            <div>No attendance records found.</div>
-                                        </td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.3rem 0', flexWrap: 'wrap', gap: 4 }}>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
-                            </span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Per page:</span>
-                                    <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.7rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
-                                        {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                                        <option value={0}>All</option>
-                                    </select>
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                                 </div>
-                                {pageSize > 0 && totalPages > 1 && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
-                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                            <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 26, fontSize: '0.75rem' }} onClick={() => setPage(p)}>{p}</button>
-                                        ))}
-                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
-                                    </div>
-                                );
-                            })}
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
             )}
 

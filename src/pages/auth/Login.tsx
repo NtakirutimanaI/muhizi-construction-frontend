@@ -34,7 +34,10 @@ const Login = () => {
             navigate(target);
         } catch (err: any) {
             const errMsg = err.response?.data?.message;
-            setError(Array.isArray(errMsg) ? errMsg.join('. ') : (errMsg || 'Failed to login. Please check your credentials.'));
+            const fallback = err.code === 'ERR_NETWORK'
+                ? 'Unable to reach the server right now. Please try again in a moment.'
+                : (err.message?.includes('timeout') ? 'The sign-in request timed out. Please try again.' : 'Failed to login. Please check your credentials.');
+            setError(Array.isArray(errMsg) ? errMsg.join('. ') : (errMsg || fallback));
         } finally {
             setIsLoading(false);
         }

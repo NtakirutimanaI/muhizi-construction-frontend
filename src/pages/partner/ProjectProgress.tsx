@@ -290,8 +290,8 @@ const ProjectProgress = () => {
                     <img src={previewUrl} alt="Preview" style={{ maxWidth: '92%', maxHeight: '92%', borderRadius: '8px', objectFit: 'contain' }} />
                 </div>
             )}
-        </div>
-        </>)}
+            </>
+        )}
         </div>
     );
 };
