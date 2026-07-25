@@ -558,21 +558,21 @@ const AttendancePage = () => {
 
             <div className="attendance-toolbar" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-                    <div className="admin-card attendance-report-card" style={{ border: '2px solid var(--primary)', padding: '0.25rem 0.6rem', margin: 0, flex: 1, minWidth: 0 }}>
-                        <h3 style={{ margin: '0 0 0.2rem', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.82rem' }}>
-                            <FaProjectDiagram /> Daily Attendance Report
+                    <div className="admin-card attendance-report-card" style={{ border: '2px solid var(--primary)', padding: '0 0.3rem', margin: 0, flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '0.3rem', height: '28px' }}>
+                        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
+                            <FaProjectDiagram size={10} /> Daily Attendance
                         </h3>
-                        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'flex-end' }}>
+                        <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center', flex: 1 }}>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <select className="form-select" value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} style={{ width: '100%', padding: '0.25rem', fontSize: '0.78rem' }}>
+                                <select className="form-select" value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} style={{ width: '100%', padding: '0 0.2rem', fontSize: '0.7rem', height: '20px', minHeight: '20px', lineHeight: '1', borderRadius: '3px' }}>
                                     <option value="">— Choose a project —</option>
                                     {projects.filter(p => !urlSite || p.id === siteProjectId).map(p => (
                                         <option key={p.id} value={p.id}>{p.name} {p.location ? `(${p.location})` : ''}</option>
                                     ))}
                                 </select>
                             </div>
-                            <div style={{ width: 132, flexShrink: 0 }}>
-                                <input type="date" className="form-input" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} disabled={!selectedProjectId} style={{ width: '100%', padding: '0.25rem', fontSize: '0.78rem' }} />
+                            <div style={{ width: 110, flexShrink: 0 }}>
+                                <input type="date" className="form-input" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} disabled={!selectedProjectId} style={{ width: '100%', padding: '0 0.2rem', fontSize: '0.7rem', height: '20px', minHeight: '20px', lineHeight: '1', borderRadius: '3px' }} />
                             </div>
                         </div>
                     </div>

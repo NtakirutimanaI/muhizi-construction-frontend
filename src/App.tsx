@@ -37,6 +37,7 @@ const Projects = lazy(() => import('./pages/admin/Projects'));
 const Designs = lazy(() => import('./pages/admin/Designs'));
 const Partnerships = lazy(() => import('./pages/admin/Partnerships'));
 const Employees = lazy(() => import('./pages/admin/Employees'));
+const Recruitment = lazy(() => import('./pages/admin/Recruitment'));
 const Attendance = lazy(() => import('./pages/admin/Attendance'));
 const AttendanceReports = lazy(() => import('./pages/admin/AttendanceReports'));
 const Payroll = lazy(() => import('./pages/admin/Payroll'));
@@ -176,6 +177,7 @@ function App() {
                         <Route path="designs" element={<Designs />} />
                         <Route path="partnerships" element={<Partnerships />} />
                         <Route path="employees" element={<Employees />} />
+                        <Route path="recruitment" element={<Recruitment />} />
                         <Route path="attendance" element={<Attendance />} />
                         <Route path="attendance-reports" element={<AttendanceReports />} />
                         <Route path="employee-assignments" element={<EmployeeAssignments />} />

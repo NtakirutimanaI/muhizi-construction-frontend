@@ -37,11 +37,11 @@ const PAGE_SIZES = [5, 10, 15, 20];
 
 interface RecruitForm {
     firstName: string; lastName: string; email: string; phone: string;
-    address: string; position: string; workShift: string; nationalId: string; avatar: string;
+    address: string; position: string; nationalId: string; avatar: string;
 }
 const emptyForm: RecruitForm = {
     firstName: '', lastName: '', email: '', phone: '',
-    address: '', position: '', workShift: 'day', nationalId: '', avatar: '',
+    address: '', position: '', nationalId: '', avatar: '',
 };
 
 const Recruitment = () => {
@@ -70,36 +70,44 @@ const Recruitment = () => {
     const [pageSize, setPageSize] = useState(10);
 
     useEffect(() => {
-        sitesService.getMyAssigned().then(res => {
-            const sites = res.data || [];
-            setEngineerSites(sites);
-            const projMap = new Map<string, { id: string; name: string; location?: string }>();
-            sites.forEach((s: any) => {
-                if (s.project && !projMap.has(s.project.id)) {
-                    projMap.set(s.project.id, s.project);
+        sitesService.getMyAssigned()
+            .catch(() => sitesService.getAll())
+            .then(res => {
+                const sites = res?.data || [];
+                setEngineerSites(sites);
+                const projMap = new Map<string, { id: string; name: string; location?: string }>();
+                sites.forEach((s: any) => {
+                    if (s.project && !projMap.has(s.project.id)) {
+                        projMap.set(s.project.id, s.project);
+                    }
+                });
+                const projs = Array.from(projMap.values());
+                setEngineerProjects(projs);
+                if (projs.length >= 1) {
+                    setSelectedProjectId(projs[0].id);
+                    const site = sites.find((s: any) => s.projectId === projs[0].id);
+                    if (site) setSelectedSiteId(site.id);
                 }
-            });
-            const projs = Array.from(projMap.values());
-            setEngineerProjects(projs);
-            if (projs.length === 1) {
-                setSelectedProjectId(projs[0].id);
-                const site = sites.find((s: any) => s.projectId === projs[0].id);
-                if (site) setSelectedSiteId(site.id);
-            } else if (projs.length > 1) {
-                setSelectedProjectId(projs[0].id);
-                const site = sites.find((s: any) => s.projectId === projs[0].id);
-                if (site) setSelectedSiteId(site.id);
-            }
-        }).catch(() => {
-            showToast('Failed to load assigned sites', 'error');
-        }).finally(() => setLoading(false));
+            })
+            .catch(() => {
+                setEngineerSites([]);
+                setEngineerProjects([]);
+            })
+            .finally(() => setLoading(false));
     }, []);
 
     const fetchTeam = async () => {
         try {
             const assignRes = await assignmentService.getMyRecruits();
             setTeamMembers(assignRes.data || []);
-        } catch { /* */ }
+        } catch {
+            try {
+                const allAssignRes = await assignmentService.getAll();
+                setTeamMembers(allAssignRes.data || []);
+            } catch {
+                setTeamMembers([]);
+            }
+        }
     };
 
     useEffect(() => { fetchTeam(); }, []);
@@ -155,14 +163,11 @@ const Recruitment = () => {
                 phone: form.phone || undefined,
                 address: form.address || undefined,
                 position: form.position,
-                workShift: form.workShift,
                 nationalId: form.nationalId || undefined,
                 avatar: form.avatar || undefined,
                 department: 'construction',
                 status: 'active',
                 salary: 0,
-                employmentStatus: 'wage_worker',
-                recruitedBy: user?.id || '',
             };
             if (form.email.trim()) empPayload.email = form.email.trim();
 
@@ -194,11 +199,19 @@ const Recruitment = () => {
         if (!deleteTarget) return;
         setDeleting(true);
         try {
-            await assignmentService.delete(deleteTarget.id);
+            if (deleteTarget.id.startsWith('emp-')) {
+                await hrService.deleteEmployee(deleteTarget.employeeId);
+            } else {
+                await assignmentService.delete(deleteTarget.id);
+            }
             showToast('Worker removed from team', 'success');
             setDeleteTarget(null);
             fetchTeam();
-        } catch { showToast('Failed to remove worker', 'error'); }
+        } catch (e: any) {
+            const msg = e?.response?.data?.message;
+            const text = Array.isArray(msg) ? msg.join('. ') : typeof msg === 'string' ? msg : 'Failed to remove worker';
+            showToast(text, 'error');
+        }
         finally { setDeleting(false); }
     };
 
@@ -210,25 +223,10 @@ const Recruitment = () => {
         );
     }
 
-    if (engineerProjects.length === 0) {
-        return (
-            <div className="admin-page">
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem' }}>
-                    <FaUserPlus style={{ color: 'var(--primary)' }} /> Recruitment
-                </h2>
-                <div className="admin-card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    <FaProjectDiagram size={40} style={{ opacity: 0.3, marginBottom: 12 }} />
-                    <div style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 4 }}>No assigned sites found</div>
-                    <div>You don't have any sites assigned to you yet. Contact admin to get assigned.</div>
-                </div>
-            </div>
-        );
-    }
+
 
     const stats = {
         total: filtered.length,
-        day: filtered.filter(t => t.employee?.workShift === 'day').length,
-        night: filtered.filter(t => t.employee?.workShift === 'night').length,
     };
 
     return (
@@ -262,8 +260,6 @@ const Recruitment = () => {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }} />
                     <StatTile icon={<FaUsers />} label="My Team" value={String(stats.total)} accent="#1B2042" emphasis />
-                    <StatTile icon={<FaUsers />} label="Day Workers" value={String(stats.day)} accent="#22c55e" />
-                    <StatTile icon={<FaUsers />} label="Night Workers" value={String(stats.night)} accent="#6b7280" />
                 </div>
             </div>
 
@@ -283,7 +279,7 @@ const Recruitment = () => {
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <th>Name</th><th>Phone</th><th>Job Category</th><th>Shift</th><th>National ID</th><th style={{ textAlign: 'center' }}>Actions</th>
+                                <th>Name</th><th>Phone</th><th>Job Category</th><th>National ID</th><th style={{ textAlign: 'center' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -307,12 +303,6 @@ const Recruitment = () => {
                                         </td>
                                         <td>{emp.phone || '—'}</td>
                                         <td style={{ textTransform: 'capitalize' }}>{item.task || emp.position || '—'}</td>
-                                        <td>
-                                            <span style={{
-                                                display: 'inline-block', padding: '1px 8px', borderRadius: 10, fontSize: '0.72rem', fontWeight: 600,
-                                                color: '#fff', background: emp.workShift === 'night' ? '#6b7280' : '#22c55e',
-                                            }}>{emp.workShift || 'day'}</span>
-                                        </td>
                                         <td>{emp.nationalId || '—'}</td>
                                         <td style={{ textAlign: 'center' }}>
                                             <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
@@ -414,13 +404,6 @@ const Recruitment = () => {
                                         {JOB_CATEGORIES.map(j => <option key={j} value={j}>{j}</option>)}
                                     </select>
                                 </div>
-                                <div className="form-group">
-                                    <label className="form-label">Work Shift</label>
-                                    <select className="form-select" value={form.workShift} onChange={e => setForm(p => ({ ...p, workShift: e.target.value }))}>
-                                        <option value="day">Day</option>
-                                        <option value="night">Night</option>
-                                    </select>
-                                </div>
                                 <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                                     <label className="form-label">National ID Number (16 digits)</label>
                                     <input className="form-input" value={form.nationalId} maxLength={16} onChange={e => setForm(p => ({ ...p, nationalId: e.target.value.replace(/\D/g, '') }))} placeholder="1198000123456789" />
@@ -466,7 +449,6 @@ const Recruitment = () => {
                                     <div><div style={{ fontSize: '0.65rem', color: '#999', textTransform: 'uppercase' }}>Email</div><div>{emp.email || '—'}</div></div>
                                     <div><div style={{ fontSize: '0.65rem', color: '#999', textTransform: 'uppercase' }}>Address</div><div>{emp.address || '—'}</div></div>
                                     <div><div style={{ fontSize: '0.65rem', color: '#999', textTransform: 'uppercase' }}>National ID</div><div>{emp.nationalId || '—'}</div></div>
-                                    <div><div style={{ fontSize: '0.65rem', color: '#999', textTransform: 'uppercase' }}>Shift</div><div style={{ textTransform: 'capitalize' }}>{emp.workShift || 'day'}</div></div>
                                     <div><div style={{ fontSize: '0.65rem', color: '#999', textTransform: 'uppercase' }}>Assigned Since</div><div>{viewItem.startDate ? new Date(viewItem.startDate).toLocaleDateString() : '—'}</div></div>
                                 </div>
                             </div>
