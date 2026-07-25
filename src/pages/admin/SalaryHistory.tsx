@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaHistory, FaCheckCircle, FaClock, FaBan, FaDollarSign, FaMoneyBillWave } from 'react-icons/fa';
+import { FaHistory, FaCheckCircle, FaClock, FaBan, FaDollarSign, FaMoneyBillWave, FaSpinner } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
 import { useAuth } from '../../context/AuthContext';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
@@ -66,8 +66,8 @@ const SalaryHistory = () => {
 
     return (
         <div>
-            <div style={{ marginBottom: '1rem' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
+            <div style={{ marginBottom: '0.5rem' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0, fontSize: '1rem' }}>
                     <FaHistory style={{ color: 'var(--primary)' }} /> Salary History
                 </h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginTop: '0.75rem', marginBottom: '1.25rem' }}>
@@ -79,7 +79,7 @@ const SalaryHistory = () => {
                 </div>
             </div>
 
-            {loading && <div className="inline-spinner">Loading salary records...</div>}
+            {loading && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>}
             {err && <p style={{ color: '#ef4444', padding: '1rem' }}>{err}</p>}
 
             {!loading && !err && records.length === 0 && (

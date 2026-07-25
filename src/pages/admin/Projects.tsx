@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaProjectDiagram, FaCheckCircle, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye, FaHardHat, FaMapMarkerAlt, FaUser, FaCalendarAlt } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaProjectDiagram, FaCheckCircle, FaChevronLeft, FaChevronRight, FaEye, FaHardHat, FaMapMarkerAlt, FaUser, FaCalendarAlt, FaSpinner } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { sitesService, type Site } from '../../services/sitesService';
 import { authService } from '../../services/authService';
@@ -65,8 +65,6 @@ const Projects = () => {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
-    const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
     const [showCreateSite, setShowCreateSite] = useState(false);
     const [creatingSite, setCreatingSite] = useState(false);
     const [lastCreatedSiteId, setLastCreatedSiteId] = useState<string | null>(null);
@@ -213,34 +211,6 @@ const Projects = () => {
         if (page > totalPages) setPage(totalPages || 1);
     }, [totalPages, page]);
 
-    const onMouseMove = useCallback((e: MouseEvent) => {
-        if (!dragging.current) return;
-        setModalPos({ x: e.clientX - dragging.current.offsetX, y: e.clientY - dragging.current.offsetY });
-    }, []);
-
-    const onMouseUp = useCallback(() => {
-        dragging.current = null;
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-    }, [onMouseMove]);
-
-    useEffect(() => {
-        return () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        };
-    }, [onMouseMove, onMouseUp]);
-
-    const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-        const modal = (e.currentTarget as HTMLElement).closest('.admin-modal') as HTMLElement | null;
-        if (!modal) return;
-        const rect = modal.getBoundingClientRect();
-        setModalPos({ x: rect.left, y: rect.top });
-        dragging.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    }, [onMouseMove, onMouseUp]);
-
     const stats = useMemo(() => ({
         total: projects.length,
         active: projects.filter(p => p.status === 'in_progress').length,
@@ -344,7 +314,6 @@ const Projects = () => {
             partnerUserId: (item as any).partnerUserId || '',
             progress: item.progress || '',
         });
-        setModalPos(null);
         setShowModal(true);
     };
 

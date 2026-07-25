@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaClipboardList, FaCheckCircle, FaClock, FaHardHat, FaImage, FaVideo, FaCalendarAlt } from 'react-icons/fa';
+import { FaClipboardList, FaCheckCircle, FaClock, FaHardHat, FaImage, FaVideo, FaCalendarAlt, FaSpinner } from 'react-icons/fa';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { partnerPortalService } from '../../services/partnerPortalService';
 import type { ProjectEvidence } from '../../services/projectEvidenceService';
@@ -15,6 +15,7 @@ interface EvidenceWithSite extends ProjectEvidence {
 
 const PartnerUpdates = () => {
     const [items, setItems] = useState<EvidenceWithSite[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const cached = loadPageCache('partner-updates');
@@ -41,7 +42,7 @@ const PartnerUpdates = () => {
                 });
                 setItems(evData);
                 savePageCache('partner-updates', { items: evData });
-            } catch {}
+            } catch {} finally { setLoading(false); }
         };
         fetchFresh();
     }, []);
@@ -58,9 +59,12 @@ const PartnerUpdates = () => {
 
     return (
         <div className="dashboard-page">
-            <div className="dashboard-header">
+            {loading && items.length === 0 ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>
+            ) : (<>
+            <div className="dashboard-header" style={{ marginBottom: '0.5rem' }}>
                 <div>
-                    <h1 className="dashboard-title">
+                    <h1 className="dashboard-title" style={{ fontSize: '1rem' }}>
                         <FaClipboardList style={{ color: '#1a8a6a' }} /> Project Updates
                     </h1>
                     <p className="dashboard-subtitle">{items.length} update{items.length !== 1 ? 's' : ''} available</p>
@@ -205,6 +209,8 @@ const PartnerUpdates = () => {
                     </div>
                 </div>
             )}
+        </div>
+        </>)}
         </div>
     );
 };

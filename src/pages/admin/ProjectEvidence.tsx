@@ -11,7 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 import ConfirmDialog from '../../components/ConfirmDialog';
 
 const PAGE_SIZES = [5, 10, 15, 20];
-const FIELD_ROLES = ['site_engineer', 'site_manager'];
+const FIELD_ROLES = ['site_engineer'];
 
 const emptyForm = { project: '', siteId: '', type: 'image' as 'image' | 'video', title: '', url: '', date: new Date().toISOString().split('T')[0], notes: '' };
 
@@ -164,25 +164,25 @@ const ProjectEvidencePage = () => {
 
     return (
         <div>
-            <div style={{ marginBottom: '1.5rem' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ marginBottom: '0.5rem' }}>
+                <h1 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <FaImage style={{ color: '#1B2042' }} /> Project Evidence
                 </h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Upload and manage project photos and videos</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Upload and manage project photos and videos</p>
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Project:</span>
                     <select value={selectedProject} onChange={e => { setPage(1); setSelectedProject(e.target.value); }}
-                        style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.85rem', minWidth: '160px' }}>
+                        style={{ padding: '0.25rem 0.4rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.75rem', minWidth: '160px' }}>
                         <option value="all">All Projects</option>
                         {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                 </div>
-                <input value={search} onChange={e => { setPage(1); setSearch(e.target.value); }} placeholder="Search by project or title..." style={{ flex: 1, minWidth: '200px', padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.85rem' }} />
+                <input value={search} onChange={e => { setPage(1); setSearch(e.target.value); }} placeholder="Search by project or title..." style={{ flex: 1, minWidth: '200px', padding: '0.25rem 0.4rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.75rem' }} />
                 {canUpload && (
-                    <button onClick={openNew} style={{ padding: '0.4rem 1rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
+                    <button onClick={openNew} style={{ padding: '0.15rem 0.4rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
                         <FaPlus size={12} /> Add Evidence
                     </button>
                 )}
@@ -232,31 +232,31 @@ const ProjectEvidencePage = () => {
                 })}
                 {paginated.length === 0 && (
                     <div style={{ gridColumn: '1 / -1', padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        {loading ? (<><FaSpinner className="spin" style={{ marginRight: 6 }} /> Loading evidence...</>) : 'No evidence found.'}
+                        {loading ? (<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>) : 'No evidence found.'}
                     </div>
                 )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', padding: '0.25rem 0', flexWrap: 'wrap', gap: 8 }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', padding: '0.25rem 0', flexWrap: 'wrap', gap: 4 }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
                 </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
-                        <select className="form-select" style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Per page:</span>
+                        <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1rem 0.2rem 0.4rem', fontSize: '0.7rem' }}
                             value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                             {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                             <option value={0}>All</option>
                         </select>
                     </div>
                     {pageSize > 0 && totalPages > 1 && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.4rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
+                                <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 26, fontSize: '0.75rem' }} onClick={() => setPage(p)}>{p}</button>
                             ))}
-                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.4rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                         </div>
                     )}
                 </div>
@@ -273,8 +273,8 @@ const ProjectEvidencePage = () => {
             )}
 
             {showModal && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="content-card" style={{ width: '100%', maxWidth: 400, padding: '1rem' }}>
+                <div className="admin-modal-overlay">
+                    <div className="admin-modal" style={{ maxWidth: 400, padding: '1rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
                             <h3 style={{ fontWeight: 800, fontSize: '0.95rem' }}>{editing ? 'Edit Evidence' : 'Add Evidence'}</h3>
                             <button onClick={close} disabled={saving} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><FaTimes /></button>

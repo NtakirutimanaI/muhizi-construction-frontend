@@ -22,6 +22,7 @@ const DailyReports = () => {
     const [saving, setSaving] = useState(false);
 
     const load = async () => {
+        setLoading(true);
         const cached = loadPageCache<DailyReport[]>('pg_daily_reports');
         if (cached) {
             setReports(cached);
@@ -33,6 +34,8 @@ const DailyReports = () => {
             savePageCache('pg_daily_reports', data);
         } catch {
             if (!cached) showToast('Failed to load reports', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -71,52 +74,60 @@ const DailyReports = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+            {loading && reports.length === 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    <FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...
+                </div>
+            )}
+            {!loading && (
+            <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <h1 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
                         <FaClipboardCheck style={{ color: 'var(--primary)' }} /> Daily Operations Reports
                     </h1>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: '0.25rem' }}>
                         {isAdmin ? 'Daily summaries submitted by the Managing Director.' : 'Submit a short summary of the day\'s site, stock, and request activity.'}
                     </p>
                 </div>
                 {isSubmitter && (
-                    <button onClick={openNew} className="btn-primary" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}>
+                    <button onClick={openNew} className="btn-primary" style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem' }}>
                         <FaPlus /> Submit Today's Report
                     </button>
                 )}
             </div>
 
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
-                {reports.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                        <FaClipboardCheck size={36} style={{ opacity: 0.2, marginBottom: 10 }} />
-                        <div style={{ fontWeight: 600 }}>No reports yet</div>
-                        {isSubmitter && <div style={{ fontSize: '0.85rem' }}>Click "Submit Today's Report" to log your first one.</div>}
+            <div style={{ display: 'grid', gap: '0.5rem' }}>
+                {reports.length === 0 && !loading && (
+                    <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                        <FaClipboardCheck size={28} style={{ opacity: 0.2, marginBottom: 8 }} />
+                        <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>No reports yet</div>
+                        {isSubmitter && <div style={{ fontSize: '0.75rem' }}>Click "Submit Today's Report" to log your first one.</div>}
                     </div>
                 )}
                 {reports.map(r => (
-                    <div key={r.id} className="content-card" style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '1rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontWeight: 700, color: 'var(--text-main)', fontSize: '0.9rem' }}>
-                                    <FaCalendarDay size={11} style={{ color: 'var(--primary)' }} />
+                    <div key={r.id} className="content-card" style={{ padding: '0.6rem 0.75rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.35rem', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700, color: 'var(--text-main)', fontSize: '0.8rem' }}>
+                                    <FaCalendarDay size={10} style={{ color: 'var(--primary)' }} />
                                     {new Date(r.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}
                                 </span>
                                 {isAdmin && (
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                        <FaUser size={10} /> {r.submittedByName}
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                        <FaUser size={9} /> {r.submittedByName}
                                     </span>
                                 )}
                             </div>
                             {isAdmin && (
-                                <button onClick={() => remove(r.id)} style={{ color: 'var(--primary-red)', flexShrink: 0 }} title="Delete"><FaTrash size={12} /></button>
+                                <button onClick={() => remove(r.id)} style={{ color: 'var(--primary-red)', flexShrink: 0, padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} title="Delete"><FaTrash size={10} /></button>
                             )}
                         </div>
-                        <p style={{ fontSize: '0.88rem', color: 'var(--text-main)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>{r.summary}</p>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-main)', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap' }}>{r.summary}</p>
                     </div>
                 ))}
             </div>
+            </>)}
 
             {showNew && (
                 <div className="admin-modal-overlay" onClick={() => !saving && setShowNew(false)}>
@@ -126,19 +137,19 @@ const DailyReports = () => {
                             <button onClick={() => !saving && setShowNew(false)}><FaTimes /></button>
                         </div>
                         <div className="admin-modal-body">
-                            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                            <div className="form-group" style={{ marginBottom: '0.6rem' }}>
                                 <label className="form-label">Date</label>
                                 <input type="date" value={date} onChange={e => setDate(e.target.value)} className="form-input" max={todayStr()} />
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Summary</label>
-                                <textarea value={summary} onChange={e => setSummary(e.target.value)} className="form-textarea" rows={7}
+                                <textarea value={summary} onChange={e => setSummary(e.target.value)} className="form-textarea" rows={5}
                                     placeholder="e.g., Site A foundation pour completed on schedule. Site B awaiting cement delivery, expected tomorrow. Two material requests approved. No safety incidents." />
                             </div>
                         </div>
                         <div className="admin-modal-footer">
-                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowNew(false)} disabled={saving}>Cancel</button>
-                            <button className="admin-btn" onClick={submit} disabled={saving}>
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowNew(false)} disabled={saving} style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }}>Cancel</button>
+                            <button className="admin-btn" onClick={submit} disabled={saving} style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }}>
                                 {saving ? <><FaSpinner className="spin" /> Submitting...</> : 'Submit Report'}
                             </button>
                         </div>

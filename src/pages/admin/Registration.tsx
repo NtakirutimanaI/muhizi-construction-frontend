@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback, useRef, Fragment } from 'react';
-import { FaUserPlus, FaUser, FaEnvelope, FaPhone, FaHome, FaIdCard, FaGraduationCap, FaVenusMars, FaRing, FaUsers, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaSearch, FaCheckCircle, FaTimesCircle, FaUserTie, FaArrowsAlt, FaFilePdf, FaUpload, FaExternalLinkAlt, FaUniversity, FaBriefcase, FaInfoCircle, FaChevronDown, FaChevronUp, FaMoneyBillWave } from 'react-icons/fa';
+import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
+import { FaUserPlus, FaUser, FaEnvelope, FaPhone, FaHome, FaIdCard, FaGraduationCap, FaVenusMars, FaRing, FaUsers, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaSearch, FaCheckCircle, FaTimesCircle, FaUserTie, FaFilePdf, FaUpload, FaExternalLinkAlt, FaUniversity, FaBriefcase, FaInfoCircle, FaChevronDown, FaChevronUp, FaMoneyBillWave, FaSpinner } from 'react-icons/fa';
 import { insuranceService } from '../../services/insuranceService';
 import { authService } from '../../services/authService';
 import api from '../../services/api';
@@ -73,18 +73,18 @@ const emptyForm: FormState = {
 
 const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
     <div style={{
-        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0,
         background: emphasis ? `${accent}12` : 'var(--bg-white)',
         border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
-        borderRadius: 10, padding: '0.8rem 1rem',
+        borderRadius: 7, padding: '0.4rem 0.6rem',
     }}>
         <div style={{
-            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+            width: 26, height: 26, borderRadius: 6, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.75rem',
         }}>{icon}</div>
         <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
-            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '0.85rem' : '0.78rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
         </div>
     </div>
 );
@@ -122,8 +122,8 @@ const roleColors: Record<string, string> = {
 
 const InfoItem = ({ label, value, mono }: { label: string; value?: string; mono?: boolean }) => (
     <div>
-        <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginBottom: 2 }}>{label}</div>
-        <div style={{ fontWeight: 500, fontFamily: mono ? 'monospace' : undefined }}>{value || '—'}</div>
+        <div style={{ color: 'var(--text-muted)', fontSize: '0.62rem', marginBottom: 0 }}>{label}</div>
+        <div style={{ fontWeight: 500, fontSize: '0.75rem', fontFamily: mono ? 'monospace' : undefined }}>{value || '—'}</div>
     </div>
 );
 
@@ -142,8 +142,6 @@ const Registration = () => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-    const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
-    const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
     const [contractModalUser, setContractModalUser] = useState<UserData | null>(null);
     const [contractFile, setContractFile] = useState<File | null>(null);
     const [contractUploading, setContractUploading] = useState(false);
@@ -197,39 +195,13 @@ const Registration = () => {
         }
     };
 
-    useEffect(() => { fetchUsers(); }, []);
+    useEffect(() => {
+        authService.capitalizeNames().catch(() => {}).finally(() => fetchUsers());
+    }, []);
 
     useEffect(() => {
         insuranceService.getDeduction().then(res => setInsuranceDeduction(res.data.totalDeduction || 0)).catch(() => {});
     }, []);
-
-    const onMouseMove = useCallback((e: MouseEvent) => {
-        if (!dragging.current) return;
-        setModalPos({ x: e.clientX - dragging.current.offsetX, y: e.clientY - dragging.current.offsetY });
-    }, []);
-
-    const onMouseUp = useCallback(() => {
-        dragging.current = null;
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-    }, [onMouseMove]);
-
-    useEffect(() => {
-        return () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        };
-    }, [onMouseMove, onMouseUp]);
-
-    const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-        const modal = (e.currentTarget as HTMLElement).closest('.admin-modal') as HTMLElement | null;
-        if (!modal) return;
-        const rect = modal.getBoundingClientRect();
-        setModalPos({ x: rect.left, y: rect.top });
-        dragging.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    }, [onMouseMove, onMouseUp]);
 
     const validatePassword = (pw: string): string => {
         if (pw.length < 8) return 'Minimum 8 characters';
@@ -243,15 +215,15 @@ const Registration = () => {
         setForm(emptyForm);
         setEditingUser(null);
         setPasswordError('');
-        setModalPos(null);
         setShowModal('add');
     };
 
     const openEdit = (u: UserData) => {
+        const cap = (s: string) => s ? s.replace(/\b\w/g, c => c.toUpperCase()) : '';
         setEditingUser(u);
         setForm({
-            firstName: u.firstName || u.profile?.firstName || '',
-            lastName: u.lastName || u.profile?.lastName || '',
+            firstName: cap(u.firstName || u.profile?.firstName || ''),
+            lastName: cap(u.lastName || u.profile?.lastName || ''),
             email: u.email,
             password: '',
             role: u.role,
@@ -271,7 +243,6 @@ const Registration = () => {
             isActive: u.isActive,
         });
         setPasswordError('');
-        setModalPos(null);
         setShowModal('edit');
     };
 
@@ -371,14 +342,16 @@ const Registration = () => {
         }
     };
 
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
+
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', margin: 0, fontSize: '1rem', flexShrink: 0 }}>
                     <FaUserPlus style={{ color: 'var(--primary)' }} /> User Registration
                 </h2>
-                <button className="admin-btn" onClick={openAdd} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <FaPlus /> Register New User
+                <button className="admin-btn" onClick={openAdd} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <FaPlus size={11} /> Register New User
                 </button>
             </div>
 
@@ -398,18 +371,18 @@ const Registration = () => {
             </div>
 
             <div className="admin-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Registered Users</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem', flexWrap: 'wrap', gap: '0.3rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Registered Users</span>
+                    <div className="reg-filters">
                         <div style={{ position: 'relative' }}>
-                            <FaSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.8rem' }} />
-                            <input type="text" className="form-input" placeholder="Search by name, email, phone..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem 0.3rem 1.8rem', fontSize: '0.8rem', width: 260 }} />
+                            <FaSearch style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.7rem' }} />
+                            <input type="text" className="form-input reg-search" placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem 0.25rem 1.6rem', fontSize: '0.75rem' }} />
                         </div>
-                        <select className="form-select" value={filterRole} onChange={e => { setFilterRole(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 160 }}>
+                        <select className="form-select" value={filterRole} onChange={e => { setFilterRole(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 140 }}>
                             <option value="">All Roles</option>
                             {ROLES_LIST.map(r => <option key={r} value={r}>{r.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
                         </select>
-                        <select className="form-select" value={filterStatus} onChange={e => { setFilterStatus(e.target.value as any); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 120 }}>
+                        <select className="form-select" value={filterStatus} onChange={e => { setFilterStatus(e.target.value as any); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 100 }}>
                             <option value="all">All Status</option>
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
@@ -436,45 +409,45 @@ const Registration = () => {
                                 return (
                                     <Fragment key={u.id}>
                                         <tr>
-                                            <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{(page - 1) * pageSize + i + 1}</td>
+                                            <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{(page - 1) * pageSize + i + 1}</td>
                                             <td>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                                                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--bg-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--bg-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                                                         {u.profile?.avatar
                                                             ? <img src={u.profile.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                            : <FaUser size={12} style={{ color: 'var(--text-muted)' }} />}
+                                                            : <FaUser size={9} style={{ color: 'var(--text-muted)' }} />}
                                                     </div>
                                                     <span style={{ fontWeight: 600 }}>{u.firstName || u.profile?.firstName || ''} {u.lastName || u.profile?.lastName || ''}</span>
                                                 </div>
                                             </td>
-                                            <td style={{ fontSize: '0.85rem' }}>{u.email}</td>
-                                            <td style={{ fontSize: '0.85rem' }}>{u.phone || u.profile?.phone || '—'}</td>
+                                            <td style={{ fontSize: '0.8rem' }}>{u.email}</td>
+                                            <td style={{ fontSize: '0.8rem' }}>{u.phone || u.profile?.phone || '—'}</td>
                                             <td>
                                                 <span style={{
-                                                    display: 'inline-block', padding: '2px 8px', borderRadius: 4, fontSize: '0.7rem', fontWeight: 600,
+                                                    display: 'inline-block', padding: '1px 6px', borderRadius: 4, fontSize: '0.68rem', fontWeight: 600,
                                                     color: '#fff', background: roleColors[u.role] || '#6b7280',
                                                 }}>{u.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
                                             </td>
                                             <td>
                                                 {u.employmentStatus
-                                                    ? <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 4, fontSize: '0.7rem', fontWeight: 600, color: '#fff', background: u.employmentStatus === 'employed' ? '#22c55e' : '#6b7280' }}>{u.employmentStatus.charAt(0).toUpperCase() + u.employmentStatus.slice(1)}</span>
-                                                    : <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>—</span>}
+                                                    ? <span style={{ display: 'inline-block', padding: '1px 6px', borderRadius: 4, fontSize: '0.68rem', fontWeight: 600, color: '#fff', background: u.employmentStatus === 'employed' ? '#22c55e' : '#6b7280' }}>{u.employmentStatus.charAt(0).toUpperCase() + u.employmentStatus.slice(1)}</span>
+                                                    : <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>—</span>}
                                             </td>
                                             <td>
-                                                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} title="View details" onClick={() => setViewUser(u)}><FaEye /></button>
-                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} title="Edit" onClick={() => openEdit(u)}><FaEdit /></button>
+                                                <div style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} title="View details" onClick={() => setViewUser(u)}><FaEye /></button>
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} title="Edit" onClick={() => openEdit(u)}><FaEdit /></button>
                                                     {confirmDelete === u.id ? (
                                                         <div style={{ display: 'flex', gap: 2 }}>
-                                                            <button className="admin-btn" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', background: '#ef4444', borderColor: '#ef4444', color: '#fff' }} onClick={() => handleDelete(u.id)}>Yes</button>
-                                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} onClick={() => setConfirmDelete(null)}>No</button>
+                                                            <button className="admin-btn" style={{ padding: '0.15rem 0.4rem', fontSize: '0.65rem', background: '#ef4444', borderColor: '#ef4444', color: '#fff' }} onClick={() => handleDelete(u.id)}>Yes</button>
+                                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.65rem' }} onClick={() => setConfirmDelete(null)}>No</button>
                                                         </div>
                                                     ) : (
-                                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--primary-red)' }} title="Delete" onClick={() => setConfirmDelete(u.id)}><FaTrash /></button>
+                                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--primary-red)' }} title="Delete" onClick={() => setConfirmDelete(u.id)}><FaTrash /></button>
                                                     )}
                                                     <button
                                                         className="admin-btn admin-btn--secondary"
-                                                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: expanded ? 'var(--primary)' : 'var(--text-muted)' }}
+                                                        style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: expanded ? 'var(--primary)' : 'var(--text-muted)' }}
                                                         title={expanded ? 'Show less' : 'Show more details'}
                                                         onClick={() => toggleRow(u.id)}
                                                     >{expanded ? <FaChevronUp /> : <FaChevronDown />}</button>
@@ -484,8 +457,8 @@ const Registration = () => {
                                         {expanded && (
                                             <tr>
                                                 <td colSpan={7} style={{ padding: 0 }}>
-                                                    <div style={{ background: 'var(--bg-body)', borderRadius: 6, margin: '4px 8px 8px', padding: '1rem 1.2rem', fontSize: '0.85rem' }}>
-                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.8rem 1.5rem' }}>
+                                                    <div style={{ background: 'var(--bg-body)', borderRadius: 3, margin: '1px 4px 2px', padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
+                                                        <div className="reg-info-grid">
                                                             <InfoItem label="Gender" value={u.gender} />
                                                             <InfoItem label="National ID" value={u.nationalId} mono />
                                                             <InfoItem label="Education" value={u.educationLevel} />
@@ -535,8 +508,8 @@ const Registration = () => {
                             })}
                             {paginatedUsers.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                        <FaUsers size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
+                                    <td colSpan={7} style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                        <FaUsers size={28} style={{ opacity: 0.3, marginBottom: 6 }} />
                                         <div>No users found.</div>
                                     </td>
                                 </tr>
@@ -545,25 +518,25 @@ const Registration = () => {
                     </table>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '0.5rem 0', flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.3rem 0', flexWrap: 'wrap', gap: 4 }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         Showing {pageSize === 0 ? filteredUsers.length : Math.min(pageSize, filteredUsers.length - (page - 1) * pageSize)} of {filteredUsers.length}
                     </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
-                            <select className="form-select" style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Per page:</span>
+                            <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.7rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                                 {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                                 <option value={0}>All</option>
                             </select>
                         </div>
                         {pageSize > 0 && totalPages > 1 && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 26, fontSize: '0.75rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                             </div>
                         )}
                     </div>
@@ -578,14 +551,14 @@ const Registration = () => {
                             <button onClick={() => setShowModal(null)}><FaTimesIcon /></button>
                         </div>
                         <div className="admin-modal-body" style={{ maxHeight: '65vh', overflowY: 'auto' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div className="reg-form-grid">
                                 <div className="form-group">
                                     <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FaUser size={11} /> First Name *</label>
-                                    <input className="form-input" value={form.firstName} onChange={e => setForm(p => ({ ...p, firstName: e.target.value }))} placeholder="Enter first name" />
+                                    <input className="form-input" value={form.firstName} onChange={e => setForm(p => ({ ...p, firstName: e.target.value.replace(/\b\w/g, c => c.toUpperCase()) }))} placeholder="Enter first name" />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FaUser size={11} /> Last Name *</label>
-                                    <input className="form-input" value={form.lastName} onChange={e => setForm(p => ({ ...p, lastName: e.target.value }))} placeholder="Enter last name" />
+                                    <input className="form-input" value={form.lastName} onChange={e => setForm(p => ({ ...p, lastName: e.target.value.replace(/\b\w/g, c => c.toUpperCase()) }))} placeholder="Enter last name" />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FaEnvelope size={11} /> Email *</label>
@@ -733,7 +706,7 @@ const Registration = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.9rem 1.5rem' }}>
+                            <div className="reg-form-grid" style={{ gap: '0.6rem 1rem' }}>
                                 <InfoItem label="Phone" value={viewUser.phone || viewUser.profile?.phone} />
                                 <InfoItem label="Gender" value={viewUser.gender} />
                                 <InfoItem label="Marital Status" value={viewUser.maritalStatus} />

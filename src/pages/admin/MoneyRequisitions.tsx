@@ -253,58 +253,53 @@ const MoneyRequisitions = () => {
     const padY = isSmall ? '1rem' : '1.5rem';
 
     const btnStyle = (bg: string, border?: string): React.CSSProperties => ({
-        padding: isSmall ? '0.4rem 0.7rem' : '0.5rem 1rem',
+        padding: '0.15rem 0.4rem',
         borderRadius: 7,
         border: border ? `1px solid ${border}` : 'none',
         background: bg,
         color: bg === 'var(--bg-white)' ? 'var(--text-muted)' : '#fff',
         cursor: 'pointer',
-        fontSize: isTiny ? '0.7rem' : '0.8rem',
+        fontSize: '0.7rem',
         fontWeight: 600,
         whiteSpace: 'nowrap',
     });
 
     const statCard = (icon: React.ReactNode, label: string, value: string | number, color: string) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: isTiny ? '0.5rem' : '0.75rem', background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 10, padding: isSmall ? '0.5rem 0.65rem' : '0.8rem 1rem', flex: `1 1 ${isTiny ? '130px' : isSmall ? '140px' : '180px'}`, minWidth: 0 }}>
-            <div style={{ width: isTiny ? 26 : isSmall ? 30 : 36, height: isTiny ? 26 : isSmall ? 30 : 36, borderRadius: 8, background: `${color}18`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 7, padding: '0.4rem 0.6rem' }}>
+            <div style={{ width: 26, height: 26, borderRadius: 6, background: `${color}18`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.75rem' }}>{icon}</div>
             <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: isTiny ? '0.6rem' : isSmall ? '0.65rem' : '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
-                <div style={{ fontSize: isTiny ? '0.78rem' : isSmall ? '0.85rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
             </div>
         </div>
     );
 
     const requesterName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email : 'MUTIMUKEYE Odette';
 
-    const modalOverlay: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' };
-    const closeBtn = (onClick: () => void): React.CSSProperties => ({ width: isTiny ? 26 : 30, height: isTiny ? 26 : 30, borderRadius: 7, border: '1px solid var(--border-color)', background: 'var(--bg-white)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', flexShrink: 0 });
+    const closeBtn = (onClick: () => void): React.CSSProperties => ({ width: 26, height: 26, borderRadius: 7, border: '1px solid var(--border-color)', background: 'var(--bg-white)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', flexShrink: 0 });
     const iconBtnStyle = (borderColor: string, bg: string, color: string): React.CSSProperties => ({
-        width: isTiny ? 26 : 28, height: isTiny ? 26 : 28, borderRadius: 6,
+        width: 24, height: 24, borderRadius: 6,
         border: `1px solid ${borderColor}`, background: bg, cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center', color, flexShrink: 0,
+        padding: 0, fontSize: '0.7rem',
     });
 
     return (
-        <div style={{ padding: `${padY} ${padX}`, maxWidth: 1100, margin: '0 auto', boxSizing: 'border-box', overflowX: 'hidden' }}>
+        <div className="admin-page" style={{ maxWidth: 1100, margin: '0 auto' }}>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <div style={{ minWidth: 0, flex: '1 1 200px' }}>
-                    <h1 style={{ fontSize: isTiny ? '0.95rem' : isSmall ? '1.1rem' : '1.4rem', fontWeight: 700, color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                        <FaMoneyBillWave style={{ color: '#1a8a6a', flexShrink: 0 }} />Money Requisitions
-                    </h1>
-                    <p style={{ fontSize: isTiny ? '0.68rem' : '0.82rem', color: 'var(--text-muted)', margin: '0.2rem 0 0' }}>
-                        {isAdmin ? 'Review and manage fund requests' : 'Submit fund requests to Admin'}
-                    </p>
-                </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', margin: 0, fontSize: '1rem', flexShrink: 0 }}>
+                    <FaMoneyBillWave style={{ color: 'var(--primary)' }} /> Money Requisitions
+                </h2>
                 {isFD && (
-                    <button onClick={openCreateModal} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: isSmall ? '0.45rem 0.75rem' : '0.55rem 1rem', background: '#1a8a6a', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: isTiny ? '0.72rem' : '0.82rem', whiteSpace: 'nowrap' }}>
-                        <FaPlus /> New
+                    <button onClick={openCreateModal} className="admin-btn" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <FaPlus size={11} /> New
                     </button>
                 )}
             </div>
 
             {/* Stats */}
-            <div style={{ display: 'flex', gap: isTiny ? '0.35rem' : '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.4rem', marginBottom: '0.6rem' }}>
                 {statCard(<FaDollarSign />, 'Total', `RWF ${stats.totalAmount.toLocaleString()}`, '#1a8a6a')}
                 {statCard(<FaEdit />, 'Drafts', String(stats.drafts), '#6366f1')}
                 {statCard(<FaClock />, 'Pending', String(stats.pending), '#f59e0b')}
@@ -314,13 +309,13 @@ const MoneyRequisitions = () => {
 
             {/* Toolbar */}
             <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.75rem', flexWrap: 'wrap', alignItems: 'stretch' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: isSmall ? '0.3rem 0.5rem' : '0.4rem 0.7rem', flex: '1 1 160px', minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.25rem 0.4rem', flex: '1 1 160px', minWidth: 0 }}>
                     <FaSearch size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: isTiny ? '0.75rem' : '0.82rem', width: '100%', color: 'var(--text-main)', minWidth: 0 }} />
+                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.75rem', width: '100%', color: 'var(--text-main)', minWidth: 0 }} />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: isSmall ? '0.3rem 0.5rem' : '0.4rem 0.7rem', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.25rem 0.4rem', flexShrink: 0 }}>
                     <FaFilter size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                    <select value={filter} onChange={e => setFilter(e.target.value as any)} style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: isTiny ? '0.75rem' : '0.82rem', color: 'var(--text-main)' }}>
+                    <select value={filter} onChange={e => setFilter(e.target.value as any)} style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.75rem', color: 'var(--text-main)', width: 140, padding: '0.25rem 0.4rem' }}>
                         <option value="all">All</option>
                         <option value="draft">Drafts</option>
                         <option value="pending">Pending</option>
@@ -332,7 +327,7 @@ const MoneyRequisitions = () => {
 
             {/* List */}
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}><FaSpinner className="animate-spin" size={24} /></div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>
             ) : filtered.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}><FaMoneyBillWave size={36} style={{ opacity: 0.3, marginBottom: 8 }} /><p style={{ margin: 0, fontSize: '0.82rem' }}>No money requisitions found.</p></div>
             ) : (
@@ -379,8 +374,8 @@ const MoneyRequisitions = () => {
 
             {/* ========== CREATE MODAL ========== */}
             {showCreateModal && (
-                <div style={modalOverlay} onClick={() => setShowCreateModal(false)}>
-                    <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-white)', borderRadius: isTiny ? 8 : 12, width: '100%', maxWidth: createStep === 'form' ? (isSmall ? '100%' : 520) : (isSmall ? '100%' : 900), maxHeight: '95vh', overflow: 'auto', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}>
+                <div className="admin-modal-overlay" onClick={() => setShowCreateModal(false)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: createStep === 'form' ? (isSmall ? '100%' : 520) : (isSmall ? '100%' : 900) }}>
                         {/* Modal Header */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '0.75rem 1rem' : '1rem 1.5rem', borderBottom: '1px solid var(--border-color)', gap: 8 }}>
                             <h3 style={{ margin: 0, fontSize: isTiny ? '0.85rem' : '1.05rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
@@ -490,10 +485,10 @@ const MoneyRequisitions = () => {
                                 ) : (
                                     <>
                                         <button onClick={handleSaveDraft} disabled={actionLoading === 'create'} style={{ ...btnStyle('var(--bg-white)', '#6366f1'), color: '#6366f1', opacity: actionLoading === 'create' ? 0.6 : 1 }}>
-                                            {actionLoading === 'create' ? <><FaSpinner className="animate-spin" style={{ marginRight: 4 }} /></> : <><FaSave style={{ marginRight: 4 }} />{!isTiny && 'Save as Draft'}</>}
+                                            {actionLoading === 'create' ? <><FaSpinner className="spin" style={{ marginRight: 4 }} /></> : <><FaSave style={{ marginRight: 4 }} />{!isTiny && 'Save as Draft'}</>}
                                         </button>
                                         <button onClick={handleSubmitToAdmin} disabled={actionLoading === 'create'} style={{ ...btnStyle('#1a8a6a'), opacity: actionLoading === 'create' ? 0.6 : 1 }}>
-                                            {actionLoading === 'create' ? <><FaSpinner className="animate-spin" style={{ marginRight: 4 }} /></> : <><FaPaperPlane style={{ marginRight: 4 }} />{!isTiny && 'Submit'}</>}
+                                            {actionLoading === 'create' ? <><FaSpinner className="spin" style={{ marginRight: 4 }} /></> : <><FaPaperPlane style={{ marginRight: 4 }} />{!isTiny && 'Submit'}</>}
                                         </button>
                                     </>
                                 )}
@@ -505,8 +500,8 @@ const MoneyRequisitions = () => {
 
             {/* ========== VIEW MODAL ========== */}
             {viewItem && (
-                <div style={modalOverlay} onClick={() => setViewItem(null)}>
-                    <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-white)', borderRadius: isTiny ? 8 : 12, width: '100%', maxWidth: isSmall ? '100%' : 900, maxHeight: '95vh', overflow: 'auto', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}>
+                <div className="admin-modal-overlay" onClick={() => setViewItem(null)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: isSmall ? '100%' : 900 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '0.75rem 1rem' : '1rem 1.5rem', borderBottom: '1px solid var(--border-color)', gap: 8 }}>
                             <h3 style={{ margin: 0, fontSize: isTiny ? '0.85rem' : '1rem', color: 'var(--text-main)' }}>Money Request Form</h3>
                             <button onClick={() => setViewItem(null)} style={closeBtn(() => setViewItem(null))}>
@@ -537,8 +532,8 @@ const MoneyRequisitions = () => {
 
             {/* ========== REVIEW MODAL (Admin) ========== */}
             {reviewItem && (
-                <div style={modalOverlay} onClick={() => setReviewItem(null)}>
-                    <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-white)', borderRadius: isTiny ? 8 : 12, width: '100%', maxWidth: isSmall ? '100%' : 950, maxHeight: '95vh', overflow: 'auto', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}>
+                <div className="admin-modal-overlay" onClick={() => setReviewItem(null)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: isSmall ? '100%' : 950 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '0.75rem 1rem' : '1rem 1.5rem', borderBottom: '1px solid var(--border-color)', gap: 8 }}>
                             <h3 style={{ margin: 0, fontSize: isTiny ? '0.85rem' : '1.05rem', color: 'var(--text-main)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Review: {reviewItem.title}</h3>
                             <button onClick={() => setReviewItem(null)} style={closeBtn(() => setReviewItem(null))}>
@@ -647,7 +642,7 @@ const MoneyRequisitions = () => {
                                 <div style={{ display: 'flex', gap: 6, marginTop: '0.25rem' }}>
                                     <button onClick={() => setReviewItem(null)} style={{ ...btnStyle('var(--bg-white)', 'var(--border-color)'), flex: 1 }}>Cancel</button>
                                     <button onClick={handleReview} disabled={actionLoading === reviewItem.id} style={{ ...btnStyle(reviewForm.status === 'approved' ? '#22c55e' : '#ef4444'), flex: 1, opacity: actionLoading === reviewItem.id ? 0.6 : 1 }}>
-                                        {actionLoading === reviewItem.id ? <FaSpinner className="animate-spin" /> : isTiny ? (reviewForm.status === 'approved' ? 'OK' : 'No') : reviewForm.status === 'approved' ? 'Approve & Send' : 'Reject & Send'}
+                                        {actionLoading === reviewItem.id ? <FaSpinner className="spin" /> : isTiny ? (reviewForm.status === 'approved' ? 'OK' : 'No') : reviewForm.status === 'approved' ? 'Approve & Send' : 'Reject & Send'}
                                     </button>
                                 </div>
                             </div>
@@ -658,8 +653,8 @@ const MoneyRequisitions = () => {
 
             {/* ========== EDIT MODAL ========== */}
             {editItem && (
-                <div style={modalOverlay} onClick={() => setEditItem(null)}>
-                    <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-white)', borderRadius: isTiny ? 8 : 12, width: '100%', maxWidth: isSmall ? '100%' : 520, maxHeight: '95vh', overflow: 'auto', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}>
+                <div className="admin-modal-overlay" onClick={() => setEditItem(null)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: isSmall ? '100%' : 520 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '0.75rem 1rem' : '1rem 1.5rem', borderBottom: '1px solid var(--border-color)', gap: 8 }}>
                             <h3 style={{ margin: 0, fontSize: isTiny ? '0.85rem' : '1.05rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <FaEdit color="#f59e0b" style={{ flexShrink: 0 }} />
@@ -704,7 +699,7 @@ const MoneyRequisitions = () => {
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, padding: isSmall ? '0.75rem 1rem' : '1rem 1.5rem', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
                             <button onClick={() => setEditItem(null)} style={btnStyle('var(--bg-white)', 'var(--border-color)')}>Cancel</button>
                             <button onClick={handleEditSubmit} disabled={actionLoading === editItem.id} style={{ ...btnStyle('#f59e0b'), opacity: actionLoading === editItem.id ? 0.6 : 1 }}>
-                                {actionLoading === editItem.id ? <><FaSpinner className="animate-spin" style={{ marginRight: 4 }} /></> : <><FaSave style={{ marginRight: 4 }} />{!isTiny && 'Save Changes'}</>}
+                                {actionLoading === editItem.id ? <><FaSpinner className="spin" style={{ marginRight: 4 }} /></> : <><FaSave style={{ marginRight: 4 }} />{!isTiny && 'Save Changes'}</>}
                             </button>
                         </div>
                     </div>

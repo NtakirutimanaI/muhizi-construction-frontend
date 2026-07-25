@@ -7,7 +7,7 @@ import { siteRulesService, type SiteRule } from '../../services/siteRulesService
 import {
     FaClock, FaHardHat, FaMoneyCheckAlt, FaLock, FaListAlt, FaExclamationTriangle,
     FaPhone, FaBullhorn, FaCheckCircle, FaRegNewspaper, FaClipboardCheck,
-    FaTimes, FaExpandAlt, FaGavel, FaEdit, FaTrash, FaPlus, FaCog, FaSave, FaEyeSlash
+    FaTimes, FaExpandAlt, FaGavel, FaEdit, FaTrash, FaPlus, FaCog, FaSave, FaEyeSlash, FaSpinner
 } from 'react-icons/fa';
 
 /** NestJS validation errors arrive as string[]; render them as one readable sentence instead of raw concatenated text. */
@@ -168,9 +168,9 @@ const SiteRules = () => {
 
     return (
         <div>
-            <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <h1 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <FaBullhorn style={{ color: '#1B2042' }} /> Site Rules Board
                     </h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
@@ -182,10 +182,10 @@ const SiteRules = () => {
                         <button
                             onClick={() => setManageMode(!manageMode)}
                             style={{
-                                padding: '0.4rem 1rem', borderRadius: '8px', border: `1px solid ${manageMode ? '#1B2042' : 'var(--border-color)'}`,
+                                padding: '0.15rem 0.4rem', borderRadius: '8px', border: `1px solid ${manageMode ? '#1B2042' : 'var(--border-color)'}`,
                                 background: manageMode ? '#1B2042' : 'transparent',
                                 color: manageMode ? '#fff' : 'var(--text-main)',
-                                cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem',
+                                cursor: 'pointer', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.4rem',
                                 fontWeight: 600,
                             }}
                         >
@@ -193,9 +193,9 @@ const SiteRules = () => {
                         </button>
                         {manageMode && (
                             <button onClick={openCreate} style={{
-                                padding: '0.4rem 1rem', borderRadius: '8px', border: 'none',
+                                padding: '0.15rem 0.4rem', borderRadius: '8px', border: 'none',
                                 background: '#22c55e', color: '#fff', cursor: 'pointer',
-                                fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600,
+                                fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600,
                             }}>
                                 <FaPlus size={12} /> Add Notice
                             </button>
@@ -205,16 +205,16 @@ const SiteRules = () => {
             </div>
 
             {usedCategories.length > 0 && (
-                <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginRight: '0.25rem' }}>Filter:</span>
+                <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text-muted)', marginRight: '0.25rem' }}>Filter:</span>
                     {['All', ...usedCategories].map(cat => (
                         <button key={cat} onClick={() => setActiveCategory(cat)}
                             style={{
-                                padding: '0.3rem 0.8rem', borderRadius: '999px', border: '1px solid',
+                                padding: '0.2rem 0.6rem', borderRadius: '999px', border: '1px solid',
                                 borderColor: activeCategory === cat ? '#1B2042' : 'var(--border-color)',
                                 background: activeCategory === cat ? '#1B2042' : 'transparent',
                                 color: activeCategory === cat ? '#fff' : 'var(--text-main)',
-                                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
+                                cursor: 'pointer', fontSize: '0.68rem', fontWeight: 600,
                             }}>
                             {cat}
                         </button>
@@ -598,11 +598,11 @@ const SiteRules = () => {
 
                         <div style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
                             <button onClick={() => setFormModal({ open: false })} disabled={saving}
-                                style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.85rem' }}>
+                                style={{ padding: '0.15rem 0.4rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.7rem' }}>
                                 Cancel
                             </button>
                             <button onClick={handleSave} disabled={saving}
-                                style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
+                                style={{ padding: '0.15rem 0.4rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1, fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
                                 <FaSave size={12} /> {saving ? 'Saving...' : (formModal.edit ? 'Update' : (form.isActive ? 'Publish' : 'Save Draft'))}
                             </button>
                         </div>

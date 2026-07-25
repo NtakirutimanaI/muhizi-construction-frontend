@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDraftingCompass, FaFileAlt, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaClipboardList, FaArrowLeft } from 'react-icons/fa';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDraftingCompass, FaFileAlt, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight, FaClipboardList, FaArrowLeft, FaSpinner } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import type { Design, Project } from '../../services/constructionService';
 import { engineeringSubmissionsService } from '../../services/engineeringSubmissionsService';
@@ -36,8 +36,7 @@ const Designs = () => {
     const [toDate, setToDate] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
-    const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
+    
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploadingThumb, setUploadingThumb] = useState(false);
@@ -225,44 +224,17 @@ const Designs = () => {
         URL.revokeObjectURL(url);
     };
 
-    const onMouseMove = useCallback((e: MouseEvent) => {
-        if (!dragging.current) return;
-        setModalPos({ x: e.clientX - dragging.current.offsetX, y: e.clientY - dragging.current.offsetY });
-    }, []);
 
-    const onMouseUp = useCallback(() => {
-        dragging.current = null;
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-    }, [onMouseMove]);
-
-    useEffect(() => {
-        return () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        };
-    }, [onMouseMove, onMouseUp]);
-
-    const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-        const modal = (e.currentTarget as HTMLElement).closest('.admin-modal') as HTMLElement | null;
-        if (!modal) return;
-        const rect = modal.getBoundingClientRect();
-        setModalPos({ x: rect.left, y: rect.top });
-        dragging.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    }, [onMouseMove, onMouseUp]);
 
     const stats = useMemo(() => ({
         submission: data.filter(d => d.source === 'submission').length,
         external: data.filter(d => d.source === 'external').length,
     }), [data]);
 
-    const openNew = () => { setEditing(null); setForm(emptyForm); setModalPos(null); setShowModal(true); };
+    const openNew = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
     const openEdit = (item: Design) => {
         setEditing(item);
         setForm({ title: item.title, description: item.description || '', type: item.type, status: item.status, source: item.source || 'external', fileUrl: item.fileUrl || '', thumbnailUrl: item.thumbnailUrl || '', projectId: item.projectId || '' });
-        setModalPos(null);
         setShowModal(true);
     };
 
@@ -324,9 +296,11 @@ const Designs = () => {
         architectural: '#1B2042', structural: '#8b5cf6', interior: '#f59e0b', landscape: '#22c55e',
     };
 
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
+
     return (
         <div className="admin-page">
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.75rem 0', fontSize: '1.2rem' }}>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.5rem 0', fontSize: '1rem' }}>
                 <FaDraftingCompass style={{ color: 'var(--primary)' }} /> Designs
             </h2>
 
@@ -393,20 +367,20 @@ const Designs = () => {
                 <div className="design-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.35rem' }}>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>All Designs</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-                        <input type="text" className="form-input" placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 220 }} />
-                        <input type="date" className="form-input" style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 120 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
-                        <input type="date" className="form-input" style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 120 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
-                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 0.7rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1 }}>
+                        <input type="text" className="form-input" placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 220 }} />
+                        <input type="date" className="form-input" style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
+                        <input type="date" className="form-input" style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
+                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1 }}>
                             <FaFileExcel /> Excel
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 0.7rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1 }}>
+                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1 }}>
                             <FaFilePdf /> PDF
                         </button>
-                        <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 1rem', fontSize: '0.82rem' }}>
+                        <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem' }}>
                             <FaPlus style={{ marginRight: 4 }} />Add Design
                         </button>
                         {isSubmitter && (
-                            <button className="admin-btn" onClick={() => { loadSubmissions(); setShowSubmissions(true); }} style={{ background: 'var(--primary)', borderColor: 'var(--primary)', color: '#fff', borderRadius: 5, padding: '0.4rem 1rem', fontSize: '0.82rem' }}>
+                            <button className="admin-btn" onClick={() => { loadSubmissions(); setShowSubmissions(true); }} style={{ background: 'var(--primary)', borderColor: 'var(--primary)', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem' }}>
                                 <FaClipboardList style={{ marginRight: 4 }} />Save from Submission
                             </button>
                         )}
@@ -463,10 +437,10 @@ const Designs = () => {
                     </table>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.25rem 0', flexWrap: 'wrap', gap: 6 }}>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                         Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Per page:</span>
                             <select
@@ -483,7 +457,7 @@ const Designs = () => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                                 <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 28, fontSize: '0.78rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 28, fontSize: '0.72rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
                                 <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                             </div>

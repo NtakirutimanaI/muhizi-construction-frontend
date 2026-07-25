@@ -10,7 +10,7 @@ const cards = [
 const EngineeringStudio = () => {
     return (
         <div style={{ padding: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '0.3rem' }}>Engineering Studio</h2>
+            <h2 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '0.5rem' }}>Engineering Studio</h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Select a section to get started</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }}>
                 {cards.map(card => (

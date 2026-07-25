@@ -8,7 +8,7 @@ import {
     FaUserTie, FaMoneyBillWave, FaCalendarCheck,
     FaExclamationTriangle, FaWallet, FaFileInvoiceDollar, FaDraftingCompass,
     FaArrowUp, FaArrowDown, FaChartPie, FaGavel, FaCheckCircle, FaTimesCircle,
-    FaClock, FaFileAlt, FaTasks,
+    FaClock, FaFileAlt, FaTasks, FaSpinner,
 } from 'react-icons/fa';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -183,7 +183,7 @@ const AdminDashboard = () => {
             savePageCache(role, cacheData);
             setLoading(false);
         };
-        fetchFresh();
+        fetchFresh().finally(() => setLoading(false));
     }, [role, isStorekeeper, isAdmin, isExecutive]);
 
     // Every set below is built strictly from links that actually exist in that role's own

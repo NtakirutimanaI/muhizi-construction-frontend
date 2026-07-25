@@ -13,6 +13,7 @@ const ProjectProgress = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [filterType, setFilterType] = useState<'all' | 'image' | 'video'>('all');
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const cached = loadPageCache('partner-progress');
@@ -32,7 +33,7 @@ const ProjectProgress = () => {
                 const evData = evidenceResults.flatMap((r) => r.data || []);
                 setItems(evData);
                 savePageCache('partner-progress', { projects: projectsData, items: evData });
-            } catch {}
+            } catch {} finally { setLoading(false); }
         };
         fetchFresh();
     }, []);
@@ -77,9 +78,12 @@ const ProjectProgress = () => {
 
     return (
         <div className="dashboard-page">
-            <div className="dashboard-header">
+            {loading && items.length === 0 ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>
+            ) : (<>
+            <div className="dashboard-header" style={{ marginBottom: '0.5rem' }}>
                 <div>
-                    <h1 className="dashboard-title">
+                    <h1 className="dashboard-title" style={{ fontSize: '1rem' }}>
                         <FaHardHat style={{ color: '#1a8a6a' }} /> Project Progress
                     </h1>
                     <p className="dashboard-subtitle">Track the latest progress of your construction projects</p>
@@ -236,8 +240,8 @@ const ProjectProgress = () => {
                         {(['all', 'image', 'video'] as const).map(t => (
                             <button key={t} onClick={() => setFilterType(t)}
                                 style={{
-                                    padding: '0.2rem 0.5rem', borderRadius: '5px', border: 'none',
-                                    fontSize: '0.62rem', fontWeight: 600, cursor: 'pointer',
+                                    padding: '0.25rem 0.4rem', borderRadius: '5px', border: 'none',
+                                    fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
                                     background: filterType === t ? '#1a8a6a' : '#f0f0f0',
                                     color: filterType === t ? '#fff' : '#666',
                                     textTransform: 'capitalize',
@@ -286,6 +290,8 @@ const ProjectProgress = () => {
                     <img src={previewUrl} alt="Preview" style={{ maxWidth: '92%', maxHeight: '92%', borderRadius: '8px', objectFit: 'contain' }} />
                 </div>
             )}
+        </div>
+        </>)}
         </div>
     );
 };

@@ -220,16 +220,16 @@ const AssignTasks = () => {
     return (
         <div className="admin-page">
             {/* Header */}
-            <div className="es-flex-between" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div className="es-flex-between" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <h1 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
                         <FaUserPlus style={{ color: 'var(--primary)' }} /> Assign Tasks
                     </h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
                         Create and assign tasks to employed Engineering Studio members
                     </p>
                 </div>
-                <button onClick={() => { resetForm(); setShowForm(true); }} className="btn-primary" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}>
+                <button onClick={() => { resetForm(); setShowForm(true); }} className="btn-primary" style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem' }}>
                     <FaPlus /> Assign Task
                 </button>
             </div>
@@ -239,7 +239,7 @@ const AssignTasks = () => {
                 <div style={{ position: 'relative', flex: '1 1 200px', maxWidth: 280 }}>
                     <FaSearch style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.8rem' }} />
                     <input type="text" className="form-input" placeholder="Search tasks..." value={search} onChange={e => setSearch(e.target.value)}
-                        style={{ padding: '0.35rem 0.75rem 0.35rem 2rem', fontSize: '0.82rem', width: '100%' }} />
+                        style={{ padding: '0.25rem 0.4rem 0.25rem 1.75rem', fontSize: '0.75rem', width: '100%' }} />
                 </div>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
                     {tasks.length} task{tasks.length !== 1 ? 's' : ''}
@@ -253,7 +253,7 @@ const AssignTasks = () => {
                     <button
                         onClick={() => navigate('/admin/engineering-studio')}
                         style={{
-                            padding: '0.35rem 0.85rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600,
+                            padding: '0.15rem 0.4rem', borderRadius: 8, fontSize: '0.7rem', fontWeight: 600,
                             border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer',
                             display: 'inline-flex', alignItems: 'center', gap: 6, transition: 'all 0.15s',
                         }}
@@ -265,7 +265,7 @@ const AssignTasks = () => {
                     {tasks.length > 0 && (
                         <button onClick={handleClearAll} disabled={clearing}
                             style={{
-                                padding: '0.35rem 0.85rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600,
+                                padding: '0.15rem 0.4rem', borderRadius: 8, fontSize: '0.7rem', fontWeight: 600,
                                 border: '1px solid #ef4444', background: 'transparent', color: '#ef4444', cursor: 'pointer',
                                 display: 'inline-flex', alignItems: 'center', gap: 6, transition: 'all 0.15s',
                             }}
@@ -279,8 +279,8 @@ const AssignTasks = () => {
 
             {/* Tasks List */}
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                    <FaSpinner className="spin" size={24} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    <FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...
                 </div>
             ) : filteredTasks.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>

@@ -181,22 +181,22 @@ const ShareFiles = () => {
     <>
         <div style={{ padding: '1.5rem', maxWidth: 1200, margin: '0 auto' }}>
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
                 <button
                     onClick={() => navigate('/admin/engineering-studio')}
-                    style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem' }}
                 >
                     <FaArrowLeft /> Back
                 </button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                    <FaShareSquare size={22} style={{ color: 'var(--primary)' }} />
-                    <h1 style={{ margin: 0, fontSize: '1.3rem' }}>Share Files</h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FaShareSquare size={18} style={{ color: 'var(--primary)' }} />
+                    <h1 style={{ margin: 0, fontSize: '1rem' }}>Share Files</h1>
                 </div>
             </div>
 
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                    <FaSpinner className="spin" size={24} /> Loading...
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    <FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...
                 </div>
             ) : (
                 <div className="es-share-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
@@ -214,21 +214,21 @@ const ShareFiles = () => {
                                 placeholder="Search files..."
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
-                                style={{ width: '100%', padding: '0.55rem 0.55rem 0.55rem 2rem', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg-secondary)', color: 'var(--text)', fontSize: '0.82rem' }}
+                                style={{ width: '100%', padding: '0.25rem 0.4rem 0.25rem 2rem', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg-secondary)', color: 'var(--text)', fontSize: '0.75rem' }}
                             />
                         </div>
 
                         {/* Source filter tabs */}
-                        <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.8rem', background: 'var(--bg-primary)', borderRadius: 8, padding: '0.2rem' }}>
+                        <div style={{ display: 'flex', gap: '0.2rem', marginBottom: '0.6rem', background: 'var(--bg-primary)', borderRadius: 6, padding: '0.15rem' }}>
                             {(['all', 'design', 'submission'] as const).map(tab => (
                                 <button
                                     key={tab}
                                     onClick={() => setSourceFilter(tab)}
                                     style={{
-                                        flex: 1, padding: '0.4rem 0.5rem', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
+                                        flex: 1, padding: '0.25rem 0.3rem', borderRadius: 4, border: 'none', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
                                         background: sourceFilter === tab ? 'var(--primary)' : 'transparent',
                                         color: sourceFilter === tab ? '#fff' : 'var(--text-muted)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem',
                                     }}
                                 >
                                     {tab === 'all' && <><FaFileAlt /> All ({allItems.length})</>}
@@ -336,15 +336,15 @@ const ShareFiles = () => {
                         </h3>
 
                         {/* Recipient type tabs */}
-                        <div className="es-recipient-tabs" style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.8rem' }}>
+                        <div className="es-recipient-tabs" style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.6rem' }}>
                             <button
                                 onClick={() => { setRecipientTab('site_engineer'); setSelectedRecipientId(''); setSelectedRecipientName(''); }}
                                 style={{
-                                    flex: 1, padding: '0.55rem', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem',
+                                    flex: 1, padding: '0.35rem', borderRadius: 6, border: '2px solid', cursor: 'pointer', fontWeight: 600, fontSize: '0.7rem',
                                     borderColor: recipientTab === 'site_engineer' ? 'var(--primary)' : 'var(--border)',
                                     background: recipientTab === 'site_engineer' ? 'rgba(var(--primary-rgb, 139,92,246), 0.1)' : 'transparent',
                                     color: recipientTab === 'site_engineer' ? 'var(--primary)' : 'var(--text-muted)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem',
                                 }}
                             >
                                 <FaUserTie /> Site Engineers
@@ -352,11 +352,11 @@ const ShareFiles = () => {
                             <button
                                 onClick={() => { setRecipientTab('partner'); setSelectedRecipientId(''); setSelectedRecipientName(''); }}
                                 style={{
-                                    flex: 1, padding: '0.55rem', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem',
+                                    flex: 1, padding: '0.35rem', borderRadius: 6, border: '2px solid', cursor: 'pointer', fontWeight: 600, fontSize: '0.7rem',
                                     borderColor: recipientTab === 'partner' ? '#27ae60' : 'var(--border)',
                                     background: recipientTab === 'partner' ? 'rgba(39,174,96,0.1)' : 'transparent',
                                     color: recipientTab === 'partner' ? '#27ae60' : 'var(--text-muted)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem',
                                 }}
                             >
                                 <FaHandshake /> Partners
@@ -431,10 +431,10 @@ const ShareFiles = () => {
                             onClick={handleShare}
                             disabled={!selectedItem || !selectedRecipientId || sharing}
                             style={{
-                                width: '100%', padding: '0.65rem', borderRadius: 10, border: 'none',
+                                width: '100%', padding: '0.35rem', borderRadius: 8, border: 'none',
                                 background: (!selectedItem || !selectedRecipientId || sharing) ? 'var(--text-muted)' : 'var(--primary)',
                                 color: '#fff', cursor: (!selectedItem || !selectedRecipientId || sharing) ? 'not-allowed' : 'pointer',
-                                fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                             }}
                         >
                             {sharing ? <><FaSpinner className="spin" /> Sharing...</> : <><FaShareSquare /> Share</>}

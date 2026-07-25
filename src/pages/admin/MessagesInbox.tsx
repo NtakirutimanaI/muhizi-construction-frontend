@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaEnvelope, FaUser, FaPhone, FaBuilding, FaCheck, FaClock, FaCheckCircle, FaTrash, FaInbox, FaChevronLeft, FaChevronRight, FaPaperPlane, FaTimes } from 'react-icons/fa';
+import { FaEnvelope, FaUser, FaPhone, FaBuilding, FaCheck, FaClock, FaCheckCircle, FaTrash, FaInbox, FaChevronLeft, FaChevronRight, FaPaperPlane, FaTimes, FaSpinner } from 'react-icons/fa';
 import { profileService, type ContactMessage } from '../../services/profileService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { mlService, type LeadScoreResult } from '../../services/mlService';
@@ -177,15 +177,15 @@ const MessagesInbox = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', gap: '1rem', flexWrap: 'wrap' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', gap: '1rem', flexWrap: 'wrap' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0, fontSize: '1rem' }}>
                     <FaEnvelope style={{ color: 'var(--primary)' }} /> Messages
                 </h2>
                 <button onClick={() => {
                     if (!selectedIds.size) { showToast('Select messages first', 'error'); return; }
                     setReplySubject(''); setReplyMessage(''); setShowReply(true);
                 }}
-                    style={{ padding: '0.35rem 0.8rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    style={{ padding: '0.15rem 0.4rem', borderRadius: '6px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                     <FaPaperPlane size={10} /> Reply {selectedIds.size ? `(${selectedIds.size})` : ''}
                 </button>
             </div>
@@ -200,11 +200,11 @@ const MessagesInbox = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', gap: '0.4rem' }}>
                         {(['all', 'unread', 'read'] as const).map(f => (
-                            <button key={f} className={`admin-btn ${filter !== f ? 'admin-btn--secondary' : ''}`} onClick={() => { setFilter(f); setPage(1); }} style={{ padding: '0.3rem 0.75rem', fontSize: '0.8rem', textTransform: 'capitalize' }}>{f}</button>
+                            <button key={f} className={`admin-btn ${filter !== f ? 'admin-btn--secondary' : ''}`} onClick={() => { setFilter(f); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', textTransform: 'capitalize' }}>{f}</button>
                         ))}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <input type="text" className="form-input" placeholder="Search name, email, subject..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 280 }} />
+                        <input type="text" className="form-input" placeholder="Search name, email, subject..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 280 }} />
                     </div>
                 </div>
             </div>
@@ -254,18 +254,18 @@ const MessagesInbox = () => {
                         )}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 1rem', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap', gap: 8 }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}</span>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.75rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
+                            <select className="form-select" style={{ width: 'auto', padding: '0.15rem 1rem 0.15rem 0.35rem', fontSize: '0.65rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                                 {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}<option value={0}>All</option>
                             </select>
                             {pageSize > 0 && totalPages > 1 && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.35rem', fontSize: '0.65rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                        <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 26, fontSize: '0.75rem' }} onClick={() => setPage(p)}>{p}</button>
+                                        <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.15rem 0.35rem', minWidth: 22, fontSize: '0.65rem' }} onClick={() => setPage(p)}>{p}</button>
                                     ))}
-                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.35rem', fontSize: '0.65rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                                 </div>
                             )}
                         </div>
@@ -296,7 +296,7 @@ const MessagesInbox = () => {
                                     </span>
                                 )}
                             </div>
-                            <button className="admin-btn admin-btn--secondary" onClick={() => handleTrash(selectedMessage.id!)} style={{ padding: '0.3rem 0.7rem', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <button className="admin-btn admin-btn--secondary" onClick={() => handleTrash(selectedMessage.id!)} style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
                                 <FaTrash size={11} /> Trash
                             </button>
                         </div>
@@ -363,8 +363,8 @@ const MessagesInbox = () => {
                                 <strong>Recipients:</strong> {messages.filter(m => selectedIds.has(m.id!)).map(m => m.name).join(', ')}
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                                <button className="admin-btn admin-btn--secondary" onClick={() => setShowReply(false)} disabled={sending} style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>Cancel</button>
-                                <button className="admin-btn" onClick={handleReply} disabled={sending || !replyMessage.trim()} style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem', opacity: sending || !replyMessage.trim() ? 0.6 : 1 }}>
+                                <button className="admin-btn admin-btn--secondary" onClick={() => setShowReply(false)} disabled={sending} style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }}>Cancel</button>
+                                <button className="admin-btn" onClick={handleReply} disabled={sending || !replyMessage.trim()} style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.35rem', opacity: sending || !replyMessage.trim() ? 0.6 : 1 }}>
                                     {sending ? <>Sending...</> : <><FaPaperPlane size={11} /> Send Reply</>}
                                 </button>
                             </div>

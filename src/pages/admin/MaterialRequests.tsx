@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaTimes as FaTimesIcon, FaTruck, FaSpinner, FaChevronLeft, FaChevronRight, FaCheck, FaBan, FaUser, FaClock, FaCheckDouble, FaArrowsAlt, FaFileExcel, FaFilePdf, FaSearch, FaCalendarAlt } from 'react-icons/fa';
+import { useState, useEffect, useMemo } from 'react';
+import { FaPlus, FaEdit, FaTrash, FaTimes as FaTimesIcon, FaTruck, FaSpinner, FaChevronLeft, FaChevronRight, FaCheck, FaBan, FaUser, FaClock, FaCheckDouble, FaFileExcel, FaFilePdf, FaSearch, FaCalendarAlt } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { materialRequestsService } from '../../services/materialRequestsService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
@@ -38,10 +38,6 @@ const MaterialRequests = () => {
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [showDateFilter, setShowDateFilter] = useState(false);
-    const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
-    const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
-    const [rejectModalPos, setRejectModalPos] = useState<{ x: number; y: number } | null>(null);
-    const rejectDragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
 
     const isSiteMgr = user?.role === 'storekeeper';
 
@@ -194,8 +190,8 @@ const MaterialRequests = () => {
         URL.revokeObjectURL(url);
     };
 
-    const openNew = () => { setEditing(null); setForm(emptyForm); setModalPos(null); setShowModal(true); };
-    const openEdit = (r: MaterialRequest) => { setEditing(r); setForm({ project: r.project, material: r.material, quantity: r.quantity, unit: r.unit, unitPrice: r.unitPrice, date: r.date, notes: r.notes || '' }); setModalPos(null); setShowModal(true); };
+    const openNew = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
+    const openEdit = (r: MaterialRequest) => { setEditing(r); setForm({ project: r.project, material: r.material, quantity: r.quantity, unit: r.unit, unitPrice: r.unitPrice, date: r.date, notes: r.notes || '' }); setShowModal(true); };
 
     const save = () => {
         if (!form.project || !form.material) { showToast('Project and material are required', 'error'); return; }
@@ -239,54 +235,7 @@ const MaterialRequests = () => {
         } catch { showToast('Failed to reject', 'error'); }
     };
 
-    const onMouseMove = useCallback((e: MouseEvent) => {
-        if (!dragging.current) return;
-        setModalPos({ x: e.clientX - dragging.current.offsetX, y: e.clientY - dragging.current.offsetY });
-    }, []);
-
-    const onMouseUp = useCallback(() => {
-        dragging.current = null;
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-    }, [onMouseMove]);
-
-    useEffect(() => {
-        return () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        };
-    }, [onMouseMove, onMouseUp]);
-
-    const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-        const modal = (e.currentTarget as HTMLElement).closest('.admin-modal') as HTMLElement | null;
-        if (!modal) return;
-        const rect = modal.getBoundingClientRect();
-        setModalPos({ x: rect.left, y: rect.top });
-        dragging.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    }, [onMouseMove, onMouseUp]);
-
-    const onRejectMouseMove = useCallback((e: MouseEvent) => {
-        if (!rejectDragging.current) return;
-        setRejectModalPos({ x: e.clientX - rejectDragging.current.offsetX, y: e.clientY - rejectDragging.current.offsetY });
-    }, []);
-
-    const onRejectMouseUp = useCallback(() => {
-        rejectDragging.current = null;
-        document.removeEventListener('mousemove', onRejectMouseMove);
-        document.removeEventListener('mouseup', onRejectMouseUp);
-    }, [onRejectMouseMove]);
-
-    const onRejectHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-        const modal = (e.currentTarget as HTMLElement).closest('.admin-modal') as HTMLElement | null;
-        if (!modal) return;
-        const rect = modal.getBoundingClientRect();
-        setRejectModalPos({ x: rect.left, y: rect.top });
-        rejectDragging.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-        document.addEventListener('mousemove', onRejectMouseMove);
-        document.addEventListener('mouseup', onRejectMouseUp);
-    }, [onRejectMouseMove, onRejectMouseUp]);
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
 
     if (loading) {
         return (
@@ -299,8 +248,8 @@ const MaterialRequests = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '0.5rem' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0, fontSize: '1rem' }}>
                     <FaTruck style={{ color: 'var(--primary)' }} /> Material Requests
                 </h2>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -332,21 +281,21 @@ const MaterialRequests = () => {
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>All Material Requests</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <select value={selectedProject} onChange={e => { setPage(1); setSelectedProject(e.target.value); }}
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', minWidth: '140px' }}>
+                            style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', minWidth: '140px' }}>
                             {!isSiteMgr && <option value="all">All Projects</option>}
                             {projects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
                         </select>
                         <select value={statusFilter} onChange={e => { setPage(1); setStatusFilter(e.target.value); }}
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)' }}>
+                            style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)' }}>
                             <option value="all">All Status</option>
                             <option value="pending">Pending</option>
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
                             <option value="delivered">Delivered</option>
                         </select>
-                        <input type="text" className="form-input" placeholder="Search project, material..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 250 }} />
+                        <input type="text" className="form-input" placeholder="Search project, material..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 250 }} />
                         <div style={{ position: 'relative', display: 'inline-block' }}>
-                            <button className="admin-btn" onClick={() => setShowDateFilter(p => !p)} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <button className="admin-btn" onClick={() => setShowDateFilter(p => !p)} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.25rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                                 <FaCalendarAlt size={11} /> Date
                             </button>
                             {showDateFilter && (
@@ -355,18 +304,18 @@ const MaterialRequests = () => {
                                         <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1B2042' }}>Filter by Date</span>
                                         <button onClick={() => setShowDateFilter(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#999', fontSize: '1rem', lineHeight: 1 }}><FaTimesIcon /></button>
                                     </div>
-                                    <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: '100%' }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
-                                    <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: '100%' }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
+                                    <input type="date" className="form-input" style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: '100%' }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
+                                    <input type="date" className="form-input" style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: '100%' }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
                                 </div>
                             )}
                         </div>
-                        <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                             <FaPlus /> New Request
                         </button>
-                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 3, opacity: 1 }}>
+                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 3, opacity: 1 }}>
                             <FaFileExcel />
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 3, opacity: 1 }}>
+                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 3, opacity: 1 }}>
                             <FaFilePdf />
                         </button>
                     </div>
@@ -405,13 +354,13 @@ const MaterialRequests = () => {
                                         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                                             {item.status === 'pending' && (
                                                 <>
-                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: '#22c55e' }} onClick={() => handleApprove(item.id)} title="Approve"><FaCheck /></button>
-                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: '#ef4444' }} onClick={() => { setRejectId(item.id); setRejectNotes(''); setShowRejectModal(true); }} title="Reject"><FaBan /></button>
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#22c55e' }} onClick={() => handleApprove(item.id)} title="Approve"><FaCheck /></button>
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#ef4444' }} onClick={() => { setRejectId(item.id); setRejectNotes(''); setShowRejectModal(true); }} title="Reject"><FaBan /></button>
                                                 </>
                                             )}
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
+                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
                                             {user?.role === 'admin' && (
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => remove(item.id)} title="Delete"><FaTrash /></button>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--primary-red)' }} onClick={() => remove(item.id)} title="Delete"><FaTrash /></button>
                                             )}
                                         </div>
                                     </td>
@@ -426,26 +375,26 @@ const MaterialRequests = () => {
                         </tbody>
                     </table>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '0.5rem 0', flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.4rem 0', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
-                            <select className="form-select" style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Per page:</span>
+                            <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1rem 0.2rem 0.4rem', fontSize: '0.7rem' }}
                                 value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                                 {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                                 <option value={0}>All</option>
                             </select>
                         </div>
                         {pageSize > 0 && totalPages > 1 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 26, fontSize: '0.7rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                             </div>
                         )}
                     </div>

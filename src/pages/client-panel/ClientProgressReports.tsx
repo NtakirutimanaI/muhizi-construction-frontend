@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaFileAlt, FaProjectDiagram, FaClock } from 'react-icons/fa';
+import { FaFileAlt, FaProjectDiagram, FaClock, FaSpinner } from 'react-icons/fa';
 import { clientPortalService, type ClientReport, type Project } from '../../services/clientPortalService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
@@ -33,19 +33,19 @@ const ClientProgressReports = () => {
 
     return (
         <div>
-            <div className="content-card" style={{ padding: '1.5rem 2rem', marginBottom: '1.5rem' }}>
+            <div className="content-card" style={{ padding: '0.75rem 1rem', marginBottom: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                     <FaFileAlt size={24} color="var(--primary)" />
                     <div style={{ flex: '1 1 auto' }}>
-                        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-main)' }}>Progress Reports</div>
+                        <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-main)' }}>Progress Reports</div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                             {reports.length} report{reports.length !== 1 ? 's' : ''} from your project team
                         </div>
                     </div>
                     {projects.length > 1 && (
                         <select value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{
-                            padding: '0.4rem 0.7rem', borderRadius: 8, border: '1px solid var(--border-color)',
-                            background: 'var(--bg-white)', color: 'var(--text-main)', fontSize: '0.82rem',
+                            padding: '0.25rem 0.4rem', borderRadius: 8, border: '1px solid var(--border-color)',
+                            background: 'var(--bg-white)', color: 'var(--text-main)', fontSize: '0.75rem',
                         }}>
                             <option value="all">All Projects</option>
                             {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -55,7 +55,7 @@ const ClientProgressReports = () => {
             </div>
 
             {loading ? (
-                <div className="content-card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>
             ) : filtered.length === 0 ? (
                 <div className="content-card" style={{ padding: '3rem', textAlign: 'center' }}>
                     <FaFileAlt size={48} style={{ opacity: 0.2, color: 'var(--primary)', marginBottom: '1rem' }} />

@@ -7032,6 +7032,57 @@ img {
   gap: 0.6rem;
   margin-bottom: 0.75rem;
 }
+
+/* Attendance: keep every summary card aligned in one full-width top row. */
+.attendance-page-header {
+  margin-bottom: 0.6rem;
+}
+.attendance-page-header > h2 {
+  margin-bottom: 0.45rem !important;
+}
+.attendance-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.4rem;
+  align-items: start;
+}
+.attendance-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.attendance-report-card {
+  order: -1;
+  width: min(100%, 500px);
+  margin: 0;
+}
+.attendance-export-actions {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+@media (max-width: 900px) {
+  .attendance-summary-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .attendance-toolbar {
+    align-items: flex-start;
+  }
+}
+@media (max-width: 560px) {
+  .attendance-summary-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .attendance-toolbar {
+    flex-wrap: wrap;
+  }
+  .attendance-report-card {
+    width: 100%;
+  }
+  .attendance-export-actions {
+    width: 100%;
+  }
+}
 .db-kpi-card {
   background: var(--bg-card, #fff);
   border: 1px solid var(--border-color, #e5e7eb);
@@ -7440,5 +7491,65 @@ img {
   }
   .db-topbar-title {
     font-size: 1rem;
+  }
+}
+
+/* ── Registration page responsive ── */
+.reg-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.reg-search {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.reg-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.reg-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.25rem 0.75rem;
+}
+
+.reg-pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 768px) {
+  .reg-search {
+    width: 100%;
+  }
+  .reg-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .reg-info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .reg-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reg-search {
+    width: 100%;
+  }
+  .reg-form-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .reg-info-grid {
+    grid-template-columns: 1fr;
   }
 }

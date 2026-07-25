@@ -152,7 +152,7 @@ const ClientProfile = () => {
             </div>
 
             <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
-              <button type="submit" disabled={saving} className="admin-btn admin-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <button type="submit" disabled={saving} className="admin-btn admin-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.15rem 0.4rem', fontSize: '0.7rem' }}>
                 <FaSave size={12} /> {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>

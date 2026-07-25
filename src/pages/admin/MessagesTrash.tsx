@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaEnvelope, FaArchive, FaTrash, FaUndo, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaEnvelope, FaArchive, FaTrash, FaUndo, FaChevronLeft, FaChevronRight, FaSpinner } from 'react-icons/fa';
 import { profileService, type ContactMessage } from '../../services/profileService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { useToast } from '../../context/ToastContext';
@@ -97,13 +97,15 @@ const MessagesTrash = () => {
         m.createdAt ? new Date(m.createdAt).toLocaleDateString() : '—',
     ]), [filtered]);
 
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
+
     return (
         <div className="admin-page">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', gap: '1rem', flexWrap: 'wrap' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0, fontSize: '1rem' }}>
                     <FaEnvelope style={{ color: 'var(--primary)' }} /> Messages
                 </h2>
-                <input type="text" className="form-input" placeholder="Search name, email, subject..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 280 }} />
+                <input type="text" className="form-input" placeholder="Search name, email, subject..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 280 }} />
             </div>
 
             <div style={{ marginBottom: '1.25rem', maxWidth: 130 }}>
@@ -142,10 +144,10 @@ const MessagesTrash = () => {
                                         <td style={{ padding: '0.7rem 0.75rem', fontSize: '0.8rem' }}>{m.deletedAt ? formatDate(m.deletedAt) : '—'}</td>
                                         <td style={{ padding: '0.7rem 0.75rem', textAlign: 'center' }}>
                                             <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
-                                                <button className="admin-btn admin-btn--secondary" onClick={() => handleRestore(m.id!)} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--primary-teal)' }} title="Restore">
+                                                <button className="admin-btn admin-btn--secondary" onClick={() => handleRestore(m.id!)} style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--primary-teal)' }} title="Restore">
                                                     <FaUndo size={10} />
                                                 </button>
-                                                <button className="admin-btn admin-btn--secondary" onClick={() => handlePermanentDelete(m.id!)} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--primary-red)' }} title="Permanently Delete">
+                                                <button className="admin-btn admin-btn--secondary" onClick={() => handlePermanentDelete(m.id!)} style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--primary-red)' }} title="Permanently Delete">
                                                     <FaTrash size={10} />
                                                 </button>
                                             </div>
@@ -156,19 +158,19 @@ const MessagesTrash = () => {
                         </tbody>
                     </table>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 1rem', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.75rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 1rem', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <select className="form-select" style={{ width: 'auto', padding: '0.15rem 1rem 0.15rem 0.35rem', fontSize: '0.7rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                             {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}<option value={0}>All</option>
                         </select>
                         {pageSize > 0 && totalPages > 1 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.35rem', fontSize: '0.7rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 26, fontSize: '0.75rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.15rem 0.35rem', minWidth: 22, fontSize: '0.7rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.35rem', fontSize: '0.7rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                             </div>
                         )}
                     </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
     FaHardHat, FaImage, FaProjectDiagram,
-    FaArrowRight, FaCheckCircle, FaFileAlt,
+    FaArrowRight, FaCheckCircle, FaFileAlt, FaSpinner,
 } from 'react-icons/fa';
 import {
     PieChart, Pie, Cell, Tooltip, ResponsiveContainer,

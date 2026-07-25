@@ -500,7 +500,7 @@ const PettyCashVoucher = () => {
 
     useEffect(() => { if (page > totalPages) setPage(totalPages || 1); }, [totalPages, page]);
 
-    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
 
     const tx = act?.form.transactions || [];
     const tDr = sDr(tx), tCr = sCr(tx), tBal = sBal(tx);
@@ -511,7 +511,7 @@ const PettyCashVoucher = () => {
     return (
         <div style={{ maxWidth: '100vw', overflow: 'hidden' }}>
             {/* TOOLBAR */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, flexWrap: 'wrap', gap: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', flexWrap: 'wrap', gap: 6 }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: 6, margin: 0, fontSize: '1rem' }}><FaReceipt style={{ color: 'var(--primary)' }} /> Petty Cash Voucher</h2>
                 <div style={{ display: 'flex', gap: 4 }}>
                     <button onClick={() => setShowList(!showList)} style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid var(--border-color)', background: '#fff', cursor: 'pointer', fontSize: '0.72rem' }}><FaSearchIcon size={9} style={{ marginRight: 3 }} />{showList ? 'Hide' : 'List'}</button>
@@ -542,8 +542,8 @@ const PettyCashVoucher = () => {
                 {showList && (
                     <div style={{ width: 260, flexShrink: 0, background: '#fff', border: '1px solid var(--border-color)', borderRadius: 6, padding: 6, maxHeight: '75vh', display: 'flex', flexDirection: 'column' }}>
                         {/* Search & Filter */}
-                        <input type="text" placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ ...inp, marginBottom: 4, border: '1px solid var(--border-color)', borderRadius: 4 }} />
-                        <select value={sFilt} onChange={e => { setSFilt(e.target.value); setPage(1); }} style={{ ...inp, marginBottom: 6, border: '1px solid var(--border-color)', borderRadius: 4 }}>
+                        <input type="text" placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ ...inp, padding: '0.25rem 0.4rem', fontSize: '0.75rem', marginBottom: 4, border: '1px solid var(--border-color)', borderRadius: 4 }} />
+                        <select value={sFilt} onChange={e => { setSFilt(e.target.value); setPage(1); }} style={{ ...inp, padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 140, marginBottom: 6, border: '1px solid var(--border-color)', borderRadius: 4 }}>
                             <option value="">All Status</option>
                             {Object.keys(SC).map(s => <option key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</option>)}
                         </select>
@@ -586,23 +586,23 @@ const PettyCashVoucher = () => {
                         </div>
 
                         {/* Pagination Footer */}
-                        <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 6, marginTop: 4 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                                <span style={{ fontSize: '0.62rem', color: '#888' }}>
+                        <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 4, marginTop: 4 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                                <span style={{ fontSize: '0.58rem', color: '#888' }}>
                                     {pageSize === 0 ? months.length : Math.min(pageSize, months.length - (page - 1) * pageSize)} of {months.length} month{months.length !== 1 ? 's' : ''}
                                 </span>
-                                <select value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }} style={{ fontSize: '0.6rem', padding: '1px 3px', border: '1px solid #ddd', borderRadius: 3 }}>
+                                <select value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }} style={{ fontSize: '0.55rem', padding: '0px 2px', border: '1px solid #ddd', borderRadius: 3 }}>
                                     {PAGE_SIZES.map(s => <option key={s} value={s}>{s}/page</option>)}
                                     <option value={0}>All</option>
                                 </select>
                             </div>
                             {pageSize > 0 && totalPages > 1 && (
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-                                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} style={{ background: 'none', border: '1px solid #ddd', borderRadius: 3, padding: '2px 6px', cursor: page <= 1 ? 'default' : 'pointer', opacity: page <= 1 ? 0.4 : 1, fontSize: '0.6rem' }}><FaChevronLeft size={8} /></button>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} style={{ background: 'none', border: '1px solid #ddd', borderRadius: 3, padding: '1px 4px', cursor: page <= 1 ? 'default' : 'pointer', opacity: page <= 1 ? 0.4 : 1, fontSize: '0.55rem' }}><FaChevronLeft size={7} /></button>
                                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                        <button key={p} onClick={() => setPage(p)} style={{ border: p === page ? '1px solid #1B2042' : '1px solid #ddd', borderRadius: 3, padding: '2px 6px', background: p === page ? '#1B2042' : '#fff', color: p === page ? '#fff' : '#333', cursor: 'pointer', fontSize: '0.6rem', fontWeight: p === page ? 700 : 400, minWidth: 22 }}>{p}</button>
+                                        <button key={p} onClick={() => setPage(p)} style={{ border: p === page ? '1px solid #1B2042' : '1px solid #ddd', borderRadius: 3, padding: '1px 4px', background: p === page ? '#1B2042' : '#fff', color: p === page ? '#fff' : '#333', cursor: 'pointer', fontSize: '0.55rem', fontWeight: p === page ? 700 : 400, minWidth: 18 }}>{p}</button>
                                     ))}
-                                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} style={{ background: 'none', border: '1px solid #ddd', borderRadius: 3, padding: '2px 6px', cursor: page >= totalPages ? 'default' : 'pointer', opacity: page >= totalPages ? 0.4 : 1, fontSize: '0.6rem' }}><FaChevronRight size={8} /></button>
+                                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} style={{ background: 'none', border: '1px solid #ddd', borderRadius: 3, padding: '1px 4px', cursor: page >= totalPages ? 'default' : 'pointer', opacity: page >= totalPages ? 0.4 : 1, fontSize: '0.55rem' }}><FaChevronRight size={7} /></button>
                                 </div>
                             )}
                         </div>
@@ -627,14 +627,14 @@ const PettyCashVoucher = () => {
                                 {!act.saved && <span style={{ padding: '1px 6px', borderRadius: 4, background: '#fef3c7', color: '#d97706', fontSize: '0.65rem', fontWeight: 700 }}>Unsaved</span>}
                             </div>
                             <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                                <button onClick={save} disabled={saving} style={{ padding: '3px 8px', borderRadius: 4, border: '1px solid #1B2042', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 3 }}>{saving ? <FaSpinner className="spin" size={9} /> : <FaSave size={9} />} Save</button>
+                                <button onClick={save} disabled={saving} style={{ padding: '0.15rem 0.4rem', borderRadius: 4, border: '1px solid #1B2042', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 3 }}>{saving ? <FaSpinner className="spin" size={9} /> : <FaSave size={9} />} Save</button>
                                 {act.saved && (() => { const v = gV(act); if (!v) return null; return (<>
-                                    <button onClick={() => { setPreview({ open: true, type: 'excel', voucher: v, html: previewHtml(v), loading: false }); }} style={{ padding: '3px 8px', borderRadius: 4, border: '1px solid #16a34a', background: '#fff', color: '#16a34a', cursor: 'pointer', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 3 }}><FaFileExcel size={9} /> Excel</button>
-                                    <button onClick={async () => { setPreview({ open: true, type: 'pdf', voucher: v, loading: true }); try { const url = await dlPDF(v); setPreview(p => ({ ...p, blobUrl: url, loading: false })); } catch { setPreview(p => ({ ...p, loading: false })); showToast('PDF generation failed', 'error'); } }} style={{ padding: '3px 8px', borderRadius: 4, border: '1px solid #dc2626', background: '#fff', color: '#dc2626', cursor: 'pointer', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 3 }}><FaFilePdf size={9} /> PDF</button>
-                                    {isFin && v.status === 'pending' && <><button onClick={() => act2(() => pettyCashVoucherService.approve(v.id), 'Approved')} style={{ padding: '3px 8px', borderRadius: 4, border: '1px solid #22c55e', background: '#22c55e', color: '#fff', cursor: 'pointer', fontSize: '0.72rem' }}><FaCheck size={8} /> Approve</button><button onClick={() => { setRej({ i: ai, v }); setRejR(''); }} style={{ padding: '3px 8px', borderRadius: 4, border: '1px solid #ef4444', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: '0.72rem' }}><FaTimes size={8} /></button></>}
-                                    {isFin && v.status === 'approved' && <button onClick={() => { setPay({ i: ai, v }); setPayN(''); }} style={{ padding: '3px 8px', borderRadius: 4, border: '1px solid #3b82f6', background: '#3b82f6', color: '#fff', cursor: 'pointer', fontSize: '0.72rem' }}><FaDollarSign size={8} /> Pay</button>}
-                                    {isFin && v.status === 'paid' && <button onClick={() => act2(() => pettyCashVoucherService.close(v.id), 'Closed')} style={{ padding: '3px 8px', borderRadius: 4, border: '1px solid #1B2042', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.72rem' }}><FaLock size={8} /> Close</button>}
-                                    {!isFin && v.status === 'draft' && <button onClick={() => act2(() => pettyCashVoucherService.submit(v.id), 'Submitted')} style={{ padding: '3px 8px', borderRadius: 4, border: '1px solid #f59e0b', background: '#f59e0b', color: '#fff', cursor: 'pointer', fontSize: '0.72rem' }}><FaPaperPlane size={8} /> Submit</button>}
+                                    <button onClick={() => { setPreview({ open: true, type: 'excel', voucher: v, html: previewHtml(v), loading: false }); }} style={{ padding: '0.15rem 0.4rem', borderRadius: 4, border: '1px solid #16a34a', background: '#fff', color: '#16a34a', cursor: 'pointer', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 3 }}><FaFileExcel size={9} /> Excel</button>
+                                    <button onClick={async () => { setPreview({ open: true, type: 'pdf', voucher: v, loading: true }); try { const url = await dlPDF(v); setPreview(p => ({ ...p, blobUrl: url, loading: false })); } catch { setPreview(p => ({ ...p, loading: false })); showToast('PDF generation failed', 'error'); } }} style={{ padding: '0.15rem 0.4rem', borderRadius: 4, border: '1px solid #dc2626', background: '#fff', color: '#dc2626', cursor: 'pointer', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 3 }}><FaFilePdf size={9} /> PDF</button>
+                                    {isFin && v.status === 'pending' && <><button onClick={() => act2(() => pettyCashVoucherService.approve(v.id), 'Approved')} style={{ padding: '0.15rem 0.4rem', borderRadius: 4, border: '1px solid #22c55e', background: '#22c55e', color: '#fff', cursor: 'pointer', fontSize: '0.7rem' }}><FaCheck size={8} /> Approve</button><button onClick={() => { setRej({ i: ai, v }); setRejR(''); }} style={{ padding: '0.15rem 0.4rem', borderRadius: 4, border: '1px solid #ef4444', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: '0.7rem' }}><FaTimes size={8} /></button></>}
+                                    {isFin && v.status === 'approved' && <button onClick={() => { setPay({ i: ai, v }); setPayN(''); }} style={{ padding: '0.15rem 0.4rem', borderRadius: 4, border: '1px solid #3b82f6', background: '#3b82f6', color: '#fff', cursor: 'pointer', fontSize: '0.7rem' }}><FaDollarSign size={8} /> Pay</button>}
+                                    {isFin && v.status === 'paid' && <button onClick={() => act2(() => pettyCashVoucherService.close(v.id), 'Closed')} style={{ padding: '0.15rem 0.4rem', borderRadius: 4, border: '1px solid #1B2042', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.7rem' }}><FaLock size={8} /> Close</button>}
+                                    {!isFin && v.status === 'draft' && <button onClick={() => act2(() => pettyCashVoucherService.submit(v.id), 'Submitted')} style={{ padding: '0.15rem 0.4rem', borderRadius: 4, border: '1px solid #f59e0b', background: '#f59e0b', color: '#fff', cursor: 'pointer', fontSize: '0.7rem' }}><FaPaperPlane size={8} /> Submit</button>}
                                 </>); })()}
                             </div>
                         </div>
@@ -752,8 +752,8 @@ const PettyCashVoucher = () => {
 
             {/* MODALS */}
             {rej && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }} onClick={() => setRej(null)}>
-                    <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 8, padding: 16, maxWidth: 360, width: '90%' }}>
+                <div className="admin-modal-overlay" onClick={() => setRej(null)}>
+                    <div onClick={e => e.stopPropagation()} className="admin-modal">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}><h3 style={{ margin: 0, fontSize: '0.9rem' }}>Reject Voucher</h3><button onClick={() => setRej(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><FaTimesIcon size={14} /></button></div>
                         <p style={{ margin: '0 0 6px', fontSize: '0.82rem' }}>Reject <strong>{rej.v.voucherNumber}</strong>?</p>
                         <input style={{ ...inp, border: '1px solid var(--border-color)', borderRadius: 4, marginBottom: 8 }} value={rejR} onChange={e => setRejR(e.target.value)} placeholder="Reason" />
@@ -765,8 +765,8 @@ const PettyCashVoucher = () => {
                 </div>
             )}
             {pay && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }} onClick={() => setPay(null)}>
-                    <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 8, padding: 16, maxWidth: 380, width: '90%' }}>
+                <div className="admin-modal-overlay" onClick={() => setPay(null)}>
+                    <div onClick={e => e.stopPropagation()} className="admin-modal">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}><h3 style={{ margin: 0, fontSize: '0.9rem' }}><FaDollarSign style={{ marginRight: 4 }} /> Mark Paid</h3><button onClick={() => setPay(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><FaTimesIcon size={14} /></button></div>
                         <p style={{ margin: '0 0 2px', fontSize: '0.82rem' }}><strong>{pay.v.voucherNumber}</strong></p>
                         <p style={{ margin: '0 0 8px', fontSize: '1rem', fontWeight: 700, color: '#1B2042' }}>RWF {Number(pay.v.amount).toLocaleString()}</p>
@@ -779,8 +779,8 @@ const PettyCashVoucher = () => {
                 </div>
             )}
             {del && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }} onClick={() => setDel(null)}>
-                    <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 8, padding: 16, maxWidth: 320, width: '90%', textAlign: 'center' }}>
+                <div className="admin-modal-overlay" onClick={() => setDel(null)}>
+                    <div onClick={e => e.stopPropagation()} className="admin-modal" style={{ textAlign: 'center' }}>
                         <FaTrash size={28} style={{ color: '#dc2626', marginBottom: 6 }} />
                         <p style={{ fontSize: '0.85rem', margin: '0 0 8px' }}>Delete <strong>{del.l}</strong>?</p>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: 4 }}>

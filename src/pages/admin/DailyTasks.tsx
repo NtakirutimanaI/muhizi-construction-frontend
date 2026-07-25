@@ -80,8 +80,8 @@ const DailyTasks = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ marginBottom: '1rem' }}>
-                <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ marginBottom: '0.5rem' }}>
+                <h1 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
                     <FaClipboardList style={{ color: 'var(--primary)' }} /> Daily Tasks
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
@@ -100,8 +100,8 @@ const DailyTasks = () => {
             </div>
 
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                    <FaSpinner className="spin" size={24} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    <FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...
                 </div>
             ) : tasks.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
@@ -188,14 +188,14 @@ const DailyTasks = () => {
                         {viewTask.status !== 'completed' && viewTask.status !== 'rejected' && (
                             <div className="admin-modal-footer">
                                 {viewTask.status !== 'in_progress' && (
-                                    <button className="admin-btn admin-btn--secondary" onClick={() => handleStatusUpdate('in_progress')} disabled={updating}>
+                                    <button className="admin-btn admin-btn--secondary" onClick={() => handleStatusUpdate('in_progress')} disabled={updating} style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }}>
                                         {updating ? <FaSpinner className="spin" /> : <FaHourglassHalf />} Start Working
                                     </button>
                                 )}
-                                <button className="admin-btn admin-btn--secondary" onClick={() => handleStatusUpdate('rejected')} disabled={updating} style={{ color: '#ef4444' }}>
+                                <button className="admin-btn admin-btn--secondary" onClick={() => handleStatusUpdate('rejected')} disabled={updating} style={{ color: '#ef4444', padding: '0.15rem 0.4rem', fontSize: '0.7rem' }}>
                                     {updating ? <FaSpinner className="spin" /> : <FaTimesCircle />} Reject
                                 </button>
-                                <button className="admin-btn" onClick={() => handleStatusUpdate('completed')} disabled={updating}>
+                                <button className="admin-btn" onClick={() => handleStatusUpdate('completed')} disabled={updating} style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }}>
                                     {updating ? <FaSpinner className="spin" /> : <FaCheckCircle />} Mark Complete
                                 </button>
                             </div>

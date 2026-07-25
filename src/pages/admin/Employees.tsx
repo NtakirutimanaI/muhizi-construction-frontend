@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     FaUsers, FaDollarSign, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight, FaEye,
     FaTimes as FaTimesIcon, FaSpinner, FaExclamationTriangle, FaUserTie, FaIdCard, FaHeartbeat,
@@ -13,18 +13,18 @@ import autoTable from 'jspdf-autotable';
 
 const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
     <div style={{
-        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0,
         background: emphasis ? `${accent}12` : 'var(--bg-white)',
         border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
-        borderRadius: 10, padding: '0.8rem 1rem',
+        borderRadius: 8, padding: '0.4rem 0.6rem',
     }}>
         <div style={{
-            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+            width: 26, height: 26, borderRadius: 7, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.75rem',
         }}>{icon}</div>
         <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
-            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '0.9rem' : '0.8rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
         </div>
     </div>
 );
@@ -61,7 +61,12 @@ const Employees = () => {
         finally { setLoading(false); }
     };
 
-    useEffect(() => { fetch(); }, []);
+    useEffect(() => {
+        setLoading(true);
+        const cached = loadPageCache<EmployedUser[]>(isSiteEngineer ? 'pg_wage_workers' : 'pg_employees_employed');
+        if (cached) setData(cached);
+        fetch();
+    }, [isSiteEngineer, user?.id]);
 
     const filtered = useMemo(() => {
         const q = search.toLowerCase().trim();
@@ -268,16 +273,16 @@ const Employees = () => {
                         </tbody>
                     </table>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '0.5rem 0', flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.35rem 0', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                         Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Per page:</span>
                             <select
                                 className="form-select"
-                                style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }}
+                                style={{ width: 'auto', padding: '0.25rem 1.2rem 0.25rem 0.4rem', fontSize: '0.7rem' }}
                                 value={pageSize}
                                 onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}
                             >
@@ -286,12 +291,12 @@ const Employees = () => {
                             </select>
                         </div>
                         {pageSize > 0 && totalPages > 1 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 26, fontSize: '0.7rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                             </div>
                         )}
                     </div>
@@ -313,7 +318,7 @@ const Employees = () => {
                         <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 640, maxHeight: '85vh', overflowY: 'auto', borderRadius: 12 }}>
                             <div className="admin-modal-header" style={{ padding: '1rem 1.25rem' }}>
                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.05rem' }}>
-                                    <FaUsers style={{ color: 'var(--primary)' }} /> Employee Profile
+                                    {isSiteEngineer ? <FaHammer style={{ color: '#e67e22' }} /> : <FaUsers style={{ color: 'var(--primary)' }} />} {isSiteEngineer ? 'Worker Profile' : 'Employee Profile'}
                                 </h3>
                                 <button onClick={() => setViewItem(null)}><FaTimesIcon /></button>
                             </div>
@@ -323,7 +328,7 @@ const Employees = () => {
                                         <img src={viewItem.profile.avatar} alt="" style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid var(--border-color)' }} />
                                     ) : (
                                         <div style={{
-                                            width: 52, height: 52, borderRadius: '50%', background: 'var(--primary)', color: '#fff',
+                                            width: 52, height: 52, borderRadius: '50%', background: isSiteEngineer ? '#e67e22' : 'var(--primary)', color: '#fff',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem', fontWeight: 700, flexShrink: 0,
                                         }}>{initials || <FaUsers />}</div>
                                     )}
@@ -351,7 +356,6 @@ const Employees = () => {
                                         <FaIdCard size={11} /> Personal Information
                                     </div>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', background: '#f9f9f9', borderRadius: 8, padding: '0.75rem 0.9rem' }}>
-                                        {field('Email', viewItem.email, true)}
                                         {field('Phone', viewItem.phone)}
                                         {field('National ID', viewItem.nationalId, !!viewItem.nationalId)}
                                         {field('Address', viewItem.address)}

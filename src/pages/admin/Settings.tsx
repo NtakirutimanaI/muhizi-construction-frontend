@@ -133,29 +133,29 @@ const Settings = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }}>Settings</h1>
+                    <h1 style={{ fontSize: '1rem', fontWeight: 800, margin: 0 }}>Settings</h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '0.25rem' }}>
                         Manage your account security and the public site's availability.
                     </p>
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '0.4rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         style={{
-                            padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600,
+                            padding: '0.25rem 0.4rem', borderRadius: '16px', fontSize: '0.75rem', fontWeight: 600,
                             whiteSpace: 'nowrap', border: 'none', cursor: 'pointer', transition: 'all 0.2s',
                             background: activeTab === tab.id ? 'var(--text-main)' : 'transparent',
                             color: activeTab === tab.id ? 'var(--bg-body)' : 'var(--text-muted)',
-                            display: 'flex', alignItems: 'center', gap: '6px',
+                            display: 'flex', alignItems: 'center', gap: '4px',
                         }}
                     >
-                        <span style={{ fontSize: '0.8rem' }}>{tab.icon}</span>
+                        <span style={{ fontSize: '0.7rem' }}>{tab.icon}</span>
                         {tab.label}
                     </button>
                 ))}
@@ -261,7 +261,7 @@ const Settings = () => {
                                     placeholder="Re-enter your new password"
                                 />
                             </div>
-                            <button type="submit" className="btn-primary" disabled={loading} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', marginTop: '0.2rem', width: '100%' }}>
+                            <button type="submit" className="btn-primary" disabled={loading} style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', marginTop: '0.2rem', width: '100%' }}>
                                 {loading ? 'Updating...' : 'Update Password'}
                             </button>
                         </form>

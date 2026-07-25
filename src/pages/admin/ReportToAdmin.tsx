@@ -139,8 +139,8 @@ const ReportToAdmin = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1rem' }}>
                     <FaPaperPlane style={{ color: 'var(--primary)' }} /> Report to Admin
                 </h2>
                 <button
@@ -225,7 +225,7 @@ const ReportToAdmin = () => {
                         disabled={submitting}
                         style={{
                             background: '#16a34a', borderColor: '#16a34a', color: '#fff',
-                            borderRadius: 5, padding: '0.4rem 1rem', fontSize: '0.82rem',
+                            borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem',
                             display: 'flex', alignItems: 'center', gap: 6,
                         }}
                     >
@@ -254,7 +254,7 @@ const ReportToAdmin = () => {
                     <input
                         type="text" className="form-input" placeholder="Search submissions..."
                         value={search} onChange={e => setSearch(e.target.value)}
-                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 220 }}
+                        style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 220 }}
                     />
                 </div>
 
@@ -274,7 +274,7 @@ const ReportToAdmin = () => {
                         <tbody>
                             {loading ? (
                                 <tr><td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                    <FaSpinner className="fa-spin" style={{ fontSize: '1.5rem', opacity: 0.4 }} />
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>
                                 </td></tr>
                             ) : filtered.length === 0 ? (
                                 <tr><td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>

@@ -500,46 +500,7 @@ const PettyCash = () => {
     const [previewLoading, setPreviewLoading] = useState(false);
     const [companyLogo, setCompanyLogo] = useState('/logo.jpeg');
 
-    // Drag state: each modal gets its own position
-    const [modalPositions, setModalPositions] = useState<Record<string, { x: number; y: number }>>({});
-    const dragging = useRef<{ key: string; offsetX: number; offsetY: number } | null>(null);
 
-    const onDragStart = useCallback((key: string, e: React.MouseEvent) => {
-        const modal = (e.currentTarget as HTMLElement).closest('.admin-modal') as HTMLElement | null;
-        if (!modal) return;
-        const rect = modal.getBoundingClientRect();
-        dragging.current = { key, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-        setModalPositions(prev => ({ ...prev, [key]: { x: rect.left, y: rect.top } }));
-        document.body.style.userSelect = 'none';
-    }, []);
-
-    const onDragMove = useCallback((e: MouseEvent) => {
-        if (!dragging.current) return;
-        const { key, offsetX, offsetY } = dragging.current;
-        const x = Math.max(0, Math.min(window.innerWidth - 100, e.clientX - offsetX));
-        const y = Math.max(0, Math.min(window.innerHeight - 50, e.clientY - offsetY));
-        setModalPositions(prev => ({ ...prev, [key]: { x, y } }));
-    }, []);
-
-    const onDragEnd = useCallback(() => {
-        dragging.current = null;
-        document.body.style.userSelect = '';
-    }, []);
-
-    useEffect(() => {
-        document.addEventListener('mousemove', onDragMove);
-        document.addEventListener('mouseup', onDragEnd);
-        return () => {
-            document.removeEventListener('mousemove', onDragMove);
-            document.removeEventListener('mouseup', onDragEnd);
-        };
-    }, [onDragMove, onDragEnd]);
-
-    const getModalStyle = useCallback((key: string, extra?: React.CSSProperties): React.CSSProperties => {
-        const pos = modalPositions[key];
-        if (pos) return { position: 'fixed' as const, left: pos.x, top: pos.y, zIndex: 10001, ...extra };
-        return {}; // default centered
-    }, [modalPositions]);
 
     const openPreview = useCallback(async (v: PettyCashVoucher, type: 'pdf' | 'excel') => {
         if (!v.payeeName || !v.amount || v.amount <= 0) {
@@ -797,23 +758,19 @@ const PettyCash = () => {
         return <span style={{ padding: '2px 8px', borderRadius: 6, background: `${colors[t] || '#6B7280'}18`, color: colors[t] || '#6B7280', fontSize: '0.72rem', fontWeight: 600 }}>{t.replace(/_/g, ' ')}</span>;
     };
 
-    if (loading) return (
-        <div className="admin-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-            <FaSpinner className="spin" size={32} style={{ color: 'var(--primary)' }} />
-        </div>
-    );
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
 
     return (
         <div className="admin-page">
             {/* ═══ TABS ═══ */}
-            <div className="petty-cash-tabs" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+            <div className="petty-cash-tabs" style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                 {([
                     { key: 'vouchers' as const, label: 'Voucher Sheets', icon: <FaFileInvoice /> },
                     { key: 'funds' as const, label: 'Cash Funds', icon: <FaUniversity /> },
                     { key: 'transactions' as const, label: 'Transaction Ledger', icon: <FaExchangeAlt /> },
                 ]).map(t => (
                     <button key={t.key} onClick={() => setTab(t.key)}
-                        style={{ padding: '0.6rem 1.5rem', borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.88rem', fontWeight: 600,
+                        style={{ padding: '0.6rem 1.5rem', borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600,
                             background: tab === t.key ? '#1B2042' : 'var(--bg-white)', color: tab === t.key ? '#fff' : 'var(--text-muted)',
                             boxShadow: tab === t.key ? '0 2px 8px rgba(27,32,66,0.2)' : '0 1px 3px rgba(0,0,0,0.06)' }}>
                         {t.icon}{t.label}
@@ -838,7 +795,7 @@ const PettyCash = () => {
                 </div>
 
                 {/* Month Summary Bar */}
-                <div className="petty-cash-summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div className="petty-cash-summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.4rem', marginBottom: '0.6rem' }}>
                     {[
                         { label: 'Vouchers', value: monthTotals.count, color: '#3B82F6', icon: <FaFileInvoice /> },
                         { label: 'Total Received', value: `RWF ${monthTotals.totalReceived.toLocaleString()}`, color: '#22C55E', icon: <FaArrowUp /> },
@@ -846,7 +803,7 @@ const PettyCash = () => {
                         { label: 'Balance', value: `RWF ${monthTotals.balance.toLocaleString()}`, color: monthTotals.balance >= 0 ? '#22C55E' : '#EF4444', icon: <FaBalanceScale /> },
                     ].map((s, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.6rem 0.8rem' }}>
-                            <div style={{ width: 30, height: 30, borderRadius: 7, background: `${s.color}15`, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.8rem' }}>{s.icon}</div>
+                            <div style={{ width: 26, height: 26, borderRadius: 7, background: `${s.color}15`, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.75rem' }}>{s.icon}</div>
                             <div><div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{s.label}</div><div style={{ fontSize: '0.88rem', fontWeight: 700, color: s.color }}>{s.value}</div></div>
                         </div>
                     ))}
@@ -855,10 +812,10 @@ const PettyCash = () => {
                 <div className="petty-cash-search-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div style={{ position: 'relative' }}><FaSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: '0.75rem', color: '#aaa' }} />
-                            <input style={{ ...inputStyle, padding: '0.4rem 0.6rem 0.4rem 2rem', width: 280 }} placeholder="Search vouchers..." value={voucherSearch} onChange={e => setVoucherSearch(e.target.value)} /></div>
+                            <input style={{ ...inputStyle, padding: '0.25rem 0.4rem 0.25rem 2rem', width: 280, fontSize: '0.75rem' }} placeholder="Search vouchers..." value={voucherSearch} onChange={e => setVoucherSearch(e.target.value)} /></div>
                     </div>
                     <button className="admin-btn" onClick={openVoucherNew}
-                        style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.5rem 1.25rem', fontSize: '0.88rem' }}><FaPlus style={{ marginRight: 6 }} />New Voucher</button>
+                        style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem' }}><FaPlus style={{ marginRight: 6 }} />New Voucher</button>
                 </div>
 
                 {/* ═══ EXCEL-SHEET VOUCHER CARDS ═══ */}
@@ -1052,19 +1009,19 @@ const PettyCash = () => {
                                     Created: {new Date(v.createdAt).toLocaleString()} {v.lastModifiedByName && `| Modified by: ${v.lastModifiedByName}`}
                                 </div>
                                 <div className="petty-cash-footer-actions-btns" style={{ display: 'flex', gap: 4 }}>
-                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => openVoucherEdit(v)} title="Edit"><FaEdit size={11} /> Edit</button>
-                                    {v.status === 'draft' && <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#F59E0B' }} onClick={() => handleVoucherAction('submit', v)} title="Submit"><FaPaperPlane size={11} /> Submit</button>}
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => openVoucherEdit(v)} title="Edit"><FaEdit size={11} /> Edit</button>
+                                    {v.status === 'draft' && <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#F59E0B' }} onClick={() => handleVoucherAction('submit', v)} title="Submit"><FaPaperPlane size={11} /> Submit</button>}
                                     {v.status === 'pending' && <>
-                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#22C55E' }} onClick={() => handleVoucherAction('approve', v)}><FaCheck size={11} /> Approve</button>
-                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#EF4444' }} onClick={() => handleVoucherAction('reject', v)}><FaTimesCircle size={11} /> Reject</button>
+                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#22C55E' }} onClick={() => handleVoucherAction('approve', v)}><FaCheck size={11} /> Approve</button>
+                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#EF4444' }} onClick={() => handleVoucherAction('reject', v)}><FaTimesCircle size={11} /> Reject</button>
                                     </>}
-                                    {v.status === 'approved' && <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#3B82F6' }} onClick={() => handleVoucherAction('pay', v)}><FaMoneyBillWave size={11} /> Mark Paid</button>}
-                                    {v.status === 'draft' && <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#EF4444' }} onClick={() => setVoucherDelete(v)}><FaTrash size={11} /></button>}
+                                    {v.status === 'approved' && <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#3B82F6' }} onClick={() => handleVoucherAction('pay', v)}><FaMoneyBillWave size={11} /> Mark Paid</button>}
+                                    {v.status === 'draft' && <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#EF4444' }} onClick={() => setVoucherDelete(v)}><FaTrash size={11} /></button>}
                                     <div style={{ width: 1, height: 18, background: '#E5E7EB', margin: '0 2px' }} />
                                     {hasVoucherData(v) ? (
                                         <>
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#22C55E' }} onClick={() => openPreview(v, 'excel')} title="Preview Excel"><FaFileExcel size={11} /> Excel</button>
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#EF4444' }} onClick={() => openPreview(v, 'pdf')} title="Preview PDF"><FaFilePdf size={11} /> PDF</button>
+                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#22C55E' }} onClick={() => openPreview(v, 'excel')} title="Preview Excel"><FaFileExcel size={11} /> Excel</button>
+                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#EF4444' }} onClick={() => openPreview(v, 'pdf')} title="Preview PDF"><FaFilePdf size={11} /> PDF</button>
                                         </>
                                     ) : (
                                         <span style={{ fontSize: '0.68rem', color: '#9CA3AF', fontStyle: 'italic', padding: '0.25rem 0.5rem' }}>No data to download</span>
@@ -1098,7 +1055,7 @@ const PettyCash = () => {
 
             {/* ═══════════════════════ FUND TAB ═══════════════════════ */}
             {tab === 'funds' && <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.4rem', marginBottom: '0.6rem' }}>
                     {[
                         { label: 'Total Funds', value: funds.length, color: '#3B82F6', icon: <FaUniversity /> },
                         { label: 'Total Balance', value: `RWF ${(fundStats?.totalBalance || 0).toLocaleString()}`, color: '#22C55E', icon: <FaBalanceScale /> },
@@ -1106,7 +1063,7 @@ const PettyCash = () => {
                         { label: 'Inactive', value: funds.filter(f => f.status === 'inactive').length, color: '#EF4444', icon: <FaArrowDown /> },
                     ].map((s, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 10, padding: '0.8rem 1rem' }}>
-                            <div style={{ width: 36, height: 36, borderRadius: 9, background: `${s.color}15`, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.9rem' }}>{s.icon}</div>
+                            <div style={{ width: 26, height: 26, borderRadius: 9, background: `${s.color}15`, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.75rem' }}>{s.icon}</div>
                             <div><div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{s.label}</div><div style={{ fontSize: '1rem', fontWeight: 700, color: s.color }}>{s.value}</div></div>
                         </div>
                     ))}
@@ -1116,9 +1073,9 @@ const PettyCash = () => {
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Cash Funds</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <div style={{ position: 'relative' }}><FaSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: '0.75rem', color: '#aaa' }} />
-                                <input style={{ ...inputStyle, padding: '0.4rem 0.6rem 0.4rem 2rem', width: 250 }} placeholder="Search funds..." value={fundSearch} onChange={e => setFundSearch(e.target.value)} /></div>
+                                <input style={{ ...inputStyle, padding: '0.25rem 0.4rem 0.25rem 2rem', width: 250, fontSize: '0.75rem' }} placeholder="Search funds..." value={fundSearch} onChange={e => setFundSearch(e.target.value)} /></div>
                             <button className="admin-btn" onClick={() => { setFundEdit(null); setFundForm({ fundName: '', openingBalance: 0, currency: 'RWF', custodian: '', description: '', status: 'active' }); setFundModal('new'); }}
-                                style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.5rem 1.25rem', fontSize: '0.88rem' }}><FaPlus style={{ marginRight: 6 }} />New Fund</button>
+                                style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem' }}><FaPlus style={{ marginRight: 6 }} />New Fund</button>
                         </div>
                     </div>
                     <div style={{ overflowX: 'auto' }}>
@@ -1136,10 +1093,10 @@ const PettyCash = () => {
                                         <td>{statusBadge(f.status)}</td>
                                         <td>
                                             <div style={{ display: 'flex', gap: 4 }}>
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem' }} onClick={() => { setFundEdit(f); setFundForm({ fundName: f.fundName, openingBalance: f.openingBalance, currency: f.currency, custodian: f.custodian, description: f.description || '', status: f.status }); setFundModal('edit'); }}><FaEdit size={13} /></button>
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', color: '#22C55E' }} onClick={() => { setFundEdit(f); setFundAmount(''); setFundDesc(''); setFundModal('replenish'); }}><FaArrowUp size={13} /></button>
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', color: '#8B5CF6' }} onClick={() => { setFundEdit(f); setFundAmount(''); setFundDesc(''); setFundModal('adjust'); }}><FaSlidersH size={13} /></button>
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.5rem', color: 'var(--primary-red)' }} onClick={() => setFundDelete(f)}><FaTrash size={13} /></button>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => { setFundEdit(f); setFundForm({ fundName: f.fundName, openingBalance: f.openingBalance, currency: f.currency, custodian: f.custodian, description: f.description || '', status: f.status }); setFundModal('edit'); }}><FaEdit size={13} /></button>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#22C55E' }} onClick={() => { setFundEdit(f); setFundAmount(''); setFundDesc(''); setFundModal('replenish'); }}><FaArrowUp size={13} /></button>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#8B5CF6' }} onClick={() => { setFundEdit(f); setFundAmount(''); setFundDesc(''); setFundModal('adjust'); }}><FaSlidersH size={13} /></button>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--primary-red)' }} onClick={() => setFundDelete(f)}><FaTrash size={13} /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -1157,12 +1114,12 @@ const PettyCash = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Transaction Ledger ({fTxns.length})</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <select style={{ ...inputStyle, width: 180 }} value={txnFundFilter} onChange={e => setTxnFundFilter(e.target.value)}>
+                            <select style={{ ...inputStyle, width: 180, padding: '0.25rem 0.4rem', fontSize: '0.75rem' }} value={txnFundFilter} onChange={e => setTxnFundFilter(e.target.value)}>
                                 <option value="">All Funds</option>
                                 {funds.map(f => <option key={f.id} value={f.id}>{f.fundCode} - {f.fundName}</option>)}
                             </select>
                             <div style={{ position: 'relative' }}><FaSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: '0.75rem', color: '#aaa' }} />
-                                <input style={{ ...inputStyle, padding: '0.4rem 0.6rem 0.4rem 2rem', width: 250 }} placeholder="Search..." value={txnSearch} onChange={e => setTxnSearch(e.target.value)} /></div>
+                                <input style={{ ...inputStyle, padding: '0.25rem 0.4rem 0.25rem 2rem', width: 250, fontSize: '0.75rem' }} placeholder="Search..." value={txnSearch} onChange={e => setTxnSearch(e.target.value)} /></div>
                         </div>
                     </div>
                     <div style={{ overflowX: 'auto' }}>
@@ -1192,8 +1149,8 @@ const PettyCash = () => {
             {/* ═══════════════════════ FUND MODALS ═══════════════════════ */}
             {(fundModal === 'new' || fundModal === 'edit') && (
                 <div className="admin-modal-overlay" onClick={() => !fundSaving && setFundModal(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ ...getModalStyle('fund-new', { maxWidth: 550 }) }}>
-                        <div className="admin-modal-header" onMouseDown={e => onDragStart('fund-new', e)}><h3>{fundEdit ? 'Edit' : 'New'} Cash Fund</h3><button onClick={() => setFundModal(null)}><FaTimesIcon /></button></div>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                        <div className="admin-modal-header"><h3>{fundEdit ? 'Edit' : 'New'} Cash Fund</h3><button onClick={() => setFundModal(null)}><FaTimesIcon /></button></div>
                         <div className="admin-modal-body">
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
                                 <div><label style={labelStyle}>Fund Name *</label><input style={inputStyle} value={fundForm.fundName} onChange={e => setFundForm(p => ({ ...p, fundName: e.target.value }))} placeholder="e.g. Main Office Fund" /></div>
@@ -1214,8 +1171,8 @@ const PettyCash = () => {
 
             {fundModal === 'replenish' && fundEdit && (
                 <div className="admin-modal-overlay" onClick={() => !fundSaving && setFundModal(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ ...getModalStyle('fund-replenish', { maxWidth: 420 }) }}>
-                        <div className="admin-modal-header" style={{ background: '#22C55E', color: '#fff' }} onMouseDown={e => onDragStart('fund-replenish', e)}><h3><FaArrowUp style={{ marginRight: 8 }} />Replenish Fund</h3><button onClick={() => setFundModal(null)} style={{ color: '#fff' }}><FaTimesIcon /></button></div>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                        <div className="admin-modal-header" style={{ background: '#22C55E', color: '#fff' }}><h3><FaArrowUp style={{ marginRight: 8 }} />Replenish Fund</h3><button onClick={() => setFundModal(null)} style={{ color: '#fff' }}><FaTimesIcon /></button></div>
                         <div className="admin-modal-body">
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>Adding to <strong>{fundEdit.fundName}</strong> (Current: RWF {Number(fundEdit.currentBalance).toLocaleString()})</p>
                             <div><label style={labelStyle}>Amount (RWF) *</label><input type="number" style={inputStyle} value={fundAmount || ''} onChange={e => setFundAmount(e.target.value === '' ? '' : Number(e.target.value))} /></div>
@@ -1231,8 +1188,8 @@ const PettyCash = () => {
 
             {fundModal === 'adjust' && fundEdit && (
                 <div className="admin-modal-overlay" onClick={() => !fundSaving && setFundModal(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ ...getModalStyle('fund-adjust', { maxWidth: 420 }) }}>
-                        <div className="admin-modal-header" style={{ background: '#8B5CF6', color: '#fff' }} onMouseDown={e => onDragStart('fund-adjust', e)}><h3><FaSlidersH style={{ marginRight: 8 }} />Adjust Balance</h3><button onClick={() => setFundModal(null)} style={{ color: '#fff' }}><FaTimesIcon /></button></div>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                        <div className="admin-modal-header" style={{ background: '#8B5CF6', color: '#fff' }}><h3><FaSlidersH style={{ marginRight: 8 }} />Adjust Balance</h3><button onClick={() => setFundModal(null)} style={{ color: '#fff' }}><FaTimesIcon /></button></div>
                         <div className="admin-modal-body">
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>Adjusting <strong>{fundEdit.fundName}</strong> (Current: RWF {Number(fundEdit.currentBalance).toLocaleString()})</p>
                             <div><label style={labelStyle}>Amount (+ to increase, - to decrease) *</label><input type="number" style={inputStyle} value={fundAmount || ''} onChange={e => setFundAmount(e.target.value === '' ? '' : Number(e.target.value))} placeholder="e.g. -5000" /></div>
@@ -1248,8 +1205,8 @@ const PettyCash = () => {
 
             {fundDelete && (
                 <div className="admin-modal-overlay" onClick={() => setFundDelete(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ ...getModalStyle('fund-delete', { maxWidth: 380 }) }}>
-                        <div className="admin-modal-header" onMouseDown={e => onDragStart('fund-delete', e)}><h3>Delete Fund</h3><button onClick={() => setFundDelete(null)}><FaTimesIcon /></button></div>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                        <div className="admin-modal-header"><h3>Delete Fund</h3><button onClick={() => setFundDelete(null)}><FaTimesIcon /></button></div>
                         <div className="admin-modal-body" style={{ textAlign: 'center', padding: '1.5rem' }}>
                             <FaTrash size={36} style={{ color: '#EF4444', opacity: 0.8, marginBottom: 12 }} />
                             <p style={{ margin: 0, fontSize: '0.9rem' }}>Delete <strong>{fundDelete.fundCode} - {fundDelete.fundName}</strong>?</p>
@@ -1265,8 +1222,8 @@ const PettyCash = () => {
             {/* ═══════════════════════ VOUCHER FORM MODAL ═══════════════════════ */}
             {voucherModal && (
                 <div className="admin-modal-overlay" onClick={() => !voucherSaving && setVoucherModal(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ ...getModalStyle('voucher-form', { maxWidth: 900, maxHeight: '90vh', overflow: 'auto' }) }}>
-                        <div className="admin-modal-header" onMouseDown={e => onDragStart('voucher-form', e)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh', overflow: 'auto' }}>
+                        <div className="admin-modal-header">
                             <h3>{voucherEdit ? `Edit ${voucherEdit.voucherNumber}` : 'New Petty Cash Voucher'}</h3>
                             <button onClick={() => setVoucherModal(null)}><FaTimesIcon /></button>
                         </div>
@@ -1411,8 +1368,8 @@ const PettyCash = () => {
             {/* ═══ Voucher Delete Confirm ═══ */}
             {voucherDelete && (
                 <div className="admin-modal-overlay" onClick={() => setVoucherDelete(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ ...getModalStyle('voucher-delete', { maxWidth: 380 }) }}>
-                        <div className="admin-modal-header" onMouseDown={e => onDragStart('voucher-delete', e)}><h3>Delete Voucher</h3><button onClick={() => setVoucherDelete(null)}><FaTimesIcon /></button></div>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                        <div className="admin-modal-header"><h3>Delete Voucher</h3><button onClick={() => setVoucherDelete(null)}><FaTimesIcon /></button></div>
                         <div className="admin-modal-body" style={{ textAlign: 'center', padding: '1.5rem' }}>
                             <FaTrash size={36} style={{ color: '#EF4444', opacity: 0.8, marginBottom: 12 }} />
                             <p style={{ margin: 0, fontSize: '0.9rem' }}>Delete <strong>{voucherDelete.voucherNumber}</strong>?</p>
