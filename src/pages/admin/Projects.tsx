@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaProjectDiagram, FaCheckCircle, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye, FaHardHat, FaMapMarkerAlt, FaUser, FaCalendarAlt, FaSpinner } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaProjectDiagram, FaCheckCircle, FaChevronLeft, FaChevronRight, FaEye, FaHardHat, FaMapMarkerAlt, FaUser, FaCalendarAlt, FaSpinner } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { sitesService, type Site } from '../../services/sitesService';
 import { authService } from '../../services/authService';
@@ -65,8 +65,6 @@ const Projects = () => {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
-    const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
     const [showCreateSite, setShowCreateSite] = useState(false);
     const [creatingSite, setCreatingSite] = useState(false);
     const [lastCreatedSiteId, setLastCreatedSiteId] = useState<string | null>(null);
@@ -188,34 +186,6 @@ const Projects = () => {
         if (page > totalPages) setPage(totalPages || 1);
     }, [totalPages, page]);
 
-    const onMouseMove = useCallback((e: MouseEvent) => {
-        if (!dragging.current) return;
-        setModalPos({ x: e.clientX - dragging.current.offsetX, y: e.clientY - dragging.current.offsetY });
-    }, []);
-
-    const onMouseUp = useCallback(() => {
-        dragging.current = null;
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-    }, [onMouseMove]);
-
-    useEffect(() => {
-        return () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        };
-    }, [onMouseMove, onMouseUp]);
-
-    const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-        const modal = (e.currentTarget as HTMLElement).closest('.admin-modal') as HTMLElement | null;
-        if (!modal) return;
-        const rect = modal.getBoundingClientRect();
-        setModalPos({ x: rect.left, y: rect.top });
-        dragging.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    }, [onMouseMove, onMouseUp]);
-
     const stats = useMemo(() => ({
         total: projects.length,
         active: projects.filter(p => p.status === 'in_progress').length,
@@ -303,8 +273,7 @@ const Projects = () => {
 
     const openEditProject = (item: Project) => {
         setEditing(item);
-        setForm({
-            name: item.name,
+        setForm({            name: item.name,
             description: item.description || '',
             type: item.type || 'construction',
             status: item.status,
@@ -318,7 +287,6 @@ const Projects = () => {
             partnerUserId: (item as any).partnerUserId || '',
             progress: item.progress || '',
         });
-        setModalPos(null);
         setShowModal(true);
     };
 
@@ -354,19 +322,19 @@ const Projects = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                     {siteLabel ? (
-                        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.2rem' }}>
+                        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1rem' }}>
                             <FaHardHat style={{ color: '#8B5CF6' }} /> {siteLabel}
                         </h2>
                     ) : (
-                        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.2rem' }}>
+                        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1rem' }}>
                             <FaHardHat style={{ color: 'var(--text-muted)' }} /> Sites
                         </h2>
                     )}
-                    {siteLabel && isAdmin && <button className="admin-btn" onClick={() => { setForm(emptyForm); setEditing(null); setCreatingProjectForSite(false); setLastCreatedSiteId(null); setSelectedSiteId(''); setShowModal(true); }} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.8rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    {siteLabel && isAdmin && <button className="admin-btn" onClick={() => { setForm(emptyForm); setEditing(null); setCreatingProjectForSite(false); setLastCreatedSiteId(null); setSelectedSiteId(''); setShowModal(true); }} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         <FaProjectDiagram size={11} /> Create Project
                     </button>}
                     {siteLabel && (
-                        <button className="admin-btn admin-btn--secondary" onClick={() => setSearchParams({})} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <button className="admin-btn admin-btn--secondary" onClick={() => setSearchParams({})} style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                             <FaTimesIcon size={10} /> Clear
                         </button>
                     )}
@@ -386,7 +354,7 @@ const Projects = () => {
                         <FaCheckCircle size={16} /> Site created successfully!
                     </span>
                     <div style={{ display: 'flex', gap: '0.35rem' }}>
-                        <button className="admin-btn" onClick={() => { setShowModal(true); setEditing(null); setForm(emptyForm); setCreatingProjectForSite(false); setSelectedSiteId(lastCreatedSiteId || ''); setModalPos(null); }}
+                        <button className="admin-btn" onClick={() => { setShowModal(true); setEditing(null); setForm(emptyForm); setCreatingProjectForSite(false); setSelectedSiteId(lastCreatedSiteId || ''); }}
                             style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 1rem', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                             <FaPlus /> Create Project
                         </button>
@@ -403,7 +371,7 @@ const Projects = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.35rem' }}>
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Projects in this site</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-                            <input type="text" className="form-input" placeholder="Search projects..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 220 }} />
+                            <input type="text" className="form-input" placeholder="Search projects..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 220 }} />
                         </div>
                     </div>
                     <div style={{ overflowX: 'auto' }}>
@@ -454,15 +422,15 @@ const Projects = () => {
                         </table>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.25rem 0', flexWrap: 'wrap', gap: 6 }}>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                             Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
                         </span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Per page:</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Per page:</span>
                                 <select
                                     className="form-select"
-                                    style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.75rem' }}
+                                    style={{ width: 'auto', padding: '0.15rem 1rem 0.15rem 0.35rem', fontSize: '0.7rem' }}
                                     value={pageSize}
                                     onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}
                                 >
@@ -471,12 +439,12 @@ const Projects = () => {
                                 </select>
                             </div>
                             {pageSize > 0 && totalPages > 1 && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft size={10} /></button>
                                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                        <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 28, fontSize: '0.78rem' }} onClick={() => setPage(p)}>{p}</button>
+                                        <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.15rem 0.4rem', minWidth: 24, fontSize: '0.7rem' }} onClick={() => setPage(p)}>{p}</button>
                                     ))}
-                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight size={10} /></button>
                                 </div>
                             )}
                         </div>
@@ -497,7 +465,7 @@ const Projects = () => {
                 <div className="admin-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.35rem' }}>
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>All Sites ({allSites.length})</span>
-                        <input type="text" className="form-input" placeholder="Search sites..." value={siteSearch} onChange={e => setSiteSearch(e.target.value)} style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 220 }} />
+                        <input type="text" className="form-input" placeholder="Search sites..." value={siteSearch} onChange={e => setSiteSearch(e.target.value)} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 220 }} />
                     </div>
                     <div style={{ overflowX: 'auto' }}>
                         <table className="admin-table">
@@ -546,7 +514,7 @@ const Projects = () => {
                                                         )}
                                                         {!site.project && isAdmin && (
                                                             <button className="admin-btn" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', background: '#1B2042', borderColor: '#1B2042' }}
-                                                                onClick={() => { setForm(emptyForm); setEditing(null); setSelectedSiteId(site.id); setModalPos(null); setShowModal(true); }}
+                                                                onClick={() => { setForm(emptyForm); setEditing(null); setSelectedSiteId(site.id); setShowModal(true); }}
                                                             >
                                                                 <FaPlus size={9} style={{ marginRight: 4 }} />Link Project
                                                             </button>
@@ -573,9 +541,9 @@ const Projects = () => {
             )}
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => !savingProject && setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
-                        <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
-                            <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'Add'} Project</h3>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                        <div className="admin-modal-header">
+                            <h3>{editing ? 'Edit' : 'Add'} Project</h3>
                             <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>
                         </div>
                         <div className="admin-modal-body">
@@ -678,7 +646,7 @@ const Projects = () => {
 
             {showCreateSite && (
                 <div className="admin-modal-overlay" onClick={() => setShowCreateSite(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', top: '100px', left: '50%', transform: 'translateX(-50%)', maxHeight: 'calc(100vh - 160px)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', maxHeight: 'calc(100vh - 160px)' }}>
                         <div className="admin-modal-header">
                             <h3><FaHardHat style={{ marginRight: 8 }} />Create Site</h3>
                             <button onClick={() => setShowCreateSite(false)}><FaTimesIcon /></button>
@@ -719,7 +687,7 @@ const Projects = () => {
 
             {editingSiteEngineer && (
                 <div className="admin-modal-overlay" onClick={() => !savingSiteEngineer && setEditingSiteEngineer(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', borderRadius: 12 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', borderRadius: 12 }}>
                         <div className="admin-modal-header">
                             <h3 style={{ fontSize: '1rem' }}><FaHardHat style={{ marginRight: 8, color: '#8B5CF6' }} />Assign Site Engineer</h3>
                             <button onClick={() => !savingSiteEngineer && setEditingSiteEngineer(null)}><FaTimesIcon /></button>
@@ -748,7 +716,7 @@ const Projects = () => {
 
             {viewProject && (
                 <div className="admin-modal-overlay" onClick={() => setViewProject(null)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ position: 'relative', maxWidth: '380px', width: '100%', borderRadius: '12px', top: 'auto', left: 'auto', transform: 'none' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', width: '100%' }}>
                         <div className="admin-modal-header" style={{ padding: '0.75rem 1rem' }}>
                             <h3 style={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <FaProjectDiagram style={{ color: '#1B2042' }} /> {viewProject.name}

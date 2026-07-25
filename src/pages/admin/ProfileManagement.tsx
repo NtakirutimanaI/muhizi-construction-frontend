@@ -47,7 +47,7 @@ const ProfileManagement = () => {
     return (
         <div>
             {/* Tab Navigation */}
-            <div style={{ display: 'flex', gap: '4px', marginBottom: '1.5rem', borderBottom: '2px solid var(--border-color)', paddingBottom: '4px', overflowX: 'auto', flexWrap: 'nowrap' }}>
+            <div style={{ display: 'flex', gap: '4px', marginBottom: '0.5rem', borderBottom: '2px solid var(--border-color)', paddingBottom: '4px', overflowX: 'auto', flexWrap: 'nowrap' }}>
                 {tabs.map(tab => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.key;
@@ -59,8 +59,8 @@ const ProfileManagement = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                                padding: '0.75rem 1.25rem',
-                                fontSize: '0.9rem',
+                                padding: '0.15rem 0.4rem',
+                                fontSize: '0.7rem',
                                 fontWeight: isActive ? 700 : 500,
                                 color: isActive ? 'var(--primary-teal)' : 'var(--text-muted)',
                                 background: 'transparent',

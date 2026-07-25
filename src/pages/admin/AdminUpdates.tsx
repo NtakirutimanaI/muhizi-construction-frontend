@@ -126,11 +126,11 @@ const AdminUpdates = () => {
                 .upd-badge-draft { background: #fef3c7; color: #d97706; }
             `}</style>
 
-            <div className="content-card" style={{ padding: '1.5rem 2rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            <div className="content-card" style={{ padding: '1.5rem 2rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <FaNewspaper size={24} color="var(--primary)" />
                     <div>
-                        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-main)' }}>Updates Management</div>
+                        <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-main)' }}>Updates Management</div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{items.length} update{items.length !== 1 ? 's' : ''} total</div>
                     </div>
                 </div>
@@ -239,15 +239,15 @@ const AdminUpdates = () => {
                                     <td style={{ textAlign: 'right' }}>
                                         <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'flex-end' }}>
                                             <button onClick={() => handleTogglePublish(item)} title={item.isPublished ? 'Unpublish' : 'Publish'}
-                                                style={{ padding: '0.35rem 0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', background: item.isPublished ? '#fef3c7' : '#dcfce7', color: item.isPublished ? '#d97706' : '#16a34a', fontSize: '0.75rem' }}>
+                                                style={{ padding: '0.15rem 0.4rem', borderRadius: '6px', border: 'none', cursor: 'pointer', background: item.isPublished ? '#fef3c7' : '#dcfce7', color: item.isPublished ? '#d97706' : '#16a34a', fontSize: '0.7rem' }}>
                                                 {item.isPublished ? <FaEyeSlash /> : <FaEye />}
                                             </button>
                                             <button onClick={() => handleEdit(item)} title="Edit"
-                                                style={{ padding: '0.35rem 0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', background: '#e0e7ff', color: '#4f46e5', fontSize: '0.75rem' }}>
+                                                style={{ padding: '0.15rem 0.4rem', borderRadius: '6px', border: 'none', cursor: 'pointer', background: '#e0e7ff', color: '#4f46e5', fontSize: '0.7rem' }}>
                                                 <FaEdit />
                                             </button>
                                             <button onClick={() => handleDelete(item.id)} title="Delete"
-                                                style={{ padding: '0.35rem 0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', background: '#fee2e2', color: '#dc2626', fontSize: '0.75rem' }}>
+                                                style={{ padding: '0.15rem 0.4rem', borderRadius: '6px', border: 'none', cursor: 'pointer', background: '#fee2e2', color: '#dc2626', fontSize: '0.7rem' }}>
                                                 <FaTrash />
                                             </button>
                                         </div>

@@ -102,10 +102,10 @@ const Resources = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>Content CMS</h1>
-                    <p style={{ color: 'var(--text-muted)' }}>Manage all portfolio content sections in one place.</p>
+                    <h1 style={{ fontSize: '1rem', fontWeight: 800 }}>Content CMS</h1>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Manage all portfolio content sections in one place.</p>
                 </div>
             </div>
 

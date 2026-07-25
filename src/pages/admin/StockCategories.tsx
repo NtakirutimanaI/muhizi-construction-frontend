@@ -101,9 +101,9 @@ const StockCategories = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '1rem', flexWrap: 'wrap' }}>
                 <div>
-                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: 0, marginBottom: '0.2rem' }}>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: 0, marginBottom: '0.2rem', fontSize: '1rem' }}>
                         <FaTag style={{ color: '#7c3aed' }} /> Categories
                     </h2>
                     <span style={{ fontSize: '0.8rem', color: '#999' }}>Manage stock categories — {categories.length} total</span>
@@ -111,9 +111,9 @@ const StockCategories = () => {
                 {!adding && (
                     <button onClick={() => setAdding(true)}
                         style={{
-                            padding: '0.4rem 0.8rem', borderRadius: 6, border: 'none',
+                            padding: '0.15rem 0.4rem', borderRadius: 6, border: 'none',
                             background: '#7c3aed', color: '#fff', cursor: 'pointer',
-                            fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+                            fontSize: '0.7rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
                         }}>
                         <FaPlus size={10} /> Add New Category
                     </button>
@@ -133,14 +133,14 @@ const StockCategories = () => {
                         onKeyDown={e => { if (e.key === 'Enter') addCategory(); }} autoFocus />
                     <button onClick={addCategory} disabled={saving}
                         style={{
-                            padding: '0.4rem 0.7rem', borderRadius: 6, border: 'none',
+                            padding: '0.15rem 0.4rem', borderRadius: 6, border: 'none',
                             background: '#22c55e', color: '#fff', cursor: 'pointer',
-                            fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4,
+                            fontSize: '0.7rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4,
                         }}><FaCheck size={10} /> Save</button>
                     <button onClick={() => { setAdding(false); setNewCat(''); }}
                         style={{
-                            padding: '0.4rem 0.6rem', borderRadius: 6, border: '1px solid #ddd',
-                            background: 'transparent', cursor: 'pointer', color: '#999', fontSize: '0.75rem',
+                            padding: '0.15rem 0.4rem', borderRadius: 6, border: '1px solid #ddd',
+                            background: 'transparent', cursor: 'pointer', color: '#999', fontSize: '0.7rem',
                         }}><FaTimes size={12} /></button>
                 </div>
             )}
@@ -199,13 +199,13 @@ const StockCategories = () => {
                                         <div style={{ display: 'flex', gap: 4 }}>
                                             <button onClick={() => startRename(cat)}
                                                 style={{
-                                                    padding: '0.2rem 0.4rem', borderRadius: 4,
+                                                    padding: '0.15rem 0.4rem', borderRadius: 4,
                                                     border: '1px solid #ddd', background: 'transparent',
                                                     cursor: 'pointer', color: '#666', fontSize: '0.7rem',
                                                 }} title="Rename"><FaEdit size={10} /></button>
                                             <button onClick={() => removeCategory(cat)}
                                                 style={{
-                                                    padding: '0.2rem 0.4rem', borderRadius: 4,
+                                                    padding: '0.15rem 0.4rem', borderRadius: 4,
                                                     border: '1px solid #ddd', background: 'transparent',
                                                     cursor: 'pointer', color: '#ef4444', fontSize: '0.7rem',
                                                 }} title="Delete"><FaTrash size={10} /></button>
@@ -217,28 +217,28 @@ const StockCategories = () => {
                     </table>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', padding: '0.4rem 0', flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: '0.78rem', color: '#999' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', padding: '0.3rem 0', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: '0.7rem', color: '#999' }}>
                         Showing {pageSize ? Math.min(pageSize, categories.length - (page - 1) * pageSize) : categories.length} of {categories.length} categor{ categories.length !== 1 ? 'ies' : 'y' }
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <span style={{ fontSize: '0.75rem', color: '#999' }}>Per page:</span>
-                            <select className="form-select" style={{ width: 'auto', padding: '0.25rem 1.3rem 0.25rem 0.4rem', fontSize: '0.75rem' }}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontSize: '0.68rem', color: '#999' }}>Per page:</span>
+                            <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.35rem', fontSize: '0.68rem' }}
                                 value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                                 {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                                 <option value={0}>All</option>
                             </select>
                         </div>
                         {pageSize > 0 && totalPages > 1 && (
-                            <div style={{ display: 'flex', gap: 2 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.45rem', fontSize: '0.7rem' }}
+                            <div style={{ display: 'flex', gap: 1 }}>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.35rem', fontSize: '0.65rem' }}
                                     disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft size={10} /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                                     <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'}
-                                        style={{ padding: '0.25rem 0.5rem', minWidth: 26, fontSize: '0.72rem' }} onClick={() => setPage(p)}>{p}</button>
+                                        style={{ padding: '0.2rem 0.4rem', minWidth: 22, fontSize: '0.65rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.45rem', fontSize: '0.7rem' }}
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.35rem', fontSize: '0.65rem' }}
                                     disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight size={10} /></button>
                             </div>
                         )}

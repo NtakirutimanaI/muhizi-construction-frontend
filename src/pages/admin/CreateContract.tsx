@@ -106,19 +106,22 @@ const CreateContract = () => {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [insuranceSettings, setInsuranceSettings] = useState<InsuranceSetting[]>([]);
     const [totalDeduction, setTotalDeduction] = useState(0);
+    const [loading, setLoading] = useState(true);
     const previewRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        authService.getAllUsers().then((data: any[]) => {
-            setEmployees(data.filter((u: any) => u.employmentStatus === 'employed'));
-        }).catch(() => {});
-        profileService.getPublicProfile().then(r => setProfile(r.data || r)).catch(() => {});
-        insuranceService.getActive().then(res => {
-            setInsuranceSettings(res.data);
-        }).catch(() => {});
-        insuranceService.getDeduction().then(res => {
-            setTotalDeduction(res.data.totalDeduction || 0);
-        }).catch(() => {});
+        Promise.all([
+            authService.getAllUsers().then((data: any[]) => {
+                setEmployees(data.filter((u: any) => u.employmentStatus === 'employed'));
+            }).catch(() => {}),
+            profileService.getPublicProfile().then(r => setProfile(r.data || r)).catch(() => {}),
+            insuranceService.getActive().then(res => {
+                setInsuranceSettings(res.data);
+            }).catch(() => {}),
+            insuranceService.getDeduction().then(res => {
+                setTotalDeduction(res.data.totalDeduction || 0);
+            }).catch(() => {}),
+        ]).finally(() => setLoading(false));
     }, []);
 
     const selectedEmployee = useMemo(() =>
@@ -378,15 +381,18 @@ Date: ____/____/______                        Date: ${today}
 
     return (
         <div className="admin-page">
+            {loading && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>}
+            {!loading && (
+            <>
             {/* Page Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '1rem', flexWrap: 'wrap' }}>
                 <div>
-                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0' }}>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '1rem' }}>
                         <FaFileContract style={{ color: 'var(--primary)' }} /> Employment Contracts
                     </h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>Manage and generate employment agreements for MUHIZI CONSTRUCTION employees.</p>
                 </div>
-                <button className="admin-btn" onClick={() => { setForm(emptyForm); setShowFormModal(true); }} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <button className="admin-btn" onClick={() => { setForm(emptyForm); setShowFormModal(true); }} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <FaPlus /> Create Contract
                 </button>
             </div>
@@ -410,8 +416,8 @@ Date: ____/____/______                        Date: ${today}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.8rem 1.2rem', background: 'var(--bg-body)', borderBottom: '1px solid var(--border-color)' }}>
                         <span style={{ fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6 }}><FaEye style={{ color: 'var(--primary)' }} /> Contract Preview — {form.employeeName}</span>
                         <div style={{ display: 'flex', gap: 8 }}>
-                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.7rem', fontSize: '0.8rem' }} onClick={handleDownload}><FaPrint style={{ marginRight: 4 }} /> Download PDF</button>
-                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.7rem', fontSize: '0.8rem' }} onClick={() => { setShowPreview(false); }}><FaArrowLeft style={{ marginRight: 4 }} /> Back</button>
+                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={handleDownload}><FaPrint style={{ marginRight: 4 }} /> Download PDF</button>
+                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => { setShowPreview(false); }}><FaArrowLeft style={{ marginRight: 4 }} /> Back</button>
                         </div>
                     </div>
 
@@ -595,6 +601,8 @@ Date: ____/____/______                        Date: ${today}
                         </div>
                     </div>
                 </div>
+            )}
+            </>
             )}
         </div>
     );

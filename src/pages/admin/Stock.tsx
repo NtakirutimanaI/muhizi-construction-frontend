@@ -428,9 +428,9 @@ const StockPage = () => {
                 </div>
                 <button onClick={openNew}
                     style={{
-                        padding: '0.25rem 0.65rem', borderRadius: 6, border: 'none',
+                        padding: '0.15rem 0.4rem', borderRadius: 6, border: 'none',
                         background: pathFilter === 'out' ? '#ef4444' : 'var(--primary)', color: '#fff', cursor: 'pointer',
-                        fontSize: '0.72rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4,
+                        fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4,
                         boxShadow: '0 2px 6px rgba(27,32,66,0.2)',
                     }}>
                     <FaPlus size={9} /> {pathFilter === 'out' ? 'Add Stock Out' : 'Add Stock'}
@@ -480,14 +480,14 @@ const StockPage = () => {
                 <input type="text" placeholder="Search item, reference..." value={search}
                     onChange={e => { setSearch(e.target.value); setPage(1); }}
                     style={{
-                        padding: '0.35rem 0.5rem', fontSize: '0.8rem', border: 'none',
+                        padding: '0.25rem 0.4rem', fontSize: '0.75rem', border: 'none',
                         background: 'transparent', color: 'var(--text-main)', outline: 'none',
                         flex: 1, minWidth: 150,
                     }} />
                 <div style={{ width: 1, height: 20, background: '#e5e7eb' }} />
                 <select value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}
                     style={{
-                        padding: '0.3rem 0.5rem', fontSize: '0.75rem', borderRadius: 6,
+                        padding: '0.25rem 0.4rem', fontSize: '0.75rem', borderRadius: 6,
                         border: '1px solid var(--border-color)', background: 'var(--bg-body)',
                         color: 'var(--text-main)', maxWidth: 160,
                     }}>
@@ -497,21 +497,21 @@ const StockPage = () => {
                 <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }}
                     title="From date"
                     style={{
-                        padding: '0.3rem 0.5rem', fontSize: '0.75rem', borderRadius: 6,
+                        padding: '0.25rem 0.4rem', fontSize: '0.75rem', borderRadius: 6,
                         border: '1px solid var(--border-color)', background: 'var(--bg-body)',
                         color: 'var(--text-main)', width: 130,
                     }} />
                 <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }}
                     title="To date"
                     style={{
-                        padding: '0.3rem 0.5rem', fontSize: '0.75rem', borderRadius: 6,
+                        padding: '0.25rem 0.4rem', fontSize: '0.75rem', borderRadius: 6,
                         border: '1px solid var(--border-color)', background: 'var(--bg-body)',
                         color: 'var(--text-main)', width: 130,
                     }} />
                 {(dateFrom || dateTo) && (
                     <button onClick={() => { setDateFrom(''); setDateTo(''); setPage(1); }}
                         style={{
-                            padding: '0.25rem 0.5rem', fontSize: '0.7rem', borderRadius: 6,
+                            padding: '0.15rem 0.4rem', fontSize: '0.7rem', borderRadius: 6,
                             border: '1px solid #ddd', background: 'transparent', cursor: 'pointer', color: '#999',
                         }}>
                         <FaTimes size={9} /> Clear
@@ -572,28 +572,28 @@ const StockPage = () => {
                     </div>
 
                     {/* Summary Pagination */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.2rem 0', flexWrap: 'wrap', gap: 8 }}>
-                        <span style={{ fontSize: '0.78rem', color: '#999' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.2rem 0', flexWrap: 'wrap', gap: 6 }}>
+                        <span style={{ fontSize: '0.7rem', color: '#999' }}>
                             Showing {summaryPageSize ? Math.min(summaryPageSize, summaryFiltered.length - (summaryPage - 1) * summaryPageSize) : summaryFiltered.length} of {summaryFiltered.length} item{summaryFiltered.length !== 1 ? 's' : ''}
                         </span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                <span style={{ fontSize: '0.75rem', color: '#999' }}>Per page:</span>
-                                <select className="form-select" style={{ width: 'auto', padding: '0.25rem 1.3rem 0.25rem 0.4rem', fontSize: '0.75rem' }}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <span style={{ fontSize: '0.68rem', color: '#999' }}>Per page:</span>
+                                <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.35rem', fontSize: '0.68rem' }}
                                     value={summaryPageSize} onChange={e => { setSummaryPage(1); setSummaryPageSize(Number(e.target.value)); }}>
                                     {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                                     <option value={0}>All</option>
                                 </select>
                             </div>
                             {summaryPageSize > 0 && summaryTotalPages > 1 && (
-                                <div style={{ display: 'flex', gap: 2 }}>
-                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.45rem', fontSize: '0.7rem' }}
+                                <div style={{ display: 'flex', gap: 1 }}>
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.35rem', fontSize: '0.65rem' }}
                                         disabled={summaryPage <= 1} onClick={() => setSummaryPage(p => Math.max(1, p - 1))}><FaChevronLeft size={10} /></button>
                                     {Array.from({ length: summaryTotalPages }, (_, i) => i + 1).map(p => (
                                         <button key={p} className={p === summaryPage ? 'admin-btn' : 'admin-btn admin-btn--secondary'}
-                                            style={{ padding: '0.25rem 0.5rem', minWidth: 26, fontSize: '0.72rem' }} onClick={() => setSummaryPage(p)}>{p}</button>
+                                            style={{ padding: '0.2rem 0.4rem', minWidth: 22, fontSize: '0.65rem' }} onClick={() => setSummaryPage(p)}>{p}</button>
                                     ))}
-                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.45rem', fontSize: '0.7rem' }}
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.35rem', fontSize: '0.65rem' }}
                                         disabled={summaryPage >= summaryTotalPages} onClick={() => setSummaryPage(p => Math.min(summaryTotalPages, p + 1))}><FaChevronRight size={10} /></button>
                                 </div>
                             )}
@@ -705,25 +705,25 @@ const StockPage = () => {
                                         <td>
                                             <div style={{ display: 'flex', gap: 4 }}>
                                                 {entry.evidenceUrls && entry.evidenceUrls.length > 0 && (
-                                                    <button onClick={() => setViewEvidence(entry.evidenceUrls!)} title={`${entry.evidenceUrls.length} evidence photo(s)`}
-                                                        style={{
-                                                            padding: '0.2rem 0.4rem', borderRadius: 4,
-                                                            border: '1px solid #ddd', background: 'transparent',
-                                                            cursor: 'pointer', color: 'var(--primary)', fontSize: '0.7rem',
-                                                        }}><FaCamera size={10} /></button>
-                                                )}
-                                                <button onClick={() => openEdit(entry)}
+                                                <button onClick={() => setViewEvidence(entry.evidenceUrls!)} title={`${entry.evidenceUrls.length} evidence photo(s)`}
                                                     style={{
-                                                        padding: '0.2rem 0.4rem', borderRadius: 4,
+                                                        padding: '0.15rem 0.4rem', borderRadius: 4,
                                                         border: '1px solid #ddd', background: 'transparent',
-                                                        cursor: 'pointer', color: '#666', fontSize: '0.7rem',
-                                                    }}><FaEdit size={10} /></button>
-                                                <button onClick={() => remove(entry.id)}
-                                                    style={{
-                                                        padding: '0.2rem 0.4rem', borderRadius: 4,
-                                                        border: '1px solid #ddd', background: 'transparent',
-                                                        cursor: 'pointer', color: '#ef4444', fontSize: '0.7rem',
-                                                    }}><FaTrash size={10} /></button>
+                                                        cursor: 'pointer', color: 'var(--primary)', fontSize: '0.7rem',
+                                                    }}><FaCamera size={10} /></button>
+                                            )}
+                                            <button onClick={() => openEdit(entry)}
+                                                style={{
+                                                    padding: '0.15rem 0.4rem', borderRadius: 4,
+                                                    border: '1px solid #ddd', background: 'transparent',
+                                                    cursor: 'pointer', color: '#666', fontSize: '0.7rem',
+                                                }}><FaEdit size={10} /></button>
+                                            <button onClick={() => remove(entry.id)}
+                                                style={{
+                                                    padding: '0.15rem 0.4rem', borderRadius: 4,
+                                                    border: '1px solid #ddd', background: 'transparent',
+                                                    cursor: 'pointer', color: '#ef4444', fontSize: '0.7rem',
+                                                }}><FaTrash size={10} /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -741,28 +741,28 @@ const StockPage = () => {
                         </table>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', padding: '0.4rem 0', flexWrap: 'wrap', gap: 8 }}>
-                        <span style={{ fontSize: '0.78rem', color: '#999' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', padding: '0.3rem 0', flexWrap: 'wrap', gap: 6 }}>
+                        <span style={{ fontSize: '0.7rem', color: '#999' }}>
                             Showing {paginated.length} of {filtered.length} entry{filtered.length !== 1 ? 'ies' : 'y'}
                         </span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                <span style={{ fontSize: '0.75rem', color: '#999' }}>Per page:</span>
-                                <select className="form-select" style={{ width: 'auto', padding: '0.25rem 1.3rem 0.25rem 0.4rem', fontSize: '0.75rem' }}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <span style={{ fontSize: '0.68rem', color: '#999' }}>Per page:</span>
+                                <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.35rem', fontSize: '0.68rem' }}
                                     value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                                     {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                                     <option value={0}>All</option>
                                 </select>
                             </div>
                             {pageSize > 0 && totalPages > 1 && (
-                                <div style={{ display: 'flex', gap: 2 }}>
-                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.45rem', fontSize: '0.7rem' }}
+                                <div style={{ display: 'flex', gap: 1 }}>
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.35rem', fontSize: '0.65rem' }}
                                         disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft size={10} /></button>
                                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                                         <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'}
-                                            style={{ padding: '0.25rem 0.5rem', minWidth: 26, fontSize: '0.72rem' }} onClick={() => setPage(p)}>{p}</button>
+                                            style={{ padding: '0.2rem 0.4rem', minWidth: 22, fontSize: '0.65rem' }} onClick={() => setPage(p)}>{p}</button>
                                     ))}
-                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.45rem', fontSize: '0.7rem' }}
+                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.35rem', fontSize: '0.65rem' }}
                                         disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight size={10} /></button>
                                 </div>
                             )}
@@ -774,7 +774,7 @@ const StockPage = () => {
             {/* ADD / EDIT MODAL */}
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => { if (!saving) { closeModal(); } }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 520 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 520 }}>
                         <div className="admin-modal-header">
                             <h3><FaWarehouse style={{ marginRight: 8 }} />{editing ? 'Edit' : form.type === 'out' ? 'Add Stock Out' : 'Add Stock In'}</h3>
                             <button onClick={() => { if (!saving) { closeModal(); } }}><FaTimes /></button>
@@ -800,9 +800,9 @@ const StockPage = () => {
                                             <button onClick={openNewCategory}
                                                 title="Create new category"
                                                 style={{
-                                                    padding: '0.3rem 0.6rem', borderRadius: 6, border: '1px dashed var(--primary)',
+                                                    padding: '0.15rem 0.4rem', borderRadius: 6, border: '1px dashed var(--primary)',
                                                     background: 'transparent', color: 'var(--primary)', cursor: 'pointer',
-                                                    fontSize: '0.72rem', fontWeight: 600, whiteSpace: 'nowrap',
+                                                    fontSize: '0.7rem', fontWeight: 600, whiteSpace: 'nowrap',
                                                     display: 'flex', alignItems: 'center', gap: 4,
                                                 }}>
                                                 <FaPlus size={10} /> New
@@ -868,9 +868,9 @@ const StockPage = () => {
                                     </div>
                                     <button type="button" onClick={() => document.getElementById('stock-evidence-input')?.click()} disabled={uploadingEvidence}
                                         style={{
-                                            padding: '0.4rem 0.8rem', borderRadius: 6, border: '1px dashed var(--primary)',
+                                            padding: '0.15rem 0.4rem', borderRadius: 6, border: '1px dashed var(--primary)',
                                             background: 'transparent', color: 'var(--primary)', cursor: 'pointer',
-                                            fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6,
+                                            fontSize: '0.7rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6,
                                         }}>
                                         <FaUpload size={10} /> {uploadingEvidence ? 'Uploading...' : 'Upload photo evidence'}
                                     </button>
@@ -890,7 +890,7 @@ const StockPage = () => {
             {/* EVIDENCE LIGHTBOX */}
             {viewEvidence && (
                 <div className="admin-modal-overlay" onClick={() => setViewEvidence(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 560 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 560 }}>
                         <div className="admin-modal-header">
                             <h3><FaCamera style={{ marginRight: 8 }} />Stock Evidence</h3>
                             <button onClick={() => setViewEvidence(null)}><FaTimes /></button>
@@ -911,7 +911,7 @@ const StockPage = () => {
             {/* NEW CATEGORY MODAL */}
             {showNewCategory && (
                 <div className="admin-modal-overlay" onClick={closeNewCategory}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 400 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 400 }}>
                         <div className="admin-modal-header">
                             <h3><FaTag style={{ marginRight: 8 }} />New Category</h3>
                             <button onClick={closeNewCategory}><FaTimes /></button>

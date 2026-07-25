@@ -91,7 +91,7 @@ const MoneyRequestForm = ({ data, embedded = false, companyLogo: companyLogoProp
     const statusLabel = d.status === 'approved' ? 'APPROVED' : d.status === 'rejected' ? 'DENIED' : d.status === 'draft' ? 'DRAFT' : 'PENDING';
 
     const tborder = '1px solid #222';
-    const cell = '10px 14px';
+    const cell = '6px 10px';
 
     const labelCell: React.CSSProperties = {
         fontWeight: 700, fontSize: '13px', color: '#1a1a1a',
@@ -107,7 +107,7 @@ const MoneyRequestForm = ({ data, embedded = false, companyLogo: companyLogoProp
     const formContent = (
         <div ref={formRef} style={{
             fontFamily: 'Arial, Helvetica, sans-serif', background: '#fff',
-            padding: '36px 40px', maxWidth: '800px', margin: '0 auto',
+            padding: '20px 24px', maxWidth: '800px', margin: '0 auto',
             color: '#111', position: 'relative', lineHeight: 1.5,
         }}>
 
@@ -129,7 +129,7 @@ const MoneyRequestForm = ({ data, embedded = false, companyLogo: companyLogoProp
                     </div>
                 </div>
                 <div style={{
-                    marginTop: '14px', fontSize: '17px', fontWeight: 900, color: '#1B2042',
+                    marginTop: '14px', fontSize: '1rem', fontWeight: 900, color: '#1B2042',
                     letterSpacing: '2.5px', borderTop: '1px solid #bbb', borderBottom: '1px solid #bbb',
                     padding: '10px 0',
                 }}>
@@ -275,14 +275,14 @@ const MoneyRequestForm = ({ data, embedded = false, companyLogo: companyLogoProp
 
     return (
         <div>
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', justifyContent: 'flex-end' }}>
                 <button
                     onClick={handleDownload}
                     disabled={downloading}
                     style={{
-                        padding: '0.5rem 1rem', borderRadius: 7, border: 'none',
+                        padding: '0.15rem 0.4rem', borderRadius: 7, border: 'none',
                         background: '#1B2042', color: '#fff', cursor: 'pointer',
-                        fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+                        fontSize: '0.7rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
                         opacity: downloading ? 0.6 : 1,
                     }}
                 >
@@ -291,9 +291,9 @@ const MoneyRequestForm = ({ data, embedded = false, companyLogo: companyLogoProp
                 <button
                     onClick={handlePrint}
                     style={{
-                        padding: '0.5rem 1rem', borderRadius: 7, border: '1px solid var(--border-color)',
+                        padding: '0.15rem 0.4rem', borderRadius: 7, border: '1px solid var(--border-color)',
                         background: 'var(--bg-white)', color: 'var(--text-main)', cursor: 'pointer',
-                        fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+                        fontSize: '0.7rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
                     }}
                 >
                     <FaPrint size={12} /> Print

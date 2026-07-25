@@ -242,16 +242,16 @@ const Requests = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '1rem', flexWrap: 'wrap' }}>
                 <div>
-                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: 0, marginBottom: '0.2rem' }}>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: 0, marginBottom: '0.2rem', fontSize: '1rem' }}>
                         <FaClipboardList style={{ color: 'var(--primary)' }} /> Requests &amp; Approvals
                     </h2>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Material requests and fund/expense requests awaiting or already reviewed</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Material requests and fund/expense requests awaiting or already reviewed</span>
                 </div>
                 {canSubmitFundRequest && (
                     <button onClick={() => { setFundForm(emptyFundForm()); setShowCreate(true); }}
-                        style={{ padding: '0.5rem 0.9rem', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        style={{ padding: '0.15rem 0.4rem', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <FaPlus size={10} /> New Fund Request
                     </button>
                 )}
@@ -273,7 +273,7 @@ const Requests = () => {
                             <FaSearch size={12} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#bbb' }} />
                             <input type="text" className="form-input" placeholder="Search title, requester, reviewer..." value={search}
                                 onChange={e => { setSearch(e.target.value); setPage(1); }}
-                                style={{ padding: '0.4rem 0.5rem 0.4rem 28px', fontSize: '0.8rem', width: '100%' }} />
+                                style={{ padding: '0.25rem 0.4rem 0.25rem 28px', fontSize: '0.75rem', width: '100%' }} />
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#f5f5f5', borderRadius: 8, padding: 2 }}>
                             {([
@@ -283,10 +283,10 @@ const Requests = () => {
                             ]).map(t => (
                                 <button key={t.key} onClick={() => { setTypeFilter(t.key); setPage(1); }}
                                     style={{
-                                        padding: '0.3rem 0.65rem', borderRadius: 6, border: 'none',
+                                        padding: '0.15rem 0.4rem', borderRadius: 6, border: 'none',
                                         background: typeFilter === t.key ? 'var(--primary)' : 'transparent',
                                         color: typeFilter === t.key ? '#fff' : '#555',
-                                        cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
+                                        cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600,
                                         display: 'flex', alignItems: 'center', gap: 4, transition: 'all 0.2s',
                                     }}>
                                     {t.icon}{t.label}
@@ -296,15 +296,15 @@ const Requests = () => {
                     </div>
                     <div style={{ display: 'flex', gap: 4 }}>
                         {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
-                            <button key={f} onClick={() => { setFilter(f); setPage(1); }}
-                                style={{
-                                    padding: '0.3rem 0.7rem', borderRadius: '14px', border: '1px solid',
-                                    borderColor: filter === f ? 'transparent' : '#ddd',
-                                    background: filter === f ? 'var(--primary)' : 'transparent',
-                                    color: filter === f ? '#fff' : '#555',
-                                    cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600,
-                                    textTransform: 'capitalize', transition: 'all 0.2s',
-                                }}>
+                                <button key={f} onClick={() => { setFilter(f); setPage(1); }}
+                                    style={{
+                                        padding: '0.15rem 0.5rem', borderRadius: '14px', border: '1px solid',
+                                        borderColor: filter === f ? 'transparent' : '#ddd',
+                                        background: filter === f ? 'var(--primary)' : 'transparent',
+                                        color: filter === f ? '#fff' : '#555',
+                                        cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600,
+                                        textTransform: 'capitalize', transition: 'all 0.2s',
+                                    }}>
                                 {f} ({f === 'all' ? requests.length : requests.filter(r => r.status === f).length})
                             </button>
                         ))}
@@ -385,15 +385,15 @@ const Requests = () => {
                                                 <button onClick={() => setViewItem(req)}
                                                     title="View details"
                                                     style={{
-                                                        padding: '0.25rem 0.5rem', borderRadius: 5,
+                                                        padding: '0.15rem 0.4rem', borderRadius: 5,
                                                         border: '1px solid #ddd', background: 'transparent',
-                                                        cursor: 'pointer', color: '#666', fontSize: '0.75rem',
+                                                        cursor: 'pointer', color: '#666', fontSize: '0.7rem',
                                                         display: 'flex', alignItems: 'center', gap: 4,
                                                         transition: 'all 0.2s',
                                                     }}
                                                     onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)'; }}
                                                     onMouseLeave={e => { e.currentTarget.style.borderColor = '#ddd'; e.currentTarget.style.color = '#666'; }}>
-                                                    <FaEye size={11} /> View
+                                                    <FaEye size={10} /> View
                                                 </button>
                                                 {req.status === 'pending' && canAct && (
                                                     <>
@@ -401,9 +401,9 @@ const Requests = () => {
                                                             disabled={actionLoading === req.id}
                                                             title="Approve"
                                                             style={{
-                                                                padding: '0.25rem 0.65rem', borderRadius: 5,
+                                                                padding: '0.15rem 0.4rem', borderRadius: 5,
                                                                 border: 'none', background: '#22c55e', color: '#fff',
-                                                                cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
+                                                                cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600,
                                                                 display: 'flex', alignItems: 'center', gap: 4,
                                                                 opacity: actionLoading === req.id ? 0.7 : 1,
                                                                 transition: 'all 0.2s',
@@ -416,9 +416,9 @@ const Requests = () => {
                                                             disabled={actionLoading === req.id}
                                                             title="Reject"
                                                             style={{
-                                                                padding: '0.25rem 0.65rem', borderRadius: 5,
+                                                                padding: '0.15rem 0.4rem', borderRadius: 5,
                                                                 border: 'none', background: '#ef4444', color: '#fff',
-                                                                cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
+                                                                cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600,
                                                                 display: 'flex', alignItems: 'center', gap: 4,
                                                                 opacity: actionLoading === req.id ? 0.7 : 1,
                                                                 transition: 'all 0.2s',
@@ -447,15 +447,15 @@ const Requests = () => {
                     </table>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', padding: '0.4rem 0', flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: '0.78rem', color: '#999' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.3rem 0', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: '0.7rem', color: '#999' }}>
                         Showing {paginated.length} of {filtered.length} request{filtered.length !== 1 ? 's' : ''}
                         {typeFilter !== 'all' ? ` (${typeFilter})` : ''}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <span style={{ fontSize: '0.75rem', color: '#999' }}>Per page:</span>
-                            <select className="form-select" style={{ width: 'auto', padding: '0.25rem 1.3rem 0.25rem 0.4rem', fontSize: '0.75rem' }}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontSize: '0.7rem', color: '#999' }}>Per page:</span>
+                            <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.3rem', fontSize: '0.7rem' }}
                                 value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                                 {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                                 <option value={0}>All</option>
@@ -463,14 +463,14 @@ const Requests = () => {
                         </div>
                         {pageSize > 0 && totalPages > 1 && (
                             <div style={{ display: 'flex', gap: 2 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.45rem', fontSize: '0.7rem' }}
-                                    disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft size={10} /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.4rem', fontSize: '0.65rem' }}
+                                    disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft size={9} /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                                     <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'}
-                                        style={{ padding: '0.25rem 0.5rem', minWidth: 26, fontSize: '0.72rem' }} onClick={() => setPage(p)}>{p}</button>
+                                        style={{ padding: '0.2rem 0.45rem', minWidth: 24, fontSize: '0.68rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.25rem 0.45rem', fontSize: '0.7rem' }}
-                                    disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight size={10} /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.4rem', fontSize: '0.65rem' }}
+                                    disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight size={9} /></button>
                             </div>
                         )}
                     </div>
@@ -478,10 +478,10 @@ const Requests = () => {
             </div>
 
             {viewItem && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => setViewItem(null)}>
+                <div className="admin-modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => setViewItem(null)}>
                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }} />
                     <div onClick={e => e.stopPropagation()} className="admin-modal" style={{
-                        position: 'relative', padding: '2rem', maxWidth: '560px', width: '100%', maxHeight: '80vh', overflowY: 'auto',
+                        position: 'relative', padding: '1.5rem', maxWidth: '560px', width: '100%', maxHeight: '80vh', overflowY: 'auto',
                         borderRadius: 12,
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
@@ -499,7 +499,7 @@ const Requests = () => {
                                         {viewItem.source === 'material' ? 'Material Request' : 'Fund Request'}
                                     </span>
                                 </div>
-                                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{viewItem.title}</h3>
+                                <h3 style={{ margin: 0, fontSize: '0.95rem' }}>{viewItem.title}</h3>
                                 <div style={{ display: 'flex', gap: '1.5rem', marginTop: 6, fontSize: '0.82rem', color: '#999' }}>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><FaUser size={10} /> {viewItem.requester}</span>
                                     {viewItem.reviewer !== '—' && (
@@ -621,35 +621,35 @@ const Requests = () => {
                             );
                         })()}
 
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
+                        <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end', marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid #eee' }}>
                             <button onClick={() => setViewItem(null)}
                                 style={{
-                                    padding: '0.4rem 1.2rem', borderRadius: 7, border: '1px solid #ddd',
-                                    background: 'transparent', cursor: 'pointer', fontSize: '0.82rem',
+                                    padding: '0.15rem 0.8rem', borderRadius: 7, border: '1px solid #ddd',
+                                    background: 'transparent', cursor: 'pointer', fontSize: '0.75rem',
                                 }}>Close</button>
                             {viewItem.status === 'pending' && (viewItem.type === 'material' || canReviewFundRequest) && (
                                 <>
                                     <button onClick={() => { handleApprove(viewItem); setViewItem(null); }}
                                         style={{
-                                            padding: '0.4rem 1.2rem', borderRadius: 7, border: 'none',
+                                            padding: '0.15rem 0.8rem', borderRadius: 7, border: 'none',
                                             background: '#22c55e', color: '#fff', cursor: 'pointer',
-                                            fontWeight: 600, fontSize: '0.82rem',
-                                            display: 'flex', alignItems: 'center', gap: 6,
+                                            fontWeight: 600, fontSize: '0.75rem',
+                                            display: 'flex', alignItems: 'center', gap: 5,
                                         }}
                                         onMouseEnter={e => { e.currentTarget.style.background = '#16a34a'; }}
                                         onMouseLeave={e => { e.currentTarget.style.background = '#22c55e'; }}>
-                                        <FaCheck size={11} /> Approve
+                                        <FaCheck size={10} /> Approve
                                     </button>
                                     <button onClick={() => { handleReject(viewItem); setViewItem(null); }}
                                         style={{
-                                            padding: '0.4rem 1.2rem', borderRadius: 7, border: 'none',
+                                            padding: '0.15rem 0.8rem', borderRadius: 7, border: 'none',
                                             background: '#ef4444', color: '#fff', cursor: 'pointer',
-                                            fontWeight: 600, fontSize: '0.82rem',
-                                            display: 'flex', alignItems: 'center', gap: 6,
+                                            fontWeight: 600, fontSize: '0.75rem',
+                                            display: 'flex', alignItems: 'center', gap: 5,
                                         }}
                                         onMouseEnter={e => { e.currentTarget.style.background = '#dc2626'; }}
                                         onMouseLeave={e => { e.currentTarget.style.background = '#ef4444'; }}>
-                                        <FaTimesCircle size={11} /> Reject
+                                        <FaTimesCircle size={10} /> Reject
                                     </button>
                                 </>
                             )}
@@ -659,34 +659,34 @@ const Requests = () => {
             )}
 
             {showCreate && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => !saving && setShowCreate(false)}>
+                <div className="admin-modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => !saving && setShowCreate(false)}>
                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }} />
-                    <div onClick={e => e.stopPropagation()} className="admin-modal" style={{ position: 'relative', padding: '2rem', maxWidth: '500px', width: '100%', maxHeight: '85vh', overflowY: 'auto', borderRadius: 12 }}>
-                        <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: 8 }}><FaMoneyBillWave style={{ color: 'var(--primary)' }} size={16} /> New Fund Request</h3>
+                    <div onClick={e => e.stopPropagation()} className="admin-modal" style={{ position: 'relative', padding: '1.5rem', maxWidth: '500px', width: '100%', maxHeight: '85vh', overflowY: 'auto', borderRadius: 12 }}>
+                        <h3 style={{ marginTop: 0, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 8 }}><FaMoneyBillWave style={{ color: 'var(--primary)' }} size={14} /> New Fund Request</h3>
                         <p style={{ fontSize: '0.8rem', color: '#999', marginTop: '-0.5rem', marginBottom: '1rem' }}>
                             This is submitted to Admin for review. For material requisitions use the dedicated Material Requests page — this form is for fund/expense advances only.
                         </p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                             <div>
-                                <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Title</label>
-                                <input type="text" className="form-input" value={fundForm.title} onChange={e => setFundForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Worker Transport Advance" style={{ width: '100%', padding: '0.45rem' }} />
+                                <label style={{ fontWeight: 600, fontSize: '0.75rem' }}>Title</label>
+                                <input type="text" className="form-input" value={fundForm.title} onChange={e => setFundForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Worker Transport Advance" style={{ width: '100%', padding: '0.35rem', fontSize: '0.75rem' }} />
                             </div>
                             <div>
-                                <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Description</label>
-                                <textarea className="form-input" value={fundForm.description} onChange={e => setFundForm(p => ({ ...p, description: e.target.value }))} rows={3} style={{ width: '100%', padding: '0.45rem', resize: 'vertical' }} />
+                                <label style={{ fontWeight: 600, fontSize: '0.75rem' }}>Description</label>
+                                <textarea className="form-input" value={fundForm.description} onChange={e => setFundForm(p => ({ ...p, description: e.target.value }))} rows={3} style={{ width: '100%', padding: '0.35rem', resize: 'vertical', fontSize: '0.75rem' }} />
                             </div>
                             <div>
-                                <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Amount (RWF)</label>
-                                <input type="number" className="form-input" value={fundForm.amount || ''} onChange={e => setFundForm(p => ({ ...p, amount: e.target.value === '' ? undefined : Number(e.target.value) }))} style={{ width: '100%', padding: '0.45rem' }} />
+                                <label style={{ fontWeight: 600, fontSize: '0.75rem' }}>Amount (RWF)</label>
+                                <input type="number" className="form-input" value={fundForm.amount || ''} onChange={e => setFundForm(p => ({ ...p, amount: e.target.value === '' ? undefined : Number(e.target.value) }))} style={{ width: '100%', padding: '0.35rem', fontSize: '0.75rem' }} />
                             </div>
                             <div>
-                                <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Date Needed</label>
-                                <input type="date" className="form-input" value={fundForm.requestedAt} onChange={e => setFundForm(p => ({ ...p, requestedAt: e.target.value }))} style={{ width: '100%', padding: '0.45rem' }} />
+                                <label style={{ fontWeight: 600, fontSize: '0.75rem' }}>Date Needed</label>
+                                <input type="date" className="form-input" value={fundForm.requestedAt} onChange={e => setFundForm(p => ({ ...p, requestedAt: e.target.value }))} style={{ width: '100%', padding: '0.35rem', fontSize: '0.75rem' }} />
                             </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
-                            <button onClick={() => setShowCreate(false)} disabled={saving} style={{ padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
-                            <button onClick={createFundRequest} disabled={saving} style={{ padding: '0.4rem 1.2rem', borderRadius: '6px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #eee' }}>
+                            <button onClick={() => setShowCreate(false)} disabled={saving} style={{ padding: '0.15rem 0.8rem', borderRadius: '6px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer', fontSize: '0.75rem' }}>Cancel</button>
+                            <button onClick={createFundRequest} disabled={saving} style={{ padding: '0.15rem 0.8rem', borderRadius: '6px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem' }}>
                                 {saving ? <><FaSpinner className="spin" /> Submitting...</> : 'Submit'}
                             </button>
                         </div>

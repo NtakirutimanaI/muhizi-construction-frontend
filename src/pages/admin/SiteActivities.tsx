@@ -160,8 +160,8 @@ const SiteActivities = () => {
 
     return (
         <div>
-            <div style={{ marginBottom: '1.5rem' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ marginBottom: '0.5rem' }}>
+                <h1 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <FaHardHat style={{ color: '#1B2042' }} /> Site Activities
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Track daily construction site activities</p>
@@ -178,14 +178,14 @@ const SiteActivities = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Project:</span>
                     <select value={selectedProject} onChange={e => { setPage(1); setSelectedProject(e.target.value); }}
-                        style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.85rem', minWidth: '160px' }}>
+                        style={{ padding: '0.25rem 0.4rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.75rem', minWidth: '160px' }}>
                         <option value="all">All Projects</option>
                         {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                 </div>
-                <input value={search} onChange={e => { setPage(1); setSearch(e.target.value); }} placeholder="Search by project or description..." style={{ flex: 1, minWidth: '200px', padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.85rem' }} />
+                <input value={search} onChange={e => { setPage(1); setSearch(e.target.value); }} placeholder="Search by project or description..." style={{ flex: 1, minWidth: '200px', padding: '0.25rem 0.4rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', fontSize: '0.75rem' }} />
                 {canLog && (
-                    <button onClick={openNew} style={{ padding: '0.4rem 1rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
+                    <button onClick={openNew} style={{ padding: '0.15rem 0.4rem', borderRadius: '8px', border: 'none', background: '#1B2042', color: '#fff', cursor: 'pointer', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
                         <FaPlus size={12} /> New Activity
                     </button>
                 )}
@@ -223,41 +223,41 @@ const SiteActivities = () => {
                 })}
                 {paginated.length === 0 && (
                     <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '1.5rem', fontSize: '0.85rem' }}>
-                        {loading ? (<><FaSpinner className="spin" style={{ marginRight: 6 }} /> Loading activities...</>) : 'No activities found.'}
+                        {loading ? (<><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div></>) : 'No activities found.'}
                     </p>
                 )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', padding: '0.25rem 0', flexWrap: 'wrap', gap: 8 }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.25rem 0', flexWrap: 'wrap', gap: 6 }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
                 </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
-                        <select className="form-select" style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Per page:</span>
+                        <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1rem 0.2rem 0.4rem', fontSize: '0.7rem' }}
                             value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                             {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                             <option value={0}>All</option>
                         </select>
                     </div>
                     {pageSize > 0 && totalPages > 1 && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.4rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
+                                <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 28, fontSize: '0.75rem' }} onClick={() => setPage(p)}>{p}</button>
                             ))}
-                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.4rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                         </div>
                     )}
                 </div>
             </div>
 
             {showModal && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="content-card" style={{ width: '100%', maxWidth: 500, padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h3 style={{ fontWeight: 800, fontSize: '1.1rem' }}>{editing ? 'Edit Activity' : 'New Activity'}</h3>
+                <div className="admin-modal-overlay">
+                    <div className="admin-modal" style={{ width: '100%', maxWidth: 500, padding: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                            <h3 style={{ fontWeight: 800, fontSize: '0.9rem' }}>{editing ? 'Edit Activity' : 'New Activity'}</h3>
                             <button onClick={close} disabled={saving} style={{ color: 'var(--text-muted)' }}><FaTimes /></button>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -302,9 +302,9 @@ const SiteActivities = () => {
                                 <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="form-textarea" rows={2} placeholder="Additional notes..." />
                             </div>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1.5rem' }}>
-                            <button onClick={close} disabled={saving} className="admin-icon-btn" style={{ width: 'auto', padding: '0.5rem 1rem' }}>Cancel</button>
-                            <button onClick={save} disabled={saving} className="btn-primary"><FaSave /> {saving ? 'Saving...' : 'Save'}</button>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1rem' }}>
+                            <button onClick={close} disabled={saving} className="admin-icon-btn" style={{ width: 'auto', padding: '0.15rem 0.4rem', fontSize: '0.7rem' }}>Cancel</button>
+                            <button onClick={save} disabled={saving} className="btn-primary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }}><FaSave /> {saving ? 'Saving...' : 'Save'}</button>
                         </div>
                     </div>
                 </div>

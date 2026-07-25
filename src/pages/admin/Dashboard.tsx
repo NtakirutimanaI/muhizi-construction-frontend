@@ -458,21 +458,21 @@ const AdminDashboard = () => {
                         ))}
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${summaryCards.length}, minmax(150px, 1fr))`, gap: '0.6rem', marginBottom: '1.25rem', overflowX: 'auto' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.4rem', marginBottom: '0.6rem', overflowX: 'auto' }}>
                         {summaryCards.map(card => (
                             <div key={card.label} style={{
-                                display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+                                display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0,
                                 background: 'var(--bg-white, #fff)',
                                 border: '1px solid var(--border-color, #e5e7eb)',
-                                borderRadius: 10, padding: '0.8rem 1rem',
+                                borderRadius: 7, padding: '0.4rem 0.6rem',
                             }}>
                                 <div style={{
-                                    width: 36, height: 36, borderRadius: 9, background: `${card.color}18`, color: card.color,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+                                    width: 26, height: 26, borderRadius: 6, background: `${card.color}18`, color: card.color,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.75rem',
                                 }}>{card.icon}</div>
                                 <div style={{ minWidth: 0 }}>
-                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #6b7280)' }}>{card.label}</div>
-                                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main, #111)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.value}</div>
+                                    <div style={{ fontSize: '0.62rem', color: 'var(--text-muted, #6b7280)' }}>{card.label}</div>
+                                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main, #111)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.value}</div>
                                 </div>
                             </div>
                         ))}

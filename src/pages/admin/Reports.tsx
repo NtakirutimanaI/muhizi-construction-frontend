@@ -262,38 +262,38 @@ const Reports = () => {
 
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.25rem' }}>Financial Reports</h1>
+                    <h1 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '0.25rem' }}>Financial Reports</h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>{view === 'monthly' ? `${MONTHS[month - 1]} ${year}` : year} — income, expenses, and net summary</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <div style={{ display: 'flex', gap: 0, border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
                         <button onClick={() => setView('monthly')} style={{
-                            padding: '0.4rem 0.9rem', fontSize: '0.8rem', fontWeight: 600, border: 'none', cursor: 'pointer',
+                            padding: '0.15rem 0.4rem', fontSize: '0.7rem', fontWeight: 600, border: 'none', cursor: 'pointer',
                             background: view === 'monthly' ? '#1B2042' : 'transparent',
                             color: view === 'monthly' ? '#fff' : 'var(--text-muted)',
                         }}>Monthly</button>
                         <button onClick={() => setView('yearly')} style={{
-                            padding: '0.4rem 0.9rem', fontSize: '0.8rem', fontWeight: 600, border: 'none', cursor: 'pointer',
+                            padding: '0.15rem 0.4rem', fontSize: '0.7rem', fontWeight: 600, border: 'none', cursor: 'pointer',
                             background: view === 'yearly' ? '#1B2042' : 'transparent',
                             color: view === 'yearly' ? '#fff' : 'var(--text-muted)',
                         }}>Yearly</button>
                     </div>
-                    <select className="form-select" style={{ width: 110, fontSize: '0.8rem' }} value={month} onChange={e => setMonth(Number(e.target.value))}>
+                    <select className="form-select" style={{ width: 110, fontSize: '0.75rem' }} value={month} onChange={e => setMonth(Number(e.target.value))}>
                         {MONTHS.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
                     </select>
-                    <select className="form-select" style={{ width: 90, fontSize: '0.8rem' }} value={year} onChange={e => setYear(Number(e.target.value))}>
+                    <select className="form-select" style={{ width: 90, fontSize: '0.75rem' }} value={year} onChange={e => setYear(Number(e.target.value))}>
                         {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map(y => (
                             <option key={y} value={y}>{y}</option>
                         ))}
                     </select>
                     <button onClick={downloadExcel} disabled={!monthly && !yearly} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence"
-                        style={{ padding: '0.4rem 0.9rem', fontSize: '0.8rem', fontWeight: 600, border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', background: 'transparent', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: 6, opacity: monthly || yearly ? 1 : 0.5 }}>
+                        style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', fontWeight: 600, border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', background: 'transparent', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: 6, opacity: monthly || yearly ? 1 : 0.5 }}>
                         <FaFileExcel style={{ color: '#22c55e' }} /> Excel
                     </button>
                     <button onClick={downloadPDF} disabled={!monthly && !yearly} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence"
-                        style={{ padding: '0.4rem 0.9rem', fontSize: '0.8rem', fontWeight: 600, border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', background: 'transparent', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: 6, opacity: monthly || yearly ? 1 : 0.5 }}>
+                        style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', fontWeight: 600, border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', background: 'transparent', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: 6, opacity: monthly || yearly ? 1 : 0.5 }}>
                         <FaFilePdf style={{ color: '#ef4444' }} /> PDF
                     </button>
                 </div>

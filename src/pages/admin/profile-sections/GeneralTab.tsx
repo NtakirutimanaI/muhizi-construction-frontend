@@ -110,15 +110,15 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ profile, onUpdate }) => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.5rem' }}>
                     <div className="form-group">
                         <label className="form-label" style={{ fontSize: '0.75rem' }}>Current Password</label>
-                        <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }} placeholder="Current password" />
+                        <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="form-input" style={{ padding: '0.25rem 0.4rem', fontSize: '0.8rem' }} placeholder="Current password" />
                     </div>
                     <div className="form-group">
                         <label className="form-label" style={{ fontSize: '0.75rem' }}>New Password</label>
-                        <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }} placeholder="New password" />
+                        <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="form-input" style={{ padding: '0.25rem 0.4rem', fontSize: '0.8rem' }} placeholder="New password" />
                     </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <button type="button" onClick={handleChangePassword} disabled={changingPassword} className="admin-btn" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', padding: '0.3rem 0.75rem', fontSize: '0.8rem' }}>
+                    <button type="button" onClick={handleChangePassword} disabled={changingPassword} className="admin-btn" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', padding: '0.15rem 0.4rem', fontSize: '0.7rem' }}>
                         {changingPassword ? 'Changing...' : 'Change Password'}
                     </button>
                 </div>
@@ -163,7 +163,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ profile, onUpdate }) => {
                             value={formData.firstName}
                             onChange={handleChange}
                             className="form-input"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+                            style={{ padding: '0.25rem 0.4rem', fontSize: '0.8rem' }}
                             placeholder="First name"
                         />
                     </div>
@@ -174,7 +174,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ profile, onUpdate }) => {
                             value={formData.lastName}
                             onChange={handleChange}
                             className="form-input"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+                            style={{ padding: '0.25rem 0.4rem', fontSize: '0.8rem' }}
                             placeholder="Last name"
                         />
                     </div>
@@ -186,13 +186,13 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ profile, onUpdate }) => {
                             onChange={handleChange}
                             className="form-textarea"
                             rows={5}
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+                            style={{ padding: '0.25rem 0.4rem', fontSize: '0.8rem' }}
                             placeholder="Full about description"
                         />
                     </div>
                     <div className="form-group">
                         <label className="form-label" style={{ fontSize: '0.75rem' }}>Email (Username)</label>
-                        <input value={profile.email || ''} className="form-input" disabled style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', opacity: 0.6 }} />
+                        <input value={profile.email || ''} className="form-input" disabled style={{ padding: '0.25rem 0.4rem', fontSize: '0.8rem', opacity: 0.6 }} />
                     </div>
                 </div>
 
@@ -201,7 +201,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ profile, onUpdate }) => {
                         type="submit"
                         disabled={loading}
                         className="admin-btn"
-                        style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', padding: '0.3rem 0.75rem', fontSize: '0.8rem' }}
+                        style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', padding: '0.15rem 0.4rem', fontSize: '0.7rem' }}
                     >
                         {loading ? 'Saving...' : <><FaSave style={{ marginRight: 6 }} /> Save</>}
                     </button>
