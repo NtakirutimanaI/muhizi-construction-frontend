@@ -363,10 +363,10 @@ const Registration = () => {
             <div className="admin-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem', flexWrap: 'wrap', gap: '0.3rem' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Registered Users</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                    <div className="reg-filters">
                         <div style={{ position: 'relative' }}>
                             <FaSearch style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.7rem' }} />
-                            <input type="text" className="form-input" placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem 0.25rem 1.6rem', fontSize: '0.75rem', width: 200 }} />
+                            <input type="text" className="form-input reg-search" placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem 0.25rem 1.6rem', fontSize: '0.75rem' }} />
                         </div>
                         <select className="form-select" value={filterRole} onChange={e => { setFilterRole(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 140 }}>
                             <option value="">All Roles</option>
@@ -448,7 +448,7 @@ const Registration = () => {
                                             <tr>
                                                 <td colSpan={7} style={{ padding: 0 }}>
                                                     <div style={{ background: 'var(--bg-body)', borderRadius: 3, margin: '1px 4px 2px', padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
-                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '0.25rem 0.75rem' }}>
+                                                        <div className="reg-info-grid">
                                                             <InfoItem label="Gender" value={u.gender} />
                                                             <InfoItem label="National ID" value={u.nationalId} mono />
                                                             <InfoItem label="Education" value={u.educationLevel} />
@@ -541,7 +541,7 @@ const Registration = () => {
                             <button onClick={() => setShowModal(null)}><FaTimesIcon /></button>
                         </div>
                         <div className="admin-modal-body" style={{ maxHeight: '65vh', overflowY: 'auto' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div className="reg-form-grid">
                                 <div className="form-group">
                                     <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FaUser size={11} /> First Name *</label>
                                     <input className="form-input" value={form.firstName} onChange={e => setForm(p => ({ ...p, firstName: e.target.value }))} placeholder="Enter first name" />
@@ -696,7 +696,7 @@ const Registration = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.9rem 1.5rem' }}>
+                            <div className="reg-form-grid" style={{ gap: '0.6rem 1rem' }}>
                                 <InfoItem label="Phone" value={viewUser.phone || viewUser.profile?.phone} />
                                 <InfoItem label="Gender" value={viewUser.gender} />
                                 <InfoItem label="Marital Status" value={viewUser.maritalStatus} />

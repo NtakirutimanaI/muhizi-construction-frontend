@@ -7442,3 +7442,63 @@ img {
     font-size: 1rem;
   }
 }
+
+/* ── Registration page responsive ── */
+.reg-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.reg-search {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.reg-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.reg-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.25rem 0.75rem;
+}
+
+.reg-pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 768px) {
+  .reg-search {
+    width: 100%;
+  }
+  .reg-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .reg-info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .reg-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reg-search {
+    width: 100%;
+  }
+  .reg-form-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .reg-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
