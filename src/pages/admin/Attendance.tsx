@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FaEdit, FaTrash, FaTimes as FaTimesIcon, FaClock, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaProjectDiagram, FaSave, FaUsers, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaBan, FaUserShield } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaTimes as FaTimesIcon, FaClock, FaFileExcel, FaFilePdf, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaProjectDiagram, FaSave, FaUsers, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaBan, FaUserShield, FaCalendarDay, FaExclamationTriangle, FaClipboardList } from 'react-icons/fa';
+import * as XLSX from 'xlsx';
 import { hrService } from '../../services/hrService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { authService } from '../../services/authService';
 import { constructionService, type Project } from '../../services/constructionService';
 import { assignmentService, type EmployeeAssignment } from '../../services/assignmentService';
 import { sitesService } from '../../services/sitesService';
+import { useAuth } from '../../context/AuthContext';
 import type { Attendance, Employee } from '../../services/hrService';
 import { useToast } from '../../context/ToastContext';
 import jsPDF from 'jspdf';
@@ -27,31 +29,34 @@ const STATUS_OPTIONS: { value: AttendanceStatus; label: string; color: string }[
 
 const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
     <div style={{
-        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0,
         background: emphasis ? `${accent}12` : 'var(--bg-white)',
         border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
-        borderRadius: 10, padding: '0.8rem 1rem',
+        borderRadius: 10, padding: '0.5rem 0.65rem',
     }}>
         <div style={{
-            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+            width: 30, height: 30, borderRadius: 8, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.82rem',
         }}>{icon}</div>
         <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
-            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '0.95rem' : '0.85rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
         </div>
     </div>
 );
 
 const AttendancePage = () => {
     const { showToast } = useToast();
+    const { user } = useAuth();
+    const role = user?.role || '';
+    const isSiteEngineer = role === 'site_engineer';
     const [searchParams, setSearchParams] = useSearchParams();
     const urlSite = searchParams.get('site') || '';
 
     const [data, setData] = useState<Attendance[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Attendance | null>(null);
     const [search, setSearch] = useState('');
@@ -64,12 +69,18 @@ const AttendancePage = () => {
     const [selectedProjectId, setSelectedProjectId] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
     const [assignments, setAssignments] = useState<EmployeeAssignment[]>([]);
-    const [batchData, setBatchData] = useState<{ employeeId: string; firstName: string; lastName: string; checkIn: string; checkOut: string; status: AttendanceStatus; existingId?: string }[]>([]);
+    const [batchData, setBatchData] = useState<{ employeeId: string; firstName: string; lastName: string; checkIn: string; checkOut: string; status: AttendanceStatus; existingId?: string; notes?: string; isSelf?: boolean }[]>([]);
     const [siteAttendance, setSiteAttendance] = useState<Attendance[]>([]);
     const [siteProjectId, setSiteProjectId] = useState('');
     const [projectAttendance, setProjectAttendance] = useState<Attendance[]>([]);
     const [projectAttendanceLoading, setProjectAttendanceLoading] = useState(false);
     const [expandedDate, setExpandedDate] = useState<string | null>(null);
+    const [showReport, setShowReport] = useState(false);
+    const [expandedYear, setExpandedYear] = useState<string | null>(null);
+    const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
+
+    const [engineerSites, setEngineerSites] = useState<any[]>([]);
+    const [engineerProjects, setEngineerProjects] = useState<Project[]>([]);
 
     const getEmployeeName = useCallback((id: string) => {
         const emp = employees.find(e => e.id === id);
@@ -77,6 +88,7 @@ const AttendancePage = () => {
     }, [employees]);
 
     const fetch = async () => {
+        setLoading(true);
         const cached = loadPageCache<{ data: Attendance[]; projects: Project[]; employees: Employee[] }>('pg_attendance');
         if (cached) {
             setData(cached.data);
@@ -127,6 +139,27 @@ const AttendancePage = () => {
     useEffect(() => { fetch(); }, []);
 
     useEffect(() => {
+        if (!isSiteEngineer) return;
+        sitesService.getMyAssigned().then(res => {
+            const sites = res.data || [];
+            setEngineerSites(sites);
+            const uniqueProjects = new Map<string, Project>();
+            sites.forEach((s: any) => {
+                if (s.project && !uniqueProjects.has(s.project.id)) {
+                    uniqueProjects.set(s.project.id, s.project);
+                }
+            });
+            const projList = Array.from(uniqueProjects.values());
+            setEngineerProjects(projList);
+            if (projList.length === 1 && !selectedProjectId) {
+                setSelectedProjectId(projList[0].id);
+            } else if (projList.length > 1 && !selectedProjectId) {
+                setSelectedProjectId(projList[0].id);
+            }
+        }).catch(() => {});
+    }, [isSiteEngineer]);
+
+    useEffect(() => {
         if (urlSite) {
             hrService.getAttendanceBySite(urlSite).then(res => setSiteAttendance(res.data || [])).catch(() => setSiteAttendance([]));
             sitesService.getAll().then(r => {
@@ -150,7 +183,11 @@ const AttendancePage = () => {
     useEffect(() => {
         if (selectedProjectId) {
             fetchAssignments(selectedProjectId);
-            setSelectedDate('');
+            if (isSiteEngineer && !selectedDate) {
+                setSelectedDate(new Date().toISOString().split('T')[0]);
+            } else {
+                setSelectedDate('');
+            }
             setBatchData([]);
             setProjectAttendanceLoading(true);
             hrService.getAttendanceByProject(selectedProjectId)
@@ -165,14 +202,46 @@ const AttendancePage = () => {
         }
     }, [selectedProjectId, fetchAssignments]);
 
-    const groupedByDate = useMemo(() => {
-        const groups: Record<string, Attendance[]> = {};
-        projectAttendance.forEach(a => {
-            if (!groups[a.date]) groups[a.date] = [];
-            groups[a.date].push(a);
+    const reportHierarchy = useMemo(() => {
+        const source = projectAttendance.length > 0 ? projectAttendance : data;
+        const years: Record<string, Record<string, Record<string, Attendance[]>>> = {};
+        source.forEach(a => {
+            if (!a.date) return;
+            const d = new Date(a.date);
+            const yr = String(d.getFullYear());
+            const mo = String(d.getMonth() + 1).padStart(2, '0');
+            if (!years[yr]) years[yr] = {};
+            if (!years[yr][mo]) years[yr][mo] = {};
+            if (!years[yr][mo][a.date]) years[yr][mo][a.date] = [];
+            years[yr][mo][a.date].push(a);
         });
-        return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
-    }, [projectAttendance]);
+        return Object.keys(years).sort((a, b) => Number(b) - Number(a)).map(yr => {
+            const allYearRecords = Object.keys(years[yr]).flatMap(mo =>
+                Object.keys(years[yr][mo]).flatMap(dt => years[yr][mo][dt])
+            );
+            return {
+                year: yr,
+                months: Object.keys(years[yr]).sort((a, b) => Number(b) - Number(a)).map(mo => {
+                    const monthName = new Date(Number(yr), Number(mo) - 1).toLocaleString('en', { month: 'long' });
+                    const dates = Object.keys(years[yr][mo]).sort((a, b) => b.localeCompare(a));
+                    const allRecords = dates.flatMap(dt => years[yr][mo][dt]);
+                    return {
+                        key: `${yr}-${mo}`,
+                        monthName,
+                        dates: dates.map(dt => ({
+                            date: dt,
+                            records: years[yr][mo][dt],
+                        })),
+                        totalRecords: allRecords.length,
+                        present: allRecords.filter(r => r.status === 'present').length,
+                        absent: allRecords.filter(r => r.status === 'absent').length,
+                        late: allRecords.filter(r => r.status === 'late').length,
+                    };
+                }),
+                totalRecords: allYearRecords.length,
+            };
+        });
+    }, [data, projectAttendance]);
 
     useEffect(() => {
         if (selectedProjectId && selectedDate) {
@@ -190,6 +259,7 @@ const AttendancePage = () => {
                         checkOut: existing?.checkOut || '17:00',
                         status: (existing?.status || 'present') as AttendanceStatus,
                         existingId: existing?.id,
+                        notes: existing?.notes || '',
                     };
                 });
             const extraExisting = existingForDate.filter(d => !assignments.some(a => a.employeeId === d.employeeId));
@@ -204,14 +274,34 @@ const AttendancePage = () => {
                         checkOut: d.checkOut || '17:00',
                         status: d.status as AttendanceStatus,
                         existingId: d.id,
+                        notes: d.notes || '',
                     });
                 }
             });
+            if (isSiteEngineer && user) {
+                const selfEmp = employees.find(e => e.email && e.email.toLowerCase() === (user.email || '').toLowerCase());
+                if (selfEmp) {
+                    const selfExisting = existingMap.get(selfEmp.id);
+                    const selfEntry = {
+                        employeeId: selfEmp.id,
+                        firstName: selfEmp.firstName || user.profile?.firstName || 'You',
+                        lastName: selfEmp.lastName || user.profile?.lastName || '',
+                        checkIn: selfExisting?.checkIn || '09:00',
+                        checkOut: selfExisting?.checkOut || '17:00',
+                        status: (selfExisting?.status || 'present') as AttendanceStatus,
+                        existingId: selfExisting?.id,
+                        notes: selfExisting?.notes || '',
+                        isSelf: true,
+                    };
+                    setBatchData([selfEntry, ...assigned.filter(a => a.employeeId !== selfEntry.employeeId)]);
+                    return;
+                }
+            }
             setBatchData(assigned);
         } else {
             setBatchData([]);
         }
-    }, [selectedProjectId, selectedDate, assignments, data, employees]);
+    }, [selectedProjectId, selectedDate, assignments, data, employees, isSiteEngineer, user]);
 
     const filtered = useMemo(() => {
         const source = urlSite ? siteAttendance : data;
@@ -253,6 +343,8 @@ const AttendancePage = () => {
     ]), [filtered, employeeMap]);
 
     const downloadPDF = () => {
+        const source = projectAttendance.length > 0 ? projectAttendance : data;
+        if (source.length === 0) { showToast('No attendance data to export', 'error'); return; }
         const doc = new jsPDF();
         const brown = '#1B2042';
         const pageW = doc.internal.pageSize.getWidth();
@@ -271,15 +363,27 @@ const AttendancePage = () => {
         doc.setTextColor(brown);
         doc.setFont('helvetica', 'bold');
         const titleY = 40;
-        doc.text('Attendance Report', 14, titleY);
+        doc.text(`Attendance Report — ${selectedProject?.name || 'All Projects'}`, 14, titleY);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor('#666');
-        const today = new Date().toLocaleDateString();
-        doc.text(`Generated: ${today} | Date: ${new Date(dailyDate).toLocaleDateString()}`, pageW - 14, titleY, { align: 'right' });
+        const genDate = new Date().toLocaleDateString();
+        doc.text(`Generated: ${genDate} | Records: ${source.length}`, pageW - 14, titleY, { align: 'right' });
+        const rows = source
+            .sort((a, b) => a.date.localeCompare(b.date))
+            .map((d, i) => [
+                String(i + 1),
+                employeeMap[d.employeeId] || d.employeeId,
+                new Date(d.date).toLocaleDateString(),
+                d.project?.name || '—',
+                d.site || '—',
+                d.checkIn || '—',
+                d.checkOut || '—',
+                d.status.replace('_', ' '),
+            ]);
         autoTable(doc, {
             head: [['#', 'Employee', 'Date', 'Project', 'Site', 'Check In', 'Check Out', 'Status']],
-            body: tableData,
+            body: rows,
             startY: 46,
             styles: { fontSize: 8, textColor: '#333' },
             headStyles: { fillColor: [139, 69, 19], textColor: [255, 255, 255], fontStyle: 'bold' },
@@ -295,36 +399,52 @@ const AttendancePage = () => {
                 doc.text('Email: info@muhiziconstruction.com  |  Phone: +250 788 000 000  |  Location: Kigali, Rwanda', pageW / 2, pageH - 14, { align: 'center' });
             },
         });
-        doc.save('attendance.pdf');
+        doc.save(`attendance-${selectedProject?.name || 'all'}.pdf`);
     };
 
     const downloadExcel = () => {
-        const brown = '#1B2042';
-        const today = new Date().toLocaleDateString();
-        const period = `Date: ${new Date(dailyDate).toLocaleDateString()}`;
-        const headers = ['#', 'Employee', 'Date', 'Project', 'Site', 'Check In', 'Check Out', 'Status'];
-        const rows = tableData.map(r => `<tr>${r.map(c => `<td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${c}</td>`).join('')}</tr>`).join('');
-        const html = `
-            <html><head><meta charset="UTF-8"></head><body>
-            <div style="text-align:center;color:${brown};font-size:20px;font-weight:bold;font-family:Arial">MUHIZI CONSTRUCTION</div>
-            <div style="text-align:center;color:${brown};font-size:11px;font-family:Arial;margin-bottom:4px">Building Your Vision, Delivering Excellence</div>
-            <hr style="border:1px solid ${brown}" />
-            <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:bold;color:${brown};font-family:Arial;margin:6px 0">
-                <span>Attendance Report</span>
-                <span>${today}${period ? ' | ' + period : ''}</span>
-            </div>
-            <table style="border-collapse:collapse;width:100%;font-family:Arial">
-                <tr style="background:${brown};color:#fff">${headers.map(h => `<th style="padding:6px 8px;border:1px solid ${brown};font-size:11px">${h}</th>`).join('')}</tr>
-                ${rows}
-            </table>
-            <hr style="border:0.5px solid ${brown};margin-top:12px" />
-            <div style="text-align:center;color:${brown};font-size:10px;font-family:Arial">Email: info@muhiziconstruction.com | Phone: +250 788 000 000 | Location: Kigali, Rwanda</div>
-            </body></html>`;
-        const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = 'attendance.xls'; a.click();
-        URL.revokeObjectURL(url);
+        const source = projectAttendance.length > 0 ? projectAttendance : data;
+        if (source.length === 0) { showToast('No attendance data to export', 'error'); return; }
+        const wb = XLSX.utils.book_new();
+        const grouped: Record<string, Attendance[]> = {};
+        source.forEach(a => {
+            if (!a.date) return;
+            const d = new Date(a.date);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(a);
+        });
+        const sortedKeys = Object.keys(grouped).sort();
+        sortedKeys.forEach(key => {
+            const [yr, mo] = key.split('-');
+            const monthName = new Date(Number(yr), Number(mo) - 1).toLocaleString('en', { month: 'long' });
+            const sheetName = `${yr}-${monthName}`;
+            const sorted = grouped[key].sort((a, b) => a.date.localeCompare(b.date) || (a.checkIn || '').localeCompare(b.checkIn || ''));
+            const ws = XLSX.utils.json_to_sheet([
+                ['MUHIZI CONSTRUCTION — Attendance Report'],
+                [`${monthName} ${yr}  |  Generated: ${new Date().toLocaleDateString()}`],
+                [],
+                ['#', 'Employee', 'Date', 'Project', 'Site', 'Check In', 'Check Out', 'Status', 'Notes'],
+                ...sorted.map((a, i) => [
+                    i + 1,
+                    employeeMap[a.employeeId] || a.employeeId,
+                    new Date(a.date).toLocaleDateString(),
+                    a.project?.name || '—',
+                    a.site || '—',
+                    a.checkIn || '—',
+                    a.checkOut || '—',
+                    a.status.replace('_', ' '),
+                    a.notes || '',
+                ]),
+            ]);
+            ws['!cols'] = [
+                { wch: 5 }, { wch: 22 }, { wch: 12 }, { wch: 20 }, { wch: 18 },
+                { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 25 },
+            ];
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+        });
+        const projectName = selectedProject?.name || 'All';
+        XLSX.writeFile(wb, `attendance-${projectName}.xlsx`);
     };
 
     const onMouseMove = useCallback((e: MouseEvent) => {
@@ -405,6 +525,7 @@ const AttendancePage = () => {
                             checkIn: item.checkIn,
                             checkOut: item.checkOut,
                             status: item.status,
+                            notes: item.notes || '',
                         })
                         : hrService.createAttendance({
                             employeeId: item.employeeId,
@@ -414,12 +535,51 @@ const AttendancePage = () => {
                             checkIn: item.checkIn,
                             checkOut: item.checkOut,
                             status: item.status,
+                            notes: item.notes || '',
                         })
                 )
             );
             showToast('Attendance saved successfully', 'success');
             fetch();
         } catch { showToast('Failed to save attendance', 'error'); }
+    };
+
+    const saveSingleRow = async (idx: number) => {
+        if (!selectedProjectId || !selectedDate) return;
+        const item = batchData[idx];
+        if (!item) return;
+        try {
+            const project = projects.find(p => p.id === selectedProjectId);
+            const payload = {
+                employeeId: item.employeeId,
+                date: selectedDate,
+                projectId: selectedProjectId,
+                site: project?.location || '',
+                checkIn: item.checkIn,
+                checkOut: item.checkOut,
+                status: item.status,
+                notes: item.notes || '',
+            };
+            if (item.existingId) {
+                await hrService.updateAttendance(item.existingId, payload);
+            } else {
+                const created = await hrService.createAttendance(payload);
+                setBatchData(prev => prev.map((r, i) => i === idx ? { ...r, existingId: created.id } : r));
+            }
+        } catch { /* silent */ }
+    };
+
+    const handleStatusChange = (idx: number, newStatus: AttendanceStatus) => {
+        setBatchData(prev => prev.map((r, i) => i === idx ? { ...r, status: newStatus } : r));
+        saveSingleRow(idx);
+    };
+
+    const handleNotesChange = (idx: number, value: string) => {
+        setBatchData(prev => prev.map((r, i) => i === idx ? { ...r, notes: value } : r));
+    };
+
+    const handleNotesBlur = (idx: number) => {
+        saveSingleRow(idx);
     };
 
     const handleEditModalSave = async () => {
@@ -435,61 +595,137 @@ const AttendancePage = () => {
 
     const selectedProject = projects.find(p => p.id === selectedProjectId);
 
+    if (loading) {
+        return (
+            <div className="admin-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh' }}>
+                <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                <span style={{ marginLeft: '0.75rem', fontSize: '0.9rem' }}>Loading...</span>
+            </div>
+        );
+    }
+
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
-                    <FaClock style={{ color: 'var(--primary)' }} /> Attendance
-                    {urlSite && <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginLeft: 4 }}>/ {urlSite}</span>}
-                </h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem', flex: 1, maxWidth: 700 }}>
-                    <StatTile icon={<FaUsers />} label="Total" value={String(stats.total)} accent="#1B2042" emphasis />
-                    <StatTile icon={<FaCheckCircle />} label="Present" value={String(stats.present)} accent="#22c55e" />
-                    <StatTile icon={<FaTimesCircle />} label="Absent" value={String(stats.absent)} accent="#ef4444" />
-                    <StatTile icon={<FaHourglassHalf />} label="Late" value={String(stats.late)} accent="#f59e0b" />
-                    <StatTile icon={<FaBan />} label="On Leave" value={String(stats.onLeave)} accent="#1B2042" />
-                    <StatTile icon={<FaUserShield />} label="Permission" value={String(stats.permission)} accent="#8b5cf6" />
-                </div>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.75rem', flexShrink: 0 }}>
+                <FaClock style={{ color: 'var(--primary)' }} /> Attendance
+                {urlSite && <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginLeft: 4 }}>/ {urlSite}</span>}
+            </h2>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
+                <StatTile icon={<FaUsers />} label="Total" value={String(stats.total)} accent="#1B2042" emphasis />
+                <StatTile icon={<FaCheckCircle />} label="Present" value={String(stats.present)} accent="#22c55e" />
+                <StatTile icon={<FaTimesCircle />} label="Absent" value={String(stats.absent)} accent="#ef4444" />
+                <StatTile icon={<FaHourglassHalf />} label="Late" value={String(stats.late)} accent="#f59e0b" />
+                <StatTile icon={<FaBan />} label="On Leave" value={String(stats.onLeave)} accent="#1B2042" />
+                <StatTile icon={<FaUserShield />} label="Permission" value={String(stats.permission)} accent="#8b5cf6" />
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
-                <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
-                    <FaFileExcel /> Excel
-                </button>
-                <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
-                    <FaFilePdf /> PDF
-                </button>
-            </div>
-
-            <div className="admin-card" style={{ marginBottom: '0.75rem', border: '2px solid var(--primary)', padding: '0.4rem 1rem' }}>
-                <h3 style={{ margin: '0 0 0.3rem', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
-                    <FaProjectDiagram /> Daily Attendance Report
-                </h3>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: 220 }}>
-                        <select className="form-select" value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} style={{ width: '100%', padding: '0.3rem', fontSize: '0.8rem' }}>
-                            <option value="">— Choose a project —</option>
-                            {projects.filter(p => !urlSite || p.id === siteProjectId).map(p => (
-                                <option key={p.id} value={p.id}>{p.name} {p.location ? `(${p.location})` : ''}</option>
-                            ))}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                <div className="admin-card" style={{ display: 'inline-flex', alignItems: 'flex-end', gap: '0.4rem', border: '2px solid var(--primary)', padding: '0.25rem 0.6rem', marginBottom: 0, flexShrink: 0 }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 600, whiteSpace: 'nowrap', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <FaProjectDiagram size={11} /> Daily Report
+                    </span>
+                    <div>
+                        <select className="form-select" value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)}
+                            disabled={isSiteEngineer && engineerProjects.length <= 1}
+                            style={{ padding: '0.2rem 0.4rem', fontSize: '0.78rem', maxWidth: 200, opacity: isSiteEngineer && engineerProjects.length <= 1 ? 0.7 : 1 }}>
+                            {isSiteEngineer ? (
+                                engineerProjects.length > 0 ? (
+                                    engineerProjects.map(p => (
+                                        <option key={p.id} value={p.id}>{p.name} {p.location ? `(${p.location})` : ''}</option>
+                                    ))
+                                ) : (
+                                    <option value="">No assigned projects</option>
+                                )
+                            ) : (
+                                <>
+                                    <option value="">— Project —</option>
+                                    {projects.filter(p => !urlSite || p.id === siteProjectId).map(p => (
+                                        <option key={p.id} value={p.id}>{p.name} {p.location ? `(${p.location})` : ''}</option>
+                                    ))}
+                                </>
+                            )}
                         </select>
                     </div>
-                    <div style={{ flex: 1, minWidth: 180 }}>
-                        <input type="date" className="form-input" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} disabled={!selectedProjectId} style={{ width: '100%', padding: '0.3rem', fontSize: '0.8rem' }} />
+                    <div>
+                        <input type="date" className="form-input" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} disabled={!selectedProjectId} style={{ padding: '0.2rem 0.4rem', fontSize: '0.78rem', maxWidth: 150 }} />
                     </div>
                 </div>
 
+                <div style={{ display: 'flex', gap: '0.35rem' }}>
+                    <button className="admin-btn" onClick={() => setShowReport(!showReport)} style={{ background: showReport ? '#b45309' : '#1B2042', borderColor: showReport ? '#b45309' : '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.6rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1 }}>
+                        <FaClipboardList size={12} /> Attendance Report
+                    </button>
+                    <button className="admin-btn" onClick={downloadExcel} title="Download as Excel" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.6rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1 }}>
+                        <FaFileExcel size={12} /> Excel
+                    </button>
+                    <button className="admin-btn" onClick={downloadPDF} title="Download as PDF" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.6rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1 }}>
+                        <FaFilePdf size={12} /> PDF
+                    </button>
+                </div>
             </div>
 
+            {selectedProjectId && !selectedDate && assignments.length > 0 && (
+                <div className="admin-card" style={{ marginBottom: '0.75rem', border: '2px solid #f59e0b', background: '#fffbeb' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
+                        <FaExclamationTriangle style={{ color: '#f59e0b', fontSize: '1rem' }} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#92400e' }}>
+                            Select today&apos;s date above to mark attendance for <strong>{selectedProject?.name}</strong>
+                        </span>
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: '#78716c', marginBottom: '0.6rem' }}>
+                        {assignments.filter(a => a.employee).length} team member(s) assigned to this project:
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.4rem' }}>
+                        {assignments.filter(a => a.employee).map(a => (
+                            <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.6rem', background: '#fff', borderRadius: 8, border: '1px solid #e5e5e5' }}>
+                                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1B2042', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>
+                                    {(a.employee!.firstName || '')[0]}{(a.employee!.lastName || '')[0]}
+                                </div>
+                                <div style={{ minWidth: 0 }}>
+                                    <div style={{ fontSize: '0.78rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {a.employee!.firstName} {a.employee!.lastName}
+                                    </div>
+                                    <div style={{ fontSize: '0.68rem', color: '#a8a29e' }}>{a.role || 'Team Member'}</div>
+                                </div>
+                            </div>
+                        ))}
+                        {isSiteEngineer && (
+                            <div key="self" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.6rem', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
+                                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#22c55e', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>ME</div>
+                                <div style={{ minWidth: 0 }}>
+                                    <div style={{ fontSize: '0.78rem', fontWeight: 600 }}>
+                                        {user?.profile?.firstName || user?.email?.split('@')[0]} {user?.profile?.lastName || ''}
+                                        <span style={{ marginLeft: 4, fontSize: '0.65rem', background: '#22c55e', color: '#fff', padding: '1px 5px', borderRadius: 6 }}>You</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.68rem', color: '#a8a29e' }}>Site Engineer</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div style={{ marginTop: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <FaCalendarDay style={{ color: '#f59e0b', fontSize: '0.8rem' }} />
+                        <span style={{ fontSize: '0.78rem', color: '#92400e' }}>
+                            Pick a date from the picker above — attendance will be saved as a sheet for this month and year.
+                        </span>
+                    </div>
+                </div>
+            )}
+
             {batchData.length > 0 && (
-                <div className="admin-card" style={{ marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                        <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                <div className="admin-card" style={{ marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                            {isSiteEngineer && engineerSites.length > 0 && (
+                                <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.75rem', display: 'block', marginBottom: 1 }}>
+                                    Site: {engineerSites.map(s => s.name).join(', ')}
+                                </span>
+                            )}
                             Employees on <strong>{selectedProject?.name}</strong> — {new Date(selectedDate).toLocaleDateString()}
                             <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}> ({batchData.length} people)</span>
                         </span>
-                        <button className="admin-btn" onClick={handleBatchSave} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff' }}>
-                            <FaSave style={{ marginRight: 6 }} /> Save All
+                        <button className="admin-btn" onClick={handleBatchSave} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}>
+                            <FaSave style={{ marginRight: 4 }} /> Save All
                         </button>
                     </div>
                     <div style={{ overflowX: 'auto' }}>
@@ -501,25 +737,32 @@ const AttendancePage = () => {
                                     <th style={{ width: 100 }}>Check In</th>
                                     <th style={{ width: 100 }}>Check Out</th>
                                     <th style={{ width: 150 }}>Status</th>
+                                    <th>Notes / Reason</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {batchData.map((item, i) => (
                                     <tr key={item.employeeId}>
                                         <td>{i + 1}</td>
-                                        <td><strong>{item.firstName} {item.lastName}</strong></td>
                                         <td>
-                                            <input type="time" className="form-input" value={item.checkIn} onChange={e => { const a = [...batchData]; a[i] = { ...a[i], checkIn: e.target.value }; setBatchData(a); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 100 }} />
+                                            <strong>{item.firstName} {item.lastName}</strong>
+                                            {item.isSelf && <span style={{ marginLeft: 6, fontSize: '0.7rem', background: '#1B2042', color: '#fff', padding: '1px 6px', borderRadius: 8 }}>You</span>}
                                         </td>
                                         <td>
-                                            <input type="time" className="form-input" value={item.checkOut} onChange={e => { const a = [...batchData]; a[i] = { ...a[i], checkOut: e.target.value }; setBatchData(a); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 100 }} />
+                                            <input type="time" className="form-input" value={item.checkIn} onChange={e => { const a = [...batchData]; a[i] = { ...a[i], checkIn: e.target.value }; setBatchData(a); }} style={{ padding: '0.2rem 0.4rem', fontSize: '0.8rem', width: 90 }} />
                                         </td>
                                         <td>
-                                            <select className="form-select" value={item.status} onChange={e => { const a = [...batchData]; a[i] = { ...a[i], status: e.target.value as AttendanceStatus }; setBatchData(a); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }}>
+                                            <input type="time" className="form-input" value={item.checkOut} onChange={e => { const a = [...batchData]; a[i] = { ...a[i], checkOut: e.target.value }; setBatchData(a); }} style={{ padding: '0.2rem 0.4rem', fontSize: '0.8rem', width: 90 }} />
+                                        </td>
+                                        <td>
+                                            <select className="form-select" value={item.status} onChange={e => handleStatusChange(i, e.target.value as AttendanceStatus)} style={{ padding: '0.2rem 0.4rem', fontSize: '0.8rem', width: 130 }}>
                                                 {STATUS_OPTIONS.map(s => (
                                                     <option key={s.value} value={s.value}>{s.label}</option>
                                                 ))}
                                             </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" className="form-input" value={item.notes || ''} onChange={e => handleNotesChange(i, e.target.value)} onBlur={() => handleNotesBlur(i)} placeholder="Optional reason..." style={{ padding: '0.2rem 0.4rem', fontSize: '0.8rem', width: '100%', minWidth: 120 }} />
                                         </td>
                                     </tr>
                                 ))}
@@ -529,142 +772,141 @@ const AttendancePage = () => {
                 </div>
             )}
 
-            <div className="admin-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{selectedProjectId ? 'Project Attendance Report' : 'All Attendance Records'}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        {!selectedProjectId && (
-                            <input type="text" className="form-input" placeholder="Search employee, status..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 350 }} />
-                        )}
+            {showReport && (
+                <div className="admin-card" style={{ marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <FaClipboardList style={{ color: 'var(--primary)' }} /> Attendance Report
+                            <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                                ({reportHierarchy.reduce((s, y) => s + y.months.reduce((s2, m) => s2 + m.totalRecords, 0), 0)} records)
+                            </span>
+                        </span>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                            <button className="admin-btn" onClick={downloadExcel} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', padding: '0.3rem 0.6rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <FaFileExcel size={12} /> Excel
+                            </button>
+                            <button className="admin-btn" onClick={downloadPDF} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', padding: '0.3rem 0.6rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <FaFilePdf size={12} /> PDF
+                            </button>
+                        </div>
                     </div>
-                </div>
-                {selectedProjectId && groupedByDate.length > 0 ? (
-                    <div>
-                        {projectAttendanceLoading ? (
-                            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', padding: '1rem', textAlign: 'center' }}>Loading attendance records...</div>
-                        ) : (
-                            <div style={{ border: '1px solid #eee', borderRadius: 4 }}>
-                                {groupedByDate.map(([date, records]) => (
-                                    <div key={date}>
+                    {reportHierarchy.length === 0 ? (
+                        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                            <FaClock size={28} style={{ opacity: 0.3, marginBottom: 8 }} />
+                            <div>No attendance records saved yet.</div>
+                            <div style={{ fontSize: '0.78rem', marginTop: 4 }}>Select a project, pick a date, mark attendance and save — records will appear here grouped by year and month.</div>
+                        </div>
+                    ) : (
+                        <div style={{ border: '1px solid #e5e5e5', borderRadius: 6, overflow: 'hidden' }}>
+                            {reportHierarchy.map(yrBlock => {
+                                const isYearOpen = expandedYear === yrBlock.year;
+                                return (
+                                    <div key={yrBlock.year}>
                                         <div
-                                            onClick={() => setExpandedDate(expandedDate === date ? null : date)}
-                                            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.45rem 0.8rem', borderBottom: '1px solid #f0f0f0', fontSize: '0.85rem', cursor: 'pointer', background: expandedDate === date ? '#f9f6f0' : 'transparent', userSelect: 'none' }}
+                                            onClick={() => { setExpandedYear(isYearOpen ? null : yrBlock.year); setExpandedMonth(null); setExpandedDate(null); }}
+                                            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.55rem 0.8rem', borderBottom: '1px solid #e5e5e5', background: isYearOpen ? '#f9f6f0' : '#fafafa', cursor: 'pointer', userSelect: 'none' }}
                                         >
-                                            <span>
-                                                <strong>{new Date(date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</strong>
-                                                <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>{records.length} employee(s)</span>
-                                                <span style={{ color: 'var(--text-muted)', marginLeft: 8, fontSize: '0.78rem' }}>
-                                                    ({records.filter(r => r.status === 'present').length} present, {records.filter(r => r.status === 'absent').length} absent, {records.filter(r => r.status === 'late').length} late)
+                                            <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1B2042' }}>
+                                                <FaCalendarDay style={{ marginRight: 6, fontSize: '0.75rem' }} />{yrBlock.year}
+                                                <span style={{ marginLeft: 8, fontSize: '0.72rem', fontWeight: 400, color: 'var(--text-muted)' }}>
+                                                    {yrBlock.months.reduce((s, m) => s + m.totalRecords, 0)} records
                                                 </span>
                                             </span>
-                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{expandedDate === date ? '▲' : '▼'}</span>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{isYearOpen ? '▲' : '▼'}</span>
                                         </div>
-                                        {expandedDate === date && (
-                                            <div style={{ padding: '0.5rem 0.8rem', background: '#fafafa', borderBottom: '1px solid #f0f0f0', overflowX: 'auto' }}>
-                                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                                                    <thead>
-                                                        <tr style={{ background: '#1B2042', color: '#fff' }}>
-                                                            <th style={{ padding: '0.35rem 0.5rem', textAlign: 'left' }}>#</th>
-                                                            <th style={{ padding: '0.35rem 0.5rem', textAlign: 'left' }}>Employee</th>
-                                                            <th style={{ padding: '0.35rem 0.5rem', textAlign: 'left' }}>Check In</th>
-                                                            <th style={{ padding: '0.35rem 0.5rem', textAlign: 'left' }}>Check Out</th>
-                                                            <th style={{ padding: '0.35rem 0.5rem', textAlign: 'left' }}>Status</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {records.map((r, i) => (
-                                                            <tr key={r.id} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#f9f9f9' }}>
-                                                                <td style={{ padding: '0.35rem 0.5rem' }}>{i + 1}</td>
-                                                                <td style={{ padding: '0.35rem 0.5rem' }}><strong>{employeeMap[r.employeeId] || r.employeeId}</strong></td>
-                                                                <td style={{ padding: '0.35rem 0.5rem' }}>{r.checkIn || '—'}</td>
-                                                                <td style={{ padding: '0.35rem 0.5rem' }}>{r.checkOut || '—'}</td>
-                                                                <td style={{ padding: '0.35rem 0.5rem' }}>
-                                                                    <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 10, fontSize: '0.75rem', fontWeight: 600, color: '#fff', background: STATUS_OPTIONS.find(s => s.value === r.status)?.color || '#6b7280' }}>
-                                                                        {r.status.replace('_', ' ')}
+                                        {isYearOpen && yrBlock.months.map(moBlock => {
+                                            const monthKey = moBlock.key;
+                                            const isMonthOpen = expandedMonth === monthKey;
+                                            return (
+                                                <div key={monthKey} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                                    <div
+                                                        onClick={() => setExpandedMonth(isMonthOpen ? null : monthKey)}
+                                                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.45rem 0.8rem 0.45rem 1.8rem', borderBottom: isMonthOpen ? '1px solid #f0f0f0' : 'none', background: isMonthOpen ? '#fef3c7' : '#fff', cursor: 'pointer', userSelect: 'none' }}
+                                                    >
+                                                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#92400e' }}>
+                                                            {moBlock.monthName}
+                                                            <span style={{ marginLeft: 6, fontSize: '0.7rem', fontWeight: 400, color: 'var(--text-muted)' }}>
+                                                                {moBlock.totalRecords} records
+                                                                <span style={{ marginLeft: 6, color: '#22c55e' }}>{moBlock.present}P</span>
+                                                                <span style={{ marginLeft: 3, color: '#ef4444' }}>{moBlock.absent}A</span>
+                                                                <span style={{ marginLeft: 3, color: '#f59e0b' }}>{moBlock.late}L</span>
+                                                            </span>
+                                                        </span>
+                                                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{isMonthOpen ? '▲' : '▼'}</span>
+                                                    </div>
+                                                    {isMonthOpen && moBlock.dates.map(dayBlock => {
+                                                        const isDayOpen = expandedDate === dayBlock.date;
+                                                        const dayPresent = dayBlock.records.filter(r => r.status === 'present').length;
+                                                        const dayAbsent = dayBlock.records.filter(r => r.status === 'absent').length;
+                                                        const dayLate = dayBlock.records.filter(r => r.status === 'late').length;
+                                                        return (
+                                                            <div key={dayBlock.date} style={{ borderBottom: '1px solid #f5f5f5' }}>
+                                                                <div
+                                                                    onClick={() => setExpandedDate(isDayOpen ? null : dayBlock.date)}
+                                                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0.8rem 0.4rem 3.2rem', background: isDayOpen ? '#fef9ee' : '#fff', cursor: 'pointer', userSelect: 'none' }}
+                                                                >
+                                                                    <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>
+                                                                        <strong>{new Date(dayBlock.date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}</strong>
+                                                                        <span style={{ marginLeft: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                                                            {dayBlock.records.length} people
+                                                                            <span style={{ marginLeft: 5, color: '#22c55e' }}>{dayPresent}P</span>
+                                                                            <span style={{ marginLeft: 2, color: '#ef4444' }}>{dayAbsent}A</span>
+                                                                            <span style={{ marginLeft: 2, color: '#f59e0b' }}>{dayLate}L</span>
+                                                                        </span>
                                                                     </span>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <>
-                        <div style={{ overflowX: 'auto' }}>
-                            <table className="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>Employee</th><th>Date</th><th>Project</th><th>Site</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {paginated.map(item => (
-                                        <tr key={item.id}>
-                                            <td><strong>{getEmployeeName(item.employeeId)}</strong></td>
-                                            <td style={{ whiteSpace: 'nowrap' }}>{new Date(item.date).toLocaleDateString()}</td>
-                                            <td>{item.project?.name || '—'}</td>
-                                            <td>{item.site || '—'}</td>
-                                            <td>{item.checkIn || '—'}</td>
-                                            <td>{item.checkOut || '—'}</td>
-                                            <td>
-                                                <span style={{
-                                                    display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
-                                                    color: '#fff', background: STATUS_OPTIONS.find(s => s.value === item.status)?.color || '#6b7280',
-                                                }}>{item.status.replace('_', ' ')}</span>
-                                            </td>
-                                            <td>
-                                                <div style={{ display: 'flex', gap: 6 }}>
-                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)}><FaEdit /></button>
-                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)}><FaTrash /></button>
+                                                                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{isDayOpen ? '▲' : '▼'}</span>
+                                                                </div>
+                                                                {isDayOpen && (
+                                                                    <div style={{ padding: '0.4rem 0.8rem 0.4rem 3.2rem', background: '#fafafa' }}>
+                                                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+                                                                            <thead>
+                                                                                <tr style={{ background: '#1B2042', color: '#fff' }}>
+                                                                                    <th style={{ padding: '0.3rem 0.5rem', textAlign: 'left' }}>#</th>
+                                                                                    <th style={{ padding: '0.3rem 0.5rem', textAlign: 'left' }}>Employee</th>
+                                                                                    <th style={{ padding: '0.3rem 0.5rem', textAlign: 'left' }}>Project</th>
+                                                                                    <th style={{ padding: '0.3rem 0.5rem', textAlign: 'left' }}>Check In</th>
+                                                                                    <th style={{ padding: '0.3rem 0.5rem', textAlign: 'left' }}>Check Out</th>
+                                                                                    <th style={{ padding: '0.3rem 0.5rem', textAlign: 'left' }}>Status</th>
+                                                                                    <th style={{ padding: '0.3rem 0.5rem', textAlign: 'left' }}>Notes</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {dayBlock.records.sort((a, b) => (a.checkIn || '').localeCompare(b.checkIn || '')).map((r, i) => (
+                                                                                    <tr key={r.id} style={{ borderBottom: '1px solid #eee', background: i % 2 === 0 ? '#fff' : '#f9f9f9' }}>
+                                                                                        <td style={{ padding: '0.3rem 0.5rem' }}>{i + 1}</td>
+                                                                                        <td style={{ padding: '0.3rem 0.5rem' }}><strong>{employeeMap[r.employeeId] || r.employeeId}</strong></td>
+                                                                                        <td style={{ padding: '0.3rem 0.5rem' }}>{r.project?.name || '—'}</td>
+                                                                                        <td style={{ padding: '0.3rem 0.5rem' }}>{r.checkIn || '—'}</td>
+                                                                                        <td style={{ padding: '0.3rem 0.5rem' }}>{r.checkOut || '—'}</td>
+                                                                                        <td style={{ padding: '0.3rem 0.5rem' }}>
+                                                                                            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: '0.7rem', fontWeight: 600, color: '#fff', background: STATUS_OPTIONS.find(s => s.value === r.status)?.color || '#6b7280' }}>
+                                                                                                {r.status.replace('_', ' ')}
+                                                                                            </span>
+                                                                                        </td>
+                                                                                        <td style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>{r.notes || '—'}</td>
+                                                                                    </tr>
+                                                                                ))}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {data.length === 0 && (
-                                        <tr><td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                            <FaClock size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
-                                            <div>No attendance records found.</div>
-                                        </td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '0.5rem 0', flexWrap: 'wrap', gap: 8 }}>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
-                            </span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
-                                    <select className="form-select" style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
-                                        {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                                        <option value={0}>All</option>
-                                    </select>
-                                </div>
-                                {pageSize > 0 && totalPages > 1 && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
-                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                            <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
-                                        ))}
-                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                            );
+                                        })}
                                     </div>
-                                )}
-                            </div>
+                                );
+                            })}
                         </div>
-                    </>
-                )}
-            </div>
+                    )}
+                </div>
+            )}
 
             {showModal && editing && (
                 <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y } : {}}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />Edit Attendance</h3>
                             <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>

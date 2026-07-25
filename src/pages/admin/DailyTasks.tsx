@@ -148,7 +148,7 @@ const DailyTasks = () => {
 
             {viewTask && (
                 <div className="admin-modal-overlay" onClick={() => setViewTask(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 560, maxWidth: '95vw' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 560, maxWidth: '95vw' }}>
                         <div className="admin-modal-header">
                             <h3><FaClipboardList style={{ marginRight: 8 }} />{viewTask.title}</h3>
                             <button onClick={() => setViewTask(null)}><FaTimesCircle /></button>

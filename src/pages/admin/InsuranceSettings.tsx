@@ -176,7 +176,7 @@ const InsuranceSettings = () => {
             {/* Modal */}
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 520, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 520 }}>
                         <div className="admin-modal-header">
                             <h3><FaShieldAlt style={{ marginRight: 8 }} /> {editing ? 'Edit Insurance Plan' : 'New Insurance Plan'}</h3>
                             <button onClick={() => setShowModal(false)}><FaTimes /></button>
