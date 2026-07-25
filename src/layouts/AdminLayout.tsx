@@ -10,6 +10,7 @@ import {
     FaInbox, FaPaperPlane, FaArchive, FaLock, FaHardHat, FaTruck, FaCamera, FaGavel,
     FaCheckDouble, FaFileAlt, FaImage, FaHome, FaInfoCircle, FaTag,
     FaBoxes, FaSpinner, FaClock, FaCertificate, FaNewspaper, FaFileContract, FaShieldAlt, FaUserPlus, FaShareSquare,
+    FaCogs,
 } from 'react-icons/fa';
 import { useNotification } from '../context/NotificationContext';
 import { profileService, type Profile, type ContactMessage } from '../services/profileService';
@@ -84,7 +85,8 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
     const isOnProjectDetail = new RegExp(`^${basePath}/(projects|sites)/[^/]+$`).test(location.pathname);
     const currentProjectId = isOnProjectDetail ? location.pathname.split('/').pop() : null;
     const isOnProjectsList = location.pathname === `${basePath}/projects` || location.pathname === `${basePath}/sites`;
-    const hasSubsidebar = isOnMessages || isOnCms || isOnStock || isOnAttendance || isOnProjectsList || isOnProjectDetail || isOnEngineeringStudio;
+    const isOnProjectControl = location.pathname.startsWith(`${basePath}/project-control`);
+    const hasSubsidebar = isOnMessages || isOnCms || isOnStock || isOnAttendance || isOnProjectsList || isOnProjectDetail || isOnEngineeringStudio || isOnProjectControl;
     const notifRef = useRef<HTMLDivElement>(null);
     const addMenuRef = useRef<HTMLDivElement>(null);
     const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -278,6 +280,7 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
         FaFileContract: <FaFileContract />, FaShieldAlt: <FaShieldAlt />,
         FaNewspaper: <FaNewspaper />,
         FaUserPlus: <FaUserPlus />,
+        FaCogs: <FaCogs />,
     };
 
     const sections = SIDEBAR_SECTIONS
@@ -965,7 +968,7 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
             )}
 
             {/* Sites Sub-Sidebar */}
-            {(isOnProjectsList || isOnProjectDetail) && (
+            {(isOnProjectsList || isOnProjectDetail || isOnProjectControl) && (
                 <aside className="admin-subsidebar">
                     <div style={{ padding: '1.2rem 1rem 0.6rem', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span>All Sites</span>
@@ -1003,6 +1006,15 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
                     {role === 'admin' && <Link to={`${basePath}/sites?createSite=true`}
                         style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.5rem', fontSize: '0.78rem', color: 'var(--primary)', textDecoration: 'none', borderRadius: 6, cursor: 'pointer' }}>
                         <FaPlus size={10} /> Add Site
+                    </Link>}
+                    {role === 'admin' && (
+                        <div style={{ borderTop: '1px solid var(--border-color)', margin: '0.4rem 0' }} />
+                    )}
+                    {role === 'admin' && <Link to={`${basePath}/project-control`}
+                        className={`admin-nav-item ${isOnProjectControl ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ margin: '0 0.5rem', padding: '0.45rem 0.6rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', borderRadius: 6, background: '#f97316', color: '#fff', fontWeight: 600 }}>
+                        <FaCogs size={11} /> <span>Project Control</span>
                     </Link>}
                 </aside>
             )}

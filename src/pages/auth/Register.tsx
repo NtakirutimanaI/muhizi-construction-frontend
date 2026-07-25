@@ -40,7 +40,7 @@ const Register = () => {
     return (
         <div className="auth-page" data-nav-theme="dark" style={{
             marginTop: 'calc(-1 * var(--nav-offset))',
-            paddingTop: 'calc(var(--nav-offset) + 40px)',
+            paddingTop: 'calc(var(--nav-offset) + 24px)',
         }}>
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -54,8 +54,8 @@ const Register = () => {
                     transition={{ duration: 0.4, delay: 0.1 }}
                     className="auth-card"
                 >
-                    <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                        <img src="/logo.jpeg" alt="MUHIZI CONSTRUCTION" style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'cover', margin: '0 auto 0.75rem', display: 'block', border: '2px solid rgba(255,255,255,0.1)' }} />
+                    <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
+                        <img src="/logo.jpeg" alt="MUHIZI CONSTRUCTION" style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover', margin: '0 auto 0.5rem', display: 'block', border: '2px solid rgba(255,255,255,0.1)' }} />
                     </div>
                     <h1 className="auth-heading">Create Account</h1>
                     <p className="auth-subtext">Register to manage your portfolio</p>
@@ -92,7 +92,7 @@ const Register = () => {
                                 {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
                             </button>
                         </div>
-                        <p style={{ fontSize: '0.75rem', color: '#888', margin: '-4px 0 8px' }}>
+                        <p style={{ fontSize: '0.7rem', color: '#888', margin: '-2px 0 4px' }}>
                             Min 8 chars, 1 uppercase, 1 lowercase, 1 special character
                         </p>
 

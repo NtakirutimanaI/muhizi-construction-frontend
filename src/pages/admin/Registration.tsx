@@ -6,7 +6,7 @@ import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
-const ROLES_LIST = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper', 'employee', 'partner', 'client'];
+const ROLES_LIST = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper', 'partner', 'client'];
 const GENDERS = ['Male', 'Female', 'Other'];
 const MARITAL_STATUSES = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
 const EDUCATION_LEVELS = ["High School", "Diploma", "Bachelor's Degree", "Master's Degree", "PhD", "Vocational Training", "Other"];
@@ -14,7 +14,7 @@ const MEDICAL_INSURANCES = ['Mutuelle de Sante', 'RSSB', 'RAMA', 'Radiant', 'Oth
 const EMPLOYMENT_STATUSES = ['employed', 'contract', 'external'];
 const EMPLOYMENT_CATEGORIES = ['Helper', 'Masonry', 'Plumber', 'Charpantier', 'Electrician', 'Painter', 'Welder', 'Roofer', 'Tiler', 'Heavy Equipment Operator', 'Supervisor', 'Foreman', 'Internal Department (Office)', 'Other'];
 const WORK_SHIFTS = ['day', 'night'];
-const EMPLOYER_ROLES = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper', 'employee'];
+const EMPLOYER_ROLES = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper'];
 const PAGE_SIZES = [5, 10, 15, 20, 50];
 
 interface UserData {
@@ -65,7 +65,7 @@ interface FormState {
 }
 
 const emptyForm: FormState = {
-    firstName: '', lastName: '', email: '', password: '', role: 'employee',
+    firstName: '', lastName: '', email: '', password: '', role: 'storekeeper',
     phone: '', address: '', gender: '', maritalStatus: '', nationalId: '',
     educationLevel: '', medicalInsurance: '', contractUrl: '', bankAccount: '',
     employmentStatus: '', employmentCategory: '', workShift: '', basicSalary: '', isActive: true,
@@ -116,7 +116,7 @@ const PasswordStrengthBar = ({ password }: { password: string }) => {
 
 const roleColors: Record<string, string> = {
     admin: '#ef4444', managing_director: '#1B2042', finance_director: '#f59e0b', site_engineer: '#22c55e',
-    engineering_studio: '#3b82f6', storekeeper: '#8b5cf6', employee: '#6b7280',
+    engineering_studio: '#3b82f6', storekeeper: '#8b5cf6',
     partner: '#1a8a6a', client: '#6c3096',
 };
 
@@ -382,11 +382,18 @@ const Registration = () => {
                 </button>
             </div>
 
+            {loading ? (
+                <div className="admin-card" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+                    <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                    <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Loading users...</p>
+                    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                </div>
+            ) : (<>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
                 <StatTile icon={<FaUsers />} label="Total Users" value={String(users.length)} accent="#1B2042" emphasis />
                 <StatTile icon={<FaCheckCircle />} label="Active" value={String(users.filter(u => u.isActive).length)} accent="#22c55e" />
                 <StatTile icon={<FaTimesCircle />} label="Inactive" value={String(users.filter(u => !u.isActive).length)} accent="#6b7280" />
-                <StatTile icon={<FaShieldAlt />} label="Employees" value={String(users.filter(u => u.role === 'employee').length)} accent="#3b82f6" />
+                <StatTile icon={<FaShieldAlt />} label="Storekeepers" value={String(users.filter(u => u.role === 'storekeeper').length)} accent="#3b82f6" />
                 <StatTile icon={<FaUserTie />} label="Engineers" value={String(users.filter(u => u.role === 'site_engineer' || u.role === 'engineering_studio').length)} accent="#8b5cf6" />
             </div>
 
@@ -565,7 +572,7 @@ const Registration = () => {
 
             {(showModal === 'add' || showModal === 'edit') && (
                 <div className="admin-modal-overlay" onClick={() => setShowModal(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 640, left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y, maxWidth: 640 } : { maxWidth: 640 }}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{showModal === 'add' ? 'Register New User' : 'Edit User Information'}</h3>
                             <button onClick={() => setShowModal(null)}><FaTimesIcon /></button>
@@ -706,7 +713,7 @@ const Registration = () => {
 
             {viewUser && (
                 <div className="admin-modal-overlay" onClick={() => setViewUser(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 580, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 580 }}>
                         <div className="admin-modal-header">
                             <h3><FaUser style={{ marginRight: 8 }} /> {viewUser.firstName || viewUser.profile?.firstName || ''} {viewUser.lastName || viewUser.profile?.lastName || ''}</h3>
                             <button onClick={() => setViewUser(null)}><FaTimesIcon /></button>
@@ -773,7 +780,7 @@ const Registration = () => {
 
             {contractModalUser && (
                 <div className="admin-modal-overlay" onClick={() => setContractModalUser(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
                         <div className="admin-modal-header">
                             <h3><FaFilePdf style={{ marginRight: 8 }} /> Upload Contract — {contractModalUser.firstName} {contractModalUser.lastName}</h3>
                             <button onClick={() => setContractModalUser(null)}><FaTimesIcon /></button>
@@ -801,7 +808,7 @@ const Registration = () => {
 
             {pdfViewerUrl && (
                 <div className="admin-modal-overlay" onClick={() => setPdfViewerUrl(null)} style={{ zIndex: 9999 }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 900, width: '95vw', height: '85vh', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'column' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 900, width: '95vw', height: '85vh', display: 'flex', flexDirection: 'column' }}>
                         <div className="admin-modal-header">
                             <h3><FaFilePdf style={{ marginRight: 8 }} /> Contract Document</h3>
                             <button onClick={() => setPdfViewerUrl(null)}><FaTimesIcon /></button>
@@ -811,6 +818,8 @@ const Registration = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            </>
             )}
         </div>
     );

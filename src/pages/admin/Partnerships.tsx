@@ -549,7 +549,7 @@ const Partnerships = () => {
 
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => !saving && setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)', maxWidth: 720 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y, maxWidth: 720 } : { maxWidth: 720 }}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit Partnership' : 'Register New Partner / Investor'}</h3>
                             <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>
@@ -719,7 +719,7 @@ const Partnerships = () => {
 
             {viewItem && (
                 <div className="admin-modal-overlay" onClick={() => setViewItem(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 480, borderRadius: 12 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480, borderRadius: 12 }}>
                         <div className="admin-modal-header" style={{ padding: '0.9rem 1.1rem' }}>
                             <h3 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}><FaHandshake style={{ color: 'var(--primary)' }} /> {viewItem.companyName}</h3>
                             <button onClick={() => setViewItem(null)}><FaTimesIcon /></button>
@@ -774,7 +774,7 @@ const Partnerships = () => {
 
             {deleteTarget && (
                 <div className="admin-modal-overlay" onClick={() => !deleting && setDeleteTarget(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 420, borderRadius: 12 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420, borderRadius: 12 }}>
                         <div className="admin-modal-header" style={{ padding: '0.9rem 1.1rem' }}>
                             <h3 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <FaExclamationTriangle style={{ color: 'var(--primary-red)' }} /> Delete Partnership Record

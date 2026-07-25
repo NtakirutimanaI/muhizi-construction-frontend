@@ -9,6 +9,30 @@ import { useAuth } from '../../context/AuthContext';
 import type { Project } from '../../services/constructionService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 
+const StatTile = ({ icon, label, value, accent, emphasis }: {
+    icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean
+}) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        background: emphasis ? `${accent}12` : 'var(--bg-white, #fff)',
+        border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color, #e5e7eb)'}`,
+        borderRadius: 10, padding: '0.8rem 1rem',
+    }}>
+        <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+        }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #6b7280)' }}>{label}</div>
+            <div style={{
+                fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700,
+                color: 'var(--text-main, #111)', whiteSpace: 'nowrap',
+                overflow: 'hidden', textOverflow: 'ellipsis'
+            }}>{value}</div>
+        </div>
+    </div>
+);
+
 interface FormData {
     name: string; description: string; type: string; status: string;
     startDate: string; endDate: string; budget: number | ''; location: string;
@@ -34,7 +58,7 @@ const Projects = () => {
     const { showToast } = useToast();
     const isAdmin = user?.role === 'admin';
     const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Project | null>(null);
     const [form, setForm] = useState<FormData>(emptyForm);
@@ -79,6 +103,7 @@ const Projects = () => {
             setCreatingProjectForSite(true);
             setLastCreatedSiteId(createProjectSiteId);
             setSelectedSiteId(createProjectSiteId);
+            setModalPos(null);
             setShowModal(true);
             searchParams.delete('createProject');
             setSearchParams(searchParams, { replace: true });
@@ -110,6 +135,7 @@ const Projects = () => {
     }, [showModal, showCreateSite, editingSiteEngineer, portalUsers.length]);
 
     const fetch = async () => {
+        setLoading(true);
         const cached = loadPageCache<{ projects: Project[]; allSites: Site[] }>('pg_projects');
         if (cached) {
             setProjects(cached.projects);
@@ -144,14 +170,37 @@ const Projects = () => {
         ? allSites.find(s => s.id === siteFilterId)?.name || siteFilterName
         : null;
 
+    const hasProjectForSite = siteFilterId && allSites.length > 0
+        ? !!allSites.find(s => s.id === siteFilterId)?.projectId
+        : false;
+
+    const filteredSites = useMemo(() => {
+        const q = siteSearch.trim().toLowerCase();
+        return allSites.filter(s => {
+            if (!q) return true;
+            return s.name.toLowerCase().includes(q) || (s.location || '').toLowerCase().includes(q);
+        });
+    }, [allSites, siteSearch]);
+
+    const activeSite = useMemo(() => {
+        if (!siteFilterId || allSites.length === 0) return null;
+        return allSites.find(s => s.id === siteFilterId) || null;
+    }, [siteFilterId, allSites]);
+
+    const activeSiteProject = useMemo(() => {
+        if (!activeSite?.projectId) return null;
+        return projects.find(p => p.id === activeSite.projectId) || null;
+    }, [activeSite, projects]);
+
     const filtered = useMemo(() => {
         const q = search.toLowerCase().trim();
         return projects.filter(p => {
+            if (siteFilterId && filterSiteProjectId === null) return false;
             if (filterSiteProjectId && p.id !== filterSiteProjectId) return false;
             if (q && !p.name.toLowerCase().includes(q)) return false;
             return true;
         });
-    }, [projects, search, filterSiteProjectId]);
+    }, [projects, search, filterSiteProjectId, siteFilterId]);
 
     const totalPages = pageSize === 0 ? 1 : Math.ceil(filtered.length / pageSize);
     const paginated = useMemo(() => {
@@ -279,6 +328,7 @@ const Projects = () => {
 
     const openEditProject = (item: Project) => {
         setEditing(item);
+        setModalPos(null);
         setForm({
             name: item.name,
             description: item.description || '',
@@ -323,43 +373,25 @@ const Projects = () => {
         planning: '#8b5cf6', in_progress: '#f59e0b', completed: '#22c55e', cancelled: '#ef4444',
     };
 
+    if (loading) {
+        return (
+            <div className="admin-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh' }}>
+                <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                <span style={{ marginLeft: '0.75rem', fontSize: '0.9rem' }}>Loading...</span>
+            </div>
+        );
+    }
+
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {siteLabel ? (
-                        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.2rem' }}>
-                            <FaHardHat style={{ color: '#8B5CF6' }} /> {siteLabel}
-                        </h2>
-                    ) : (
-                        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.2rem' }}>
-                            <FaHardHat style={{ color: 'var(--text-muted)' }} /> Sites
-                        </h2>
-                    )}
-                    {siteLabel && isAdmin && <button className="admin-btn" onClick={() => { setForm(emptyForm); setEditing(null); setCreatingProjectForSite(false); setLastCreatedSiteId(null); setSelectedSiteId(''); setShowModal(true); }} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.8rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <FaProjectDiagram size={11} /> Create Project
-                    </button>}
-                    {siteLabel && (
-                        <button className="admin-btn admin-btn--secondary" onClick={() => setSearchParams({})} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <FaTimesIcon size={10} /> Clear
-                        </button>
-                    )}
-                </div>
-                {siteLabel && (
-                    <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                        <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{filteredStats.total}</div>
-                            <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total</div>
-                        </div>
-                        <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#f59e0b', color: '#fff' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{filteredStats.active}</div>
-                            <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>In Progress</div>
-                        </div>
-                        <div className="admin-card" style={{ padding: '0.4rem 2.8rem', textAlign: 'center', background: '#22c55e', color: '#fff' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{filteredStats.completed}</div>
-                            <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Completed</div>
-                        </div>
-                    </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.2rem' }}>
+                    <FaHardHat style={{ color: '#8B5CF6' }} /> Sites & Projects
+                </h2>
+                {isAdmin && (
+                    <button className="admin-btn" onClick={() => setShowCreateSite(true)} style={{ background: '#8B5CF6', borderColor: '#8B5CF6', color: '#fff', borderRadius: 5, padding: '0.35rem 0.8rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <FaPlus size={11} /> Create Site
+                    </button>
                 )}
             </div>
 
@@ -368,195 +400,240 @@ const Projects = () => {
                     <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#22c55e', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         <FaCheckCircle size={16} /> Site created successfully!
                     </span>
-                    <div style={{ display: 'flex', gap: '0.35rem' }}>
-                        <button className="admin-btn" onClick={() => { setShowModal(true); setEditing(null); setForm(emptyForm); setCreatingProjectForSite(false); setSelectedSiteId(lastCreatedSiteId || ''); setModalPos(null); }}
-                            style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 1rem', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                            <FaPlus /> Create Project
-                        </button>
-                        <button className="admin-btn admin-btn--secondary" onClick={() => setLastCreatedSiteId(null)}
-                            style={{ padding: '0.4rem 0.6rem', fontSize: '0.78rem' }}>
-                            <FaTimesIcon />
-                        </button>
-                    </div>
+                    <button className="admin-btn admin-btn--secondary" onClick={() => setLastCreatedSiteId(null)} style={{ padding: '0.3rem 0.6rem', fontSize: '0.78rem' }}>
+                        <FaTimesIcon />
+                    </button>
                 </div>
             )}
 
-            {siteLabel ? (
-                <div className="admin-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.35rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Projects in this site</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-                            <input type="text" className="form-input" placeholder="Search projects..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 220 }} />
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                {/* LEFT PANEL: Sites list */}
+                <div style={{ width: 300, flexShrink: 0 }}>
+                    <div className="admin-card" style={{ padding: 0, overflow: 'hidden' }}>
+                        <div style={{ padding: '0.6rem 0.75rem', borderBottom: '1px solid var(--border-color)' }}>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Search sites..."
+                                value={siteSearch}
+                                onChange={e => setSiteSearch(e.target.value)}
+                                style={{ padding: '0.3rem 0.5rem', fontSize: '0.78rem', width: '100%' }}
+                            />
                         </div>
-                    </div>
-                    <div style={{ overflowX: 'auto' }}>
-                        <table className="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th><th>Type</th><th>Status</th><th>Budget</th><th>Progress</th><th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {paginated.map(item => (
-                                <tr key={item.id}>
-                                    <td><Link to={`/admin/sites/${item.id}`} style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit' }}>{item.name}</Link></td>
-                                    <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>{item.type || 'construction'}</td>
-                                    <td>
-                                        <span style={{
-                                            display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
-                                            color: '#fff', background: statusColors[item.status] || '#6b7280',
-                                        }}>{item.status.replace(/_/g, ' ')}</span>
-                                    </td>
-                                    <td style={{ fontSize: '0.85rem' }}>{item.budget ? `${Number(item.budget).toLocaleString()} RWF` : '—'}</td>
-                                    <td>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                            <div style={{ width: 60, height: 6, background: '#e5e7eb', borderRadius: 3, overflow: 'hidden' }}>
-                                                <div style={{ width: `${item.progress || 0}%`, height: '100%', background: item.progress >= 100 ? '#22c55e' : '#1B2042', borderRadius: 3 }} />
-                                            </div>
-                                            <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>{item.progress || 0}%</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => setViewProject(item)} title="View Details"><FaEye /></button>
-                                            {isAdmin && (<><button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEditProject(item)} title="Edit"><FaEdit /></button>
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={async () => {
-                                                if (!window.confirm('Delete this project?')) return;
-                                                try { await constructionService.deleteProject(item.id); fetch(); window.dispatchEvent(new CustomEvent('projects-updated')); showToast('Project deleted', 'success'); } catch { showToast('Failed to delete', 'error'); }
-                                            }}><FaTrash /></button></>)}
-                                        </div>
-                                    </td>
-                                </tr>
-                                ))}
-                                {paginated.length === 0 && (
-                                    <tr><td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                        <><FaHardHat size={32} style={{ opacity: 0.3, marginBottom: 8 }} /><div>No projects in this site.</div></>
-                                    </td></tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.25rem 0', flexWrap: 'wrap', gap: 6 }}>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                            Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
-                        </span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Per page:</span>
-                                <select
-                                    className="form-select"
-                                    style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.75rem' }}
-                                    value={pageSize}
-                                    onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}
-                                >
-                                    {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                                    <option value={0}>All</option>
-                                </select>
-                            </div>
-                            {pageSize > 0 && totalPages > 1 && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                        <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 28, fontSize: '0.78rem' }} onClick={() => setPage(p)}>{p}</button>
-                                    ))}
-                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                        <div style={{ maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }}>
+                            {allSites.length === 0 ? (
+                                <div style={{ padding: '2rem 1rem', textAlign: 'center' }}>
+                                    <FaHardHat size={32} style={{ opacity: 0.2, marginBottom: 8, color: 'var(--text-muted)' }} />
+                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 0.75rem' }}>No sites yet</p>
+                                    {isAdmin && (
+                                        <button className="admin-btn" onClick={() => setShowCreateSite(true)} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.7rem', fontSize: '0.75rem' }}>
+                                            <FaPlus size={9} /> Create Site
+                                        </button>
+                                    )}
                                 </div>
+                            ) : filteredSites.length === 0 ? (
+                                <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                                    No sites match your search.
+                                </div>
+                            ) : (
+                                filteredSites.map(site => {
+                                    const isSelected = siteFilterId === site.id;
+                                    const siteProject = site.projectId ? projects.find(p => p.id === site.projectId) : null;
+                                    return (
+                                        <div
+                                            key={site.id}
+                                            onClick={() => setSearchParams(isSelected ? {} : { siteId: site.id, siteName: encodeURIComponent(site.name) })}
+                                            style={{
+                                                padding: '0.6rem 0.75rem',
+                                                cursor: 'pointer',
+                                                borderBottom: '1px solid var(--border-color)',
+                                                background: isSelected ? '#1B204208' : 'transparent',
+                                                borderLeft: isSelected ? '3px solid #1B2042' : '3px solid transparent',
+                                                transition: 'all 0.15s ease',
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.35rem' }}>
+                                                <div style={{ minWidth: 0 }}>
+                                                    <div style={{ fontWeight: 700, fontSize: '0.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        <FaHardHat size={10} style={{ color: isSelected ? '#1B2042' : '#8B5CF6', marginRight: 5 }} />
+                                                        {site.name}
+                                                    </div>
+                                                    {site.location && (
+                                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 3, marginTop: 1, paddingLeft: 15 }}>
+                                                            <FaMapMarkerAlt size={8} /> {site.location}
+                                                        </div>
+                                                    )}
+                                                    {siteProject && (
+                                                        <div style={{ fontSize: '0.7rem', color: '#1B2042', display: 'flex', alignItems: 'center', gap: 3, marginTop: 2, paddingLeft: 15, fontWeight: 600 }}>
+                                                            <FaProjectDiagram size={8} /> {siteProject.name}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {isAdmin && (
+                                                    <button
+                                                        className="admin-btn"
+                                                        onClick={(e) => { e.stopPropagation(); setForm(emptyForm); setEditing(null); setSelectedSiteId(site.id); setModalPos(null); setShowModal(true); }}
+                                                        title="Add Project"
+                                                        style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem', background: '#8B5CF6', borderColor: '#8B5CF6', color: '#fff', borderRadius: 4, flexShrink: 0 }}
+                                                    >
+                                                        <FaPlus size={9} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })
                             )}
                         </div>
+                        {allSites.length > 0 && (
+                            <div style={{ padding: '0.4rem 0.75rem', borderTop: '1px solid var(--border-color)', fontSize: '0.7rem', color: 'var(--text-muted)', background: '#f9fafb' }}>
+                                {filteredSites.length} site{filteredSites.length !== 1 ? 's' : ''}
+                            </div>
+                        )}
                     </div>
                 </div>
-            ) : allSites.length === 0 ? (
-                <div className="admin-card" style={{ padding: '3rem', textAlign: 'center' }}>
-                    <FaHardHat size={48} style={{ opacity: 0.2, marginBottom: 12, color: 'var(--text-muted)' }} />
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--text-muted)' }}>No Sites Yet</h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Create a site first to link it to a project.</p>
-                    {isAdmin && <Link to="#"
-                        onClick={() => setShowCreateSite(true)}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 1.25rem', borderRadius: '8px', background: '#1B2042', color: '#fff', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
-                        <FaPlus size={12} /> Create Site
-                    </Link>}
-                </div>
-            ) : (
-                <div className="admin-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.35rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>All Sites ({allSites.length})</span>
-                        <input type="text" className="form-input" placeholder="Search sites..." value={siteSearch} onChange={e => setSiteSearch(e.target.value)} style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 220 }} />
-                    </div>
-                    <div style={{ overflowX: 'auto' }}>
-                        <table className="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>Site Name</th><th>Location</th><th>Site Engineer</th><th>Linked Project</th><th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {allSites
-                                    .filter(s => {
-                                        const q = siteSearch.trim().toLowerCase();
-                                        if (!q) return true;
-                                        return s.name.toLowerCase().includes(q) || (s.location || '').toLowerCase().includes(q) || (s.project?.name || '').toLowerCase().includes(q);
-                                    })
-                                    .map(site => {
-                                        const fullProject = site.project ? projects.find(p => p.id === site.project!.id) : undefined;
-                                        return (
-                                            <tr key={site.id}>
-                                                <td>
-                                                    <button
-                                                        onClick={() => setSearchParams({ siteId: site.id, siteName: site.name })}
-                                                        style={{ background: 'none', border: 'none', padding: 0, fontWeight: 700, color: 'inherit', cursor: 'pointer', textAlign: 'left', font: 'inherit' }}
-                                                        title="View projects in this site"
-                                                    >
-                                                        {site.name}
-                                                    </button>
-                                                </td>
-                                                <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{site.location || '—'}</td>
-                                                <td style={{ fontSize: '0.85rem' }}>
-                                                    {site.assignedEngineerName || <span style={{ color: 'var(--text-muted)' }}>Unassigned</span>}
-                                                </td>
-                                                <td>
-                                                    {site.project ? (
-                                                        <Link to={`/admin/sites/${site.project.id}`} style={{ fontWeight: 600, color: '#1B2042', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                                                            <FaProjectDiagram size={10} />{site.project.name}
-                                                        </Link>
-                                                    ) : (
-                                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>— Not linked —</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                                                        {site.project && fullProject && isAdmin && (
-                                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEditProject(fullProject)} title="Edit linked project"><FaEdit /></button>
-                                                        )}
-                                                        {!site.project && isAdmin && (
-                                                            <button className="admin-btn" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', background: '#1B2042', borderColor: '#1B2042' }}
-                                                                onClick={() => { setForm(emptyForm); setEditing(null); setSelectedSiteId(site.id); setModalPos(null); setShowModal(true); }}
+
+                {/* RIGHT PANEL: Projects */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    {activeSite ? (
+                        <div className="admin-card">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.35rem' }}>
+                                <div>
+                                    <h3 style={{ margin: 0, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <FaProjectDiagram style={{ color: '#1B2042' }} />
+                                        {activeSite.name}
+                                    </h3>
+                                    {activeSite.location && (
+                                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 3, marginTop: 2 }}>
+                                            <FaMapMarkerAlt size={8} /> {activeSite.location}
+                                        </span>
+                                    )}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                                    <input type="text" className="form-input" placeholder="Search projects..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 200 }} />
+                                    {isAdmin && (
+                                        <button className="admin-btn" onClick={() => { setForm(emptyForm); setEditing(null); setSelectedSiteId(siteFilterId || ''); setModalPos(null); setShowModal(true); }} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.7rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                            <FaPlus size={10} /> Add Project
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                                <StatTile icon={<FaProjectDiagram />} label="Total" value={String(filteredStats.total)} accent="#1B2042" emphasis />
+                                <StatTile icon={<FaHardHat />} label="In Progress" value={String(filteredStats.active)} accent="#f59e0b" />
+                                <StatTile icon={<FaCheckCircle />} label="Completed" value={String(filteredStats.completed)} accent="#22c55e" />
+                            </div>
+
+                            <div style={{ overflowX: 'auto' }}>
+                                <table className="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th><th>Type</th><th>Status</th><th>Budget</th><th>Progress</th><th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {paginated.map(item => (
+                                        <tr key={item.id}>
+                                            <td><Link to={`/admin/sites/${item.id}`} style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit' }}>{item.name}</Link></td>
+                                            <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>{item.type || 'construction'}</td>
+                                            <td>
+                                                <span style={{
+                                                    display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
+                                                    color: '#fff', background: statusColors[item.status] || '#6b7280',
+                                                }}>{item.status.replace(/_/g, ' ')}</span>
+                                            </td>
+                                            <td style={{ fontSize: '0.85rem' }}>{item.budget ? `${Number(item.budget).toLocaleString()} RWF` : '—'}</td>
+                                            <td>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    <div style={{ width: 60, height: 6, background: '#e5e7eb', borderRadius: 3, overflow: 'hidden' }}>
+                                                        <div style={{ width: `${item.progress || 0}%`, height: '100%', background: item.progress >= 100 ? '#22c55e' : '#1B2042', borderRadius: 3 }} />
+                                                    </div>
+                                                    <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>{item.progress || 0}%</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => setViewProject(item)} title="View Details"><FaEye /></button>
+                                                    {isAdmin && (<><button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEditProject(item)} title="Edit"><FaEdit /></button>
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={async () => {
+                                                        if (!window.confirm('Delete this project?')) return;
+                                                        try { await constructionService.deleteProject(item.id); fetch(); window.dispatchEvent(new CustomEvent('projects-updated')); showToast('Project deleted', 'success'); } catch { showToast('Failed to delete', 'error'); }
+                                                    }}><FaTrash /></button></>)}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        ))}
+                                        {paginated.length === 0 && (
+                                            <tr><td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                                {activeSite && !activeSite.projectId ? (
+                                                    <>
+                                                        <FaProjectDiagram size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
+                                                        <div>No project linked to this site yet.</div>
+                                                        {isAdmin && (
+                                                            <button
+                                                                className="admin-btn"
+                                                                style={{ marginTop: 12, background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 1rem', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                                                                onClick={() => {
+                                                                    setShowModal(true);
+                                                                    setEditing(null);
+                                                                    setForm(emptyForm);
+                                                                    setCreatingProjectForSite(false);
+                                                                    setSelectedSiteId(siteFilterId || '');
+                                                                    setModalPos(null);
+                                                                }}
                                                             >
-                                                                <FaPlus size={9} style={{ marginRight: 4 }} />Link Project
+                                                                <FaPlus /> Create Project
                                                             </button>
                                                         )}
-                                                        {isAdmin && (
-                                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEditSiteEngineer(site)} title="Assign Site Engineer"><FaUser /></button>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                {allSites.filter(s => {
-                                    const q = siteSearch.trim().toLowerCase();
-                                    if (!q) return true;
-                                    return s.name.toLowerCase().includes(q) || (s.location || '').toLowerCase().includes(q) || (s.project?.name || '').toLowerCase().includes(q);
-                                }).length === 0 && (
-                                    <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No sites match your search.</td></tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <FaHardHat size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
+                                                        <div>No projects in this site.</div>
+                                                    </>
+                                                )}
+                                            </td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.25rem 0', flexWrap: 'wrap', gap: 6 }}>
+                                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                    Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
+                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Per page:</span>
+                                        <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.75rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
+                                            {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                                            <option value={0}>All</option>
+                                        </select>
+                                    </div>
+                                    {pageSize > 0 && totalPages > 1 && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                                <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 28, fontSize: '0.78rem' }} onClick={() => setPage(p)}>{p}</button>
+                                            ))}
+                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="admin-card" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+                            <FaHardHat size={48} style={{ opacity: 0.15, marginBottom: 12, color: 'var(--text-muted)' }} />
+                            <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Select a Site</h3>
+                            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Click a site on the left to view its projects.</p>
+                        </div>
+                    )}
                 </div>
-            )}
+            </div>
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => !savingProject && setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y } : {}}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'Add'} Project</h3>
                             <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>
@@ -661,7 +738,7 @@ const Projects = () => {
 
             {showCreateSite && (
                 <div className="admin-modal-overlay" onClick={() => setShowCreateSite(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', top: '100px', left: '50%', transform: 'translateX(-50%)', maxHeight: 'calc(100vh - 160px)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
                         <div className="admin-modal-header">
                             <h3><FaHardHat style={{ marginRight: 8 }} />Create Site</h3>
                             <button onClick={() => setShowCreateSite(false)}><FaTimesIcon /></button>
@@ -675,18 +752,6 @@ const Projects = () => {
                                 <div className="form-group">
                                     <label className="form-label">Location</label>
                                     <input className="form-input" value={siteForm.location} onChange={e => setSiteForm(p => ({ ...p, location: e.target.value }))} placeholder="Site location" />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">Activity</label>
-                                    <textarea className="form-textarea" rows={2} value={siteForm.activity} onChange={e => setSiteForm(p => ({ ...p, activity: e.target.value }))} placeholder="What activity is happening at this site?" />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">Site Engineer</label>
-                                    <select className="form-select" value={siteForm.assignedEngineerId} onChange={e => setSiteForm(p => ({ ...p, assignedEngineerId: e.target.value }))}>
-                                        <option value="">— Unassigned —</option>
-                                        {siteEngineerUsers.map(u => <option key={u.id} value={u.id}>{siteEngineerName(u)}</option>)}
-                                    </select>
-                                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>The engineer assigned here will only see this site and its data — attendance, activities, evidence — once logged in.</p>
                                 </div>
                             </div>
                         </div>
@@ -702,7 +767,7 @@ const Projects = () => {
 
             {editingSiteEngineer && (
                 <div className="admin-modal-overlay" onClick={() => !savingSiteEngineer && setEditingSiteEngineer(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', borderRadius: 12 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', borderRadius: 12 }}>
                         <div className="admin-modal-header">
                             <h3 style={{ fontSize: '1rem' }}><FaHardHat style={{ marginRight: 8, color: '#8B5CF6' }} />Assign Site Engineer</h3>
                             <button onClick={() => !savingSiteEngineer && setEditingSiteEngineer(null)}><FaTimesIcon /></button>
@@ -731,7 +796,7 @@ const Projects = () => {
 
             {viewProject && (
                 <div className="admin-modal-overlay" onClick={() => setViewProject(null)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ position: 'relative', maxWidth: '380px', width: '100%', borderRadius: '12px', top: 'auto', left: 'auto', transform: 'none' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ position: 'relative', maxWidth: '380px', width: '100%', borderRadius: 0, top: 'auto', left: 'auto', transform: 'none' }}>
                         <div className="admin-modal-header" style={{ padding: '0.75rem 1rem' }}>
                             <h3 style={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <FaProjectDiagram style={{ color: '#1B2042' }} /> {viewProject.name}

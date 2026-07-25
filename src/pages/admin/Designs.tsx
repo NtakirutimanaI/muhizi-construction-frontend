@@ -493,7 +493,7 @@ const Designs = () => {
             </div>
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => !saving && setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y } : {}}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'Add'} Design</h3>
                             <button onClick={() => !saving && setShowModal(false)}><FaTimesIcon /></button>
@@ -595,7 +595,7 @@ const Designs = () => {
             {/* SAVE FROM SUBMISSION MODAL */}
             {showSubmissions && (
                 <div className="admin-modal-overlay" onClick={() => setShowSubmissions(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 560, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 560, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
                         <div className="admin-modal-header">
                             <h3><FaClipboardList style={{ marginRight: 8 }} />Save Submission to Designs</h3>
                             <button onClick={() => setShowSubmissions(false)}><FaTimesIcon /></button>

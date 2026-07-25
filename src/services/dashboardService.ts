@@ -28,7 +28,24 @@ export interface FinanceDirectorKpi {
 
 export interface SiteEngineerKpi {
     assignedSites: number;
+    activeSites: number;
+    completedSites: number;
     pendingRequests: number;
+    totalEvidence: number;
+    totalTasks: number;
+    pendingTasks: number;
+    completedTasks: number;
+    inProgressTasks: number;
+    totalTeamMembers: number;
+    todayPresent: number;
+    todayAbsent: number;
+    todayLate: number;
+    monthlyPresent: number;
+    monthlyAbsent: number;
+    monthlyLate: number;
+    attendanceTrend: { date: string; present: number; absent: number; late: number }[];
+    siteStatusBreakdown: { name: string; value: number }[];
+    taskBreakdown: { name: string; value: number }[];
 }
 
 export interface EngineeringStudioKpi {

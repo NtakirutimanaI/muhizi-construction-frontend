@@ -51,7 +51,7 @@ const SiteRules = () => {
     const canDelete = role === 'admin';
 
     const [rules, setRules] = useState<SiteRule[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [manageMode, setManageMode] = useState(false);
     const [selectedRule, setSelectedRule] = useState<SiteRule | null>(null);
     const [formModal, setFormModal] = useState<{ open: boolean; edit?: SiteRule }>({ open: false });
@@ -62,6 +62,7 @@ const SiteRules = () => {
     const [activeCategory, setActiveCategory] = useState<string>('All');
 
     const fetchRules = async () => {
+        setLoading(true);
         const cached = loadPageCache<SiteRule[]>('pg_site_rules');
         if (cached) setRules(cached);
         try {
@@ -155,6 +156,15 @@ const SiteRules = () => {
 
     const usedCategories = [...new Set(rules.map(r => r.category).filter(Boolean))];
     const filteredRules = activeCategory === 'All' ? rules : rules.filter(r => r.category === activeCategory);
+
+    if (loading) {
+        return (
+            <div className="admin-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh' }}>
+                <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                <span style={{ marginLeft: '0.75rem', fontSize: '0.9rem' }}>Loading...</span>
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -603,7 +613,7 @@ const SiteRules = () => {
 
             {deleteTarget && createPortal(
                 <div className="admin-modal-overlay" onClick={() => !deleting && setDeleteTarget(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 420, borderRadius: 12 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420, borderRadius: 12 }}>
                         <div className="admin-modal-header" style={{ padding: '0.9rem 1.1rem' }}>
                             <h3 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <FaExclamationTriangle style={{ color: 'var(--primary-red)' }} /> Remove Notice

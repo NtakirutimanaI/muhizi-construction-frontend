@@ -343,7 +343,7 @@ const AssignTasks = () => {
             {/* Assign Task Modal */}
             {showForm && (
                 <div className="admin-modal-overlay" onClick={() => { if (!saving) resetForm(); }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 620, maxWidth: '95vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 620, maxWidth: '95vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
                         <div className="admin-modal-header">
                             <h3><FaUserPlus style={{ marginRight: 8 }} />Assign Task</h3>
                             <button onClick={() => !saving && resetForm()}><FaTimes /></button>
@@ -495,7 +495,7 @@ const AssignTasks = () => {
             {/* View Task Modal */}
             {viewTask && (
                 <div className="admin-modal-overlay" onClick={() => setViewTask(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 560, maxWidth: '95vw' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 560, maxWidth: '95vw' }}>
                         <div className="admin-modal-header">
                             <h3><FaClipboardList style={{ marginRight: 8 }} />{viewTask.title}</h3>
                             <button onClick={() => setViewTask(null)}><FaTimes /></button>
@@ -542,7 +542,7 @@ const AssignTasks = () => {
             {/* Edit Task Modal */}
             {editTask && (
                 <div className="admin-modal-overlay" onClick={() => { if (!editSaving) setEditTask(null); }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 620, maxWidth: '95vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 620, maxWidth: '95vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
                         <div className="admin-modal-header">
                             <h3><FaEdit style={{ marginRight: 8 }} />Edit Task</h3>
                             <button onClick={() => { if (!editSaving) setEditTask(null); }}><FaTimes /></button>
