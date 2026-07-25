@@ -34,7 +34,7 @@ interface UserData {
     updatedAt?: string;
 }
 
-const ROLES = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper', 'employee', 'partner'];
+const ROLES = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper', 'partner'];
 const PAGE_SIZES = [5, 10, 15, 20];
 
 const Users = () => {
@@ -457,7 +457,7 @@ const Users = () => {
 
             {(showModal === 'add' || showModal === 'edit') && (
                 <div className="admin-modal-overlay" onClick={() => !saving && setShowModal(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y } : {}}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{modalTitle}</h3>
                             <button onClick={() => setShowModal(null)} disabled={saving}><FaTimesIcon /></button>
@@ -522,7 +522,7 @@ const Users = () => {
 
             {showModal === 'view' && selectedUser && (
                 <div className="admin-modal-overlay" onClick={() => setShowModal(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480, left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y, maxWidth: 480 } : { maxWidth: 480 }}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />User Details</h3>
                             <button onClick={() => setShowModal(null)}><FaTimesIcon /></button>

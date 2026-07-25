@@ -63,6 +63,8 @@ const StockCategories = lazy(() => import('./pages/admin/StockCategories'));
 const DailyTasks = lazy(() => import('./pages/admin/DailyTasks'));
 const AssignTasks = lazy(() => import('./pages/admin/AssignTasks'));
 const EngineeringStudio = lazy(() => import('./pages/admin/EngineeringStudio'));
+const Recruitment = lazy(() => import('./pages/admin/Recruitment'));
+const ProjectControl = lazy(() => import('./pages/admin/ProjectControl'));
 const ReportToAdmin = lazy(() => import('./pages/admin/ReportToAdmin'));
 const ShareFiles = lazy(() => import('./pages/admin/ShareFiles'));
 const ProjectDetail = lazy(() => import('./pages/admin/ProjectDetail'));
@@ -154,7 +156,7 @@ function App() {
 
                 {/* Admin Routes */}
                 <Route element={<ProtectedRoute />}>
-                  {['admin', 'storekeeper', 'employee', 'partner', 'managingdirector', 'directorfinance', 'siteengineer', 'engineeringstudio'].map(base => {
+                  {['admin', 'storekeeper', 'partner', 'managingdirector', 'directorfinance', 'siteengineer', 'engineeringstudio'].map(base => {
                     const b = `/${base}`;
                     return (
                       <Route key={base} path={b} element={<AdminLayout basePath={b} />}>
@@ -213,6 +215,8 @@ function App() {
                         <Route path="engineering-studio/create-tasks" element={<AssignTasks />} />
                         <Route path="engineering-studio/report-to-admin" element={<ReportToAdmin />} />
                         <Route path="engineering-studio/share" element={<ShareFiles />} />
+                        <Route path="recruitment" element={<Recruitment />} />
+                        <Route path="project-control" element={<ProjectControl />} />
                       </Route>
                     );
                   })}

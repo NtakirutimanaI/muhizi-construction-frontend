@@ -120,7 +120,7 @@ const DailyReports = () => {
 
             {showNew && (
                 <div className="admin-modal-overlay" onClick={() => !saving && setShowNew(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 520 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 520 }}>
                         <div className="admin-modal-header">
                             <h3><FaClipboardCheck style={{ marginRight: 8 }} />Submit Daily Report</h3>
                             <button onClick={() => !saving && setShowNew(false)}><FaTimes /></button>

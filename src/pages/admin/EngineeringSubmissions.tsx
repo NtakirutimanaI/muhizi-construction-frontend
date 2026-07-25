@@ -454,7 +454,7 @@ const EngineeringSubmissions = () => {
             {/* NEW SUBMISSION MODAL */}
             {showNew && (
                 <div className="admin-modal-overlay" onClick={() => !saving && closeNew()}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 520 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 520 }}>
                         <div className="admin-modal-header">
                             <h3><FaDraftingCompass style={{ marginRight: 8 }} />New Submission</h3>
                             <button onClick={() => !saving && closeNew()}><FaTimes /></button>
@@ -536,7 +536,7 @@ const EngineeringSubmissions = () => {
             {/* VIEW / REVIEW MODAL */}
             {viewItem && (
                 <div className="admin-modal-overlay" onClick={() => setViewItem(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 560 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 560 }}>
                         <div className="admin-modal-header">
                             <h3><FaDraftingCompass style={{ marginRight: 8 }} />{viewItem.title}</h3>
                             <button onClick={() => setViewItem(null)}><FaTimes /></button>
@@ -633,7 +633,7 @@ const EngineeringSubmissions = () => {
             {/* EDIT SUBMISSION MODAL */}
             {editItem && (
                 <div className="admin-modal-overlay" onClick={() => { if (!editSaving) setEditItem(null); }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 520 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 520 }}>
                         <div className="admin-modal-header">
                             <h3><FaEdit style={{ marginRight: 8 }} />Edit Submission</h3>
                             <button onClick={() => { if (!editSaving) setEditItem(null); }}><FaTimes /></button>

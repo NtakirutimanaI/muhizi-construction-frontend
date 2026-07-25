@@ -84,6 +84,7 @@ const baseUrl = '/sites';
 
 export const sitesService = {
     getAll: () => api.get(`${baseUrl}`),
+    getMyAssigned: () => api.get(`${baseUrl}/my-assigned`),
     getByProject: (projectId: string) => api.get(`${baseUrl}/project/${projectId}`),
     getOne: (id: string) => api.get(`${baseUrl}/${id}`),
     create: (data: Partial<Site>) => api.post(`${baseUrl}`, data),

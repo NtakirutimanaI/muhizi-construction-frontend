@@ -22,7 +22,7 @@ const MaterialRequests = () => {
     const { showToast } = useToast();
     const { user } = useAuth();
     const [requests, setRequests] = useState<MaterialRequest[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
     const [selectedProject, setSelectedProject] = useState('all');
     const [showModal, setShowModal] = useState(false);
@@ -46,6 +46,7 @@ const MaterialRequests = () => {
     const isSiteMgr = user?.role === 'storekeeper';
 
     const load = async () => {
+        setLoading(true);
         const cached = loadPageCache<{ requests: MaterialRequest[]; projects: { id: string; name: string }[] }>('pg_material_requests');
         if (cached) {
             setRequests(cached.requests || []);
@@ -287,6 +288,15 @@ const MaterialRequests = () => {
         document.addEventListener('mouseup', onRejectMouseUp);
     }, [onRejectMouseMove, onRejectMouseUp]);
 
+    if (loading) {
+        return (
+            <div className="admin-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh' }}>
+                <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                <span style={{ marginLeft: '0.75rem', fontSize: '0.9rem' }}>Loading...</span>
+            </div>
+        );
+    }
+
     return (
         <div className="admin-page">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
@@ -444,7 +454,7 @@ const MaterialRequests = () => {
 
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => { setShowModal(false); setEditing(null); }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)', width: 500 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y, width: 500 } : { width: 500 }}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'New'} Material Request</h3>
                             <button onClick={() => { setShowModal(false); setEditing(null); }}><FaTimesIcon /></button>
@@ -500,7 +510,7 @@ const MaterialRequests = () => {
 
             {showRejectModal && rejectId && (
                 <div className="admin-modal-overlay" onClick={() => setShowRejectModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: rejectModalPos?.x ?? '50%', top: rejectModalPos?.y ?? '50%', transform: rejectModalPos ? 'none' : 'translate(-50%, -50%)', width: 400 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={rejectModalPos ? { position: 'fixed', left: rejectModalPos.x, top: rejectModalPos.y, width: 400 } : { width: 400 }}>
                         <div className="admin-modal-header" onMouseDown={onRejectHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} /><FaBan style={{ color: '#ef4444', marginRight: 6 }} />Reject Request</h3>
                             <button onClick={() => setShowRejectModal(false)}><FaTimesIcon /></button>

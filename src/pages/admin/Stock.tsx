@@ -772,7 +772,7 @@ const StockPage = () => {
             {/* ADD / EDIT MODAL */}
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => { if (!saving) { closeModal(); } }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 520 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 520 }}>
                         <div className="admin-modal-header">
                             <h3><FaWarehouse style={{ marginRight: 8 }} />{editing ? 'Edit' : form.type === 'out' ? 'Add Stock Out' : 'Add Stock In'}</h3>
                             <button onClick={() => { if (!saving) { closeModal(); } }}><FaTimes /></button>
@@ -888,7 +888,7 @@ const StockPage = () => {
             {/* EVIDENCE LIGHTBOX */}
             {viewEvidence && (
                 <div className="admin-modal-overlay" onClick={() => setViewEvidence(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 560 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 560 }}>
                         <div className="admin-modal-header">
                             <h3><FaCamera style={{ marginRight: 8 }} />Stock Evidence</h3>
                             <button onClick={() => setViewEvidence(null)}><FaTimes /></button>
@@ -909,7 +909,7 @@ const StockPage = () => {
             {/* NEW CATEGORY MODAL */}
             {showNewCategory && (
                 <div className="admin-modal-overlay" onClick={closeNewCategory}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 400 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 400 }}>
                         <div className="admin-modal-header">
                             <h3><FaTag style={{ marginRight: 8 }} />New Category</h3>
                             <button onClick={closeNewCategory}><FaTimes /></button>

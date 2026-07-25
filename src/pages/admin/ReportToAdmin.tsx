@@ -367,7 +367,7 @@ const ReportToAdmin = () => {
 
             {showNotesModal && (
                 <div className="admin-modal-overlay" onClick={() => !submitting && setShowNotesModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 480 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 480 }}>
                         <div className="admin-modal-header">
                             <h3><FaPaperPlane style={{ marginRight: 8 }} />Submit to Admin</h3>
                             <button onClick={() => !submitting && setShowNotesModal(false)}><FaExclamationTriangle style={{ display: 'none' }} /></button>

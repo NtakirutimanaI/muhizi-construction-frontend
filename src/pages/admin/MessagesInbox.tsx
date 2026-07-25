@@ -29,7 +29,7 @@ const MessagesInbox = () => {
     const { showToast } = useToast();
     const [messages, setMessages] = useState<ContactMessage[]>([]);
     const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
@@ -45,6 +45,7 @@ const MessagesInbox = () => {
     useEffect(() => { loadMessages(); }, []);
 
     const loadMessages = async () => {
+        setLoading(true);
         try {
             const cached = loadPageCache<ContactMessage[]>('pg_messages_inbox');
             if (cached) {
@@ -164,6 +165,15 @@ const MessagesInbox = () => {
         m.status === 'new' || m.status === 'unread' ? 'Unread' : 'Read',
         m.createdAt ? new Date(m.createdAt).toLocaleDateString() : '—',
     ]), [filtered]);
+
+    if (loading) {
+        return (
+            <div className="admin-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh' }}>
+                <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                <span style={{ marginLeft: '0.75rem', fontSize: '0.9rem' }}>Loading...</span>
+            </div>
+        );
+    }
 
     return (
         <div className="admin-page">
