@@ -73,18 +73,18 @@ const emptyForm: FormState = {
 
 const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
     <div style={{
-        display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0,
+        display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0,
         background: emphasis ? `${accent}12` : 'var(--bg-white)',
         border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
-        borderRadius: 8, padding: '0.55rem 0.75rem',
+        borderRadius: 7, padding: '0.4rem 0.6rem',
     }}>
         <div style={{
-            width: 30, height: 30, borderRadius: 7, background: `${accent}18`, color: accent,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.85rem',
+            width: 26, height: 26, borderRadius: 6, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.75rem',
         }}>{icon}</div>
         <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{label}</div>
-            <div style={{ fontSize: emphasis ? '0.95rem' : '0.85rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '0.85rem' : '0.78rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
         </div>
     </div>
 );
@@ -122,8 +122,8 @@ const roleColors: Record<string, string> = {
 
 const InfoItem = ({ label, value, mono }: { label: string; value?: string; mono?: boolean }) => (
     <div>
-        <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem', marginBottom: 1 }}>{label}</div>
-        <div style={{ fontWeight: 500, fontSize: '0.8rem', fontFamily: mono ? 'monospace' : undefined }}>{value || '—'}</div>
+        <div style={{ color: 'var(--text-muted)', fontSize: '0.62rem', marginBottom: 0 }}>{label}</div>
+        <div style={{ fontWeight: 500, fontSize: '0.75rem', fontFamily: mono ? 'monospace' : undefined }}>{value || '—'}</div>
     </div>
 );
 
@@ -375,16 +375,16 @@ const Registration = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0, fontSize: '1.1rem', flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', margin: 0, fontSize: '1rem', flexShrink: 0 }}>
                     <FaUserPlus style={{ color: 'var(--primary)' }} /> User Registration
                 </h2>
-                <button className="admin-btn" onClick={openAdd} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.45rem 1.2rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <FaPlus size={12} /> Register New User
+                <button className="admin-btn" onClick={openAdd} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <FaPlus size={11} /> Register New User
                 </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.4rem', marginBottom: '0.6rem' }}>
                 <StatTile icon={<FaUsers />} label="Total Users" value={String(users.length)} accent="#1B2042" emphasis />
                 <StatTile icon={<FaCheckCircle />} label="Active" value={String(users.filter(u => u.isActive).length)} accent="#22c55e" />
                 <StatTile icon={<FaTimesCircle />} label="Inactive" value={String(users.filter(u => !u.isActive).length)} accent="#6b7280" />
@@ -393,18 +393,18 @@ const Registration = () => {
             </div>
 
             <div className="admin-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.4rem' }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Registered Users</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem', flexWrap: 'wrap', gap: '0.3rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Registered Users</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
                         <div style={{ position: 'relative' }}>
-                            <FaSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.8rem' }} />
-                            <input type="text" className="form-input" placeholder="Search by name, email, phone..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem 0.3rem 1.8rem', fontSize: '0.8rem', width: 260 }} />
+                            <FaSearch style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.7rem' }} />
+                            <input type="text" className="form-input" placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem 0.25rem 1.6rem', fontSize: '0.75rem', width: 200 }} />
                         </div>
-                        <select className="form-select" value={filterRole} onChange={e => { setFilterRole(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 160 }}>
+                        <select className="form-select" value={filterRole} onChange={e => { setFilterRole(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 140 }}>
                             <option value="">All Roles</option>
                             {ROLES_LIST.map(r => <option key={r} value={r}>{r.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
                         </select>
-                        <select className="form-select" value={filterStatus} onChange={e => { setFilterStatus(e.target.value as any); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 120 }}>
+                        <select className="form-select" value={filterStatus} onChange={e => { setFilterStatus(e.target.value as any); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 100 }}>
                             <option value="all">All Status</option>
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
@@ -431,13 +431,13 @@ const Registration = () => {
                                 return (
                                     <Fragment key={u.id}>
                                         <tr>
-                                            <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{(page - 1) * pageSize + i + 1}</td>
+                                            <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{(page - 1) * pageSize + i + 1}</td>
                                             <td>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--bg-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--bg-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                                                         {u.profile?.avatar
                                                             ? <img src={u.profile.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                            : <FaUser size={10} style={{ color: 'var(--text-muted)' }} />}
+                                                            : <FaUser size={9} style={{ color: 'var(--text-muted)' }} />}
                                                     </div>
                                                     <span style={{ fontWeight: 600 }}>{u.firstName || u.profile?.firstName || ''} {u.lastName || u.profile?.lastName || ''}</span>
                                                 </div>
@@ -479,8 +479,8 @@ const Registration = () => {
                                         {expanded && (
                                             <tr>
                                                 <td colSpan={7} style={{ padding: 0 }}>
-                                                    <div style={{ background: 'var(--bg-body)', borderRadius: 4, margin: '2px 6px 4px', padding: '0.5rem 0.8rem', fontSize: '0.8rem' }}>
-                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.4rem 1rem' }}>
+                                                    <div style={{ background: 'var(--bg-body)', borderRadius: 3, margin: '1px 4px 2px', padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
+                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '0.25rem 0.75rem' }}>
                                                             <InfoItem label="Gender" value={u.gender} />
                                                             <InfoItem label="National ID" value={u.nationalId} mono />
                                                             <InfoItem label="Education" value={u.educationLevel} />
@@ -530,8 +530,8 @@ const Registration = () => {
                             })}
                             {paginatedUsers.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                        <FaUsers size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
+                                    <td colSpan={7} style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                        <FaUsers size={28} style={{ opacity: 0.3, marginBottom: 6 }} />
                                         <div>No users found.</div>
                                     </td>
                                 </tr>
@@ -540,25 +540,25 @@ const Registration = () => {
                     </table>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', padding: '0.4rem 0', flexWrap: 'wrap', gap: 6 }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', padding: '0.3rem 0', flexWrap: 'wrap', gap: 4 }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         Showing {pageSize === 0 ? filteredUsers.length : Math.min(pageSize, filteredUsers.length - (page - 1) * pageSize)} of {filteredUsers.length}
                     </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
-                            <select className="form-select" style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Per page:</span>
+                            <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.7rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                                 {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                                 <option value={0}>All</option>
                             </select>
                         </div>
                         {pageSize > 0 && totalPages > 1 && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 26, fontSize: '0.75rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                             </div>
                         )}
                     </div>
