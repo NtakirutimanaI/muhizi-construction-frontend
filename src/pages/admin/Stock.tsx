@@ -349,7 +349,7 @@ const StockPage = () => {
         return { pct, label: 'Healthy', color: '#22c55e' };
     };
 
-    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
 
     return (
         <div className="admin-page">

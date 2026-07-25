@@ -797,11 +797,7 @@ const PettyCash = () => {
         return <span style={{ padding: '2px 8px', borderRadius: 6, background: `${colors[t] || '#6B7280'}18`, color: colors[t] || '#6B7280', fontSize: '0.72rem', fontWeight: 600 }}>{t.replace(/_/g, ' ')}</span>;
     };
 
-    if (loading) return (
-        <div className="admin-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-            <FaSpinner className="spin" size={32} style={{ color: 'var(--primary)' }} />
-        </div>
-    );
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
 
     return (
         <div className="admin-page">

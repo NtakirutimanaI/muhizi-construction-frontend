@@ -156,7 +156,7 @@ const SiteRules = () => {
     const usedCategories = [...new Set(rules.map(r => r.category).filter(Boolean))];
     const filteredRules = activeCategory === 'All' ? rules : rules.filter(r => r.category === activeCategory);
 
-    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}><FaSpinner className="spin" size={28} style={{ color: 'var(--primary)' }} /></div>;
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
 
     return (
         <div>
