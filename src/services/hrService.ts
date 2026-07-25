@@ -72,6 +72,7 @@ export interface EmployedUser {
     employmentCategory?: string;
     workShift?: string;
     basicSalary: number;
+    recruitedBy?: string;
     isActive: boolean;
     profile?: {
         id: string;
@@ -88,6 +89,7 @@ export const hrService = {
     // Employees
     getEmployees: () => api.get(`${baseUrl}/employees`),
     getEmployedUsers: () => api.get(`${baseUrl}/auth/users/employed`),
+    getWageWorkers: (recruitedBy?: string) => api.get(`${baseUrl}/auth/users/wage-workers`, { params: recruitedBy ? { recruitedBy } : {} }),
     getEmployee: (id: string) => api.get(`${baseUrl}/employees/${id}`),
     createEmployee: (data: Partial<Employee>) => api.post(`${baseUrl}/employees`, data),
     updateEmployee: (id: string, data: Partial<Employee>) => api.put(`${baseUrl}/employees/${id}`, data),

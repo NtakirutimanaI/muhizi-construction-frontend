@@ -408,12 +408,12 @@ const AttendancePage = () => {
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div className="attendance-page-header">
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', margin: 0, fontSize: '1rem', flexShrink: 0 }}>
                     <FaClock style={{ color: 'var(--primary)' }} /> Attendance
                     {urlSite && <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginLeft: 4 }}>/ {urlSite}</span>}
                 </h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.4rem', marginBottom: '0.6rem' }}>
+                <div className="attendance-summary-cards">
                     <StatTile icon={<FaUsers />} label="Total" value={String(stats.total)} accent="#1B2042" emphasis />
                     <StatTile icon={<FaCheckCircle />} label="Present" value={String(stats.present)} accent="#22c55e" />
                     <StatTile icon={<FaTimesCircle />} label="Absent" value={String(stats.absent)} accent="#ef4444" />
@@ -423,7 +423,8 @@ const AttendancePage = () => {
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginBottom: '0.6rem' }}>
+            <div className="attendance-toolbar">
+            <div className="attendance-export-actions" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                 <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
                     <FaFileExcel /> Excel
                 </button>
@@ -432,12 +433,12 @@ const AttendancePage = () => {
                 </button>
             </div>
 
-            <div className="admin-card" style={{ marginBottom: '0.75rem', border: '2px solid var(--primary)', padding: '0.4rem 1rem' }}>
+            <div className="admin-card attendance-report-card" style={{ border: '2px solid var(--primary)', padding: '0.4rem 0.75rem' }}>
                 <h3 style={{ margin: '0 0 0.3rem', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
                     <FaProjectDiagram /> Daily Attendance Report
                 </h3>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                         <select className="form-select" value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} style={{ width: '100%', padding: '0.3rem', fontSize: '0.8rem' }}>
                             <option value="">— Choose a project —</option>
                             {projects.filter(p => !urlSite || p.id === siteProjectId).map(p => (
@@ -445,10 +446,12 @@ const AttendancePage = () => {
                             ))}
                         </select>
                     </div>
-                    <div style={{ flex: 1, minWidth: 180 }}>
+                    <div style={{ width: 142, flexShrink: 0 }}>
                         <input type="date" className="form-input" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} disabled={!selectedProjectId} style={{ width: '100%', padding: '0.3rem', fontSize: '0.8rem' }} />
                     </div>
                 </div>
+
+            </div>
 
             </div>
 
