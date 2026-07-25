@@ -195,7 +195,9 @@ const Registration = () => {
         }
     };
 
-    useEffect(() => { fetchUsers(); }, []);
+    useEffect(() => {
+        authService.capitalizeNames().catch(() => {}).finally(() => fetchUsers());
+    }, []);
 
     useEffect(() => {
         insuranceService.getDeduction().then(res => setInsuranceDeduction(res.data.totalDeduction || 0)).catch(() => {});
@@ -217,10 +219,11 @@ const Registration = () => {
     };
 
     const openEdit = (u: UserData) => {
+        const cap = (s: string) => s ? s.replace(/\b\w/g, c => c.toUpperCase()) : '';
         setEditingUser(u);
         setForm({
-            firstName: u.firstName || u.profile?.firstName || '',
-            lastName: u.lastName || u.profile?.lastName || '',
+            firstName: cap(u.firstName || u.profile?.firstName || ''),
+            lastName: cap(u.lastName || u.profile?.lastName || ''),
             email: u.email,
             password: '',
             role: u.role,
@@ -544,11 +547,11 @@ const Registration = () => {
                             <div className="reg-form-grid">
                                 <div className="form-group">
                                     <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FaUser size={11} /> First Name *</label>
-                                    <input className="form-input" value={form.firstName} onChange={e => setForm(p => ({ ...p, firstName: e.target.value }))} placeholder="Enter first name" />
+                                    <input className="form-input" value={form.firstName} onChange={e => setForm(p => ({ ...p, firstName: e.target.value.replace(/\b\w/g, c => c.toUpperCase()) }))} placeholder="Enter first name" />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FaUser size={11} /> Last Name *</label>
-                                    <input className="form-input" value={form.lastName} onChange={e => setForm(p => ({ ...p, lastName: e.target.value }))} placeholder="Enter last name" />
+                                    <input className="form-input" value={form.lastName} onChange={e => setForm(p => ({ ...p, lastName: e.target.value.replace(/\b\w/g, c => c.toUpperCase()) }))} placeholder="Enter last name" />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FaEnvelope size={11} /> Email *</label>
