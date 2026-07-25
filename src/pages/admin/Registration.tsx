@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback, useRef, Fragment } from 'react';
-import { FaUserPlus, FaUser, FaEnvelope, FaPhone, FaHome, FaIdCard, FaGraduationCap, FaVenusMars, FaRing, FaUsers, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaSearch, FaCheckCircle, FaTimesCircle, FaUserTie, FaArrowsAlt, FaFilePdf, FaUpload, FaExternalLinkAlt, FaUniversity, FaBriefcase, FaInfoCircle, FaChevronDown, FaChevronUp, FaMoneyBillWave, FaSpinner } from 'react-icons/fa';
+import { useState, useEffect, useMemo, Fragment } from 'react';
+import { FaUserPlus, FaUser, FaEnvelope, FaPhone, FaHome, FaIdCard, FaGraduationCap, FaVenusMars, FaRing, FaUsers, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaSearch, FaCheckCircle, FaTimesCircle, FaUserTie, FaFilePdf, FaUpload, FaExternalLinkAlt, FaUniversity, FaBriefcase, FaInfoCircle, FaChevronDown, FaChevronUp, FaMoneyBillWave, FaSpinner } from 'react-icons/fa';
 import { insuranceService } from '../../services/insuranceService';
 import { authService } from '../../services/authService';
 import api from '../../services/api';
@@ -142,8 +142,6 @@ const Registration = () => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-    const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
-    const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
     const [contractModalUser, setContractModalUser] = useState<UserData | null>(null);
     const [contractFile, setContractFile] = useState<File | null>(null);
     const [contractUploading, setContractUploading] = useState(false);
@@ -203,34 +201,6 @@ const Registration = () => {
         insuranceService.getDeduction().then(res => setInsuranceDeduction(res.data.totalDeduction || 0)).catch(() => {});
     }, []);
 
-    const onMouseMove = useCallback((e: MouseEvent) => {
-        if (!dragging.current) return;
-        setModalPos({ x: e.clientX - dragging.current.offsetX, y: e.clientY - dragging.current.offsetY });
-    }, []);
-
-    const onMouseUp = useCallback(() => {
-        dragging.current = null;
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-    }, [onMouseMove]);
-
-    useEffect(() => {
-        return () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        };
-    }, [onMouseMove, onMouseUp]);
-
-    const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-        const modal = (e.currentTarget as HTMLElement).closest('.admin-modal') as HTMLElement | null;
-        if (!modal) return;
-        const rect = modal.getBoundingClientRect();
-        setModalPos({ x: rect.left, y: rect.top });
-        dragging.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    }, [onMouseMove, onMouseUp]);
-
     const validatePassword = (pw: string): string => {
         if (pw.length < 8) return 'Minimum 8 characters';
         if (!/[A-Z]/.test(pw)) return 'At least one capital letter';
@@ -243,7 +213,6 @@ const Registration = () => {
         setForm(emptyForm);
         setEditingUser(null);
         setPasswordError('');
-        setModalPos(null);
         setShowModal('add');
     };
 
@@ -271,7 +240,6 @@ const Registration = () => {
             isActive: u.isActive,
         });
         setPasswordError('');
-        setModalPos(null);
         setShowModal('edit');
     };
 
@@ -567,9 +535,9 @@ const Registration = () => {
 
             {(showModal === 'add' || showModal === 'edit') && (
                 <div className="admin-modal-overlay" onClick={() => setShowModal(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 640, left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
-                        <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
-                            <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{showModal === 'add' ? 'Register New User' : 'Edit User Information'}</h3>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 640 }}>
+                        <div className="admin-modal-header">
+                            <h3>{showModal === 'add' ? 'Register New User' : 'Edit User Information'}</h3>
                             <button onClick={() => setShowModal(null)}><FaTimesIcon /></button>
                         </div>
                         <div className="admin-modal-body" style={{ maxHeight: '65vh', overflowY: 'auto' }}>
