@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaClipboardList, FaClock, FaCheckCircle, FaNewspaper } from 'react-icons/fa';
+import { FaClipboardList, FaClock, FaCheckCircle, FaNewspaper, FaSpinner } from 'react-icons/fa';
 import { updatesService, type Update } from '../../services/updatesService';
 
 const ClientUpdates = () => {
@@ -15,18 +15,18 @@ const ClientUpdates = () => {
 
     return (
         <div>
-            <div className="content-card" style={{ padding: '1.5rem 2rem', marginBottom: '1.5rem' }}>
+            <div className="content-card" style={{ padding: '0.75rem 1rem', marginBottom: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <FaClipboardList size={24} color="var(--primary)" />
                     <div>
-                        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-main)' }}>Latest Updates</div>
+                        <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-main)' }}>Latest Updates</div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{items.length} published update{items.length !== 1 ? 's' : ''}</div>
                     </div>
                 </div>
             </div>
 
             {loading ? (
-                <div className="content-card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>
             ) : items.length === 0 ? (
                 <div className="content-card" style={{ padding: '3rem', textAlign: 'center' }}>
                     <FaClipboardList size={48} style={{ opacity: 0.2, color: 'var(--primary)', marginBottom: '1rem' }} />
