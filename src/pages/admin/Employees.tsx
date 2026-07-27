@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import {
     FaUsers, FaDollarSign, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight, FaEye,
     FaTimes as FaTimesIcon, FaSpinner, FaExclamationTriangle, FaUserTie, FaIdCard, FaHeartbeat,
-    FaGraduationCap, FaFileAlt, FaBriefcase, FaClock, FaCheckCircle, FaTimesCircle, FaBan,
+    FaGraduationCap, FaFileAlt, FaBriefcase, FaClock, FaCheckCircle, FaTimesCircle, FaBan, FaHammer,
 } from 'react-icons/fa';
 import { hrService, type EmployedUser } from '../../services/hrService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
@@ -41,6 +41,7 @@ const Employees = () => {
     const { showToast } = useToast();
     const { user } = useAuth();
     const role = user?.role || '';
+    const isSiteEngineer = role === 'site_engineer';
 
     const [data, setData] = useState<EmployedUser[]>([]);
     const [loading, setLoading] = useState(true);
@@ -187,14 +188,7 @@ const Employees = () => {
         employed: '#22c55e', active: '#22c55e', inactive: '#f59e0b', terminated: '#ef4444',
     };
 
-    if (loading) {
-        return (
-            <div className="admin-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh', maxWidth: 1100, width: '100%' }}>
-                <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                <span style={{ marginLeft: '0.75rem', fontSize: '0.9rem' }}>Loading...</span>
-            </div>
-        );
-    }
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
 
     return (
         <div className="admin-page" style={{ maxWidth: 1100, width: '100%' }}>

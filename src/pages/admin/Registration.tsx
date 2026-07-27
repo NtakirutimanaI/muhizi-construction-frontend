@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, Fragment } from 'react';
 import { FaUserPlus, FaUser, FaEnvelope, FaPhone, FaHome, FaIdCard, FaGraduationCap, FaVenusMars, FaRing, FaUsers, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaSearch, FaCheckCircle, FaTimesCircle, FaUserTie, FaFilePdf, FaUpload, FaExternalLinkAlt, FaUniversity, FaBriefcase, FaInfoCircle, FaChevronDown, FaChevronUp, FaMoneyBillWave, FaSpinner, FaArrowsAlt } from 'react-icons/fa';
 import { insuranceService } from '../../services/insuranceService';
 import { authService } from '../../services/authService';
@@ -150,6 +150,26 @@ const Registration = () => {
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
     const [viewUser, setViewUser] = useState<UserData | null>(null);
     const [insuranceDeduction, setInsuranceDeduction] = useState(0);
+    const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
+
+    const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const modal = (e.target as HTMLElement).closest('.admin-modal') as HTMLElement | null;
+        if (!modal) return;
+        const rect = modal.getBoundingClientRect();
+        const offsetX = startX - rect.left;
+        const offsetY = startY - rect.top;
+        const onMove = (ev: MouseEvent) => {
+            setModalPos({ x: ev.clientX - offsetX, y: ev.clientY - offsetY });
+        };
+        const onUp = () => {
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onUp);
+        };
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+    }, []);
 
     const toggleRow = (id: string) => {
         setExpandedRow(prev => prev === id ? null : id);
@@ -215,6 +235,7 @@ const Registration = () => {
         setForm(emptyForm);
         setEditingUser(null);
         setPasswordError('');
+        setModalPos(null);
         setShowModal('add');
     };
 
@@ -243,6 +264,7 @@ const Registration = () => {
             isActive: u.isActive,
         });
         setPasswordError('');
+        setModalPos(null);
         setShowModal('edit');
     };
 

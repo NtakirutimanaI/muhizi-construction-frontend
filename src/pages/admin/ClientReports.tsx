@@ -332,7 +332,7 @@ const ClientReports = () => {
 
             {showModal && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowModal(null)}>
-                    <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-white)', borderRadius: 12, padding: '1.5rem', width: '90%', maxWidth: 520, border: '1px solid var(--border-color)', maxHeight: '90vh', overflow: 'auto' }}>
+                    <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-white)', borderRadius: 0, padding: '1.5rem', width: '90%', maxWidth: 520, border: '1px solid var(--border-color)', maxHeight: '90vh', overflow: 'auto' }}>
                         <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem', color: 'var(--text-main)' }}>
                             <FaFileAlt style={{ marginRight: 8, color: '#6c3096' }} />{showModal === 'edit' ? 'Edit Report' : 'New Client Report'}
                         </h3>
