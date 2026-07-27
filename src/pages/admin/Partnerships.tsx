@@ -520,8 +520,8 @@ const Partnerships = () => {
 
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => !saving && setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y, maxWidth: 720 } : { maxWidth: 720 }}>
-                        <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 720 }}>
+                        <div className="admin-modal-header">
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit Partnership' : 'Register New Partner / Investor'}</h3>
                             <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>
                         </div>
