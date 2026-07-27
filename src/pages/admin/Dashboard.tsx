@@ -204,13 +204,15 @@ const AdminDashboard = () => {
             { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} sites` },
             { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} sites with media` },
             { to: '/admin/requests', icon: <FaClipboardList />, bg: '#1B2042', label: 'Requests & Approvals', sub: `${kpi?.pendingApprovals ?? 0} pending` },
-            { to: '/admin/messages', icon: <FaEnvelope />, bg: '#22c55e', label: 'Messages', sub: `${messageStats.unread} unread` },
+            { to: '/admin/attendance-reports', icon: <FaCalendarCheck />, bg: '#22c55e', label: 'Attendance', sub: `${(kpi as any)?.todayPresent ?? 0} present today` },
+            { to: '/admin/messages', icon: <FaEnvelope />, bg: '#7BC043', label: 'Messages', sub: `${messageStats.unread} unread` },
         ];
     } else if (role === 'finance_director') {
         quickActions = [
             { to: '/admin/payroll', icon: <FaMoneyBillWave />, bg: '#1B2042', label: 'Payroll', sub: `${kpi?.pendingPayments ?? 0} pending payments` },
             { to: '/admin/incomes', icon: <FaArrowUp />, bg: '#22c55e', label: 'Incomes', sub: `${moneyShort(kpi?.mtdIncomes ?? 0)} this month` },
             { to: '/admin/expenses', icon: <FaArrowDown />, bg: '#8b5cf6', label: 'Expenses', sub: `${moneyShort(kpi?.mtdExpenses ?? 0)} this month` },
+            { to: '/admin/attendance-reports', icon: <FaCalendarCheck />, bg: '#22c55e', label: 'Attendance', sub: `${(kpi as any)?.todayPresent ?? 0} present today` },
             { to: '/admin/reports', icon: <FaChartPie />, bg: '#f59e0b', label: 'Reports', sub: `${moneyShort(kpi?.cashFlow ?? 0)} cash flow` },
         ];
     } else if (role === 'managing_director') {
@@ -265,6 +267,7 @@ const AdminDashboard = () => {
             { label: 'Total Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042' },
             { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b' },
             { label: 'Employees', value: employees.length, sub: `${employees.filter(e => e.status === 'active').length} active`, icon: <FaUserTie />, color: '#8b5cf6' },
+            { label: 'Present Today', value: (kpi as any)?.todayPresent ?? 0, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e' },
             { label: 'Messages', value: messageStats.total, sub: `${messageStats.unread} unread`, icon: <FaEnvelope />, color: '#7BC043' },
             { label: 'Pending Approvals', value: kpi?.pendingApprovals ?? 0, sub: 'awaiting decision', icon: <FaClipboardList />, color: '#f59e0b' },
             { label: 'Stock Alerts', value: kpi?.stockAlerts ?? 0, sub: 'items out of stock', icon: <FaExclamationTriangle />, color: '#ef4444' },
@@ -289,6 +292,7 @@ const AdminDashboard = () => {
                     { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e' },
                     { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6' },
                     { label: 'Cash Flow (MTD)', value: money(kpi?.cashFlow ?? 0), sub: 'income minus expenses', icon: <FaChartLine />, color: '#1B2042' },
+                    { label: 'Present Today', value: (kpi as any)?.todayPresent ?? 0, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e' },
                     { label: 'Pending Payments', value: kpi?.pendingPayments ?? 0, sub: 'awaiting approval', icon: <FaFileInvoiceDollar />, color: '#f59e0b' },
                 ];
                 break;
@@ -664,6 +668,58 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                     ) : null}
+
+                    {(isAdmin || role === 'finance_director') && (kpi as any)?.recentAttendance?.length > 0 && (
+                        <div className="db-chart-card" style={{ marginBottom: '1.25rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                                <h3 className="db-chart-title" style={{ margin: 0 }}>
+                                    <FaCalendarCheck style={{ color: '#22c55e' }} /> Today's Attendance
+                                </h3>
+                                <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                                    <span style={{ color: '#22c55e' }}>Present: {(kpi as any)?.todayPresent ?? 0}</span>
+                                    <span style={{ color: '#ef4444' }}>Absent: {(kpi as any)?.todayAbsent ?? 0}</span>
+                                    <span style={{ color: '#f59e0b' }}>Late: {(kpi as any)?.todayLate ?? 0}</span>
+                                </div>
+                            </div>
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+                                    <thead>
+                                        <tr style={{ borderBottom: '2px solid var(--border-color, #e5e7eb)' }}>
+                                            <th style={{ textAlign: 'left', padding: '0.4rem 0.5rem', color: 'var(--text-muted, #6b7280)', fontWeight: 600 }}>Employee</th>
+                                            <th style={{ textAlign: 'left', padding: '0.4rem 0.5rem', color: 'var(--text-muted, #6b7280)', fontWeight: 600 }}>Project</th>
+                                            <th style={{ textAlign: 'left', padding: '0.4rem 0.5rem', color: 'var(--text-muted, #6b7280)', fontWeight: 600 }}>Status</th>
+                                            <th style={{ textAlign: 'left', padding: '0.4rem 0.5rem', color: 'var(--text-muted, #6b7280)', fontWeight: 600 }}>Check In</th>
+                                            <th style={{ textAlign: 'left', padding: '0.4rem 0.5rem', color: 'var(--text-muted, #6b7280)', fontWeight: 600 }}>Check Out</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(kpi as any).recentAttendance.map((rec: any) => (
+                                            <tr key={rec.id} style={{ borderBottom: '1px solid var(--border-color, #e5e7eb)' }}>
+                                                <td style={{ padding: '0.4rem 0.5rem', fontWeight: 500 }}>{rec.employeeName}</td>
+                                                <td style={{ padding: '0.4rem 0.5rem', color: 'var(--text-muted, #6b7280)' }}>{rec.projectName}</td>
+                                                <td style={{ padding: '0.4rem 0.5rem' }}>
+                                                    <span style={{
+                                                        padding: '0.15rem 0.5rem', borderRadius: 12, fontSize: '0.7rem', fontWeight: 600, textTransform: 'capitalize',
+                                                        background: rec.status === 'present' ? '#dcfce7' : rec.status === 'absent' ? '#fef2f2' : rec.status === 'late' ? '#fef9c3' : rec.status === 'on_leave' ? '#e0e7ff' : '#f3f4f6',
+                                                        color: rec.status === 'present' ? '#166534' : rec.status === 'absent' ? '#991b1b' : rec.status === 'late' ? '#854d0e' : rec.status === 'on_leave' ? '#3730a3' : '#374151',
+                                                    }}>
+                                                        {rec.status.replace('_', ' ')}
+                                                    </span>
+                                                </td>
+                                                <td style={{ padding: '0.4rem 0.5rem', color: 'var(--text-muted, #6b7280)' }}>{rec.checkIn || '—'}</td>
+                                                <td style={{ padding: '0.4rem 0.5rem', color: 'var(--text-muted, #6b7280)' }}>{rec.checkOut || '—'}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+                                <Link to={`/${role === 'finance_director' ? 'directorfinance' : 'admin'}/attendance-reports`} style={{ fontSize: '0.78rem', color: 'var(--primary, #1B2042)', fontWeight: 600, textDecoration: 'none' }}>
+                                    View Full Attendance Reports →
+                                </Link>
+                            </div>
+                        </div>
+                    )}
 
                     {role === 'site_engineer' && (
                         <div className="db-charts-row db-charts-row-3">
