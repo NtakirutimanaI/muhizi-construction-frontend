@@ -421,8 +421,8 @@ const MaterialRequests = () => {
 
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => { setShowModal(false); setEditing(null); }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y, width: 500 } : { width: 500 }}>
-                        <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 500 }}>
+                        <div className="admin-modal-header">
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'New'} Material Request</h3>
                             <button onClick={() => { setShowModal(false); setEditing(null); }}><FaTimesIcon /></button>
                         </div>

@@ -545,8 +545,8 @@ const Registration = () => {
 
             {(showModal === 'add' || showModal === 'edit') && (
                 <div className="admin-modal-overlay" onClick={() => setShowModal(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y, maxWidth: 640 } : { maxWidth: 640 }}>
-                        <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 640 }}>
+                        <div className="admin-modal-header">
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{showModal === 'add' ? 'Register New User' : 'Edit User Information'}</h3>
                             <button onClick={() => setShowModal(null)}><FaTimesIcon /></button>
                         </div>
