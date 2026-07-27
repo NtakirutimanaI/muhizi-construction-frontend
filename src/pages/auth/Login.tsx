@@ -63,8 +63,8 @@ const Login = () => {
                     <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
                         <img src="/logo.jpeg" alt="MUHIZI CONSTRUCTION" style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover', margin: '0 auto 0.5rem', display: 'block', border: '2px solid rgba(255,255,255,0.1)' }} />
                     </div>
-                    <h1 className="auth-heading">Welcome Back</h1>
-                    <p className="auth-subtext">Sign in to manage your portfolio</p>
+                    <h1 className="auth-heading" style={{ textAlign: 'center' }}>Welcome Back</h1>
+<p className="auth-subtext" style={{ textAlign: 'center' }}>Sign in to manage your account</p>
 
                     {error && (
                         <motion.div

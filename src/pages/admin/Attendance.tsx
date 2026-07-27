@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { FaEdit, FaTrash, FaTimes as FaTimesIcon, FaClock, FaChevronLeft, FaChevronRight, FaProjectDiagram, FaSave, FaUsers, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaBan, FaUserShield, FaSpinner, FaClipboardList, FaCalendarAlt } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
@@ -59,6 +59,7 @@ const AttendancePage = () => {
     const basePath = location.pathname.split('/').slice(0, 2).join('/') || '/admin';
     const isSiteEngineer = role === 'site_engineer';
     const [searchParams, setSearchParams] = useSearchParams();
+const navigate = useNavigate();
     const urlSite = searchParams.get('site') || '';
 
     const [data, setData] = useState<Attendance[]>([]);
@@ -482,7 +483,8 @@ const AttendancePage = () => {
                 )
             );
             showToast('Attendance saved successfully', 'success');
-            fetch();
+            await fetch();
+            navigate(`${basePath}/attendance-reports`);
         } catch { showToast('Failed to save attendance', 'error'); }
     };
 
