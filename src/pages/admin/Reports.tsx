@@ -10,10 +10,10 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 
 const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean }) => (
     <div style={{
-        display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+        display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0,
         background: emphasis ? `${accent}12` : 'var(--bg-white)',
         border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
-        borderRadius: 10, padding: '0.8rem 1rem',
+        borderRadius: 8, padding: '0.4rem 0.6rem',
     }}>
         <div style={{
             width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
@@ -303,16 +303,16 @@ const Reports = () => {
 
             {!loading && view === 'monthly' && monthly && (
                 <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.4rem', marginBottom: '0.75rem' }}>
                         <StatTile icon={<FaArrowUp />} label="Income" value={`RWF ${monthly.totalIncome.toLocaleString()}`} accent="#22c55e" emphasis />
                         <StatTile icon={<FaArrowDown />} label="Expense" value={`RWF ${monthly.totalExpense.toLocaleString()}`} accent="#ef4444" />
                         <StatTile icon={<FaBalanceScale />} label="Net Profit" value={`RWF ${monthly.netProfit.toLocaleString()}`} accent="#1B2042" />
                         <StatTile icon={<FaListUl />} label="Transactions" value={String(monthly.incomeCount + monthly.expenseCount)} accent="#f59e0b" />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                        <div className="content-card" style={{ padding: '1.25rem' }}>
-                            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                        <div className="content-card" style={{ padding: '0.75rem' }}>
+                            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <FaArrowUp /> Income by Category
                             </h3>
                             {Object.keys(monthly.incomeByCategory).length > 0 ? (
@@ -326,8 +326,8 @@ const Reports = () => {
                                 </div>
                             ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No data</p>}
                         </div>
-                        <div className="content-card" style={{ padding: '1.25rem' }}>
-                            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="content-card" style={{ padding: '0.75rem' }}>
+                            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <FaArrowDown /> Expense by Category
                             </h3>
                             {Object.keys(monthly.expenseByCategory).length > 0 ? (
@@ -347,14 +347,14 @@ const Reports = () => {
 
             {!loading && view === 'yearly' && yearly && (
                 <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.4rem', marginBottom: '0.75rem' }}>
                         <StatTile icon={<FaArrowUp />} label="Income" value={`RWF ${yearly.totalIncome.toLocaleString()}`} accent="#22c55e" emphasis />
                         <StatTile icon={<FaArrowDown />} label="Expense" value={`RWF ${yearly.totalExpense.toLocaleString()}`} accent="#ef4444" />
                         <StatTile icon={<FaBalanceScale />} label="Net Profit" value={`RWF ${yearly.netProfit.toLocaleString()}`} accent="#1B2042" />
                     </div>
 
-                    <div className="content-card" style={{ padding: '1.25rem' }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className="content-card" style={{ padding: '0.75rem' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <FaBalanceScale /> Monthly Breakdown
                         </h3>
                         {yearly.monthlyData.length > 0 ? (
@@ -383,8 +383,8 @@ const Reports = () => {
 
             {!loading && active && (
                 <>
-                    <div className="content-card" style={{ padding: '1.25rem', marginTop: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className="content-card" style={{ padding: '0.75rem', marginTop: '0.75rem' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <FaListUl /> Transaction Detail ({transactions.length})
                         </h3>
                         {transactions.length === 0 ? (

@@ -282,14 +282,11 @@ const EngineeringSubmissions = () => {
         }
     };
 
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
+
     return (
         <div className="admin-page">
-            {loading && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                    <FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...
-                </div>
-            )}
-            <div className="es-flex-between" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div className="es-flex-between" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
                         <FaDraftingCompass style={{ color: 'var(--primary)' }} /> Engineering Submissions
@@ -320,7 +317,7 @@ const EngineeringSubmissions = () => {
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 {(['all', 'submitted', 'approved', 'rejected'] as const).map(s => (
                     <button key={s} onClick={() => setStatusFilter(s)}
                         style={{
@@ -364,9 +361,9 @@ const EngineeringSubmissions = () => {
                 )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.85rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.5rem' }}>
                 {filtered.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)', gridColumn: '1 / -1' }}>
+                    <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', gridColumn: '1 / -1' }}>
                         <FaDraftingCompass size={36} style={{ opacity: 0.2, marginBottom: 10 }} />
                         <div style={{ fontWeight: 600 }}>No submissions{statusFilter !== 'all' ? ` with status "${statusFilter}"` : ''}</div>
                     </div>
@@ -374,7 +371,7 @@ const EngineeringSubmissions = () => {
                 {filtered.map(s => (
                     <div key={s.id} className="content-card" style={{ padding: 0, display: 'flex', flexDirection: 'column', borderRadius: 0, overflow: 'hidden' }}>
                         {/* Document preview area */}
-                        <div style={{ padding: '0.8rem', background: 'var(--bg-body)', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minHeight: 52 }}>
+                        <div style={{ padding: '0.5rem', background: 'var(--bg-body)', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', minHeight: 40 }}>
                             {s.documentUrls && s.documentUrls.length > 0 ? (
                                 s.documentUrls.slice(0, 3).map((d, i) => (
                                     <a key={i} href={d.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
@@ -390,9 +387,9 @@ const EngineeringSubmissions = () => {
                             )}
                         </div>
                         {/* Details */}
-                        <div style={{ padding: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-                                <h4 style={{ fontWeight: 700, fontSize: '0.88rem', margin: 0, lineHeight: 1.3, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</h4>
+                        <div style={{ padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4 }}>
+                                <h4 style={{ fontWeight: 700, fontSize: '0.85rem', margin: 0, lineHeight: 1.2, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</h4>
                                 <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexShrink: 0 }}>
                                     {s.submittedToAdmin && (
                                         <span title="Submitted to Admin" style={{ fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: 10, background: '#6366f118', color: '#6366f1', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
