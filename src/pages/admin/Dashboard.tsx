@@ -3,12 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
     FaEnvelope,
     FaArrowRight,
-    FaHardHat, FaTruck, FaCamera, FaClipboardList,
+    FaHardHat, FaCamera, FaClipboardList,
     FaChartLine, FaProjectDiagram, FaMapMarkerAlt,
-    FaUserTie, FaMoneyBillWave, FaTasks, FaCalendarCheck,
+    FaUserTie, FaMoneyBillWave, FaCalendarCheck,
     FaExclamationTriangle, FaWallet, FaFileInvoiceDollar, FaDraftingCompass,
-    FaArrowUp, FaArrowDown, FaGavel, FaCheckCircle, FaTimesCircle,
-    FaClock, FaFileAlt,
+    FaArrowUp, FaArrowDown, FaChartPie, FaGavel, FaCheckCircle, FaTimesCircle,
+    FaClock, FaFileAlt, FaTasks, FaSpinner,
 } from 'react-icons/fa';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -36,7 +36,6 @@ interface Card {
     sub: string;
     icon: React.ReactNode;
     color: string;
-    gradient: string;
 }
 
 const money = (n: number) => `RWF ${Math.round(n).toLocaleString()}`;
@@ -72,6 +71,7 @@ const AdminDashboard = () => {
     type AnyKpi = Partial<AdminKpi & ManagingDirectorKpi & FinanceDirectorKpi & SiteEngineerKpi & EngineeringStudioKpi & ClientKpi>;
     const [kpi, setKpi] = useState<AnyKpi | null>(null);
     const [yearlyReport, setYearlyReport] = useState<YearlyReport | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const cached = loadPageCache(role);
@@ -113,6 +113,7 @@ const AdminDashboard = () => {
                         savePageCache(role, { recentSubmissions: subs.slice(0, 5) });
                     } catch (e) { console.error(e); }
                 }
+                setLoading(false);
                 return;
             }
 
@@ -163,117 +164,173 @@ const AdminDashboard = () => {
             dataPromises.push(
                 hrService.getEmployees().then(d => { setEmployees(d.data || []); cacheData.employees = d.data || []; }).catch(e => console.error(e)),
             );
-            if (role !== 'employee') {
+            dataPromises.push(
+                hrService.getAttendanceStats().then(d => { setAttendanceToday(d.data?.present ?? 0); cacheData.attendanceToday = d.data?.present ?? 0; }).catch(e => console.error(e)),
+            );
+            // Only Storekeeper has Messages in their sidebar in this branch.
+            if (isStorekeeper) {
                 dataPromises.push(
-                    hrService.getAttendanceStats().then(d => { setAttendanceToday(d.data?.present ?? 0); cacheData.attendanceToday = d.data?.present ?? 0; }).catch(e => console.error(e)),
+                    profileService.getContactMessages().then(d => {
+                        const stats = { total: d.length, unread: d.filter(m => !m.status || m.status === 'new' || m.status === 'unread').length };
+                        setMessageStats(stats);
+                        cacheData.messageStats = stats;
+                    }).catch(e => console.error(e)),
                 );
             }
 
             await Promise.all(dataPromises);
             cacheData.profile = cached?.profile || null;
             savePageCache(role, cacheData);
+            setLoading(false);
         };
-        fetchFresh();
+        fetchFresh().finally(() => setLoading(false));
     }, [role, isStorekeeper, isAdmin, isExecutive]);
 
-    const quickActions = isStorekeeper ? [
-        { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} my sites` },
-        { to: '/admin/material-requests', icon: <FaTruck />, bg: '#1B2042', label: 'Material Requests', sub: `${projects.length} my projects` },
-        { to: '/admin/employee-assignments', icon: <FaTasks />, bg: '#8b5cf6', label: 'My Team', sub: `${myAssignments.length} assignments` },
-        { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: `${attendanceToday} checked in today` },
-    ] : role === 'finance_director' ? [
-        { to: '/admin/payroll', icon: <FaMoneyBillWave />, bg: '#1B2042', label: 'Payroll', sub: `${kpi?.pendingPayments ?? 0} pending payments` },
-        { to: '/admin/incomes', icon: <FaArrowUp />, bg: '#22c55e', label: 'Incomes', sub: `${moneyShort(kpi?.mtdIncomes ?? 0)} this month` },
-        { to: '/admin/expenses', icon: <FaArrowDown />, bg: '#8b5cf6', label: 'Expenses', sub: `${moneyShort(kpi?.mtdExpenses ?? 0)} this month` },
-        { to: '/admin/reports', icon: <FaChartLine />, bg: '#f59e0b', label: 'Reports', sub: `${moneyShort(kpi?.cashFlow ?? 0)} cash flow` },
-    ] : role === 'engineering_studio' ? [
-        { to: '/admin/engineering-submissions', icon: <FaDraftingCompass />, bg: '#8b5cf6', label: 'Submissions', sub: `${kpi?.mySubmissions ?? 0} total submissions` },
-        { to: '/admin/designs', icon: <FaClipboardList />, bg: '#1B2042', label: 'Designs', sub: `${kpi?.totalDesigns ?? 0} total designs` },
-        { to: '/admin/daily-tasks', icon: <FaTasks />, bg: '#22c55e', label: 'Daily Tasks', sub: `${kpi?.pendingTasks ?? 0} pending tasks` },
-        { to: '/admin/site-rules', icon: <FaGavel />, bg: '#f59e0b', label: 'Site Rules', sub: 'View rules & policies' },
-    ] : [
-        { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} sites` },
-        { to: '/admin/material-requests', icon: <FaTruck />, bg: '#1B2042', label: 'Material Requests', sub: `${projects.length} projects` },
-        { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sites.filter(s => (s.evidence?.length ?? 0) > 0).length} sites with media` },
-        { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: `${attendanceToday} checked in today` },
-    ];
+    // Every set below is built strictly from links that actually exist in that role's own
+    // sidebar (see config/roles.ts SIDEBAR_SECTIONS) — a role should never get a shortcut to
+    // a page it doesn't otherwise have access to.
+    const sitesWithMedia = sites.filter(s => (s.evidence?.length ?? 0) > 0).length;
+    let quickActions: { to: string; icon: React.ReactNode; bg: string; label: string; sub: string }[];
+
+    if (isStorekeeper) {
+        quickActions = [
+            { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} my sites` },
+            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} my sites with media` },
+            { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: `${attendanceToday} checked in today` },
+            { to: '/admin/messages', icon: <FaEnvelope />, bg: '#1B2042', label: 'Messages', sub: `${messageStats.unread} unread` },
+        ];
+    } else if (isAdmin) {
+        quickActions = [
+            { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} sites` },
+            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} sites with media` },
+            { to: '/admin/requests', icon: <FaClipboardList />, bg: '#1B2042', label: 'Requests & Approvals', sub: `${kpi?.pendingApprovals ?? 0} pending` },
+            { to: '/admin/messages', icon: <FaEnvelope />, bg: '#22c55e', label: 'Messages', sub: `${messageStats.unread} unread` },
+        ];
+    } else if (role === 'finance_director') {
+        quickActions = [
+            { to: '/admin/payroll', icon: <FaMoneyBillWave />, bg: '#1B2042', label: 'Payroll', sub: `${kpi?.pendingPayments ?? 0} pending payments` },
+            { to: '/admin/incomes', icon: <FaArrowUp />, bg: '#22c55e', label: 'Incomes', sub: `${moneyShort(kpi?.mtdIncomes ?? 0)} this month` },
+            { to: '/admin/expenses', icon: <FaArrowDown />, bg: '#8b5cf6', label: 'Expenses', sub: `${moneyShort(kpi?.mtdExpenses ?? 0)} this month` },
+            { to: '/admin/reports', icon: <FaChartPie />, bg: '#f59e0b', label: 'Reports', sub: `${moneyShort(kpi?.cashFlow ?? 0)} cash flow` },
+        ];
+    } else if (role === 'managing_director') {
+        quickActions = [
+            { to: '/admin/requests', icon: <FaClipboardList />, bg: '#1B2042', label: 'Requests & Approvals', sub: `${kpi?.pendingRequests ?? 0} pending` },
+            { to: '/admin/incomes', icon: <FaArrowUp />, bg: '#22c55e', label: 'Incomes', sub: `${moneyShort(kpi?.mtdIncomes ?? 0)} this month` },
+            { to: '/admin/expenses', icon: <FaArrowDown />, bg: '#8b5cf6', label: 'Expenses', sub: `${moneyShort(kpi?.mtdExpenses ?? 0)} this month` },
+            { to: '/admin/reports', icon: <FaChartPie />, bg: '#f59e0b', label: 'Reports', sub: `${moneyShort(kpi?.cashFlow ?? 0)} cash flow` },
+        ];
+    } else if (role === 'site_engineer') {
+        quickActions = [
+            { to: '/admin/sites', icon: <FaHardHat />, bg: '#f59e0b', label: 'My Sites', sub: `${kpi?.assignedSites ?? 0} assigned sites` },
+            { to: '/admin/site-activities', icon: <FaClipboardList />, bg: '#8b5cf6', label: 'Site Activities', sub: 'Log daily site work' },
+            { to: '/admin/attendance', icon: <FaCalendarCheck />, bg: '#22c55e', label: 'Attendance', sub: `${kpi?.todayPresent ?? 0} present today` },
+            { to: '/admin/requests', icon: <FaTasks />, bg: '#1B2042', label: 'Requests & Tasks', sub: `${kpi?.pendingRequests ?? 0} pending` },
+            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#ec4899', label: 'Evidence', sub: `${kpi?.totalEvidence ?? 0} uploaded` },
+            { to: '/admin/recruitment', icon: <FaUserTie />, bg: '#06b6d4', label: 'Recruitment', sub: 'Recruit workers' },
+        ];
+    } else if (role === 'engineering_studio') {
+        quickActions = [
+            { to: '/admin/engineering-submissions', icon: <FaDraftingCompass />, bg: '#8b5cf6', label: 'Submissions', sub: `${kpi?.mySubmissions ?? 0} total submissions` },
+            { to: '/admin/designs', icon: <FaClipboardList />, bg: '#1B2042', label: 'Designs', sub: `${kpi?.totalDesigns ?? 0} total designs` },
+            { to: '/admin/daily-tasks', icon: <FaTasks />, bg: '#22c55e', label: 'Daily Tasks', sub: `${kpi?.pendingTasks ?? 0} pending tasks` },
+            { to: '/admin/site-rules', icon: <FaGavel />, bg: '#f59e0b', label: 'Site Rules', sub: 'View rules & policies' },
+        ];
+    } else if (role === 'partner') {
+        quickActions = [
+            { to: '/admin/sites', icon: <FaProjectDiagram />, bg: '#1B2042', label: 'Sites', sub: `${sites.length} sites` },
+            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} sites with media` },
+            { to: '/admin/project-progress', icon: <FaMapMarkerAlt />, bg: '#f59e0b', label: 'Project Progress', sub: 'View progress updates' },
+            { to: '/admin/updates', icon: <FaClipboardList />, bg: '#22c55e', label: 'Updates', sub: 'Latest updates' },
+        ];
+    } else {
+        quickActions = [
+            { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} sites` },
+            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} sites with media` },
+            { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: `${attendanceToday} checked in today` },
+        ];
+    }
 
     let summaryCards: Card[];
 
     if (isStorekeeper) {
         summaryCards = [
-            { label: 'My Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-            { label: 'My Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-            { label: 'Leading Members', value: myAssignments.length, sub: 'assigned workers', icon: <FaUserTie />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-            { label: 'Attendance', value: attendanceToday, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
+            { label: 'My Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042' },
+            { label: 'My Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b' },
+            { label: 'Leading Members', value: myAssignments.length, sub: 'assigned workers', icon: <FaUserTie />, color: '#8b5cf6' },
+            { label: 'Attendance', value: attendanceToday, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e' },
         ];
     } else if (isAdmin) {
         summaryCards = [
-            { label: 'Total Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-            { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-            { label: 'Employees', value: employees.length, sub: `${employees.filter(e => e.status === 'active').length} active`, icon: <FaUserTie />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-            { label: 'Messages', value: messageStats.total, sub: `${messageStats.unread} unread`, icon: <FaEnvelope />, color: '#7BC043', gradient: 'linear-gradient(135deg, #7BC043, #4a8f2f)' },
-            { label: 'Pending Approvals', value: kpi?.pendingApprovals ?? 0, sub: 'awaiting decision', icon: <FaClipboardList />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #b45309)' },
-            { label: 'Stock Alerts', value: kpi?.stockAlerts ?? 0, sub: 'items out of stock', icon: <FaExclamationTriangle />, color: '#ef4444', gradient: 'linear-gradient(135deg, #ef4444, #b91c1c)' },
-            { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
-            { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
+            { label: 'Total Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042' },
+            { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b' },
+            { label: 'Employees', value: employees.length, sub: `${employees.filter(e => e.status === 'active').length} active`, icon: <FaUserTie />, color: '#8b5cf6' },
+            { label: 'Messages', value: messageStats.total, sub: `${messageStats.unread} unread`, icon: <FaEnvelope />, color: '#7BC043' },
+            { label: 'Pending Approvals', value: kpi?.pendingApprovals ?? 0, sub: 'awaiting decision', icon: <FaClipboardList />, color: '#f59e0b' },
+            { label: 'Stock Alerts', value: kpi?.stockAlerts ?? 0, sub: 'items out of stock', icon: <FaExclamationTriangle />, color: '#ef4444' },
+            { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e' },
+            { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6' },
         ];
     } else if (isExecutive) {
         switch (role) {
             case 'managing_director':
                 summaryCards = [
-                    { label: 'Active Sites', value: kpi?.activeSites ?? 0, sub: 'currently active', icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-                    { label: 'Pending Requests', value: kpi?.pendingRequests ?? 0, sub: 'material requests', icon: <FaClipboardList />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-                    { label: 'Stock Alerts', value: kpi?.stockAlerts ?? 0, sub: 'items out of stock', icon: <FaExclamationTriangle />, color: '#ef4444', gradient: 'linear-gradient(135deg, #ef4444, #b91c1c)' },
-                    { label: 'Recent Evidence', value: kpi?.recentEvidence ?? 0, sub: 'project evidence items', icon: <FaCamera />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-                    { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
-                    { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-                    { label: 'Cash Flow (MTD)', value: money(kpi?.cashFlow ?? 0), sub: 'income minus expenses', icon: <FaChartLine />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
+                    { label: 'Active Sites', value: kpi?.activeSites ?? 0, sub: 'currently active', icon: <FaHardHat />, color: '#f59e0b' },
+                    { label: 'Pending Requests', value: kpi?.pendingRequests ?? 0, sub: 'material requests', icon: <FaClipboardList />, color: '#1B2042' },
+                    { label: 'Stock Alerts', value: kpi?.stockAlerts ?? 0, sub: 'items out of stock', icon: <FaExclamationTriangle />, color: '#ef4444' },
+                    { label: 'Recent Evidence', value: kpi?.recentEvidence ?? 0, sub: 'project evidence items', icon: <FaCamera />, color: '#8b5cf6' },
+                    { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e' },
+                    { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6' },
+                    { label: 'Cash Flow (MTD)', value: money(kpi?.cashFlow ?? 0), sub: 'income minus expenses', icon: <FaChartLine />, color: '#1B2042' },
                 ];
                 break;
             case 'finance_director':
                 summaryCards = [
-                    { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
-                    { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-                    { label: 'Cash Flow (MTD)', value: money(kpi?.cashFlow ?? 0), sub: 'income minus expenses', icon: <FaChartLine />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-                    { label: 'Pending Payments', value: kpi?.pendingPayments ?? 0, sub: 'awaiting approval', icon: <FaFileInvoiceDollar />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+                    { label: 'Income (MTD)', value: money(kpi?.mtdIncomes ?? 0), sub: 'this month', icon: <FaMoneyBillWave />, color: '#22c55e' },
+                    { label: 'Expenses (MTD)', value: money(kpi?.mtdExpenses ?? 0), sub: 'this month', icon: <FaWallet />, color: '#8b5cf6' },
+                    { label: 'Cash Flow (MTD)', value: money(kpi?.cashFlow ?? 0), sub: 'income minus expenses', icon: <FaChartLine />, color: '#1B2042' },
+                    { label: 'Pending Payments', value: kpi?.pendingPayments ?? 0, sub: 'awaiting approval', icon: <FaFileInvoiceDollar />, color: '#f59e0b' },
                 ];
                 break;
             case 'site_engineer':
                 summaryCards = [
-                    { label: 'Assigned Sites', value: kpi?.assignedSites ?? 0, sub: 'total sites', icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-                    { label: 'Pending Requests', value: kpi?.pendingRequests ?? 0, sub: 'your material requests', icon: <FaClipboardList />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
+                    { label: 'Assigned Sites', value: kpi?.assignedSites ?? 0, sub: `${kpi?.activeSites ?? 0} active`, icon: <FaHardHat />, color: '#f59e0b' },
+                    { label: 'My Team', value: kpi?.totalTeamMembers ?? 0, sub: 'team members', icon: <FaUserTie />, color: '#8b5cf6' },
+                    { label: 'Present Today', value: kpi?.todayPresent ?? 0, sub: `${kpi?.todayAbsent ?? 0} absent`, icon: <FaCalendarCheck />, color: '#22c55e' },
+                    { label: 'Pending Requests', value: kpi?.pendingRequests ?? 0, sub: 'material requests', icon: <FaClipboardList />, color: '#1B2042' },
+                    { label: 'Tasks', value: kpi?.totalTasks ?? 0, sub: `${kpi?.pendingTasks ?? 0} pending`, icon: <FaTasks />, color: '#06b6d4' },
+                    { label: 'Evidence', value: kpi?.totalEvidence ?? 0, sub: 'project evidence', icon: <FaCamera />, color: '#ec4899' },
                 ];
                 break;
             case 'engineering_studio':
                 summaryCards = [
-                    { label: 'Total Designs', value: kpi?.totalDesigns ?? 0, sub: 'in studio', icon: <FaDraftingCompass />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-                    { label: 'Approved Designs', value: kpi?.approvedDesigns ?? 0, sub: 'approved', icon: <FaCheckCircle />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
-                    { label: 'My Submissions', value: kpi?.mySubmissions ?? 0, sub: 'submitted by you', icon: <FaFileAlt />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-                    { label: 'Pending Review', value: kpi?.pendingSubmissions ?? 0, sub: 'awaiting review', icon: <FaClock />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-                    { label: 'My Tasks', value: kpi?.myTasks ?? 0, sub: 'assigned to you', icon: <FaTasks />, color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #0891b2)' },
-                    { label: 'Pending Tasks', value: kpi?.pendingTasks ?? 0, sub: 'to complete', icon: <FaClipboardList />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-                    { label: 'Completed Tasks', value: kpi?.completedTasks ?? 0, sub: 'done', icon: <FaCheckCircle />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
+                    { label: 'Total Designs', value: kpi?.totalDesigns ?? 0, sub: 'in studio', icon: <FaDraftingCompass />, color: '#8b5cf6' },
+                    { label: 'Approved Designs', value: kpi?.approvedDesigns ?? 0, sub: 'approved', icon: <FaCheckCircle />, color: '#22c55e' },
+                    { label: 'My Submissions', value: kpi?.mySubmissions ?? 0, sub: 'submitted by you', icon: <FaFileAlt />, color: '#1B2042' },
+                    { label: 'Pending Review', value: kpi?.pendingSubmissions ?? 0, sub: 'awaiting review', icon: <FaClock />, color: '#f59e0b' },
+                    { label: 'My Tasks', value: kpi?.myTasks ?? 0, sub: 'assigned to you', icon: <FaTasks />, color: '#06b6d4' },
+                    { label: 'Pending Tasks', value: kpi?.pendingTasks ?? 0, sub: 'to complete', icon: <FaClipboardList />, color: '#f59e0b' },
+                    { label: 'Completed Tasks', value: kpi?.completedTasks ?? 0, sub: 'done', icon: <FaCheckCircle />, color: '#22c55e' },
                 ];
                 break;
             default:
                 summaryCards = [
-                    { label: 'Total Projects', value: kpi?.totalProjects ?? 0, sub: 'your projects', icon: <FaProjectDiagram />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-                    { label: 'Active Projects', value: kpi?.activeProjects ?? 0, sub: 'in progress', icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+                    { label: 'Total Projects', value: kpi?.totalProjects ?? 0, sub: 'your projects', icon: <FaProjectDiagram />, color: '#1B2042' },
+                    { label: 'Active Projects', value: kpi?.activeProjects ?? 0, sub: 'in progress', icon: <FaHardHat />, color: '#f59e0b' },
                 ];
         }
     } else {
         summaryCards = [
-            { label: 'Total Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042', gradient: 'linear-gradient(135deg, #1B2042, #2a3a6a)' },
-            { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-            { label: 'Employees', value: employees.length, sub: `${employees.filter(e => e.status === 'active').length} active`, icon: <FaUserTie />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
+            { label: 'Total Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042' },
+            { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b' },
+            { label: 'Employees', value: employees.length, sub: `${employees.filter(e => e.status === 'active').length} active`, icon: <FaUserTie />, color: '#8b5cf6' },
         ];
         if (role === 'storekeeper') {
-            summaryCards.push({ label: 'Attendance', value: attendanceToday, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' });
+            summaryCards.push({ label: 'Attendance', value: attendanceToday, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e' });
         }
     }
 
-    const showSitesAndProjects = !isExecutive;
+    const showSitesAndProjects = !isExecutive || role === 'site_engineer';
 
     const monthlyChartData = yearlyReport?.monthlyData?.map((m: any) => ({
         name: MONTH_NAMES[m.month - 1],
@@ -391,6 +448,15 @@ const AdminDashboard = () => {
         ];
     })();
 
+    if (loading) {
+        return (
+            <div className="db-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh' }}>
+                <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                <span style={{ marginLeft: '0.75rem', fontSize: '0.9rem' }}>Loading...</span>
+            </div>
+        );
+    }
+
     return (
         <div className="db-page">
             <div className="db-container">
@@ -407,23 +473,27 @@ const AdminDashboard = () => {
                         ))}
                     </div>
 
-                    <div className="db-kpi-row">
+                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${summaryCards.length}, minmax(150px, 1fr))`, gap: '0.6rem', marginBottom: '1.25rem', overflowX: 'auto' }}>
                         {summaryCards.map(card => (
-                            <div key={card.label} className="db-kpi-card-sm" style={{ background: card.gradient }}>
-                                <div className="db-kpi-sm-content">
-                                    <div className="db-kpi-sm-top">
-                                        <span className="db-kpi-sm-label">{card.label}</span>
-                                        <div className="db-kpi-sm-icon">{card.icon}</div>
-                                    </div>
-                                    <div className="db-kpi-sm-value">{card.value}</div>
-                                    <div className="db-kpi-sm-sub">{card.sub}</div>
+                            <div key={card.label} style={{
+                                display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+                                background: 'var(--bg-white, #fff)',
+                                border: '1px solid var(--border-color, #e5e7eb)',
+                                borderRadius: 10, padding: '0.8rem 1rem',
+                            }}>
+                                <div style={{
+                                    width: 36, height: 36, borderRadius: 9, background: `${card.color}18`, color: card.color,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+                                }}>{card.icon}</div>
+                                <div style={{ minWidth: 0 }}>
+                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #6b7280)' }}>{card.label}</div>
+                                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main, #111)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.value}</div>
                                 </div>
-                                <div className="db-kpi-sm-watermark">{card.icon}</div>
                             </div>
                         ))}
                     </div>
 
-                    {(isAdmin || role === 'finance_director' || (isExecutive && !isEngineeringStudio)) && (
+                    {(isAdmin || role === 'finance_director' || (isExecutive && !isEngineeringStudio && role !== 'site_engineer')) && (
                         <div className="db-charts-row">
                             <div className="db-chart-card">
                                 <h3 className="db-chart-title">
@@ -530,7 +600,7 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
                         </div>
-                    ) : (
+                    ) : role !== 'site_engineer' ? (
                         <div className="db-charts-row db-charts-row-3">
                             <div className="db-chart-card">
                                 <h3 className="db-chart-title">
@@ -593,6 +663,159 @@ const AdminDashboard = () => {
                             )}
                         </div>
                     </div>
+                    ) : null}
+
+                    {role === 'site_engineer' && (
+                        <div className="db-charts-row db-charts-row-3">
+                            <div className="db-chart-card">
+                                <h3 className="db-chart-title">
+                                    <FaCalendarCheck style={{ color: '#22c55e' }} /> Attendance — Last 7 Days
+                                </h3>
+                                {kpi?.attendanceTrend && kpi.attendanceTrend.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height={180}>
+                                        <BarChart data={kpi.attendanceTrend.map(d => ({ ...d, day: new Date(d.date).toLocaleDateString('en', { weekday: 'short' }) }))} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
+                                            <XAxis dataKey="day" tick={{ fontSize: 10 }} />
+                                            <YAxis allowDecimals={false} tick={{ fontSize: 9 }} />
+                                            <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                            <Legend />
+                                            <Bar dataKey="present" name="Present" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="absent" name="Absent" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="late" name="Late" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="db-chart-empty">No attendance data yet</div>
+                                )}
+                            </div>
+                            <div className="db-chart-card">
+                                <h3 className="db-chart-title">
+                                    <FaHardHat style={{ color: '#f59e0b' }} /> Sites by Status
+                                </h3>
+                                {kpi?.siteStatusBreakdown && kpi.siteStatusBreakdown.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height={180}>
+                                        <PieChart>
+                                            <Pie data={kpi.siteStatusBreakdown} cx="50%" cy="50%" innerRadius={30} outerRadius={60} dataKey="value" label={renderPieLabel} labelLine={false}>
+                                                {kpi.siteStatusBreakdown.map((_: any, i: number) => (
+                                                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="db-chart-empty">No sites yet</div>
+                                )}
+                            </div>
+                            <div className="db-chart-card">
+                                <h3 className="db-chart-title">
+                                    <FaTasks style={{ color: '#06b6d4' }} /> Tasks Overview
+                                </h3>
+                                {kpi?.taskBreakdown && kpi.taskBreakdown.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height={180}>
+                                        <PieChart>
+                                            <Pie data={kpi.taskBreakdown} cx="50%" cy="50%" innerRadius={30} outerRadius={60} dataKey="value" label={renderPieLabel} labelLine={false}>
+                                                {kpi.taskBreakdown.map((_: any, i: number) => (
+                                                    <Cell key={i} fill={CHART_COLORS[(i + 1) % CHART_COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="db-chart-empty">No tasks assigned yet</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {role === 'site_engineer' && (
+                        <div className="db-two-col">
+                            <div className="db-perf-card">
+                                <h3 className="db-section-title">
+                                    <FaChartLine style={{ color: '#22c55e' }} /> Monthly Attendance Summary
+                                </h3>
+                                <div className="db-perf-list">
+                                    <div className="db-perf-item">
+                                        <span className="db-perf-label">Present (MTD)</span>
+                                        <div className="db-perf-right">
+                                            <span className="db-perf-value">{kpi?.monthlyPresent ?? 0}</span>
+                                            <span className="db-perf-change db-perf-change--up">(+{kpi?.monthlyPresent ?? 0})</span>
+                                        </div>
+                                    </div>
+                                    <div className="db-perf-item">
+                                        <span className="db-perf-label">Absent (MTD)</span>
+                                        <div className="db-perf-right">
+                                            <span className="db-perf-value">{kpi?.monthlyAbsent ?? 0}</span>
+                                            <span className={`db-perf-change ${(kpi?.monthlyAbsent ?? 0) > 0 ? 'db-perf-change--down' : 'db-perf-change--up'}`}>{(kpi?.monthlyAbsent ?? 0) > 0 ? `(-${kpi?.monthlyAbsent ?? 0})` : '(0)'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="db-perf-item">
+                                        <span className="db-perf-label">Late (MTD)</span>
+                                        <div className="db-perf-right">
+                                            <span className="db-perf-value">{kpi?.monthlyLate ?? 0}</span>
+                                            <span className={`db-perf-change ${(kpi?.monthlyLate ?? 0) > 3 ? 'db-perf-change--down' : 'db-perf-change--up'}`}>{(kpi?.monthlyLate ?? 0) > 3 ? `(-${kpi?.monthlyLate ?? 0})` : '(+0)'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="db-perf-item">
+                                        <span className="db-perf-label">Sites Active</span>
+                                        <div className="db-perf-right">
+                                            <span className="db-perf-value">{kpi?.activeSites ?? 0}</span>
+                                            <span className="db-perf-change db-perf-change--up">(+{kpi?.activeSites ?? 0})</span>
+                                        </div>
+                                    </div>
+                                    <div className="db-perf-item">
+                                        <span className="db-perf-label">Team Members</span>
+                                        <div className="db-perf-right">
+                                            <span className="db-perf-value">{kpi?.totalTeamMembers ?? 0}</span>
+                                            <span className="db-perf-change db-perf-change--up">(+{kpi?.totalTeamMembers ?? 0})</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="db-perf-card">
+                                <h3 className="db-section-title">
+                                    <FaClipboardList style={{ color: '#8b5cf6' }} /> Task Performance
+                                </h3>
+                                <div className="db-perf-list">
+                                    <div className="db-perf-item">
+                                        <span className="db-perf-label">Total Tasks</span>
+                                        <div className="db-perf-right">
+                                            <span className="db-perf-value">{kpi?.totalTasks ?? 0}</span>
+                                            <span className="db-perf-change db-perf-change--up">(+{kpi?.totalTasks ?? 0})</span>
+                                        </div>
+                                    </div>
+                                    <div className="db-perf-item">
+                                        <span className="db-perf-label">Pending Tasks</span>
+                                        <div className="db-perf-right">
+                                            <span className="db-perf-value">{kpi?.pendingTasks ?? 0}</span>
+                                            <span className={`db-perf-change ${(kpi?.pendingTasks ?? 0) > 3 ? 'db-perf-change--down' : 'db-perf-change--up'}`}>{(kpi?.pendingTasks ?? 0) > 3 ? `(-${kpi?.pendingTasks ?? 0})` : '(+0)'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="db-perf-item">
+                                        <span className="db-perf-label">Completed Tasks</span>
+                                        <div className="db-perf-right">
+                                            <span className="db-perf-value">{kpi?.completedTasks ?? 0}</span>
+                                            <span className="db-perf-change db-perf-change--up">(+{kpi?.completedTasks ?? 0})</span>
+                                        </div>
+                                    </div>
+                                    <div className="db-perf-item">
+                                        <span className="db-perf-label">Completion Rate</span>
+                                        <div className="db-perf-right">
+                                            <span className="db-perf-value">{(kpi?.totalTasks ?? 0) > 0 ? Math.round(((kpi?.completedTasks ?? 0) / (kpi?.totalTasks ?? 1)) * 100) : 0}%</span>
+                                            <span className="db-perf-change db-perf-change--up">({(kpi?.completedTasks ?? 0)}/{kpi?.totalTasks ?? 0})</span>
+                                        </div>
+                                    </div>
+                                    <div className="db-perf-item">
+                                        <span className="db-perf-label">Evidence Uploaded</span>
+                                        <div className="db-perf-right">
+                                            <span className="db-perf-value">{kpi?.totalEvidence ?? 0}</span>
+                                            <span className="db-perf-change db-perf-change--up">(+{kpi?.totalEvidence ?? 0})</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     )}
 
                     {isEngineeringStudio ? (
@@ -651,7 +874,7 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
                         </div>
-                    ) : (
+                    ) : role !== 'site_engineer' ? (
                         <div className="db-two-col">
                             <div className="db-geo-card">
                                 <h3 className="db-section-title">
@@ -708,7 +931,7 @@ const AdminDashboard = () => {
                                 </div>
                         </div>
                     </div>
-                    )}
+                    ) : null}
 
                     <div className="db-charts-row db-charts-row-2">
                     {isAdmin && (

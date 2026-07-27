@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { FaTasks, FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaExchangeAlt, FaEnvelope } from 'react-icons/fa';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { FaTasks, FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaChevronLeft, FaChevronRight, FaExchangeAlt, FaEnvelope, FaSpinner } from 'react-icons/fa';
 import { assignmentService, type EmployeeAssignment } from '../../services/assignmentService';
 import { hrService, type Employee } from '../../services/hrService';
 import { constructionService, type Project } from '../../services/constructionService';
@@ -36,15 +36,13 @@ const EmployeeAssignments = () => {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
-    const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
 
     const filteredSites = useMemo(() => {
         if (!form.projectId) return sites;
         return sites.filter(s => s.projectId === form.projectId);
     }, [sites, form.projectId]);
 
-    const isSiteManager = user?.role === 'storekeeper';
+    const isStorekeeper = user?.role === 'storekeeper';
 
     const fetch = async () => {
         const cached = loadPageCache<{ data: EmployeeAssignment[]; employees: Employee[]; projects: Project[]; sites: Site[] }>('pg_employee_assignments');
@@ -55,7 +53,7 @@ const EmployeeAssignments = () => {
             setSites(cached.sites || []);
         }
         try {
-            const assPromise = isSiteManager ? assignmentService.getMyTeam() : assignmentService.getAll();
+            const assPromise = isStorekeeper ? assignmentService.getMyTeam() : assignmentService.getAll();
             const [assRes, empRes, projRes, siteRes] = await Promise.all([
                 assPromise,
                 hrService.getEmployees(),
@@ -99,7 +97,7 @@ const EmployeeAssignments = () => {
         storekeeper: '#8b5cf6', worker: '#22c55e', supervisor: '#1B2042',
     };
 
-    const openNew = () => { setEditing(null); setForm(emptyForm); setModalPos(null); setShowModal(true); };
+    const openNew = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
     const openEdit = (item: EmployeeAssignment) => {
         setEditing(item);
         setForm({
@@ -112,7 +110,6 @@ const EmployeeAssignments = () => {
             endDate: item.endDate || '',
             isActive: item.isActive,
         });
-        setModalPos(null);
         setShowModal(true);
     };
 
@@ -152,41 +149,15 @@ const EmployeeAssignments = () => {
         } catch { showToast('Failed to delete', 'error'); }
     };
 
-    const onMouseMove = useCallback((e: MouseEvent) => {
-        if (!dragging.current) return;
-        setModalPos({ x: e.clientX - dragging.current.offsetX, y: e.clientY - dragging.current.offsetY });
-    }, []);
-
-    const onMouseUp = useCallback(() => {
-        dragging.current = null;
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-    }, [onMouseMove]);
-
-    useEffect(() => {
-        return () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        };
-    }, [onMouseMove, onMouseUp]);
-
-    const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-        const modal = (e.currentTarget as HTMLElement).closest('.admin-modal') as HTMLElement | null;
-        if (!modal) return;
-        const rect = modal.getBoundingClientRect();
-        setModalPos({ x: rect.left, y: rect.top });
-        dragging.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    }, [onMouseMove, onMouseUp]);
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
 
     return (
         <div className="admin-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '1rem' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0, fontSize: '1rem' }}>
                     <FaTasks style={{ color: 'var(--primary)' }} /> Employee Assignments
                 </h2>
-                {!isSiteManager && (
+                {!isStorekeeper && (
                     <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
                         <FaPlus style={{ marginRight: 6 }} />Assign Employee
                     </button>
@@ -196,7 +167,7 @@ const EmployeeAssignments = () => {
             <div className="admin-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{data.length} assignment{data.length !== 1 ? 's' : ''}</span>
-                    <input type="text" className="form-input" placeholder="Search employee, project, role..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 350 }} />
+                    <input type="text" className="form-input" placeholder="Search employee, project, role..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 350 }} />
                 </div>
                 <div style={{ overflowX: 'auto' }}>
                     <table className="admin-table">
@@ -233,11 +204,11 @@ const EmployeeAssignments = () => {
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', gap: 6 }}>
-                                            {!isSiteManager && (
+                                            {!isStorekeeper && (
                                                 <><button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)}><FaEdit /></button>
                                                 <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)}><FaTrash /></button></>
                                             )}
-                                            {isSiteManager && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>—</span>}
+                                            {isStorekeeper && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>—</span>}
                                         </div>
                                     </td>
                                 </tr>
@@ -251,26 +222,26 @@ const EmployeeAssignments = () => {
                         </tbody>
                     </table>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '0.5rem 0', flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', padding: '0.4rem 0', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                         Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
-                            <select className="form-select" style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Per page:</span>
+                            <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.7rem' }}
                                 value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                                 {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                                 <option value={0}>All</option>
                             </select>
                         </div>
                         {pageSize > 0 && totalPages > 1 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.15rem 0.5rem', minWidth: 26, fontSize: '0.7rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                             </div>
                         )}
                     </div>
@@ -279,7 +250,7 @@ const EmployeeAssignments = () => {
 
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)', width: 600 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y, width: 600 } : { width: 600 }}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'New'} Assignment</h3>
                             <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>

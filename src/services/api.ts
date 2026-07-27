@@ -1,9 +1,17 @@
 import axios from 'axios';
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://muhizi-construction-backend.vercel.app';
+const DEFAULT_API_BASE_URL = 'https://muhizi-construction-backend.vercel.app';
+const configuredBaseUrl = import.meta.env.VITE_API_URL?.trim();
+
+const isLocalDevUrl = (value?: string) => Boolean(value && /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/i.test(value));
+
+export const API_BASE_URL = configuredBaseUrl && !isLocalDevUrl(configuredBaseUrl)
+    ? configuredBaseUrl
+    : DEFAULT_API_BASE_URL;
 
 const api = axios.create({
     baseURL: API_BASE_URL,
+    timeout: 20000,
     headers: {
         'Content-Type': 'application/json',
     },

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaUserCircle } from 'react-icons/fa';
+import { FaUserCircle, FaSpinner } from 'react-icons/fa';
 import { profileService } from '../../services/profileService';
 import type { Profile } from '../../services/profileService';
 import { useAuth } from '../../context/AuthContext';
@@ -40,12 +40,14 @@ const ProfileManagement = () => {
         updateUser({ firstName: updatedProfile.firstName, lastName: updatedProfile.lastName, email: updatedProfile.email, avatar: updatedProfile.avatar });
     };
 
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
+
     if (!profile) return <div style={{ textAlign: 'center', padding: '2rem' }}>Failed to load profile</div>;
 
     return (
         <div>
             {/* Tab Navigation */}
-            <div style={{ display: 'flex', gap: '4px', marginBottom: '1.5rem', borderBottom: '2px solid var(--border-color)', paddingBottom: '4px', overflowX: 'auto', flexWrap: 'nowrap' }}>
+            <div style={{ display: 'flex', gap: '4px', marginBottom: '0.5rem', borderBottom: '2px solid var(--border-color)', paddingBottom: '4px', overflowX: 'auto', flexWrap: 'nowrap' }}>
                 {tabs.map(tab => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.key;
@@ -57,8 +59,8 @@ const ProfileManagement = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                                padding: '0.75rem 1.25rem',
-                                fontSize: '0.9rem',
+                                padding: '0.15rem 0.4rem',
+                                fontSize: '0.7rem',
                                 fontWeight: isActive ? 700 : 500,
                                 color: isActive ? 'var(--primary-teal)' : 'var(--text-muted)',
                                 background: 'transparent',

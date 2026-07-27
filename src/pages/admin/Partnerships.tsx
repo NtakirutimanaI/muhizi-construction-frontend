@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
     FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaHandshake, FaFileExcel, FaFilePdf,
-    FaArrowsAlt, FaChevronLeft, FaChevronRight, FaEye, FaCheck, FaBan, FaExclamationTriangle,
+    FaChevronLeft, FaChevronRight, FaEye, FaCheck, FaBan, FaExclamationTriangle,
     FaFileUpload, FaFilePdf as FaFileIcon, FaBuilding, FaCoins, FaShieldAlt,
-    FaUsers, FaClock, FaCheckCircle, FaTimesCircle,
+    FaUsers, FaClock, FaCheckCircle, FaTimesCircle, FaSpinner,
 } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import type { Partnership, Project } from '../../services/constructionService';
@@ -21,8 +21,8 @@ const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactN
         borderRadius: 10, padding: '0.8rem 1rem',
     }}>
         <div style={{
-            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+            width: 26, height: 26, borderRadius: 9, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.75rem',
         }}>{icon}</div>
         <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
@@ -107,10 +107,8 @@ const Partnerships = () => {
     const [toDate, setToDate] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<Partnership | null>(null);
     const [deleting, setDeleting] = useState(false);
-    const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const fetch = async () => {
@@ -250,34 +248,6 @@ const Partnerships = () => {
         URL.revokeObjectURL(url);
     };
 
-    const onMouseMove = useCallback((e: MouseEvent) => {
-        if (!dragging.current) return;
-        setModalPos({ x: e.clientX - dragging.current.offsetX, y: e.clientY - dragging.current.offsetY });
-    }, []);
-
-    const onMouseUp = useCallback(() => {
-        dragging.current = null;
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-    }, [onMouseMove]);
-
-    useEffect(() => {
-        return () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        };
-    }, [onMouseMove, onMouseUp]);
-
-    const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-        const modal = (e.currentTarget as HTMLElement).closest('.admin-modal') as HTMLElement | null;
-        if (!modal) return;
-        const rect = modal.getBoundingClientRect();
-        setModalPos({ x: rect.left, y: rect.top });
-        dragging.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    }, [onMouseMove, onMouseUp]);
-
     const stats = useMemo(() => ({
         total: data.length,
         pending: data.filter(d => d.status === 'pending').length,
@@ -286,7 +256,7 @@ const Partnerships = () => {
         investors: data.filter(d => d.partnershipType === 'investor' || d.partnershipType === 'joint_venture').length,
     }), [data]);
 
-    const openNew = () => { setEditing(null); setForm(emptyForm); setModalPos(null); setShowModal(true); };
+    const openNew = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
 
     const openEdit = (item: Partnership) => {
         setEditing(item);
@@ -304,7 +274,6 @@ const Partnerships = () => {
             agreementFile: item.agreementFile || '',
             startDate: item.startDate || '', endDate: item.endDate || '', notes: item.notes || '',
         });
-        setModalPos(null);
         setShowModal(true);
     };
 
@@ -399,16 +368,18 @@ const Partnerships = () => {
         active: '#22c55e', inactive: '#6b7280', pending: '#f59e0b', rejected: '#ef4444',
     };
 
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
+
     return (
         <div className="admin-page">
-            <div style={{ marginBottom: '0.25rem' }}>
+            <div style={{ marginBottom: '0.5rem' }}>
                 <div>
-                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1rem' }}>
                         <FaHandshake style={{ color: 'var(--primary)' }} /> Partnerships
                     </h2>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Suppliers, subcontractors, investors and joint-venture partners</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginTop: '0.75rem', marginBottom: '1.25rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.4rem', marginTop: '0.75rem', marginBottom: '0.6rem' }}>
                     <div onClick={() => { setStatusFilter('all'); setPage(1); }} style={{ cursor: 'pointer', opacity: statusFilter === 'all' ? 1 : 0.6 }}>
                         <StatTile icon={<FaHandshake />} label="Total" value={String(stats.total)} accent="#1B2042" emphasis />
                     </div>
@@ -433,16 +404,16 @@ const Partnerships = () => {
                         {statusFilter === 'all' ? 'All Partnerships' : `${statusFilter.charAt(0).toUpperCase()}${statusFilter.slice(1)} Partnerships`}
                     </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <input type="text" className="form-input" placeholder="Search company, contact, type..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 280 }} />
-                        <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
-                        <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
-                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
+                        <input type="text" className="form-input" placeholder="Search company, contact, type..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 280 }} />
+                        <input type="date" className="form-input" style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
+                        <input type="date" className="form-input" style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
+                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
                             <FaFileExcel /> Excel
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
+                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
                             <FaFilePdf /> PDF
                         </button>
-                        <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
+                        <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem' }}>
                             <FaPlus style={{ marginRight: 6 }} />Register Partner
                         </button>
                     </div>
@@ -499,15 +470,15 @@ const Partnerships = () => {
                                         <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{item.reviewedByName || '—'}</td>
                                         <td>
                                             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => setViewItem(item)} title="View"><FaEye /></button>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => setViewItem(item)} title="View"><FaEye /></button>
                                                 {item.status === 'pending' && (
                                                     <>
-                                                        <button className="admin-btn" style={{ padding: '0.3rem 0.6rem', background: '#22c55e', borderColor: '#22c55e' }} onClick={() => review(item, 'active')} title="Approve"><FaCheck /></button>
-                                                        <button className="admin-btn" style={{ padding: '0.3rem 0.6rem', background: '#ef4444', borderColor: '#ef4444' }} onClick={() => review(item, 'rejected')} title="Reject"><FaBan /></button>
+                                                        <button className="admin-btn" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', background: '#22c55e', borderColor: '#22c55e' }} onClick={() => review(item, 'active')} title="Approve"><FaCheck /></button>
+                                                        <button className="admin-btn" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', background: '#ef4444', borderColor: '#ef4444' }} onClick={() => review(item, 'rejected')} title="Reject"><FaBan /></button>
                                                     </>
                                                 )}
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem', color: 'var(--primary-red)' }} onClick={() => setDeleteTarget(item)} title="Delete"><FaTrash /></button>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--primary-red)' }} onClick={() => setDeleteTarget(item)} title="Delete"><FaTrash /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -522,25 +493,25 @@ const Partnerships = () => {
                         </tbody>
                     </table>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '0.5rem 0', flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.6rem', padding: '0.35rem 0', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
-                            <select className="form-select" style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Per page:</span>
+                            <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.7rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                                 {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                                 <option value={0}>All</option>
                             </select>
                         </div>
                         {pageSize > 0 && totalPages > 1 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft size={10} /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 26, fontSize: '0.7rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight size={10} /></button>
                             </div>
                         )}
                     </div>
@@ -549,7 +520,7 @@ const Partnerships = () => {
 
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => !saving && setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)', maxWidth: 720 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y, maxWidth: 720 } : { maxWidth: 720 }}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit Partnership' : 'Register New Partner / Investor'}</h3>
                             <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>
@@ -719,7 +690,7 @@ const Partnerships = () => {
 
             {viewItem && (
                 <div className="admin-modal-overlay" onClick={() => setViewItem(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 480, borderRadius: 12 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480, borderRadius: 12 }}>
                         <div className="admin-modal-header" style={{ padding: '0.9rem 1.1rem' }}>
                             <h3 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}><FaHandshake style={{ color: 'var(--primary)' }} /> {viewItem.companyName}</h3>
                             <button onClick={() => setViewItem(null)}><FaTimesIcon /></button>
@@ -774,7 +745,7 @@ const Partnerships = () => {
 
             {deleteTarget && (
                 <div className="admin-modal-overlay" onClick={() => !deleting && setDeleteTarget(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 420, borderRadius: 12 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420, borderRadius: 12 }}>
                         <div className="admin-modal-header" style={{ padding: '0.9rem 1.1rem' }}>
                             <h3 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <FaExclamationTriangle style={{ color: 'var(--primary-red)' }} /> Delete Partnership Record

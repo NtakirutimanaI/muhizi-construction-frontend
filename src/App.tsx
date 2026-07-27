@@ -37,7 +37,9 @@ const Projects = lazy(() => import('./pages/admin/Projects'));
 const Designs = lazy(() => import('./pages/admin/Designs'));
 const Partnerships = lazy(() => import('./pages/admin/Partnerships'));
 const Employees = lazy(() => import('./pages/admin/Employees'));
+const Recruitment = lazy(() => import('./pages/admin/Recruitment'));
 const Attendance = lazy(() => import('./pages/admin/Attendance'));
+const AttendanceReports = lazy(() => import('./pages/admin/AttendanceReports'));
 const Payroll = lazy(() => import('./pages/admin/Payroll'));
 const Incomes = lazy(() => import('./pages/admin/Incomes'));
 const Expenses = lazy(() => import('./pages/admin/Expenses'));
@@ -55,12 +57,15 @@ const CreateContract = lazy(() => import('./pages/admin/CreateContract'));
 const InsuranceSettings = lazy(() => import('./pages/admin/InsuranceSettings'));
 const MoneyRequisitions = lazy(() => import('./pages/admin/MoneyRequisitions'));
 const ClientReports = lazy(() => import('./pages/admin/ClientReports'));
+const PettyCash = lazy(() => import('./pages/admin/PettyCash'));
+const PettyCashVoucher = lazy(() => import('./pages/admin/PettyCashVoucher'));
 const AdminUpdates = lazy(() => import('./pages/admin/AdminUpdates'));
 const Stock = lazy(() => import('./pages/admin/Stock'));
 const StockCategories = lazy(() => import('./pages/admin/StockCategories'));
 const DailyTasks = lazy(() => import('./pages/admin/DailyTasks'));
 const AssignTasks = lazy(() => import('./pages/admin/AssignTasks'));
 const EngineeringStudio = lazy(() => import('./pages/admin/EngineeringStudio'));
+const ProjectControl = lazy(() => import('./pages/admin/ProjectControl'));
 const ReportToAdmin = lazy(() => import('./pages/admin/ReportToAdmin'));
 const ShareFiles = lazy(() => import('./pages/admin/ShareFiles'));
 const ProjectDetail = lazy(() => import('./pages/admin/ProjectDetail'));
@@ -152,7 +157,7 @@ function App() {
 
                 {/* Admin Routes */}
                 <Route element={<ProtectedRoute />}>
-                  {['admin', 'storekeeper', 'employee', 'partner', 'managingdirector', 'directorfinance', 'siteengineer', 'engineeringstudio'].map(base => {
+                  {['admin', 'storekeeper', 'partner', 'managingdirector', 'directorfinance', 'siteengineer', 'engineeringstudio'].map(base => {
                     const b = `/${base}`;
                     return (
                       <Route key={base} path={b} element={<AdminLayout basePath={b} />}>
@@ -172,7 +177,9 @@ function App() {
                         <Route path="designs" element={<Designs />} />
                         <Route path="partnerships" element={<Partnerships />} />
                         <Route path="employees" element={<Employees />} />
+                        <Route path="recruitment" element={<Recruitment />} />
                         <Route path="attendance" element={<Attendance />} />
+                        <Route path="attendance-reports" element={<AttendanceReports />} />
                         <Route path="employee-assignments" element={<EmployeeAssignments />} />
                         <Route path="payroll" element={<Payroll />} />
                         <Route path="incomes" element={<Incomes />} />
@@ -187,10 +194,12 @@ function App() {
                         <Route path="insurance" element={<InsuranceSettings />} />
                         <Route path="money-requisition" element={<MoneyRequisitions />} />
                         <Route path="client-reports" element={<ClientReports />} />
+                        <Route path="petty-cash" element={<PettyCash />} />
+                        <Route path="petty-cash-voucher" element={<PettyCashVoucher />} />
                         <Route path="admin-updates" element={<AdminUpdates />} />
                         <Route path="create-contract" element={<CreateContract />} />
                         <Route path="project-evidence" element={<ProjectEvidence />} />
-                    <Route path="site-rules" element={<ClientSiteRules />} />
+                    <Route path="site-rules" element={<SiteRules />} />
                         <Route path="approvals" element={<Navigate to="../requests" replace />} />
                         <Route path="contracts" element={<CreateContract />} />
                         <Route path="project-progress" element={<ProjectProgress />} />
@@ -209,6 +218,7 @@ function App() {
                         <Route path="engineering-studio/create-tasks" element={<AssignTasks />} />
                         <Route path="engineering-studio/report-to-admin" element={<ReportToAdmin />} />
                         <Route path="engineering-studio/share" element={<ShareFiles />} />
+                        <Route path="project-control" element={<ProjectControl />} />
                       </Route>
                     );
                   })}
@@ -222,7 +232,7 @@ function App() {
                     <Route path="sites" element={<ClientSites />} />
                     <Route path="updates" element={<ClientUpdates />} />
                     <Route path="progress-reports" element={<ClientProgressReports />} />
-                    <Route path="site-rules" element={<SiteRules />} />
+                    <Route path="site-rules" element={<ClientSiteRules />} />
                   </Route>
                 </Route>
 

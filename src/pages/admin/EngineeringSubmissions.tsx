@@ -67,6 +67,7 @@ const EngineeringSubmissions = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const load = async () => {
+        setLoading(true);
         const cached = loadPageCache<EngineeringSubmission[]>('pg_engineering_submissions');
         if (cached) setSubmissions(cached);
         try {
@@ -87,6 +88,8 @@ const EngineeringSubmissions = () => {
             savePageCache('pg_engineering_submissions', subRes.data || []);
         } catch {
             showToast('Failed to load data', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -281,9 +284,14 @@ const EngineeringSubmissions = () => {
 
     return (
         <div className="admin-page">
-            <div className="es-flex-between" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+            {loading && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    <FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...
+                </div>
+            )}
+            <div className="es-flex-between" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <h1 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
                         <FaDraftingCompass style={{ color: 'var(--primary)' }} /> Engineering Submissions
                     </h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
@@ -292,7 +300,7 @@ const EngineeringSubmissions = () => {
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     {isSubmitter && (
-                        <button onClick={openNew} className="btn-primary" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}>
+                        <button onClick={openNew} className="btn-primary" style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem' }}>
                             <FaPlus /> New Submission
                         </button>
                     )}
@@ -316,7 +324,7 @@ const EngineeringSubmissions = () => {
                 {(['all', 'submitted', 'approved', 'rejected'] as const).map(s => (
                     <button key={s} onClick={() => setStatusFilter(s)}
                         style={{
-                            padding: '0.35rem 0.85rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600,
+                            padding: '0.25rem 0.4rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600,
                             border: '1px solid var(--border-color)', cursor: 'pointer', textTransform: 'capitalize',
                             background: statusFilter === s ? 'var(--text-main)' : 'transparent',
                             color: statusFilter === s ? 'var(--bg-body)' : 'var(--text-muted)',
@@ -327,7 +335,7 @@ const EngineeringSubmissions = () => {
                 {isReviewer && (
                     <button onClick={() => setStatusFilter(statusFilter === 'submitted_to_admin' ? 'all' : 'submitted_to_admin')}
                         style={{
-                            padding: '0.35rem 0.85rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600,
+                            padding: '0.25rem 0.4rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600,
                             border: '1px solid var(--border-color)', cursor: 'pointer',
                             background: statusFilter === 'submitted_to_admin' ? '#6366f1' : 'transparent',
                             color: statusFilter === 'submitted_to_admin' ? '#fff' : 'var(--text-muted)',
@@ -342,7 +350,7 @@ const EngineeringSubmissions = () => {
                             value={memberFilter}
                             onChange={e => setMemberFilter(e.target.value)}
                             style={{
-                                padding: '0.35rem 0.6rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600,
+                                padding: '0.25rem 0.4rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 600,
                                 border: '1px solid var(--border-color)', background: 'var(--bg-body)',
                                 color: memberFilter !== 'all' ? 'var(--text-main)' : 'var(--text-muted)',
                                 cursor: 'pointer', outline: 'none',
@@ -412,7 +420,7 @@ const EngineeringSubmissions = () => {
                         {/* Action buttons */}
                         <div style={{ display: 'flex', borderTop: '1px solid var(--border-color)' }}>
                             <button onClick={() => { setViewItem(s); setReviewNotes(''); }} title="View"
-                                style={{ flex: 1, padding: '0.45rem', border: 'none', borderRight: '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', transition: 'background 0.15s' }}
+                                style={{ flex: 1, padding: '0.15rem 0.4rem', fontSize: '0.7rem', border: 'none', borderRight: '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', transition: 'background 0.15s' }}
                                 onMouseEnter={e => e.currentTarget.style.background = '#3b82f610'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                                 <FaEye size={13} />
                             </button>
@@ -422,7 +430,7 @@ const EngineeringSubmissions = () => {
                                     title={savedDesigns.has(s.id) ? 'Already saved' : 'Save to Designs'}
                                     disabled={savedDesigns.has(s.id)}
                                     style={{
-                                        flex: 1, padding: '0.45rem', border: 'none', borderRight: '1px solid var(--border-color)',
+                                        flex: 1, padding: '0.15rem 0.4rem', fontSize: '0.7rem', border: 'none', borderRight: '1px solid var(--border-color)',
                                         background: 'transparent', cursor: savedDesigns.has(s.id) ? 'default' : 'pointer',
                                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                                         color: savedDesigns.has(s.id) ? '#22c55e' : '#8b5cf6',
@@ -436,13 +444,13 @@ const EngineeringSubmissions = () => {
                             )}
                             {isSubmitter && (
                                 <button onClick={() => openEdit(s)} title="Edit"
-                                    style={{ flex: 1, padding: '0.45rem', border: 'none', borderRight: '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b', transition: 'background 0.15s' }}
+                                    style={{ flex: 1, padding: '0.15rem 0.4rem', fontSize: '0.7rem', border: 'none', borderRight: '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b', transition: 'background 0.15s' }}
                                     onMouseEnter={e => e.currentTarget.style.background = '#f59e0b10'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                                     <FaEdit size={13} />
                                 </button>
                             )}
                             <button onClick={() => handleDelete(s.id)} title="Delete" disabled={deleting}
-                                style={{ flex: 1, padding: '0.45rem', border: 'none', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', transition: 'background 0.15s' }}
+                                style={{ flex: 1, padding: '0.15rem 0.4rem', fontSize: '0.7rem', border: 'none', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', transition: 'background 0.15s' }}
                                 onMouseEnter={e => e.currentTarget.style.background = '#ef444410'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                                 <FaTrash size={13} />
                             </button>
@@ -454,7 +462,7 @@ const EngineeringSubmissions = () => {
             {/* NEW SUBMISSION MODAL */}
             {showNew && (
                 <div className="admin-modal-overlay" onClick={() => !saving && closeNew()}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 520 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 520 }}>
                         <div className="admin-modal-header">
                             <h3><FaDraftingCompass style={{ marginRight: 8 }} />New Submission</h3>
                             <button onClick={() => !saving && closeNew()}><FaTimes /></button>
@@ -536,7 +544,7 @@ const EngineeringSubmissions = () => {
             {/* VIEW / REVIEW MODAL */}
             {viewItem && (
                 <div className="admin-modal-overlay" onClick={() => setViewItem(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 560 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 560 }}>
                         <div className="admin-modal-header">
                             <h3><FaDraftingCompass style={{ marginRight: 8 }} />{viewItem.title}</h3>
                             <button onClick={() => setViewItem(null)}><FaTimes /></button>
@@ -633,7 +641,7 @@ const EngineeringSubmissions = () => {
             {/* EDIT SUBMISSION MODAL */}
             {editItem && (
                 <div className="admin-modal-overlay" onClick={() => { if (!editSaving) setEditItem(null); }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 520 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 520 }}>
                         <div className="admin-modal-header">
                             <h3><FaEdit style={{ marginRight: 8 }} />Edit Submission</h3>
                             <button onClick={() => { if (!editSaving) setEditItem(null); }}><FaTimes /></button>

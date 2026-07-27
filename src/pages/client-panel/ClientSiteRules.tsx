@@ -5,7 +5,7 @@ import { siteRulesService, type SiteRule } from '../../services/siteRulesService
 import {
     FaClock, FaHardHat, FaMoneyCheckAlt, FaLock, FaListAlt, FaExclamationTriangle,
     FaPhone, FaBullhorn, FaCheckCircle, FaRegNewspaper, FaClipboardCheck,
-    FaTimes, FaExpandAlt, FaGavel,
+    FaTimes, FaExpandAlt, FaGavel, FaSpinner,
 } from 'react-icons/fa';
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -45,7 +45,7 @@ const ClientSiteRules = () => {
 
     return (
         <div>
-            <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{ marginBottom: '0.5rem' }}>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
                     Official notices and regulations for your construction site
                 </p>
@@ -102,9 +102,7 @@ const ClientSiteRules = () => {
                 </div>
 
                 {loading && rules.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.5)', position: 'relative', zIndex: 1 }}>
-                        Loading notices...
-                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem', position: 'relative', zIndex: 1 }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>
                 ) : rules.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.5)', position: 'relative', zIndex: 1 }}>
                         No notices posted yet.
@@ -236,17 +234,11 @@ const ClientSiteRules = () => {
 
             {selectedRule && createPortal(
                 <div
-                    style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}
+                    className="admin-modal-overlay"
+                    style={{ zIndex: 9999 }}
                     onClick={() => setSelectedRule(null)}
                 >
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }} />
-                    <div onClick={(e) => e.stopPropagation()} style={{
-                        position: 'relative', background: 'linear-gradient(145deg, #1B2042, #1B2042)',
-                        borderRadius: '16px', padding: '2rem 2.5rem', maxWidth: '700px', width: '100%',
-                        maxHeight: '85vh', overflowY: 'auto', color: '#fff',
-                        boxShadow: '0 24px 64px rgba(0,0,0,0.5), 0 8px 20px rgba(0,0,0,0.3)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                    }}>
+                    <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => setSelectedRule(null)}
                             style={{ position: 'absolute', top: '12px', right: '14px', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer', fontSize: '1rem', transition: 'background 0.2s' }}
                             onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}

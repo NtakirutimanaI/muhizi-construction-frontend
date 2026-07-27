@@ -121,7 +121,7 @@ const ProjectDetail = () => {
         }
     };
 
-    if (!project) return <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Project not found.</div>;
+    if (!project) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
 
     const allActivities = sites.flatMap(s => (s.activities || []).map(a => ({ ...a, siteName: s.name })));
     const allEvidence = sites.flatMap(s => (s.evidence || []).map(e => ({ ...e, siteName: s.name })));
@@ -131,13 +131,13 @@ const ProjectDetail = () => {
 
     return (
         <div>
-            <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <button onClick={() => navigate('/admin/sites')}
-                    style={{ padding: '0.35rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    style={{ padding: '0.15rem 0.4rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                     <FaArrowLeft size={12} /> Back
                 </button>
                 <div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <h1 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <FaProjectDiagram style={{ color: '#1B2042' }} /> {project.name}
                     </h1>
                     {project.location && <p style={{ margin: '0.15rem 0 0', fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
@@ -150,9 +150,9 @@ const ProjectDetail = () => {
                 {tabs.map(t => (
                     <button key={t.key} onClick={() => setActiveTab(t.key)}
                         style={{
-                            padding: '0.5rem 1rem', border: 'none', background: 'none',
+                            padding: '0.3rem 0.6rem', border: 'none', background: 'none',
                             color: activeTab === t.key ? '#1B2042' : 'var(--text-muted)',
-                            cursor: 'pointer', fontSize: '0.82rem', fontWeight: activeTab === t.key ? 700 : 500,
+                            cursor: 'pointer', fontSize: '0.75rem', fontWeight: activeTab === t.key ? 700 : 500,
                             borderBottom: activeTab === t.key ? '2px solid #1B2042' : '2px solid transparent',
                             marginBottom: '-2px', display: 'flex', alignItems: 'center', gap: '0.35rem',
                             transition: 'all 0.15s',
@@ -228,7 +228,7 @@ const ProjectDetail = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                         <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>{sites.length} site{sites.length !== 1 ? 's' : ''}</span>
                         <button className="admin-btn" onClick={() => setShowCreateSite(true)}
-                            style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.4rem 1rem', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                             <FaPlus /> Create Site
                         </button>
                     </div>
@@ -444,10 +444,9 @@ const ProjectDetail = () => {
             )}
 
             {selectedApproval && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}
+                <div className="admin-modal-overlay"
                     onClick={() => setSelectedApproval(null)}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
-                    <div onClick={(e) => e.stopPropagation()} className="content-card" style={{ position: 'relative', padding: '1.5rem 2rem', maxWidth: '500px', width: '100%' }}>
+                    <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px', width: '100%', padding: '1.5rem 2rem' }}>
                         <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.75rem' }}>{selectedApproval.title}</h2>
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{selectedApproval.requester} &middot; {selectedApproval.date}</p>
                         {selectedApproval.amount && <p style={{ fontSize: '1rem', fontWeight: 700, color: '#22c55e' }}>RWF {selectedApproval.amount.toLocaleString()}</p>}
@@ -458,11 +457,11 @@ const ProjectDetail = () => {
                         ))}
                         <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                             <button onClick={() => { setApprovals(prev => prev.map(a => a.id === selectedApproval.id ? { ...a, status: 'approved' } : a)); setSelectedApproval(null); }}
-                                style={{ padding: '0.4rem 1rem', borderRadius: '6px', border: 'none', background: '#22c55e', color: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                                style={{ padding: '0.15rem 0.4rem', borderRadius: '6px', border: 'none', background: '#22c55e', color: '#fff', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600 }}>
                                 <FaCheck size={11} /> Approve
                             </button>
                             <button onClick={() => { setApprovals(prev => prev.map(a => a.id === selectedApproval.id ? { ...a, status: 'rejected' } : a)); setSelectedApproval(null); }}
-                                style={{ padding: '0.4rem 1rem', borderRadius: '6px', border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                                style={{ padding: '0.15rem 0.4rem', borderRadius: '6px', border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600 }}>
                                 Reject
                             </button>
                         </div>
@@ -471,13 +470,12 @@ const ProjectDetail = () => {
             )}
 
             {selectedRule && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}
+                <div className="admin-modal-overlay"
                     onClick={() => setSelectedRule(null)}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }} />
-                    <div onClick={(e) => e.stopPropagation()} style={{
-                        position: 'relative', background: 'linear-gradient(145deg, #1B2042, #1B2042)', borderRadius: '16px',
-                        padding: '1.5rem 2rem', maxWidth: '600px', width: '100%', maxHeight: '80vh', overflowY: 'auto', color: '#fff',
-                        boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+                    <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{
+                        maxWidth: '600px', width: '100%', maxHeight: '80vh', overflowY: 'auto',
+                        background: 'linear-gradient(145deg, #1B2042, #1B2042)', borderRadius: '16px',
+                        padding: '1.5rem 2rem', color: '#fff', boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
                             <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -493,7 +491,7 @@ const ProjectDetail = () => {
                                 </li>
                             ))}
                         </ul>
-                        <button onClick={() => setSelectedRule(null)} style={{ marginTop: '1rem', padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: '0.8rem' }}>Close</button>
+                        <button onClick={() => setSelectedRule(null)} style={{ marginTop: '1rem', padding: '0.15rem 0.4rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: '0.7rem' }}>Close</button>
                     </div>
                 </div>
             )}

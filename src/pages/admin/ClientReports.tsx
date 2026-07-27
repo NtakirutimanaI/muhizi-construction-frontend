@@ -17,10 +17,10 @@ interface PortalUserOption {
 }
 
 const btnStyle = (bg: string, border?: string): React.CSSProperties => ({
-    padding: '0.5rem 1rem', borderRadius: 7,
+    padding: '0.15rem 0.4rem', borderRadius: 7,
     border: border ? `1px solid ${border}` : 'none',
     background: bg, color: bg === 'var(--bg-white)' ? 'var(--text-muted)' : '#fff',
-    cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
+    cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600,
 });
 
 const inputStyle: React.CSSProperties = {
@@ -221,9 +221,9 @@ const ClientReports = () => {
 
     return (
         <div style={{ padding: '1.5rem', maxWidth: 1100, margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
+                    <h1 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
                         <FaFileAlt style={{ verticalAlign: 'middle', marginRight: 8, color: '#6c3096' }} />Client Reports
                     </h1>
                     <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0.2rem 0 0' }}>
@@ -248,21 +248,21 @@ const ClientReports = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.4rem 0.7rem', flex: '1 1 200px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.25rem 0.4rem', flex: '1 1 200px' }}>
                     <FaSearch size={13} style={{ color: 'var(--text-muted)' }} />
-                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search reports..." style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.82rem', width: '100%', color: 'var(--text-main)' }} />
+                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search reports..." style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.75rem', width: '100%', color: 'var(--text-main)' }} />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.4rem 0.7rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.25rem 0.4rem' }}>
                     <FaFilter size={13} style={{ color: 'var(--text-muted)' }} />
-                    <select value={filter} onChange={e => setFilter(e.target.value as any)} style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.82rem', color: 'var(--text-main)' }}>
+                    <select value={filter} onChange={e => setFilter(e.target.value as any)} style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.75rem', color: 'var(--text-main)' }}>
                         <option value="all">All Status</option>
                         <option value="published">Published</option>
                         <option value="draft">Draft</option>
                     </select>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.4rem 0.7rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.25rem 0.4rem' }}>
                     <FaProjectDiagram size={13} style={{ color: 'var(--text-muted)' }} />
-                    <select value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.82rem', color: 'var(--text-main)' }}>
+                    <select value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.75rem', color: 'var(--text-main)' }}>
                         <option value="all">All Projects</option>
                         {clientProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
@@ -270,7 +270,7 @@ const ClientReports = () => {
             </div>
 
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}><FaSpinner className="animate-spin" size={24} /> Loading...</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>
             ) : filtered.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}><FaFileAlt size={40} style={{ opacity: 0.3, marginBottom: 12 }} /><p>No client reports found.</p></div>
             ) : (

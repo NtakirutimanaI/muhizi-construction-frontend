@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-    FaEdit, FaPlus, FaTimes as FaTimesIcon, FaDollarSign, FaArrowsAlt, FaChevronLeft, FaChevronRight, FaSpinner,
+    FaEdit, FaPlus, FaTimes as FaTimesIcon, FaDollarSign, FaChevronLeft, FaChevronRight, FaSpinner,
     FaFileDownload, FaBuilding, FaListUl, FaMinusCircle, FaArrowUp, FaHashtag, FaHome, FaChartLine, FaComments,
 } from 'react-icons/fa';
 import { financeService } from '../../services/financeService';
@@ -18,15 +18,15 @@ const StatTile = ({ icon, label, value, accent, emphasis }: { icon: React.ReactN
         display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
         background: emphasis ? `${accent}12` : 'var(--bg-white)',
         border: `1px solid ${emphasis ? `${accent}40` : 'var(--border-color)'}`,
-        borderRadius: 10, padding: '0.8rem 1rem',
+        borderRadius: 8, padding: '0.5rem 0.7rem',
     }}>
         <div style={{
-            width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.95rem',
+            width: 26, height: 26, borderRadius: 6, background: `${accent}18`, color: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.75rem',
         }}>{icon}</div>
         <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
-            <div style={{ fontSize: emphasis ? '1.1rem' : '0.95rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{label}</div>
+            <div style={{ fontSize: emphasis ? '0.9rem' : '0.8rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
         </div>
     </div>
 );
@@ -61,8 +61,6 @@ const Incomes = () => {
     const [toDate, setToDate] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
-    const dragging = useRef<{ offsetX: number; offsetY: number } | null>(null);
     const [projects, setProjects] = useState<Project[]>([]);
 
     const fetch = async () => {
@@ -180,34 +178,6 @@ const Incomes = () => {
         doc.save(`income_${item.description.replace(/\s+/g, '_').slice(0, 30)}_${item.date}.pdf`);
     };
 
-    const onMouseMove = useCallback((e: MouseEvent) => {
-        if (!dragging.current) return;
-        setModalPos({ x: e.clientX - dragging.current.offsetX, y: e.clientY - dragging.current.offsetY });
-    }, []);
-
-    const onMouseUp = useCallback(() => {
-        dragging.current = null;
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-    }, [onMouseMove]);
-
-    useEffect(() => {
-        return () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        };
-    }, [onMouseMove, onMouseUp]);
-
-    const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-        const modal = (e.currentTarget as HTMLElement).closest('.admin-modal') as HTMLElement | null;
-        if (!modal) return;
-        const rect = modal.getBoundingClientRect();
-        setModalPos({ x: rect.left, y: rect.top });
-        dragging.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    }, [onMouseMove, onMouseUp]);
-
     const totals = useMemo(() => ({
         totalIncome: data.reduce((s, d) => s + d.amount, 0),
         count: data.length,
@@ -217,14 +187,13 @@ const Incomes = () => {
         consulting: data.filter(d => d.category === 'consulting').reduce((s, d) => s + d.amount, 0),
     }), [data]);
 
-    const openNew = () => { setEditing(null); setForm(emptyForm); setModalPos(null); setShowModal(true); };
+    const openNew = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
     const openEdit = (item: Income) => {
         setEditing(item);
         setForm({
             description: item.description, amount: item.amount || '', category: item.category, source: item.source || '', date: item.date,
             projectId: item.projectId || '', items: item.items?.map(li => ({ description: li.description, amount: li.amount })) || [],
         });
-        setModalPos(null);
         setShowModal(true);
     };
 
@@ -255,12 +224,14 @@ const Incomes = () => {
         }
     };
 
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
+
     return (
         <div className="admin-page">
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.85rem' }}>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.5rem', fontSize: '1rem' }}>
                 <FaDollarSign style={{ color: 'var(--primary)' }} /> Incomes
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.4rem', marginBottom: '0.6rem' }}>
                 <StatTile icon={<FaArrowUp />} label="Total income" value={`RWF ${totals.totalIncome.toLocaleString()}`} accent="#22c55e" emphasis />
                 <StatTile icon={<FaHashtag />} label="Transactions" value={String(totals.count)} accent="#1B2042" />
                 <StatTile icon={<FaBuilding />} label="Project payments" value={`RWF ${totals.projectPayments.toLocaleString()}`} accent="#3b82f6" />
@@ -273,11 +244,11 @@ const Incomes = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>All Income Records</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <input type="text" className="form-input" placeholder="Search description, category, source..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 400 }} />
-                        <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
-                        <input type="date" className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
+                        <input type="text" className="form-input" placeholder="Search description, category, source..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 400 }} />
+                        <input type="date" className="form-input" style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 140 }} title="From date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1); }} />
+                        <input type="date" className="form-input" style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 140 }} title="To date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1); }} />
                         {canManage && (
-                            <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}>
+                            <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem' }}>
                                 <FaPlus style={{ marginRight: 6 }} />Add Income
                             </button>
                         )}
@@ -313,9 +284,9 @@ const Incomes = () => {
                                     <td>
                                         <div style={{ display: 'flex', gap: 6 }}>
                                             {canManage && (
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
+                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
                                             )}
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} onClick={() => exportIncome(item)} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence"><FaFileDownload /></button>
+                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => exportIncome(item)} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence"><FaFileDownload /></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -329,16 +300,16 @@ const Incomes = () => {
                         </tbody>
                     </table>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '0.5rem 0', flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', padding: '0.4rem 0', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         Showing {pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Per page:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Per page:</span>
                             <select
                                 className="form-select"
-                                style={{ width: 'auto', padding: '0.3rem 1.5rem 0.3rem 0.5rem', fontSize: '0.8rem' }}
+                                style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.7rem' }}
                                 value={pageSize}
                                 onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}
                             >
@@ -347,12 +318,12 @@ const Incomes = () => {
                             </select>
                         </div>
                         {pageSize > 0 && totalPages > 1 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.3rem 0.7rem', minWidth: 32, fontSize: '0.85rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 26, fontSize: '0.7rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.3rem 0.6rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                             </div>
                         )}
                     </div>
@@ -360,7 +331,7 @@ const Incomes = () => {
             </div>
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => !saving && setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ left: modalPos?.x ?? '50%', top: modalPos?.y ?? '50%', transform: modalPos ? 'none' : 'translate(-50%, -50%)' }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y } : {}}>
                         <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'Add'} Income</h3>
                             <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>

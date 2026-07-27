@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaEnvelope, FaPaperPlane, FaChevronLeft, FaChevronRight, FaTrash, FaReply, FaTimes } from 'react-icons/fa';
+import { FaEnvelope, FaPaperPlane, FaChevronLeft, FaChevronRight, FaTrash, FaReply, FaTimes, FaSpinner } from 'react-icons/fa';
 import { profileService, type ContactMessage } from '../../services/profileService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { useToast } from '../../context/ToastContext';
@@ -113,14 +113,16 @@ const MessagesSent = () => {
         m.createdAt ? new Date(m.createdAt).toLocaleDateString() : '—',
     ]), [filtered]);
 
+    if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
+
     return (
         <div className="admin-page">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', gap: '1rem', flexWrap: 'wrap' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0 }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0, fontSize: '1rem' }}>
                     <FaEnvelope style={{ color: 'var(--primary)' }} /> Messages
                 </h2>
                 <button className="admin-btn" onClick={() => setShowCompose(true)}
-                    style={{ padding: '0.3rem 0.9rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <FaReply /> Compose
                 </button>
             </div>
@@ -132,7 +134,7 @@ const MessagesSent = () => {
             <div className="admin-card" style={{ marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <input type="text" className="form-input" placeholder="Search name, email, subject..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 280 }} />
+                        <input type="text" className="form-input" placeholder="Search name, email, subject..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 280 }} />
                     </div>
                 </div>
             </div>
@@ -202,7 +204,7 @@ const MessagesSent = () => {
                                         <td style={{ padding: '0.7rem 0.75rem', fontSize: '0.8rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.subject || '—'}</td>
                                         <td style={{ padding: '0.7rem 0.75rem', fontSize: '0.8rem' }}>{m.createdAt ? formatDate(m.createdAt) : '—'}</td>
                                         <td style={{ padding: '0.7rem 0.75rem', textAlign: 'center' }}>
-                                            <button className="admin-btn admin-btn--secondary" onClick={() => handleTrash(m.id!)} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                            <button className="admin-btn admin-btn--secondary" onClick={() => handleTrash(m.id!)} style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                                                 <FaTrash size={10} />
                                             </button>
                                         </td>
@@ -212,19 +214,19 @@ const MessagesSent = () => {
                         </tbody>
                     </table>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 1rem', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap', gap: 8 }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <select className="form-select" style={{ width: 'auto', padding: '0.2rem 1.2rem 0.2rem 0.4rem', fontSize: '0.75rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0.75rem', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{pageSize === 0 ? filtered.length : Math.min(pageSize, filtered.length - (page - 1) * pageSize)} of {filtered.length}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <select className="form-select" style={{ width: 'auto', padding: '0.15rem 1rem 0.15rem 0.35rem', fontSize: '0.7rem' }} value={pageSize} onChange={e => { setPage(1); setPageSize(Number(e.target.value)); }}>
                             {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}<option value={0}>All</option>
                         </select>
                         {pageSize > 0 && totalPages > 1 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.35rem', fontSize: '0.7rem' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><FaChevronLeft /></button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.2rem 0.5rem', minWidth: 26, fontSize: '0.75rem' }} onClick={() => setPage(p)}>{p}</button>
+                                    <button key={p} className={p === page ? 'admin-btn' : 'admin-btn admin-btn--secondary'} style={{ padding: '0.15rem 0.35rem', minWidth: 22, fontSize: '0.7rem' }} onClick={() => setPage(p)}>{p}</button>
                                 ))}
-                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
+                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.35rem', fontSize: '0.7rem' }} disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}><FaChevronRight /></button>
                             </div>
                         )}
                     </div>

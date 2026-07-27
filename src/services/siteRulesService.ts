@@ -6,6 +6,7 @@ export interface SiteRule {
     iconName: string;
     pinColor: string;
     items: string[];
+    category: string;
     order: number;
     isActive: boolean;
     createdAt: string;

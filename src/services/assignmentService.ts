@@ -21,6 +21,7 @@ const baseUrl = '';
 export const assignmentService = {
     getAll: () => api.get(`${baseUrl}/employee-assignments`),
     getMyTeam: () => api.get(`${baseUrl}/employee-assignments/my-team`),
+    getMyRecruits: () => api.get(`${baseUrl}/employee-assignments/my-recruits`),
     getOne: (id: string) => api.get(`${baseUrl}/employee-assignments/${id}`),
     getByEmployee: (employeeId: string) => api.get(`${baseUrl}/employee-assignments/employee/${employeeId}`),
     getByProject: (projectId: string) => api.get(`${baseUrl}/employee-assignments/project/${projectId}`),

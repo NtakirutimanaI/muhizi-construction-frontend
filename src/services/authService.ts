@@ -61,6 +61,11 @@ export const authService = {
         return response.data;
     },
 
+    capitalizeNames: async () => {
+        const response = await api.post('/auth/users/capitalize-names');
+        return response.data;
+    },
+
     createUser: async (data: any) => {
         const response = await api.post('/auth/users', data);
         return response.data;
