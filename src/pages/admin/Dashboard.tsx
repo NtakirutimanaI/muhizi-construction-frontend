@@ -113,6 +113,29 @@ const AdminDashboard = () => {
                         savePageCache(role, { recentSubmissions: subs.slice(0, 5) });
                     } catch (e) { console.error(e); }
                 }
+
+                // Fetch chart data for directors, engineering studio, and site engineer
+                if (role === 'finance_director' || role === 'managing_director' || role === 'engineering_studio' || role === 'site_engineer') {
+                    try {
+                        const [projRes, siteRes, empRes] = await Promise.all([
+                            constructionService.getProjects().catch(() => ({ data: [] })),
+                            sitesService.getAll().catch(() => ({ data: [] })),
+                            hrService.getEmployees().catch(() => ({ data: [] })),
+                        ]);
+                        setProjects(projRes.data || []);
+                        setSites(siteRes.data || []);
+                        setEmployees(empRes.data || []);
+                    } catch (e) { console.error(e); }
+                }
+
+                // Fetch yearly financial report for finance & managing directors
+                if (role === 'finance_director' || role === 'managing_director') {
+                    try {
+                        const yr = await financeService.getYearlyReport(new Date().getFullYear());
+                        setYearlyReport(yr.data);
+                    } catch (e) { console.error(e); }
+                }
+
                 setLoading(false);
                 return;
             }
@@ -334,7 +357,7 @@ const AdminDashboard = () => {
         }
     }
 
-    const showSitesAndProjects = !isExecutive || role === 'site_engineer';
+    const showSitesAndProjects = !isExecutive || role === 'site_engineer' || role === 'managing_director' || role === 'finance_director' || role === 'engineering_studio';
 
     const monthlyChartData = yearlyReport?.monthlyData?.map((m: any) => ({
         name: MONTH_NAMES[m.month - 1],
