@@ -602,8 +602,8 @@ const Projects = () => {
             </div>
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => !savingProject && setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={modalPos ? { position: 'fixed', left: modalPos.x, top: modalPos.y } : {}}>
-                        <div className="admin-modal-header" onMouseDown={onHeaderMouseDown}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                        <div className="admin-modal-header">
                             <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'Add'} Project</h3>
                             <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>
                         </div>

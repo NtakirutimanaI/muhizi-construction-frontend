@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
-import { FaUserPlus, FaUser, FaEnvelope, FaPhone, FaHome, FaIdCard, FaGraduationCap, FaVenusMars, FaRing, FaUsers, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaSearch, FaCheckCircle, FaTimesCircle, FaUserTie, FaFilePdf, FaUpload, FaExternalLinkAlt, FaUniversity, FaBriefcase, FaInfoCircle, FaChevronDown, FaChevronUp, FaMoneyBillWave, FaSpinner } from 'react-icons/fa';
+import { FaUserPlus, FaUser, FaEnvelope, FaPhone, FaHome, FaIdCard, FaGraduationCap, FaVenusMars, FaRing, FaUsers, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaSearch, FaCheckCircle, FaTimesCircle, FaUserTie, FaFilePdf, FaUpload, FaExternalLinkAlt, FaUniversity, FaBriefcase, FaInfoCircle, FaChevronDown, FaChevronUp, FaMoneyBillWave, FaSpinner, FaArrowsAlt } from 'react-icons/fa';
 import { insuranceService } from '../../services/insuranceService';
 import { authService } from '../../services/authService';
 import api from '../../services/api';
