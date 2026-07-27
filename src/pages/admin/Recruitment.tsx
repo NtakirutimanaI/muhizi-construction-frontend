@@ -269,7 +269,7 @@ const Recruitment = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <input type="text" className="form-input" placeholder="Search name, job..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 200 }} />
                         <button className="admin-btn" onClick={() => { setForm(emptyForm); setShowModal(true); }}
-                            style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
+                            style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 0, padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6, opacity: 1 }}>
                             <FaUserPlus /> Recruit Worker
                         </button>
                     </div>
@@ -350,7 +350,7 @@ const Recruitment = () => {
 
             {showModal && (
                 <div className="admin-modal-overlay" onClick={() => !saving && setShowModal(false)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 560, maxHeight: '88vh', overflowY: 'auto', borderRadius: 12 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 560, maxHeight: '88vh', overflowY: 'auto', borderRadius: 0 }}>
                         <div className="admin-modal-header">
                             <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem' }}>
                                 <FaUserPlus style={{ color: 'var(--primary)' }} /> Recruit New Worker
@@ -425,7 +425,7 @@ const Recruitment = () => {
                 const initials = `${emp.firstName?.[0] || ''}${emp.lastName?.[0] || ''}`.toUpperCase();
                 return (
                     <div className="admin-modal-overlay" onClick={() => setViewItem(null)}>
-                        <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480, borderRadius: 12 }}>
+                        <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480, borderRadius: 0 }}>
                             <div className="admin-modal-header">
                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem' }}>
                                     <FaUsers style={{ color: 'var(--primary)' }} /> Worker Profile
@@ -462,7 +462,7 @@ const Recruitment = () => {
 
             {deleteTarget && (
                 <div className="admin-modal-overlay" onClick={() => !deleting && setDeleteTarget(null)}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 400, borderRadius: 12 }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 400, borderRadius: 0 }}>
                         <div className="admin-modal-header">
                             <h3 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <FaTrash style={{ color: 'var(--primary-red)' }} /> Remove Worker
