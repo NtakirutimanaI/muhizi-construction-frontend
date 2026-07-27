@@ -7,6 +7,12 @@ export interface AdminKpi {
     mtdExpenses: number;
     mtdIncomes: number;
     stockAlerts: number;
+    todayPresent: number;
+    todayAbsent: number;
+    todayLate: number;
+    todayHalfDay: number;
+    todayOnLeave: number;
+    recentAttendance: { id: string; employeeName: string; projectName: string; status: string; checkIn: string | null; checkOut: string | null; site: string | null; date: string }[];
 }
 
 export interface ManagingDirectorKpi {
@@ -24,6 +30,12 @@ export interface FinanceDirectorKpi {
     mtdExpenses: number;
     cashFlow: number;
     pendingPayments: number;
+    todayPresent: number;
+    todayAbsent: number;
+    todayLate: number;
+    todayHalfDay: number;
+    todayOnLeave: number;
+    recentAttendance: { id: string; employeeName: string; projectName: string; status: string; checkIn: string | null; checkOut: string | null; site: string | null; date: string }[];
 }
 
 export interface SiteEngineerKpi {

@@ -55,6 +55,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
             { path: '/admin/recruitment', icon: 'FaUserPlus', label: 'Recruitment', roles: [ROLES.SITE_ENGINEER] },
             { path: '/admin/create-contract', icon: 'FaFileContract', label: 'Create Contract', roles: [ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/attendance', icon: 'FaClipboardList', label: 'Attendance', roles: [ROLES.STOREKEEPER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/attendance-reports', icon: 'FaCalendarAlt', label: 'Attendance Reports', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/payroll', icon: 'FaMoneyBillWave', label: 'Payroll', roles: [ROLES.FINANCE_DIRECTOR] },
         ],
     },
@@ -73,7 +74,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     {
         label: 'Admin',
         items: [
-            { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
+            { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/users', icon: 'FaUsers', label: 'Users', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/registration', icon: 'FaUserPlus', label: 'Registration', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/resources', icon: 'FaDatabase', label: 'CMS', roles: [ROLES.ADMIN] },
