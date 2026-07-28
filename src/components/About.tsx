@@ -147,9 +147,9 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                     flex: 1 1 0px !important;
                     min-width: 0 !important;
                     border-radius: 8px;
-                    background: #fff;
-                    border: 1px solid rgba(15,18,34,0.06);
-                    box-shadow: 0 2px 12px rgba(15,18,34,0.06);
+                    background: transparent;
+                    border: none;
+                    box-shadow: none;
                     padding: 0.85rem 0.6rem;
                     text-align: center;
                 }

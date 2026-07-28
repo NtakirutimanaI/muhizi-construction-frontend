@@ -96,7 +96,6 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         label: 'Client',
         items: [
             { path: '/admin/profile', icon: 'FaUser', label: 'My Profile', roles: [ROLES.CLIENT] },
-            { path: '/admin/sites', icon: 'FaImage', label: 'Sites', roles: [ROLES.CLIENT] },
             { path: '/admin/progress-reports', icon: 'FaFileAlt', label: 'Progress Reports', roles: [ROLES.CLIENT] },
             { path: '/admin/updates', icon: 'FaClipboardList', label: 'Updates', roles: [ROLES.CLIENT] },
         ],

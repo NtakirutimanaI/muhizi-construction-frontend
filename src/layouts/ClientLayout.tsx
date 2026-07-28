@@ -9,7 +9,6 @@ import { profileService } from '../services/profileService';
 
 const NAV_ITEMS = [
   { path: '', icon: <FaChartBar />, label: 'Dashboard' },
-  { path: '/sites', icon: <FaImage />, label: 'Sites' },
   { path: '/progress-reports', icon: <FaFileAlt />, label: 'Progress Reports' },
   { path: '/updates', icon: <FaClipboardList />, label: 'Updates' },
   { path: '/site-rules', icon: <FaGavel />, label: 'Site Rules' },
@@ -19,7 +18,6 @@ const NAV_ITEMS = [
 const SECTION_LABELS: Record<string, string> = {
   '': 'Dashboard',
   '/profile': 'My Profile',
-  '/sites': 'Sites',
   '/progress-reports': 'Progress Reports',
   '/updates': 'Updates',
   '/site-rules': 'Site Rules',
@@ -28,7 +26,6 @@ const SECTION_LABELS: Record<string, string> = {
 const SECTION_ICONS: Record<string, React.ReactNode> = {
   '': <FaChartBar size={14} />,
   '/profile': <FaUser size={14} />,
-  '/sites': <FaImage size={14} />,
   '/progress-reports': <FaFileAlt size={14} />,
   '/updates': <FaClipboardList size={14} />,
   '/site-rules': <FaGavel size={14} />,
