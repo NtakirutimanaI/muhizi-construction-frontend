@@ -8,7 +8,7 @@ import {
     FaUserTie, FaMoneyBillWave, FaCalendarCheck,
     FaExclamationTriangle, FaWallet, FaFileInvoiceDollar, FaDraftingCompass,
     FaArrowUp, FaArrowDown, FaChartPie, FaGavel, FaCheckCircle, FaTimesCircle,
-    FaClock, FaFileAlt, FaTasks, FaSpinner,
+    FaClock, FaFileAlt, FaTasks, FaSpinner, FaBoxOpen,
 } from 'react-icons/fa';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -25,6 +25,8 @@ import { dashboardService } from '../../services/dashboardService';
 import { financeService } from '../../services/financeService';
 import { engineeringSubmissionsService } from '../../services/engineeringSubmissionsService';
 import type { EngineeringSubmission } from '../../services/engineeringSubmissionsService';
+import { materialRequestsService, type MaterialRequest } from '../../services/materialRequestsService';
+import { stockService, type StockBalance } from '../../services/stockService';
 import type { AdminKpi, ManagingDirectorKpi, FinanceDirectorKpi, SiteEngineerKpi, EngineeringStudioKpi, ClientKpi } from '../../services/dashboardService';
 import type { YearlyReport } from '../../services/financeService';
 import { useAuth } from '../../context/AuthContext';
@@ -68,6 +70,8 @@ const AdminDashboard = () => {
     const [attendanceToday, setAttendanceToday] = useState(0);
     const [myAssignments, setMyAssignments] = useState<any[]>([]);
     const [recentSubmissions, setRecentSubmissions] = useState<EngineeringSubmission[]>([]);
+    const [materialRequests, setMaterialRequests] = useState<MaterialRequest[]>([]);
+    const [stockBalance, setStockBalance] = useState<StockBalance[]>([]);
     type AnyKpi = Partial<AdminKpi & ManagingDirectorKpi & FinanceDirectorKpi & SiteEngineerKpi & EngineeringStudioKpi & ClientKpi>;
     const [kpi, setKpi] = useState<AnyKpi | null>(null);
     const [yearlyReport, setYearlyReport] = useState<YearlyReport | null>(null);
@@ -84,6 +88,8 @@ const AdminDashboard = () => {
             if (cached.employees) setEmployees(cached.employees);
             if (cached.attendanceToday != null) setAttendanceToday(cached.attendanceToday);
             if (cached.myAssignments) setMyAssignments(cached.myAssignments);
+            if (cached.materialRequests) setMaterialRequests(cached.materialRequests);
+            if (cached.stockBalance) setStockBalance(cached.stockBalance);
             if (cached.kpi) setKpi(cached.kpi);
             if (cached.yearlyReport) setYearlyReport(cached.yearlyReport);
         }
@@ -176,7 +182,17 @@ const AdminDashboard = () => {
                         setSites(filteredSites);
                         cacheData.projects = filteredProjects;
                         cacheData.sites = filteredSites;
-                    }).catch(e => console.error(e))
+                    }).catch(e => console.error(e)),
+                    materialRequestsService.getAll().then(d => {
+                        const reqs = d.data || [];
+                        setMaterialRequests(reqs);
+                        cacheData.materialRequests = reqs;
+                    }).catch(e => console.error(e)),
+                    stockService.getBalance().then(d => {
+                        const bal = d.data || [];
+                        setStockBalance(bal);
+                        cacheData.stockBalance = bal;
+                    }).catch(e => console.error(e)),
                 );
             } else {
                 dataPromises.push(
@@ -190,17 +206,6 @@ const AdminDashboard = () => {
             dataPromises.push(
                 hrService.getAttendanceStats().then(d => { setAttendanceToday(d.data?.present ?? 0); cacheData.attendanceToday = d.data?.present ?? 0; }).catch(e => console.error(e)),
             );
-            // Only Storekeeper has Messages in their sidebar in this branch.
-            if (isStorekeeper) {
-                dataPromises.push(
-                    profileService.getContactMessages().then(d => {
-                        const stats = { total: d.length, unread: d.filter(m => !m.status || m.status === 'new' || m.status === 'unread').length };
-                        setMessageStats(stats);
-                        cacheData.messageStats = stats;
-                    }).catch(e => console.error(e)),
-                );
-            }
-
             await Promise.all(dataPromises);
             cacheData.profile = cached?.profile || null;
             savePageCache(role, cacheData);
@@ -216,11 +221,13 @@ const AdminDashboard = () => {
     let quickActions: { to: string; icon: React.ReactNode; bg: string; label: string; sub: string }[];
 
     if (isStorekeeper) {
+        const pendingRequests = materialRequests.filter(r => r.status === 'pending').length;
+        const lowStockItems = stockBalance.filter(s => s.balance <= 0).length;
         quickActions = [
-            { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} my sites` },
-            { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} my sites with media` },
-            { to: '/admin/attendance', icon: <FaClipboardList />, bg: '#22c55e', label: 'Attendance', sub: `${attendanceToday} checked in today` },
-            { to: '/admin/messages', icon: <FaEnvelope />, bg: '#1B2042', label: 'Messages', sub: `${messageStats.unread} unread` },
+            { to: '/admin/material-requests', icon: <FaClipboardList />, bg: '#1B2042', label: 'Material Requests', sub: `${pendingRequests} pending` },
+            { to: '/admin/stock/in', icon: <FaBoxOpen />, bg: '#8b5cf6', label: 'Stock', sub: lowStockItems > 0 ? `${lowStockItems} items low` : `${stockBalance.length} items tracked` },
+            { to: '/admin/sites', icon: <FaHardHat />, bg: '#f59e0b', label: 'Sites', sub: `${sites.length} my sites` },
+            { to: '/admin/requests', icon: <FaClipboardList />, bg: '#22c55e', label: 'Requests & Approvals', sub: `${pendingRequests} pending` },
         ];
     } else if (isAdmin) {
         quickActions = [
@@ -279,11 +286,15 @@ const AdminDashboard = () => {
     let summaryCards: Card[];
 
     if (isStorekeeper) {
+        const pendingRequests = materialRequests.filter(r => r.status === 'pending').length;
+        const approvedRequests = materialRequests.filter(r => r.status === 'approved').length;
+        const lowStockItems = stockBalance.filter(s => s.balance <= 0).length;
         summaryCards = [
             { label: 'My Projects', value: projects.length, sub: `${projects.filter(p => p.status === 'in_progress').length} active`, icon: <FaProjectDiagram />, color: '#1B2042' },
             { label: 'My Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b' },
-            { label: 'Leading Members', value: myAssignments.length, sub: 'assigned workers', icon: <FaUserTie />, color: '#8b5cf6' },
-            { label: 'Attendance', value: attendanceToday, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e' },
+            { label: 'Material Requests', value: materialRequests.length, sub: `${pendingRequests} pending`, icon: <FaClipboardList />, color: '#8b5cf6' },
+            { label: 'Stock Items', value: stockBalance.length, sub: lowStockItems > 0 ? `${lowStockItems} out of stock` : 'all in stock', icon: <FaBoxOpen />, color: lowStockItems > 0 ? '#ef4444' : '#22c55e' },
+            { label: 'Assigned Workers', value: myAssignments.length, sub: 'team members', icon: <FaUserTie />, color: '#8b5cf6' },
         ];
     } else if (isAdmin) {
         summaryCards = [
@@ -352,9 +363,6 @@ const AdminDashboard = () => {
             { label: 'Total Sites', value: sites.length, sub: `${sites.filter(s => s.status === 'active').length} active`, icon: <FaHardHat />, color: '#f59e0b' },
             { label: 'Employees', value: employees.length, sub: `${employees.filter(e => e.status === 'active').length} active`, icon: <FaUserTie />, color: '#8b5cf6' },
         ];
-        if (role === 'storekeeper') {
-            summaryCards.push({ label: 'Attendance', value: attendanceToday, sub: 'checked in today', icon: <FaCalendarCheck />, color: '#22c55e' });
-        }
     }
 
     const showSitesAndProjects = !isExecutive || role === 'site_engineer' || role === 'managing_director' || role === 'finance_director' || role === 'engineering_studio';
