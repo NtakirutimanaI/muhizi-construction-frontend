@@ -47,6 +47,7 @@ interface UnifiedRequest {
     status: UnifiedStatus;
     reviewedAt?: string;
     raw: MaterialRequest | Approval;
+    site?: string;
 }
 
 const PAGE_SIZES = [5, 10, 15, 20];
@@ -75,6 +76,7 @@ const Requests = () => {
     // approver below — it cannot also submit fund requests, or it would be approving itself.
     const canSubmitFundRequest = role === 'managing_director' || role === 'site_engineer';
     const canReviewFundRequest = role === 'admin';
+    const canReviewMaterialRequest = role === 'managing_director' || role === 'storekeeper';
     const [requests, setRequests] = useState<UnifiedRequest[]>([]);
     const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<UnifiedStatus | 'all'>('pending');
@@ -103,6 +105,7 @@ const Requests = () => {
         status: r.status === 'delivered' ? 'approved' : r.status as UnifiedStatus,
         reviewedAt: r.approvedAt ? new Date(r.approvedAt).toISOString().split('T')[0] : undefined,
         raw: r,
+        site: (r as any).site || undefined,
     });
 
     const toUnifiedFromApproval = (r: Approval): UnifiedRequest => ({
@@ -317,6 +320,7 @@ const Requests = () => {
                             <tr>
                                 <th style={{ width: 28 }}><FaFilter size={10} /></th>
                                 <th>Request</th>
+                                <th>Site</th>
                                 <th>Requester</th>
                                 <th>Reviewer</th>
                                 <th>Details</th>
@@ -328,7 +332,7 @@ const Requests = () => {
                         <tbody>
                             {paginated.map(req => {
                                 const badge = safeBadge(req.status);
-                                const canAct = req.type === 'material' || canReviewFundRequest;
+                                        const canAct = req.type === 'material' ? canReviewMaterialRequest : canReviewFundRequest;
                                 return (
                                     <tr key={req.id} style={{ opacity: req.status !== 'pending' ? 0.7 : 1 }}>
                                         <td>
@@ -347,6 +351,17 @@ const Requests = () => {
                                             <div style={{ fontSize: '0.7rem', color: '#999', marginTop: 2 }}>
                                                 {req.source === 'material' ? 'Material Request' : 'Fund Request'}
                                             </div>
+                                        </td>
+                                        <td style={{ fontSize: '0.82rem' }}>
+                                            {req.site ? (
+                                                <span style={{
+                                                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                                                    padding: '2px 8px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600,
+                                                    background: '#f0f4ff', color: '#1e40af',
+                                                }}>
+                                                    <FaBuilding size={9} /> {req.site}
+                                                </span>
+                                            ) : <span style={{ color: '#bbb' }}>—</span>}
                                         </td>
                                         <td style={{ fontSize: '0.82rem' }}>
                                             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -436,7 +451,7 @@ const Requests = () => {
                             })}
                             {!paginated.length && (
                                 <tr>
-                                    <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#999' }}>
+                                    <td colSpan={9} style={{ padding: '3rem', textAlign: 'center', color: '#999' }}>
                                         <FaClipboardList size={36} style={{ opacity: 0.25, marginBottom: 10 }} />
                                         <div style={{ fontSize: '0.95rem' }}>No {filter !== 'all' ? filter : ''} requests found</div>
                                         <span style={{ fontSize: '0.8rem' }}>Material and fund requests will appear here</span>
@@ -627,7 +642,7 @@ const Requests = () => {
                                     padding: '0.15rem 0.8rem', borderRadius: 7, border: '1px solid #ddd',
                                     background: 'transparent', cursor: 'pointer', fontSize: '0.75rem',
                                 }}>Close</button>
-                            {viewItem.status === 'pending' && (viewItem.type === 'material' || canReviewFundRequest) && (
+                            {viewItem.status === 'pending' && (viewItem.type === 'material' ? canReviewMaterialRequest : canReviewFundRequest) && (
                                 <>
                                     <button onClick={() => { handleApprove(viewItem); setViewItem(null); }}
                                         style={{

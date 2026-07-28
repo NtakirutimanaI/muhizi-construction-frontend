@@ -1,7 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaTimes as FaTimesIcon, FaTruck, FaSpinner, FaChevronLeft, FaChevronRight, FaCheck, FaBan, FaUser, FaClock, FaCheckDouble, FaFileExcel, FaFilePdf, FaSearch, FaCalendarAlt } from 'react-icons/fa';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { FaPlus, FaEdit, FaTrash, FaTimes as FaTimesIcon, FaTruck, FaSpinner, FaChevronLeft, FaChevronRight, FaCheck, FaBan, FaUser, FaClock, FaCheckDouble, FaFileExcel, FaFilePdf, FaSearch, FaCalendarAlt, FaWarehouse, FaExclamationTriangle, FaBuilding } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { materialRequestsService } from '../../services/materialRequestsService';
+import { stockService } from '../../services/stockService';
+import { sitesService } from '../../services/sitesService';
+import type { StockBalance } from '../../services/stockService';
+import type { Site } from '../../services/sitesService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { assignmentService } from '../../services/assignmentService';
 import type { MaterialRequest } from '../../services/materialRequestsService';
@@ -12,7 +16,7 @@ import autoTable from 'jspdf-autotable';
 
 const PAGE_SIZES = [5, 10, 15, 20];
 
-const emptyForm = { project: '', material: '', quantity: '' as any, unit: 'pieces', unitPrice: '' as any, date: new Date().toISOString().split('T')[0], notes: '' };
+const emptyForm = { project: '', site: '', material: '', quantity: '' as any, unit: 'pieces', unitPrice: '' as any, date: new Date().toISOString().split('T')[0], notes: '' };
 
 const statusColors: Record<string, string> = {
     pending: '#f59e0b', approved: '#1B2042', rejected: '#ef4444', delivered: '#22c55e',
@@ -24,13 +28,16 @@ const MaterialRequests = () => {
     const [requests, setRequests] = useState<MaterialRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+    const [assignedSites, setAssignedSites] = useState<Site[]>([]);
     const [selectedProject, setSelectedProject] = useState('all');
+    const [siteFilter, setSiteFilter] = useState('all');
     const [showModal, setShowModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectId, setRejectId] = useState<string | null>(null);
     const [rejectNotes, setRejectNotes] = useState('');
     const [editing, setEditing] = useState<MaterialRequest | null>(null);
     const [form, setForm] = useState(emptyForm);
+    const [saving, setSaving] = useState(false);
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
@@ -38,30 +45,40 @@ const MaterialRequests = () => {
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [showDateFilter, setShowDateFilter] = useState(false);
+    const [stockBalance, setStockBalance] = useState<StockBalance[]>([]);
+    const [materialSearch, setMaterialSearch] = useState('');
+    const [showStockDropdown, setShowStockDropdown] = useState(false);
 
-    const isSiteMgr = user?.role === 'storekeeper';
+    const isSiteEngineer = user?.role === 'site_engineer';
+    const isStorekeeper = user?.role === 'storekeeper';
+    const canApprove = isStorekeeper || user?.role === 'managing_director';
 
     const load = async () => {
         setLoading(true);
-        const cached = loadPageCache<{ requests: MaterialRequest[]; projects: { id: string; name: string }[] }>('pg_material_requests');
-        if (cached) {
-            setRequests(cached.requests || []);
-            setProjects(cached.projects || []);
-        }
+
         let assignedProjectNames: string[] = [];
 
-        if (isSiteMgr) {
+        if (isSiteEngineer) {
             try {
                 const res = await assignmentService.getMyTeam();
                 const assignments = res.data || [];
                 assignedProjectNames = [...new Set(assignments.map((a: any) => a.project?.name).filter(Boolean))];
+            } catch (e) { console.error(e); }
+
+            try {
+                const siteRes = await sitesService.getMyAssigned();
+                const sites = siteRes.data || [];
+                setAssignedSites(sites);
+                if (sites.length === 1) {
+                    setForm(p => ({ ...p, site: sites[0].name, project: sites[0].project?.name || '' }));
+                }
             } catch (e) { console.error(e); }
         }
 
         try {
             const res = await constructionService.getProjects();
             let allProjects = res.data || [];
-            if (isSiteMgr) {
+            if (isSiteEngineer && assignedProjectNames.length > 0) {
                 allProjects = allProjects.filter((p: any) => assignedProjectNames.includes(p.name));
                 if (allProjects.length > 0) setSelectedProject(allProjects[0].name);
             }
@@ -69,22 +86,44 @@ const MaterialRequests = () => {
 
             const res2 = await materialRequestsService.getAll();
             const data = res2.data || [];
-            const filtered = isSiteMgr ? data.filter((r: any) => assignedProjectNames.includes(r.project)) : data;
+            const filtered = isSiteEngineer ? data.filter((r: any) => assignedProjectNames.includes(r.project)) : data;
             setRequests(filtered);
-            savePageCache('pg_material_requests', { requests: filtered, projects: allProjects });
         } catch (e) { console.error(e); }
+
+        try {
+            const balRes = await stockService.getBalance();
+            setStockBalance(balRes.data || []);
+        } catch (e) { console.error(e); }
+
+        setLoading(false);
     };
     useEffect(() => { load(); }, []);
+
+    const allSites = useMemo(() => {
+        const siteMap = new Map<string, { name: string; projectName: string }>();
+        if (assignedSites.length > 0) {
+            for (const s of assignedSites) {
+                siteMap.set(s.name, { name: s.name, projectName: s.project?.name || '' });
+            }
+        }
+        for (const r of requests) {
+            if (r.site && !siteMap.has(r.site)) {
+                siteMap.set(r.site, { name: r.site, projectName: r.project });
+            }
+        }
+        return Array.from(siteMap.values());
+    }, [assignedSites, requests]);
 
     const filtered = useMemo(() =>
         requests.filter(r => {
             if (selectedProject !== 'all' && r.project !== selectedProject) return false;
+            if (siteFilter !== 'all' && r.site !== siteFilter) return false;
             if (statusFilter !== 'all' && r.status !== statusFilter) return false;
             if (fromDate && r.date && new Date(r.date) < new Date(fromDate)) return false;
             if (toDate) { const end = new Date(toDate); end.setHours(23, 59, 59, 999); if (r.date && new Date(r.date) > end) return false; }
-            return !search.trim() || r.project.toLowerCase().includes(search.toLowerCase()) || r.material.toLowerCase().includes(search.toLowerCase()) || (r.createdByName || '').toLowerCase().includes(search.toLowerCase());
+            return !search.trim() || r.project.toLowerCase().includes(search.toLowerCase()) || r.material.toLowerCase().includes(search.toLowerCase()) || (r.site || '').toLowerCase().includes(search.toLowerCase()) || (r.createdByName || '').toLowerCase().includes(search.toLowerCase());
         }),
-        [requests, selectedProject, statusFilter, search, fromDate, toDate],
+        [requests, selectedProject, siteFilter, statusFilter, search, fromDate, toDate],
     );
 
     const totalPages = pageSize === 0 ? 1 : Math.ceil(filtered.length / pageSize);
@@ -104,8 +143,22 @@ const MaterialRequests = () => {
         delivered: requests.filter(r => r.status === 'delivered').length,
     }), [requests]);
 
+    const siteStats = useMemo(() => {
+        const map = new Map<string, { site: string; project: string; total: number; pending: number; approved: number }>();
+        for (const r of requests) {
+            const siteName = r.site || 'Unassigned';
+            const existing = map.get(siteName) || { site: siteName, project: r.project, total: 0, pending: 0, approved: 0 };
+            existing.total++;
+            if (r.status === 'pending') existing.pending++;
+            if (r.status === 'approved') existing.approved++;
+            map.set(siteName, existing);
+        }
+        return Array.from(map.values()).sort((a, b) => b.total - a.total);
+    }, [requests]);
+
     const tableData = useMemo(() => filtered.map((r, i) => [
         String(i + 1),
+        r.site || '—',
         r.project,
         r.material,
         `${r.quantity} ${r.unit}`,
@@ -141,13 +194,13 @@ const MaterialRequests = () => {
         const today = new Date().toLocaleDateString();
         doc.text(`Generated: ${today}${fromDate && toDate ? ` | Period: ${fromDate} to ${toDate}` : ''}`, pageW - 14, titleY, { align: 'right' });
         autoTable(doc, {
-            head: [['#', 'Project', 'Material', 'Qty', 'Cost', 'Date', 'Requested By', 'Status']],
+            head: [['#', 'Site', 'Project', 'Material', 'Qty', 'Cost', 'Date', 'Requested By', 'Status']],
             body: tableData,
             startY: 46,
-            styles: { fontSize: 8, textColor: '#333' },
+            styles: { fontSize: 7, textColor: '#333' },
             headStyles: { fillColor: [139, 69, 19], textColor: [255, 255, 255], fontStyle: 'bold' },
             alternateRowStyles: { fillColor: [250, 245, 240] },
-            columnStyles: { 0: { cellWidth: 10, halign: 'center' } },
+            columnStyles: { 0: { cellWidth: 8, halign: 'center' } },
             didDrawPage: (data: any) => {
                 doc.setDrawColor(brown);
                 doc.setLineWidth(0.5);
@@ -165,7 +218,7 @@ const MaterialRequests = () => {
         const brown = '#1B2042';
         const today = new Date().toLocaleDateString();
         const period = fromDate && toDate ? `Period: ${fromDate} to ${toDate}` : '';
-        const headers = ['#', 'Project', 'Material', 'Qty', 'Cost', 'Date', 'Requested By', 'Status'];
+        const headers = ['#', 'Site', 'Project', 'Material', 'Qty', 'Cost', 'Date', 'Requested By', 'Status'];
         const rows = tableData.map(r => `<tr>${r.map(c => `<td style="padding:4px 8px;border:1px solid #ccc;font-size:11px">${c}</td>`).join('')}</tr>`).join('');
         const html = `
             <html><head><meta charset="UTF-8"></head><body>
@@ -190,22 +243,64 @@ const MaterialRequests = () => {
         URL.revokeObjectURL(url);
     };
 
-    const openNew = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
-    const openEdit = (r: MaterialRequest) => { setEditing(r); setForm({ project: r.project, material: r.material, quantity: r.quantity, unit: r.unit, unitPrice: r.unitPrice, date: r.date, notes: r.notes || '' }); setShowModal(true); };
+    const openNew = () => { setEditing(null); setForm({ ...emptyForm, site: assignedSites.length === 1 ? assignedSites[0].name : '', project: assignedSites.length === 1 ? (assignedSites[0].project?.name || '') : '' }); setMaterialSearch(''); setShowModal(true); };
+    const openEdit = (r: MaterialRequest) => { setEditing(r); setForm({ project: r.project, site: r.site || '', material: r.material, quantity: r.quantity, unit: r.unit, unitPrice: r.unitPrice, date: r.date, notes: r.notes || '' }); setMaterialSearch(r.material); setShowModal(true); };
 
-    const save = () => {
-        if (!form.project || !form.material) { showToast('Project and material are required', 'error'); return; }
-        if (editing) {
-            materialRequestsService.update(editing.id, form as any)
-                .then(() => { showToast('Request updated', 'success'); load(); })
-                .catch(() => showToast('Failed to update', 'error'));
-        } else {
-            materialRequestsService.create(form as any)
-                .then(() => { showToast('Request created', 'success'); load(); })
-                .catch(() => showToast('Failed to create', 'error'));
+    const filteredStock = useMemo(() => {
+        if (!materialSearch.trim()) return stockBalance;
+        const q = materialSearch.toLowerCase();
+        return stockBalance.filter(s => s.item.toLowerCase().includes(q));
+    }, [stockBalance, materialSearch]);
+
+    const selectStockItem = (item: StockBalance) => {
+        setForm(p => ({ ...p, material: item.item, unit: item.unit }));
+        setMaterialSearch(item.item);
+        setShowStockDropdown(false);
+    };
+
+    const handleSiteChange = (siteName: string) => {
+        const site = assignedSites.find(s => s.name === siteName);
+        setForm(p => ({
+            ...p,
+            site: siteName,
+            project: site?.project?.name || p.project,
+        }));
+    };
+
+    const save = async () => {
+        if (!form.project || !form.material) { showToast('Please fill in project and material.', 'error'); return; }
+        if (isSiteEngineer && !form.site) { showToast('Please select a site.', 'error'); return; }
+        if (isSiteEngineer && !form.quantity) { showToast('Please enter a quantity.', 'error'); return; }
+        const payload: Record<string, any> = {
+            project: form.project,
+            material: form.material,
+            quantity: Number(form.quantity) || 0,
+            unit: form.unit || 'pieces',
+            unitPrice: Number(form.unitPrice) || 0,
+            date: form.date || new Date().toISOString().split('T')[0],
+            notes: form.notes || '',
+        };
+        if (form.site) payload.site = form.site;
+        setSaving(true);
+        try {
+            if (editing) {
+                await materialRequestsService.update(editing.id, payload as any);
+                showToast('Request updated successfully', 'success');
+            } else {
+                await materialRequestsService.create(payload as any);
+                showToast('Request created successfully', 'success');
+            }
+            setShowModal(false);
+            setEditing(null);
+            load();
+        } catch (err: any) {
+            console.error('Save error:', err);
+            const msg = err?.response?.data?.message;
+            const detail = Array.isArray(msg) ? msg.join('. ') : (typeof msg === 'string' ? msg : '');
+            showToast(detail || 'Failed to save request. Please try again.', 'error');
+        } finally {
+            setSaving(false);
         }
-        setShowModal(false);
-        setEditing(null);
     };
 
     const remove = (id: string) => {
@@ -218,7 +313,7 @@ const MaterialRequests = () => {
     const handleApprove = async (id: string) => {
         try {
             await materialRequestsService.approve(id);
-            showToast('Request approved', 'success');
+            showToast('Request approved - stock deducted', 'success');
             load();
         } catch { showToast('Failed to approve', 'error'); }
     };
@@ -235,34 +330,27 @@ const MaterialRequests = () => {
         } catch { showToast('Failed to reject', 'error'); }
     };
 
+    const [rejectModalPos, setRejectModalPos] = useState<{ x: number; y: number } | null>(null);
+    const [dragging, setDragging] = useState(false);
+    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+    const onRejectHeaderMouseDown = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        setDragging(true);
+        setDragOffset({ x: e.clientX, y: e.clientY });
+        setRejectModalPos({ x: e.clientX - 200, y: e.clientY - 100 });
+    }, []);
+
+    useEffect(() => {
+        if (!dragging) return;
+        const onMove = (e: MouseEvent) => setRejectModalPos({ x: e.clientX - dragOffset.x + 200, y: e.clientY - dragOffset.y + 100 });
+        const onUp = () => setDragging(false);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+        return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+    }, [dragging, dragOffset]);
+
     if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
-
-    if (loading) {
-        return (
-            <div className="admin-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh' }}>
-                <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                <span style={{ marginLeft: '0.75rem', fontSize: '0.9rem' }}>Loading...</span>
-            </div>
-        );
-    }
-
-    if (loading) {
-        return (
-            <div className="admin-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh' }}>
-                <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                <span style={{ marginLeft: '0.75rem', fontSize: '0.9rem' }}>Loading...</span>
-            </div>
-        );
-    }
-
-    if (loading) {
-        return (
-            <div className="admin-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh' }}>
-                <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                <span style={{ marginLeft: '0.75rem', fontSize: '0.9rem' }}>Loading...</span>
-            </div>
-        );
-    }
 
     return (
         <div className="admin-page">
@@ -287,22 +375,55 @@ const MaterialRequests = () => {
                         <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.delivered}</div>
                         <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Delivered</div>
                     </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#6b7280', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.total}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Total</div>
-                    </div>
                 </div>
             </div>
+
+            {/* Site Breakdown - shows which sites have requests */}
+            {siteStats.length > 1 && (
+                <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
+                    {siteStats.map(s => (
+                        <div key={s.site} onClick={() => setSiteFilter(siteFilter === s.site ? 'all' : s.site)}
+                            style={{
+                                padding: '0.3rem 0.6rem', borderRadius: 8, cursor: 'pointer',
+                                background: siteFilter === s.site ? 'var(--primary)' : '#f3f4f6',
+                                color: siteFilter === s.site ? '#fff' : '#333',
+                                border: `1px solid ${siteFilter === s.site ? 'var(--primary)' : '#e5e7eb'}`,
+                                fontSize: '0.72rem', fontWeight: 600,
+                                display: 'flex', alignItems: 'center', gap: 6,
+                                transition: 'all 0.15s',
+                            }}>
+                            <FaBuilding size={10} />
+                            <span>{s.site}</span>
+                            <span style={{
+                                background: siteFilter === s.site ? 'rgba(255,255,255,0.25)' : '#e5e7eb',
+                                padding: '1px 6px', borderRadius: 10, fontSize: '0.65rem',
+                            }}>{s.total}</span>
+                            {s.pending > 0 && <span style={{ background: '#f59e0b', color: '#fff', padding: '1px 5px', borderRadius: 8, fontSize: '0.6rem' }}>{s.pending}p</span>}
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <div className="admin-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>All Material Requests</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <select value={selectedProject} onChange={e => { setPage(1); setSelectedProject(e.target.value); }}
-                            style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', minWidth: '140px' }}>
-                            {!isSiteMgr && <option value="all">All Projects</option>}
-                            {projects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
-                        </select>
+                        {!isSiteEngineer && (
+                            <>
+                                <select value={selectedProject} onChange={e => { setPage(1); setSelectedProject(e.target.value); }}
+                                    style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', minWidth: '140px' }}>
+                                    <option value="all">All Projects</option>
+                                    {projects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                                </select>
+                                {allSites.length > 0 && (
+                                    <select value={siteFilter} onChange={e => { setPage(1); setSiteFilter(e.target.value); }}
+                                        style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)', minWidth: '130px' }}>
+                                        <option value="all">All Sites</option>
+                                        {allSites.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                                    </select>
+                                )}
+                            </>
+                        )}
                         <select value={statusFilter} onChange={e => { setPage(1); setStatusFilter(e.target.value); }}
                             style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-body)', color: 'var(--text-main)' }}>
                             <option value="all">All Status</option>
@@ -311,7 +432,7 @@ const MaterialRequests = () => {
                             <option value="rejected">Rejected</option>
                             <option value="delivered">Delivered</option>
                         </select>
-                        <input type="text" className="form-input" placeholder="Search project, material..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 250 }} />
+                        <input type="text" className="form-input" placeholder="Search site, project, material..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.4rem', fontSize: '0.75rem', width: 250 }} />
                         <div style={{ position: 'relative', display: 'inline-block' }}>
                             <button className="admin-btn" onClick={() => setShowDateFilter(p => !p)} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.25rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                                 <FaCalendarAlt size={11} /> Date
@@ -327,13 +448,15 @@ const MaterialRequests = () => {
                                 </div>
                             )}
                         </div>
-                        <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <FaPlus /> New Request
-                        </button>
-                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 3, opacity: 1 }}>
+                        {user?.role !== 'admin' && (
+                            <button className="admin-btn" onClick={openNew} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <FaPlus /> New Request
+                            </button>
+                        )}
+                        <button className="admin-btn" onClick={downloadExcel} title="Download as Excel" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 3 }}>
                             <FaFileExcel />
                         </button>
-                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF — for records, sharing, or uploading elsewhere as evidence" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 3, opacity: 1 }}>
+                        <button className="admin-btn" onClick={downloadPDF} title="Download as PDF" style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 3 }}>
                             <FaFilePdf />
                         </button>
                     </div>
@@ -342,50 +465,79 @@ const MaterialRequests = () => {
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <th>Project</th><th>Material</th><th>Qty</th><th>Cost</th><th>Date</th><th>Requested By</th><th>Status</th><th>Actions</th>
+                                <th>Site</th><th>Project</th><th>Material</th><th>Qty</th><th>Cost</th><th>Date</th><th>Requested By</th><th>Status</th><th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {paginated.map(item => (
-                                <tr key={item.id}>
-                                    <td><strong>{item.project}</strong></td>
-                                    <td style={{ fontSize: '0.85rem' }}>{item.material}</td>
-                                    <td style={{ fontSize: '0.85rem' }}>{item.quantity} {item.unit}</td>
-                                    <td style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--primary)' }}>
-                                        {item.totalCost > 0 ? `RWF ${Number(item.totalCost).toLocaleString()}` : '—'}
-                                    </td>
-                                    <td style={{ whiteSpace: 'nowrap', fontSize: '0.85rem' }}>{item.date || '—'}</td>
-                                    <td style={{ fontSize: '0.85rem' }}>
-                                        {item.createdByName ? (
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                <FaUser size={10} style={{ color: 'var(--text-muted)' }} /> {item.createdByName}
-                                            </span>
-                                        ) : '—'}
-                                    </td>
-                                    <td>
-                                        <span style={{
-                                            display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
-                                            color: '#fff', background: statusColors[item.status] || '#6b7280',
-                                        }}>{item.status.replace('_', ' ')}</span>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                                            {item.status === 'pending' && (
-                                                <>
-                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#22c55e' }} onClick={() => handleApprove(item.id)} title="Approve"><FaCheck /></button>
-                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#ef4444' }} onClick={() => { setRejectId(item.id); setRejectNotes(''); setShowRejectModal(true); }} title="Reject"><FaBan /></button>
-                                                </>
+                            {paginated.map(item => {
+                                const stockItem = stockBalance.find(s => s.item.toLowerCase() === item.material.toLowerCase());
+                                const hasStock = stockItem && stockItem.balance >= item.quantity;
+                                return (
+                                    <tr key={item.id}>
+                                        <td>
+                                            {item.site ? (
+                                                <span style={{
+                                                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                                                    padding: '2px 8px', borderRadius: 6, fontSize: '0.78rem', fontWeight: 600,
+                                                    background: '#f0f4ff', color: '#1e40af',
+                                                }}>
+                                                    <FaBuilding size={9} /> {item.site}
+                                                </span>
+                                            ) : <span style={{ color: '#bbb', fontSize: '0.78rem' }}>—</span>}
+                                        </td>
+                                        <td><strong>{item.project}</strong></td>
+                                        <td style={{ fontSize: '0.85rem' }}>
+                                            <div>{item.material}</div>
+                                            {stockItem && (
+                                                <div style={{ fontSize: '0.7rem', color: hasStock ? '#22c55e' : '#ef4444', display: 'flex', alignItems: 'center', gap: 3, marginTop: 2 }}>
+                                                    <FaWarehouse size={8} />
+                                                    Stock: {stockItem.balance} {stockItem.unit}
+                                                    {!hasStock && <FaExclamationTriangle size={8} title="Insufficient stock" />}
+                                                </div>
                                             )}
-                                            <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
-                                            {user?.role === 'admin' && (
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--primary-red)' }} onClick={() => remove(item.id)} title="Delete"><FaTrash /></button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                        </td>
+                                        <td style={{ fontSize: '0.85rem' }}>{item.quantity} {item.unit}</td>
+                                        <td style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--primary)' }}>
+                                            {item.totalCost > 0 ? `RWF ${Number(item.totalCost).toLocaleString()}` : '—'}
+                                        </td>
+                                        <td style={{ whiteSpace: 'nowrap', fontSize: '0.85rem' }}>{item.date || '—'}</td>
+                                        <td style={{ fontSize: '0.85rem' }}>
+                                            {item.createdByName ? (
+                                                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                    <FaUser size={10} style={{ color: 'var(--text-muted)' }} /> {item.createdByName}
+                                                </span>
+                                            ) : '—'}
+                                        </td>
+                                        <td>
+                                            <span style={{
+                                                display: 'inline-block', padding: '2px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
+                                                color: '#fff', background: statusColors[item.status] || '#6b7280',
+                                            }}>{item.status.replace('_', ' ')}</span>
+                                        </td>
+                                        <td>
+                                            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                                                {item.status === 'pending' && canApprove && (
+                                                    <>
+                                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#22c55e' }} onClick={() => handleApprove(item.id)} title="Approve - deducts from stock"><FaCheck /></button>
+                                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: '#ef4444' }} onClick={() => { setRejectId(item.id); setRejectNotes(''); setShowRejectModal(true); }} title="Reject"><FaBan /></button>
+                                                    </>
+                                                )}
+                                                {item.status === 'pending' && !canApprove && (
+                                                    <span style={{ fontSize: '0.7rem', color: '#999' }}>Awaiting review</span>
+                                                )}
+                                                {user?.role !== 'admin' && (
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => openEdit(item)} title="Edit"><FaEdit /></button>
+                                                )}
+                                                {user?.role === 'admin' && (
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--primary-red)' }} onClick={() => remove(item.id)} title="Delete"><FaTrash /></button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                             {paginated.length === 0 && (
-                                <tr><td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                <tr><td colSpan={9} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                                     <FaTruck size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
                                     <div>No material requests found.</div>
                                 </td></tr>
@@ -419,29 +571,119 @@ const MaterialRequests = () => {
                 </div>
             </div>
 
+            {/* NEW REQUEST MODAL */}
             {showModal && (
-                <div className="admin-modal-overlay" onClick={() => { setShowModal(false); setEditing(null); }}>
-                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 500 }}>
+                <div className="admin-modal-overlay" onClick={() => { setShowModal(false); setEditing(null); setShowStockDropdown(false); }}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: 560 }}>
                         <div className="admin-modal-header">
-                            <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'New'} Material Request</h3>
-                            <button onClick={() => { setShowModal(false); setEditing(null); }}><FaTimesIcon /></button>
+                            <h3><FaTruck style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} />{editing ? 'Edit' : 'New'} Material Request</h3>
+                            <button onClick={() => { setShowModal(false); setEditing(null); setShowStockDropdown(false); }}><FaTimesIcon /></button>
                         </div>
                         <div className="admin-modal-body">
+                            {isSiteEngineer && assignedSites.length > 0 && (
+                                <div style={{
+                                    background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8,
+                                    padding: '0.6rem 0.8rem', marginBottom: '0.8rem',
+                                }}>
+                                    <div style={{ fontSize: '0.78rem', color: '#1e40af', fontWeight: 600, marginBottom: 4 }}>
+                                        <FaBuilding size={10} style={{ marginRight: 4 }} />Your Assigned Site{assignedSites.length > 1 ? 's' : ''}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                        {assignedSites.map(s => (
+                                            <span key={s.id} style={{
+                                                padding: '2px 8px', borderRadius: 6, fontSize: '0.72rem',
+                                                background: form.site === s.name ? '#1e40af' : '#dbeafe',
+                                                color: form.site === s.name ? '#fff' : '#1e40af',
+                                                fontWeight: 600, cursor: 'pointer',
+                                            }} onClick={() => handleSiteChange(s.name)}>
+                                                {s.name} ({s.project?.name || 'No project'})
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                {isSiteEngineer && assignedSites.length > 1 && (
+                                    <div className="form-group">
+                                        <label className="form-label">Site <span style={{ color: '#ef4444' }}>*</span></label>
+                                        <select value={form.site} onChange={e => handleSiteChange(e.target.value)} className="form-select">
+                                            <option value="">Select site</option>
+                                            {assignedSites.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                                 <div className="form-group">
                                     <label className="form-label">Project</label>
-                                    <select value={form.project} onChange={e => setForm(p => ({ ...p, project: e.target.value }))} className="form-select">
+                                    <select value={form.project} onChange={e => setForm(p => ({ ...p, project: e.target.value }))} className="form-select"
+                                        disabled={isSiteEngineer && assignedSites.length === 1}>
                                         <option value="">Select project</option>
                                         {projects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
                                     </select>
                                 </div>
-                                <div className="form-group">
-                                    <label className="form-label">Material</label>
-                                    <input value={form.material} onChange={e => setForm(p => ({ ...p, material: e.target.value }))} className="form-input" placeholder="e.g. Cement" />
+                                <div className="form-group" style={{ position: 'relative' }}>
+                                    <label className="form-label">
+                                        Material {isSiteEngineer && <span style={{ color: '#999', fontWeight: 400, fontSize: '0.7rem' }}>(from stock)</span>}
+                                    </label>
+                                    <input
+                                        value={materialSearch}
+                                        onChange={e => {
+                                            setMaterialSearch(e.target.value);
+                                            setForm(p => ({ ...p, material: e.target.value }));
+                                            setShowStockDropdown(true);
+                                        }}
+                                        onFocus={() => setShowStockDropdown(true)}
+                                        className="form-input"
+                                        placeholder={isSiteEngineer ? "Search available materials..." : "e.g. Cement"}
+                                    />
+                                    {showStockDropdown && filteredStock.length > 0 && (
+                                        <div style={{
+                                            position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
+                                            background: '#fff', border: '1px solid var(--border-color)', borderRadius: 8,
+                                            boxShadow: '0 4px 16px rgba(0,0,0,0.12)', maxHeight: 200, overflowY: 'auto',
+                                        }}>
+                                            {filteredStock.slice(0, 10).map(s => (
+                                                <div
+                                                    key={s.item}
+                                                    onClick={() => selectStockItem(s)}
+                                                    style={{
+                                                        padding: '0.5rem 0.75rem', cursor: 'pointer',
+                                                        borderBottom: '1px solid #f3f4f6',
+                                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                                    }}
+                                                    onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                                                    onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                                                >
+                                                    <div>
+                                                        <div style={{ fontWeight: 600, fontSize: '0.82rem' }}>{s.item}</div>
+                                                        <div style={{ fontSize: '0.7rem', color: '#999' }}>{s.category} · {s.unit}</div>
+                                                    </div>
+                                                    <div style={{ textAlign: 'right' }}>
+                                                        <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#22c55e' }}>{s.balance}</div>
+                                                        <div style={{ fontSize: '0.65rem', color: '#999' }}>available</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Quantity</label>
                                     <input type="number" value={form.quantity} onChange={e => setForm(p => ({ ...p, quantity: e.target.value === '' ? '' : parseInt(e.target.value) || '' }))} className="form-input" placeholder="e.g. 100" />
+                                    {isSiteEngineer && form.material && (() => {
+                                        const stockItem = stockBalance.find(s => s.item.toLowerCase() === form.material.toLowerCase());
+                                        if (stockItem) {
+                                            const requested = parseInt(form.quantity) || 0;
+                                            const sufficient = requested <= stockItem.balance;
+                                            return (
+                                                <div style={{ fontSize: '0.7rem', color: sufficient ? '#22c55e' : '#ef4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
+                                                    {sufficient ? <FaCheck size={8} /> : <FaExclamationTriangle size={8} />}
+                                                    Available: {stockItem.balance} {stockItem.unit}
+                                                    {requested > 0 && !sufficient && ` (need ${requested - stockItem.balance} more)`}
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Unit Price (RWF)</label>
@@ -453,6 +695,7 @@ const MaterialRequests = () => {
                                         <option value="pieces">Pieces</option>
                                         <option value="bags">Bags</option>
                                         <option value="tons">Tons</option>
+                                        <option value="kg">Kg</option>
                                         <option value="liters">Liters</option>
                                         <option value="meters">Meters</option>
                                     </select>
@@ -468,8 +711,10 @@ const MaterialRequests = () => {
                             </div>
                         </div>
                         <div className="admin-modal-footer">
-                            <button className="admin-btn admin-btn--secondary" onClick={() => { setShowModal(false); setEditing(null); }}>Cancel</button>
-                            <button className="admin-btn" onClick={save} disabled={!form.project || !form.material}>Save</button>
+                            <button className="admin-btn admin-btn--secondary" onClick={() => { setShowModal(false); setEditing(null); setShowStockDropdown(false); }}>Cancel</button>
+                            <button className="admin-btn" onClick={save} disabled={saving || !form.project || !form.material}>
+                                {saving ? 'Submitting...' : 'Submit Request'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -479,7 +724,7 @@ const MaterialRequests = () => {
                 <div className="admin-modal-overlay" onClick={() => setShowRejectModal(false)}>
                     <div className="admin-modal" onClick={e => e.stopPropagation()} style={rejectModalPos ? { position: 'fixed', left: rejectModalPos.x, top: rejectModalPos.y, width: 400 } : { width: 400 }}>
                         <div className="admin-modal-header" onMouseDown={onRejectHeaderMouseDown}>
-                            <h3><FaArrowsAlt style={{ fontSize: '0.75rem', marginRight: 8, opacity: 0.5 }} /><FaBan style={{ color: '#ef4444', marginRight: 6 }} />Reject Request</h3>
+                            <h3><FaBan style={{ color: '#ef4444', marginRight: 6 }} />Reject Request</h3>
                             <button onClick={() => setShowRejectModal(false)}><FaTimesIcon /></button>
                         </div>
                         <div className="admin-modal-body">
@@ -495,8 +740,7 @@ const MaterialRequests = () => {
                     </div>
                 </div>
             )}
-
-                    </div>
+        </div>
     );
 };
 
