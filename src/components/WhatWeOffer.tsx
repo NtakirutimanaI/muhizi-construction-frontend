@@ -89,18 +89,16 @@ const WhatWeOffer: React.FC<WhatWeOfferProps> = ({ heading: propHeading, subtitl
         <section data-nav-theme="dark" className="section section-indicator section-offer-dark" id="offerings">
             <div className="container">
                     <motion.div
-                        style={{ marginBottom: '3rem' }}
+                        style={{ marginBottom: '3rem', textAlign: 'center' }}
                         {...(isSmall ? noAnim : animInView)}
                     >
                         <motion.span
                             className="ark-section__sub"
-                            style={{ display: 'inline-block', marginLeft: isSmall ? '0px' : '30px', color: '#fff' }}
-                            animate={isSmall ? undefined : { x: [-20, 20, -20] }}
-                            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                            style={{ display: 'inline-block', color: '#fff', whiteSpace: 'nowrap' }}
                         >
                             Our Services
                         </motion.span>
-                        <h2 className="ark-section__heading">
+                        <h2 className="ark-section__heading" style={{ whiteSpace: 'nowrap' }}>
                             {heading}
                         </h2>
                         <motion.p

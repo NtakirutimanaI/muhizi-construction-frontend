@@ -26,6 +26,7 @@ const About: React.FC<AboutProps> = ({ profile }) => {
 
     return (
         <section data-nav-theme="light" className="section section-indicator" id="about" style={{
+            paddingTop: '0.75rem',
             paddingBottom: '5px',
             background: '#f5f5f5',
         }}>
@@ -40,7 +41,33 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                     position: relative;
                     display: inline-block;
                     padding-bottom: 6px;
+                    white-space: nowrap;
                     animation: servicesTitlePulse 3s ease-in-out infinite;
+                }
+                .about-services-header {
+                    text-align: center;
+                    margin: 0 auto 1rem;
+                    max-width: 1400px;
+                    width: 100%;
+                }
+                .about-services-title {
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 36px;
+                    font-weight: 700;
+                    color: #1A1A1A;
+                    margin: 0;
+                    white-space: nowrap;
+                    text-align: center;
+                }
+                @media (max-width: 768px) {
+                    .about-services-title {
+                        font-size: 28px;
+                    }
+                }
+                @media (max-width: 480px) {
+                    .about-services-title {
+                        font-size: 24px;
+                    }
                 }
                 .services-title-animate::after {
                     content: '';
@@ -58,12 +85,55 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                     50% { transform: translateY(-6px) scale(1.03); opacity: 0.85; }
                     100% { transform: translateY(0) scale(1); opacity: 1; }
                 }
+                .about-button-wrapper {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    max-width: 1400px;
+                    margin: 1.75rem auto 0;
+                    width: 100%;
+                }
+                .about-button {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.6rem;
+                    background: #16324F;
+                    color: #ffffff !important;
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 15px;
+                    font-weight: 600;
+                    padding: 0.85rem 2rem;
+                    border-radius: 8px;
+                    text-decoration: none !important;
+                    box-shadow: 0 4px 14px rgba(22, 50, 79, 0.25);
+                    transition: all 0.3s ease;
+                }
+                .about-button:hover {
+                    background: #B27340;
+                    color: #ffffff !important;
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(178, 115, 64, 0.35);
+                }
+                @media (max-width: 768px) {
+                    .about-button-wrapper {
+                        margin-top: 1.25rem;
+                        width: 100%;
+                    }
+                    .about-button {
+                        width: 100%;
+                        text-align: center;
+                        justify-content: center;
+                        padding: 0.9rem 1.25rem;
+                        border-radius: 8px;
+                    }
+                }
             `}</style>
             <div className="container">
                 {/* Highlighted Text + Design Cards Row */}
-                <div style={{ width: '100vw', margin: '2rem calc(-50vw + 50%) 0', padding: '0.5rem 3.5rem 3rem', background: '#f5f5f5' }}>
-                    <div style={{ textAlign: 'left', marginBottom: '1.5rem', maxWidth: '1400px', margin: '0 auto 1.5rem', paddingLeft: '150px' }}>
-                        <h2 style={{ fontFamily: 'Poppins', fontSize: '36px', fontWeight: 700, color: '#1A1A1A', margin: 0 }}>
+                <div style={{ width: '100vw', margin: '0 calc(-50vw + 50%) 0', padding: '0.25rem 1rem 2.5rem', background: '#f5f5f5' }}>
+                    <div className="about-services-header">
+                        <h2 className="about-services-title">
                             <span className="services-title-animate">Our Services</span>
                         </h2>
                     </div>
@@ -82,11 +152,13 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                             );
                         })}
                     </div>
-                </div>
-                <div className="about-stats">
-                    <div className="about-button-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '2rem' }}>
-                        <a href="/vision-mission-values" className="about-button">More About Us <FaArrowRight /></a>
+                    <div className="about-button-wrapper">
+                        <a href="/vision-mission-values" className="about-button">
+                            More About Us <FaArrowRight />
+                        </a>
                     </div>
+                </div>
+                <div className="about-stats" style={{ padding: '2rem 0 1rem' }}>
                     <div className="about-counts" style={{ display: 'flex', justifyContent: 'center', gap: '3rem' }}>
                         <div className="about-count-item" style={{ textAlign: 'center' }}>
                             <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>6+</p>
@@ -102,7 +174,7 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                         </div>
                     </div>
                 </div>
-                </div>
+            </div>
 
 
 

@@ -594,7 +594,9 @@ img {
   }
 
   .nav-logo {
-    height: 48px;
+    height: 64px;
+    width: 64px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   }
 
   .brand-role {
@@ -610,11 +612,16 @@ img {
   .nav-team-link {
     display: none;
   }
+
+  .nav-logo {
+    height: 70px;
+    width: 70px;
+  }
 }
 
 @media (max-width: 576px) {
   body {
-    --nav-offset: 72px;
+    --nav-offset: 86px;
   }
 
   .public-main {
@@ -624,7 +631,7 @@ img {
 
 @media (max-width: 480px) {
   body {
-    --nav-offset: 68px;
+    --nav-offset: 86px;
   }
 
   .public-main {
@@ -636,12 +643,13 @@ img {
   }
 
   .nav-signup-btn {
-    font-size: 0.7rem;
-    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.85rem;
   }
 
   .nav-logo {
-    height: 48px;
+    height: 76px;
+    width: 76px;
   }
 
   .navbar .container {
@@ -655,7 +663,7 @@ img {
 
 @media (max-width: 400px) {
   body {
-    --nav-offset: 64px;
+    --nav-offset: 80px;
   }
 
   .public-main {
@@ -663,8 +671,8 @@ img {
   }
 
   .nav-signup-btn {
-    padding: 0.25rem 0.55rem;
-    font-size: 0.65rem;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.7rem;
   }
 
   .nav-mobile-menu {
@@ -677,7 +685,8 @@ img {
   }
 
   .nav-logo {
-    height: 46px;
+    height: 68px;
+    width: 68px;
   }
 
   .nav-actions {
@@ -687,7 +696,7 @@ img {
 
 @media (max-width: 360px) {
   body {
-    --nav-offset: 60px;
+    --nav-offset: 74px;
   }
 
   .public-main {
@@ -699,7 +708,8 @@ img {
   }
 
   .nav-logo {
-    height: 44px;
+    height: 62px;
+    width: 62px;
   }
 
   .navbar .container {
@@ -7805,13 +7815,31 @@ img {
 
 /* About section responsive adjustments */
 @media (max-width: 768px) {
-    .about-stats {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 2rem;
-    }
+  .about-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  .about-counts {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 1.25rem !important;
+    width: 100% !important;
+  }
+  .about-count-item {
+    flex: 1 1 0;
+    min-width: 90px;
+    text-align: center !important;
+  }
+  .about-count-item p:first-child {
+    font-size: 36px !important;
+  }
+  .about-count-item p:last-child {
+    font-size: 12px !important;
+  }
   .about-count-item.team-member {
-    display: none;
+    display: block !important;
   }
 }
