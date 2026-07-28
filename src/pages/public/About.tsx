@@ -127,7 +127,16 @@ const About = () => {
               <div className="about-composite">
                 <img src="/img2.png" alt="" />
               </div>
-            </div>
+            <Link to="/vision-mission-values" className="learn-more mobile-only">
+  LEARN MORE
+  <span className="learn-more-circle">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(-45deg)' }}>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+      <polyline points="12 5 19 12 12 19"/>
+    </svg>
+  </span>
+</Link>
+</div>
 
             <div>
               <p className="about-label"><span>About Us</span></p>

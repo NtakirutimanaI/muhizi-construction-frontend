@@ -13,6 +13,18 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 const PAGE_SIZES = [5, 10, 15, 20];
 const FIELD_ROLES = ['site_engineer'];
 
+const StatTile = ({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: string; accent: string }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
+    background: 'var(--bg-white)', border: `1px solid ${accent}40`, borderRadius: 10, padding: '0.8rem 1rem' }}>
+    <div style={{ width: 36, height: 36, borderRadius: 9, background: `${accent}18`, color: accent,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}>{icon}</div>
+    <div style={{ minWidth: 0 }}>
+      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>{value}</div>
+    </div>
+  </div>
+);
+
 const emptyForm = { project: '', siteId: '', type: 'image' as 'image' | 'video', title: '', url: '', date: new Date().toISOString().split('T')[0], notes: '' };
 
 const ProjectEvidencePage = () => {
@@ -171,6 +183,13 @@ const ProjectEvidencePage = () => {
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Upload and manage project photos and videos</p>
             </div>
 
+<div className="admin-cards-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+  <StatTile icon={<FaImage />} label="Total Evidence" value={evidences.length.toString()} accent="#1B2042" />
+  <StatTile icon={<FaImage />} label="Images" value={evidences.filter(e => e.type === 'image').length.toString()} accent="#1B2042" />
+  <StatTile icon={<FaVideo />} label="Videos" value={evidences.filter(e => e.type === 'video').length.toString()} accent="#1B2042" />
+  <StatTile icon={<FaEye />} label="Client Visible" value={evidences.filter(e => e.approvedForClient).length.toString()} accent="#1B2042" />
+</div>
+
             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Project:</span>
@@ -274,16 +293,18 @@ const ProjectEvidencePage = () => {
 
             {showModal && (
                 <div className="admin-modal-overlay">
-                    <div className="admin-modal" style={{ maxWidth: 400, padding: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-                            <h3 style={{ fontWeight: 800, fontSize: '0.95rem' }}>{editing ? 'Edit Evidence' : 'Add Evidence'}</h3>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 560, maxHeight: '88vh', overflowY: 'auto', borderRadius: 0 }}>
+                        <div className="admin-modal-header">
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem' }}>
+                                <FaImage style={{ color: 'var(--primary)' }} /> {editing ? 'Edit Evidence' : 'Add Evidence'}
+                            </h3>
                             <button onClick={close} disabled={saving} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><FaTimes /></button>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                        <div className="admin-modal-body">
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
                                 <div>
                                     <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Project</label>
-                                    <select value={form.project} onChange={e => setForm(p => ({ ...p, project: e.target.value }))} className="form-select" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>
+                                    <select value={form.project} onChange={e => setForm(p => ({ ...p, project: e.target.value }))} className="form-select" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: '100%', maxWidth: '250px' }}>
                                         <option value="">Select</option>
                                         {projects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
                                     </select>
@@ -295,7 +316,7 @@ const ProjectEvidencePage = () => {
                             </div>
                             <div>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Site</label>
-                                <select value={form.siteId} onChange={e => setForm(p => ({ ...p, siteId: e.target.value }))} className="form-select" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>
+                                <select value={form.siteId} onChange={e => setForm(p => ({ ...p, siteId: e.target.value }))} className="form-select" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: '100%', maxWidth: '250px' }}>
                                     <option value="">Select site</option>
                                     {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                 </select>
@@ -309,7 +330,7 @@ const ProjectEvidencePage = () => {
                             </div>
                             <div>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Title</label>
-                                <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="form-input" placeholder="e.g. Foundation pour" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }} />
+                                <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="form-input" placeholder="e.g. Foundation pour" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: '100%', maxWidth: '250px' }} />
                             </div>
                             <div>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>{form.type === 'video' ? 'Video' : 'Image'}</label>
@@ -340,12 +361,12 @@ const ProjectEvidencePage = () => {
                             </div>
                             <div>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Notes</label>
-                                <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="form-textarea" rows={1} placeholder="Optional notes" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }} />
+                                <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="form-textarea" rows={1} placeholder="Optional notes" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: '100%', maxWidth: '250px', height: '100px' }} />
                             </div>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '0.75rem' }}>
-                            <button onClick={close} disabled={saving} className="admin-icon-btn" style={{ width: 'auto', padding: '0.3rem 0.75rem', fontSize: '0.8rem' }}>Cancel</button>
-                            <button onClick={save} disabled={saving || uploading} className="btn-primary" style={{ padding: '0.3rem 0.75rem', fontSize: '0.8rem' }}><FaSave size={11} /> {saving ? 'Saving...' : 'Save'}</button>
+                        <div className="admin-modal-footer">
+                            <button onClick={close} disabled={saving} className="admin-btn admin-btn--secondary">Cancel</button>
+                            <button onClick={save} disabled={saving || uploading} className="admin-btn"><FaSave size={11} /> {saving ? 'Saving...' : 'Save'}</button>
                         </div>
                     </div>
                 </div>

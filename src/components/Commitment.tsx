@@ -79,7 +79,7 @@ const CommitmentCard: React.FC<{ images: string[]; title: string; description: s
     }, [next]);
 
     const imageBlock = (
-        <div style={{ flex: '0 0 50%', position: 'relative' }}>
+        <div className="commitment-card-image-block" style={{ flex: '0 0 50%', position: 'relative' }}>
             <div className="commitment-carousel">
                 {images.map((src, i) => {
                     let className = 'commitment-carousel__slide';
@@ -107,15 +107,15 @@ const CommitmentCard: React.FC<{ images: string[]; title: string; description: s
     );
 
     const textBlock = (
-        <div style={{ flex: '1', padding: '3rem 2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div className="commitment-card-text-block" style={{ flex: '1', padding: '3rem 2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <h3 style={{ fontFamily: 'Poppins', color: '#FFFFFF', fontSize: '22px', fontWeight: 600, fontStyle: 'normal', margin: '0 0 1rem', lineHeight: 1.3, textDecoration: 'none' }}>
                     {title}
                 </h3>
-                <div style={{ height: '1px', background: '#444', margin: '0 0 1.2rem' }} />
+                <div style={{ height: '1px', background: '#444', margin: '0 0 1.2rem', width: '100%' }} />
                 <p style={{ fontFamily: 'Poppins', color: '#BBBBBB', fontSize: '17px', fontWeight: 400, fontStyle: 'normal', lineHeight: 1.7, margin: '0 0 1.5rem', textDecoration: 'none' }}>
                     {description}
                 </p>
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'nowrap' }}>
+                <div className="commitment-card-tags" style={{ display: 'flex', gap: '1rem', flexWrap: 'nowrap' }}>
                     {tags.map((tag) => (
                         <div key={tag} style={{
                             flex: '1 1 0',
@@ -172,7 +172,7 @@ const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
                 .commitment-carousel { position: relative; width: 100%; height: 100%; overflow: hidden; cursor: pointer; }
                 .commitment-carousel__overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; opacity: 0; transition: opacity 0.4s ease; z-index: 2; padding: 2rem; }
                 .commitment-carousel:hover .commitment-carousel__overlay { opacity: 1; }
-                .commitment-carousel__overlay p { font-family: 'Poppins'; color: #fff; font-size: 17px; font-weight: 400; font-style: normal; text-align: center; line: 1.55; }
+                .commitment-carousel__overlay p { font-family: 'Poppins'; color: #fff; font-size: 17px; font-weight: 400; font-style: normal; text-align: center; line-height: 1.55; }
                 .commitment-carousel__slide { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out; }
                 .commitment-carousel__slide--enter-right { transform: translateX(100%); opacity: 0; }
                 .commitment-carousel__slide--enter-left { transform: translateX(-100%); opacity: 0; }
@@ -212,15 +212,56 @@ const Commitment: React.FC<CommitmentProps> = ({ profile }) => {
                     50% { transform: translateY(-6px) scale(1.03); opacity: 0.85; }
                     100% { transform: translateY(0) scale(1); opacity: 1; }
                 }
+
+                @media (max-width: 768px) {
+                    .commitment-header-block {
+                        text-align: center !important;
+                        margin-bottom: 2rem !important;
+                    }
+                    .commitment-header-title {
+                        margin-left: 0 !important;
+                        text-align: center !important;
+                    }
+                    .commitment-header-desc {
+                        text-align: center !important;
+                        margin: 0 auto !important;
+                    }
+                    .commitment-main-card {
+                        flex-direction: column !important;
+                        min-height: auto !important;
+                        margin-bottom: 30px !important;
+                    }
+                    .commitment-card-image-block {
+                        order: 1 !important;
+                        flex: 0 0 250px !important;
+                        width: 100% !important;
+                        height: 250px !important;
+                    }
+                    .commitment-card-text-block {
+                        order: 2 !important;
+                        padding: 2rem 1.25rem !important;
+                        text-align: center !important;
+                        align-items: center !important;
+                    }
+                    .commitment-card-tags {
+                        justify-content: center !important;
+                        flex-wrap: wrap !important;
+                        width: 100% !important;
+                    }
+                    .commitment-card-tags > div {
+                        flex: 0 1 auto !important;
+                        min-width: 100px !important;
+                    }
+                }
             `}</style>
             <div className="container" style={{ position: 'relative', zIndex: 1 }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto 3rem' }}>
-                    <div style={{ marginBottom: '0.75rem', marginLeft: '-20px' }}>
+                <div className="commitment-header-block" style={{ maxWidth: '1200px', margin: '0 auto 3rem' }}>
+                    <div className="commitment-header-title" style={{ marginBottom: '0.75rem' }}>
                         <span className="commitment-title-animate" style={{ fontFamily: 'Poppins', fontSize: '36px', fontWeight: 700, fontStyle: 'normal', color: '#FFFFFF' }}>
                             What We Offer
                         </span>
                     </div>
-                    <div style={{ textAlign: 'left', maxWidth: '650px', marginLeft: '-20px' }}>
+                    <div className="commitment-header-desc" style={{ maxWidth: '650px' }}>
                         <p style={{ fontFamily: 'Poppins', color: '#BBBBBB', fontSize: '17px', fontWeight: 400, fontStyle: 'normal', lineHeight: 1.7, margin: 0, textDecoration: 'none' }}>
                             It's not just about constructing buildings; it's about engineering trust, safety, and lasting value into every project we deliver.
                         </p>

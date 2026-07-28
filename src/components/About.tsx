@@ -67,7 +67,7 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                             <span className="services-title-animate">Our Services</span>
                         </h2>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 230px)', gap: '1.25rem', maxWidth: '1400px', margin: '0 auto', justifyContent: 'center' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', maxWidth: '1400px', margin: '0 auto', justifyContent: 'center' }}>
                         {mergedFirstFour.map((item, idx) => {
                             const Icon = DESIGN_ICONS[idx % DESIGN_ICONS.length];
                             return (
@@ -82,32 +82,32 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                             );
                         })}
                     </div>
-                    <div style={{ maxWidth: '1400px', margin: '1.25rem auto 0', marginTop: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ paddingLeft: '135px' }}>
-                            <a href="/vision-mission-values" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1.4rem', borderRadius: 5, border: '2px solid var(--border-color)', color: 'var(--text-main)', fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none', transition: 'all 0.3s ease' }}>
-                                More About Us <FaArrowRight />
-                            </a>
+                </div>
+                <div className="about-stats">
+                    <div className="about-button-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '2rem' }}>
+                        <a href="/vision-mission-values" className="about-button">More About Us <FaArrowRight /></a>
+                    </div>
+                    <div className="about-counts" style={{ display: 'flex', justifyContent: 'center', gap: '3rem' }}>
+                        <div className="about-count-item" style={{ textAlign: 'center' }}>
+                            <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>6+</p>
+                            <p style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: 400, color: '#666', margin: '4px 0 0' }}>Years of Experience</p>
                         </div>
-                        <div style={{ display: 'flex', gap: '3rem', paddingRight: '135px' }}>
-                            <div style={{ textAlign: 'center' }}>
-                                <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>6+</p>
-                                <p style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: 400, color: '#666', margin: '4px 0 0' }}>Years of Experience</p>
-                            </div>
-                            <div style={{ textAlign: 'center' }}>
-                                <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>200+</p>
-                                <p style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: 400, color: '#666', margin: '4px 0 0' }}>Projects Completed</p>
-                            </div>
-                            <div style={{ textAlign: 'center' }}>
-                                <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>11+</p>
-                                <p style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: 400, color: '#666', margin: '4px 0 0' }}>Team Members</p>
-                            </div>
+                        <div className="about-count-item" style={{ textAlign: 'center' }}>
+                            <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>200+</p>
+                            <p style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: 400, color: '#666', margin: '4px 0 0' }}>Projects Completed</p>
+                        </div>
+                        <div className="about-count-item team-member" style={{ textAlign: 'center' }}>
+                            <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>11+</p>
+                            <p style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: 400, color: '#666', margin: '4px 0 0' }}>Team Members</p>
                         </div>
                     </div>
                 </div>
+                </div>
 
-            </div>
 
-            <Marquee />
+
+
+
         </section>
     );
 };

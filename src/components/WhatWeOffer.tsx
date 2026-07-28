@@ -94,8 +94,8 @@ const WhatWeOffer: React.FC<WhatWeOfferProps> = ({ heading: propHeading, subtitl
                     >
                         <motion.span
                             className="ark-section__sub"
-                            style={{ display: 'inline-block', marginLeft: '30px', color: '#fff' }}
-                            animate={{ x: [-20, 20, -20] }}
+                            style={{ display: 'inline-block', marginLeft: isSmall ? '0px' : '30px', color: '#fff' }}
+                            animate={isSmall ? undefined : { x: [-20, 20, -20] }}
                             transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
                         >
                             Our Services

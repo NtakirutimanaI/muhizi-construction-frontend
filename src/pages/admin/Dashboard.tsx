@@ -500,7 +500,7 @@ const AdminDashboard = () => {
                         ))}
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${summaryCards.length}, minmax(150px, 1fr))`, gap: '0.6rem', marginBottom: '1.25rem', overflowX: 'auto' }}>
+                    <div className="summary-cards-grid">
                         {summaryCards.map(card => (
                             <div key={card.label} style={{
                                 display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0,
