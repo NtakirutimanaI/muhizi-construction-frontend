@@ -14,8 +14,11 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
 
     const footerContent = profile.pageContent?.footer;
     const companyDesc = footerContent?.companyDescription || profile.about?.split('.')[0];
-    const copyright = footerContent?.copyrightText || `Copyright © ${new Date().getFullYear()} ${profile.company || 'Muhizi Construction'}. All Rights Reserved`;
-    const poweredBy = footerContent?.poweredByText || profile.poweredBy;
+    const defaultCopyright = `Copyright © ${new Date().getFullYear()} ${profile.company || 'Muhizi Construction'}. MAKE IT SOLUTIONS`;
+    const copyrightRaw = footerContent?.copyrightText || defaultCopyright;
+    const copyright = copyrightRaw.replace(/All Rights? Reserved/gi, 'MAKE IT SOLUTIONS');
+    const poweredByRaw = footerContent?.poweredByText || profile.poweredBy || 'MAKE IT SOLUTIONS (MIS)';
+    const poweredByText = poweredByRaw.toUpperCase();
     const poweredByUrl = footerContent?.poweredByUrl || 'https://mis-frontend-eta.vercel.app';
     const quickLinks = footerContent?.quickLinks;
     const pageServices = profile.pageContent?.services?.items;
@@ -170,10 +173,10 @@ const Footer: React.FC<FooterProps> = ({ profile }) => {
                 </div>
 
                 {/* Bottom bar */}
-                <div className="ark-footer__bottom">
-                    <p className="ark-footer__copy">{copyright}</p>
-                    <p className="ark-footer__copy ark-footer__copy--muted">
-                        Powered by <a href={poweredByUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #D97706)', textDecoration: 'none' }}>{poweredBy || 'MIS'}</a>
+                <div className="ark-footer__bottom" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '0.4rem', width: '100%' }}>
+                    <p className="ark-footer__copy" style={{ textAlign: 'center', margin: 0, width: '100%' }}>{copyright}</p>
+                    <p className="ark-footer__copy ark-footer__copy--muted" style={{ textAlign: 'center', margin: 0, width: '100%' }}>
+                        Powered By <a href={poweredByUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #D97706)', textDecoration: 'none', fontWeight: 600, textTransform: 'uppercase' }}>{poweredByText}</a>
                     </p>
                 </div>
             </div>

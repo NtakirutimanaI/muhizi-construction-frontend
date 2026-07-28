@@ -71,13 +71,14 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
     const handleBrandLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        if (file.size > 2 * 1024 * 1024) { showToast('Image must be smaller than 2MB', 'error'); return; }
+        if (file.size > 10 * 1024 * 1024) { showToast('Image must be smaller than 10MB', 'error'); return; }
         setBrandUploading(true);
         try {
             const uploaded = await uploadService.uploadFile(file);
             setBrandForm(prev => ({ ...prev, logoUrl: uploaded.secureUrl }));
-        } catch {
-            showToast('Failed to upload logo', 'error');
+            showToast('Logo uploaded successfully', 'success');
+        } catch (err: any) {
+            showToast(err?.response?.data?.message || err?.message || 'Failed to upload logo', 'error');
         } finally {
             setBrandUploading(false);
         }
@@ -119,16 +120,17 @@ const TeamTab: React.FC<TeamTabProps> = ({ profile, onUpdate }) => {
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        if (file.size > 2 * 1024 * 1024) {
-            showToast('Image must be smaller than 2MB', 'error');
+        if (file.size > 10 * 1024 * 1024) {
+            showToast('Image must be smaller than 10MB', 'error');
             return;
         }
         setUploading(true);
         try {
             const uploaded = await uploadService.uploadFile(file);
             setEditForm(prev => ({ ...prev, imageUrl: uploaded.secureUrl }));
-        } catch {
-            showToast('Failed to upload image', 'error');
+            showToast('Image uploaded successfully', 'success');
+        } catch (err: any) {
+            showToast(err?.response?.data?.message || err?.message || 'Failed to upload image', 'error');
         } finally {
             setUploading(false);
         }

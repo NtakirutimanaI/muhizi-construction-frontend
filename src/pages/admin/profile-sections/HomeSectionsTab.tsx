@@ -1313,7 +1313,7 @@ const FooterEditor: React.FC<Props> = ({ profile, onSave, saving }) => {
                 </div>
                 <div className="form-group">
                     <label className="form-label">Copyright Text</label>
-                    <input value={copyrightText} onChange={e => setCopyrightText(e.target.value)} className="form-input" placeholder="Copyright © 2024 Muhizi Construction. All Rights Reserved" />
+                    <input value={copyrightText} onChange={e => setCopyrightText(e.target.value)} className="form-input" placeholder="Copyright © 2026 Muhizi Construction. MAKE IT SOLUTIONS" />
                 </div>
             </div>
 

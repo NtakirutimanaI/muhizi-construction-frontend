@@ -90,7 +90,7 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                     align-items: center;
                     justify-content: center;
                     max-width: 1400px;
-                    margin: 1.75rem auto 0;
+                    margin: 1rem auto 0;
                     width: 100%;
                 }
                 .about-button {
@@ -128,10 +128,52 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                         border-radius: 8px;
                     }
                 }
+                .about-stats-container {
+                    padding-top: 1.25rem;
+                    max-width: 700px;
+                    margin: 0 auto;
+                    width: 100%;
+                }
+                .about-stats-row {
+                    display: flex !important;
+                    flex-direction: row !important;
+                    flex-wrap: nowrap !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    gap: 1rem !important;
+                    width: 100% !important;
+                }
+                .about-stats-card {
+                    flex: 1 1 0px !important;
+                    min-width: 0 !important;
+                    border-radius: 8px;
+                    background: #fff;
+                    border: 1px solid rgba(15,18,34,0.06);
+                    box-shadow: 0 2px 12px rgba(15,18,34,0.06);
+                    padding: 0.85rem 0.6rem;
+                    text-align: center;
+                }
+                @media (max-width: 600px) {
+                    .about-stats-container {
+                        max-width: 100%;
+                    }
+                    .about-stats-row {
+                        gap: 0.4rem !important;
+                    }
+                    .about-stats-card {
+                        padding: 0.75rem 0.25rem !important;
+                    }
+                    .about-stats-card p:first-child {
+                        font-size: 26px !important;
+                    }
+                    .about-stats-card p:last-child {
+                        font-size: 11px !important;
+                    }
+                }
             `}</style>
             <div className="container">
                 {/* Highlighted Text + Design Cards Row */}
-                <div style={{ width: '100vw', margin: '0 calc(-50vw + 50%) 0', padding: '0.25rem 1rem 2.5rem', background: '#f5f5f5' }}>
+                <div style={{ width: '100vw', margin: '0 calc(-50vw + 50%) 0', padding: '0.25rem 1rem 1rem', background: 'linear-gradient(rgba(245, 245, 245, 0.88), rgba(245, 245, 245, 0.88)), url(/services-bg.png) center/cover no-repeat' }}>
                     <div className="about-services-header">
                         <h2 className="about-services-title">
                             <span className="services-title-animate">Our Services</span>
@@ -157,20 +199,21 @@ const About: React.FC<AboutProps> = ({ profile }) => {
                             More About Us <FaArrowRight />
                         </a>
                     </div>
-                </div>
-                <div className="about-stats" style={{ padding: '2rem 0 1rem' }}>
-                    <div className="about-counts" style={{ display: 'flex', justifyContent: 'center', gap: '3rem' }}>
-                        <div className="about-count-item" style={{ textAlign: 'center' }}>
-                            <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>6+</p>
-                            <p style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: 400, color: '#666', margin: '4px 0 0' }}>Years of Experience</p>
-                        </div>
-                        <div className="about-count-item" style={{ textAlign: 'center' }}>
-                            <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>200+</p>
-                            <p style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: 400, color: '#666', margin: '4px 0 0' }}>Projects Completed</p>
-                        </div>
-                        <div className="about-count-item team-member" style={{ textAlign: 'center' }}>
-                            <p style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0 }}>11+</p>
-                            <p style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: 400, color: '#666', margin: '4px 0 0' }}>Team Members</p>
+                    {/* Stats Cards Row on same row inside larger section */}
+                    <div className="about-stats-container">
+                        <div className="about-stats-row">
+                            <div className="about-stats-card">
+                                <p style={{ fontFamily: 'Poppins', fontSize: '38px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0, lineHeight: 1.1 }}>6+</p>
+                                <p style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: 500, color: '#666', margin: '4px 0 0' }}>Years of Experience</p>
+                            </div>
+                            <div className="about-stats-card">
+                                <p style={{ fontFamily: 'Poppins', fontSize: '38px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0, lineHeight: 1.1 }}>200+</p>
+                                <p style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: 500, color: '#666', margin: '4px 0 0' }}>Projects Completed</p>
+                            </div>
+                            <div className="about-stats-card">
+                                <p style={{ fontFamily: 'Poppins', fontSize: '38px', fontWeight: 800, color: '#2F343D', fontStyle: 'normal', margin: 0, lineHeight: 1.1 }}>11+</p>
+                                <p style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: 500, color: '#666', margin: '4px 0 0' }}>Team Members</p>
+                            </div>
                         </div>
                     </div>
                 </div>
