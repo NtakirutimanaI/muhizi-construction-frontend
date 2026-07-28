@@ -3971,6 +3971,18 @@ img {
   .contact-v2__form-wrap {
     padding: 0;
   }
+  .contact-v2__eyebrow {
+    justify-content: center;
+    width: 100%;
+  }
+  .contact-v2__heading {
+    text-align: center;
+  }
+  .contact-v2__subtext {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
   .contact-v2__input,
   .contact-v2__textarea {
     font-size: 0.9rem;
@@ -5710,6 +5722,15 @@ img {
   }
   .news-v2__card:last-child {
     border-bottom: none;
+  }
+  .news-v2__eyebrow {
+    justify-content: center;
+    width: 100%;
+  }
+  .news-v2__header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 }
 

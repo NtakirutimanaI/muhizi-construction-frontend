@@ -188,7 +188,7 @@ const Contact: React.FC<ContactProps> = ({ profile }) => {
                         <span className="contact-v2__eyebrow-line"></span>
                         CONTACT US
                     </div>
-                    <h2 className="contact-v2__heading">Let's Work<br />Together</h2>
+                    <h2 className="contact-v2__heading">Let's Work Together</h2>
                     <p className="contact-v2__subtext">{contactSubtitle || contactHeading || 'Have a project in mind? We\'d love to hear from you.'}</p>
 
                     <form onSubmit={handleSubmit} className="contact-v2__form">
