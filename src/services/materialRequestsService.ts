@@ -3,6 +3,7 @@ import api from './api';
 export interface MaterialRequest {
     id: string;
     project: string;
+    site?: string;
     material: string;
     quantity: number;
     unit: string;

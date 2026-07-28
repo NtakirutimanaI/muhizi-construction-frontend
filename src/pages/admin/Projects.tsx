@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaProjectDiagram, FaCheckCircle, FaChevronLeft, FaChevronRight, FaEye, FaHardHat, FaMapMarkerAlt, FaUser, FaCalendarAlt, FaSpinner } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaProjectDiagram, FaCheckCircle, FaChevronLeft, FaChevronRight, FaEye, FaHardHat, FaMapMarkerAlt, FaUser, FaCalendarAlt, FaSpinner, FaArrowsAlt } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { sitesService, type Site } from '../../services/sitesService';
 import { authService } from '../../services/authService';
@@ -37,6 +37,7 @@ interface FormData {
     name: string; description: string; type: string; status: string;
     startDate: string; endDate: string; budget: number | ''; location: string;
     clientName: string; clientContact: string; clientUserId: string; partnerUserId: string; progress: number | '';
+    siteEngineerId: string;
 }
 
 interface PortalUserOption {
@@ -48,6 +49,7 @@ const emptyForm: FormData = {
     name: '', description: '', type: 'construction', status: 'planning',
     startDate: '', endDate: '', budget: '', location: '', clientName: '',
     clientContact: '', clientUserId: '', partnerUserId: '', progress: '',
+    siteEngineerId: '',
 };
 
 const PAGE_SIZES = [5, 10, 15, 20];
@@ -101,7 +103,6 @@ const Projects = () => {
             setCreatingProjectForSite(true);
             setLastCreatedSiteId(createProjectSiteId);
             setSelectedSiteId(createProjectSiteId);
-            setModalPos(null);
             setShowModal(true);
             searchParams.delete('createProject');
             setSearchParams(searchParams, { replace: true });
@@ -230,12 +231,14 @@ const Projects = () => {
         }
         setSavingProject(true);
         try {
-            const payload = {
+            const { siteEngineerId: _eng, ...payload } = {
                 ...form,
                 startDate: form.startDate || null,
                 endDate: form.endDate || null,
                 clientUserId: form.clientUserId || null,
                 partnerUserId: form.partnerUserId || null,
+                budget: form.budget === '' || form.budget === null ? null : Number(form.budget),
+                progress: form.progress === '' || form.progress === null ? null : Number(form.progress),
             };
             if (editing) {
                 await constructionService.updateProject(editing.id, payload);
@@ -244,7 +247,13 @@ const Projects = () => {
                 const res = await constructionService.createProject(payload);
                 const newProject = res.data || res;
                 if (selectedSiteId && newProject?.id) {
-                    await sitesService.update(selectedSiteId, { projectId: newProject.id });
+                    const siteUpdate: Record<string, any> = { projectId: newProject.id };
+                    if (form.siteEngineerId) {
+                        const eng = siteEngineerUsers.find(u => u.id === form.siteEngineerId);
+                        siteUpdate.assignedEngineerId = form.siteEngineerId;
+                        siteUpdate.assignedEngineerName = eng ? siteEngineerName(eng) : null;
+                    }
+                    await sitesService.update(selectedSiteId, siteUpdate);
                 }
                 showToast('Project created successfully', 'success');
             }
@@ -256,9 +265,7 @@ const Projects = () => {
             window.dispatchEvent(new CustomEvent('projects-updated'));
         } catch (e: any) {
             console.error('SAVE ERROR', e);
-            const errData = e?.response?.data;
-            const errMsg = errData ? JSON.stringify(errData) : (e?.message || 'Unknown error');
-            showToast(errMsg, 'error');
+            showToast('Failed to save project. Please check your input and try again.', 'error');
         } finally {
             setSavingProject(false);
         }
@@ -284,8 +291,7 @@ const Projects = () => {
             window.dispatchEvent(new CustomEvent('sites-updated', { detail: { projectId: 'all' } }));
             fetch();
         } catch (e: any) {
-            const errMsg = e?.response?.data ? JSON.stringify(e.response.data) : (e?.message || 'Failed to create site');
-            showToast(errMsg, 'error');
+            showToast('Failed to create site. Please try again.', 'error');
         } finally {
             setCreatingSite(false);
         }
@@ -298,7 +304,6 @@ const Projects = () => {
 
     const openEditProject = (item: Project) => {
         setEditing(item);
-        setModalPos(null);
         setForm({
             name: item.name,
             description: item.description || '',
@@ -331,8 +336,7 @@ const Projects = () => {
             window.dispatchEvent(new CustomEvent('sites-updated', { detail: { projectId: 'all' } }));
             fetch();
         } catch (e: any) {
-            const errMsg = e?.response?.data?.message || e?.message || 'Failed to update site engineer';
-            showToast(Array.isArray(errMsg) ? errMsg.join('. ') : errMsg, 'error');
+            showToast('Failed to assign site engineer. Please try again.', 'error');
         } finally {
             setSavingSiteEngineer(false);
         }
@@ -441,7 +445,7 @@ const Projects = () => {
                                                 {isAdmin && (
                                                     <button
                                                         className="admin-btn"
-                                                        onClick={(e) => { e.stopPropagation(); setForm(emptyForm); setEditing(null); setSelectedSiteId(site.id); setModalPos(null); setShowModal(true); }}
+                                                        onClick={(e) => { e.stopPropagation(); setForm(emptyForm); setEditing(null); setSelectedSiteId(site.id); setShowModal(true); }}
                                                         title="Add Project"
                                                         style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem', background: '#8B5CF6', borderColor: '#8B5CF6', color: '#fff', borderRadius: 4, flexShrink: 0 }}
                                                     >
@@ -481,7 +485,7 @@ const Projects = () => {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
                                     <input type="text" className="form-input" placeholder="Search projects..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', width: 200 }} />
                                     {isAdmin && (
-                                        <button className="admin-btn" onClick={() => { setForm(emptyForm); setEditing(null); setSelectedSiteId(siteFilterId || ''); setModalPos(null); setShowModal(true); }} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.7rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                        <button className="admin-btn" onClick={() => { setForm(emptyForm); setEditing(null); setSelectedSiteId(siteFilterId || ''); setShowModal(true); }} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.3rem 0.7rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                                             <FaPlus size={10} /> Add Project
                                         </button>
                                     )}
@@ -549,7 +553,6 @@ const Projects = () => {
                                                                     setForm(emptyForm);
                                                                     setCreatingProjectForSite(false);
                                                                     setSelectedSiteId(siteFilterId || '');
-                                                                    setModalPos(null);
                                                                 }}
                                                             >
                                                                 <FaPlus /> Create Project
@@ -620,6 +623,15 @@ const Projects = () => {
                                         {unlinkedSites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                     </select>
                                 </div>
+                                {selectedSiteId && (
+                                    <div className="form-group">
+                                        <label className="form-label">Assign Site Engineer</label>
+                                        <select className="form-select" value={form.siteEngineerId || ''} onChange={e => setForm(p => ({ ...p, siteEngineerId: e.target.value }))}>
+                                            <option value="">— None —</option>
+                                            {siteEngineerUsers.map(u => <option key={u.id} value={u.id}>{siteEngineerName(u)}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                                 <div className="form-group">
                                     <label className="form-label">Type</label>
                                     <select className="form-select" value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}>
@@ -735,7 +747,7 @@ const Projects = () => {
             )}
 
             {editingSiteEngineer && (
-                <div className="admin-modal-overlay" onClick={() => !savingSiteEngineer && setEditingSiteEngineer(null)}>
+                <div className="admin-modal-overlay" onClick={() => !savingSiteEngineer && setEditingSiteEngineer(null)} style={{ zIndex: 100 }}>
                     <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', borderRadius: 12 }}>
                         <div className="admin-modal-header">
                             <h3 style={{ fontSize: '1rem' }}><FaHardHat style={{ marginRight: 8, color: '#8B5CF6' }} />Assign Site Engineer</h3>
@@ -843,7 +855,7 @@ const Projects = () => {
                                                     <FaUser size={9} />
                                                     {s.assignedEngineerName ? `Engineer: ${s.assignedEngineerName}` : 'No Site Engineer assigned'}
                                                     {isAdmin && (
-                                                        <button className="admin-btn admin-btn--secondary" onClick={() => openEditSiteEngineer(s)} style={{ padding: '0.05rem 0.4rem', fontSize: '0.65rem', marginLeft: '0.3rem' }}>
+                                                        <button className="admin-btn admin-btn--secondary" onClick={() => { setViewProject(null); openEditSiteEngineer(s); }} style={{ padding: '0.05rem 0.4rem', fontSize: '0.65rem', marginLeft: '0.3rem' }}>
                                                             {s.assignedEngineerName ? 'Reassign' : 'Assign'}
                                                         </button>
                                                     )}
