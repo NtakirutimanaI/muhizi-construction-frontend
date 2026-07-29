@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaTimes as FaTimesIcon, FaTruck, FaSpinner, FaChevronLeft, FaChevronRight, FaCheck, FaBan, FaUser, FaClock, FaCheckDouble, FaFileExcel, FaFilePdf, FaSearch, FaCalendarAlt, FaWarehouse, FaExclamationTriangle, FaBuilding } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaTimes as FaTimesIcon, FaTruck, FaSpinner, FaChevronLeft, FaChevronRight, FaCheck, FaBan, FaUser, FaClock, FaCheckDouble, FaFileExcel, FaFilePdf, FaSearch, FaCalendarAlt, FaWarehouse, FaExclamationTriangle, FaBuilding, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { materialRequestsService } from '../../services/materialRequestsService';
 import { stockService } from '../../services/stockService';
@@ -358,23 +358,31 @@ const MaterialRequests = () => {
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, flexShrink: 0, fontSize: '1rem' }}>
                     <FaTruck style={{ color: 'var(--primary)' }} /> Material Requests
                 </h2>
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#f59e0b', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.pending}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Pending</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#1B2042', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.approved}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Approved</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#ef4444', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.rejected}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Rejected</div>
-                    </div>
-                    <div className="admin-card" style={{ padding: '0.45rem 2.5rem', textAlign: 'center', background: '#22c55e', color: '#fff' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.delivered}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.85 }}>Delivered</div>
-                    </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '0.5rem' }}>
+                    {[
+                        { icon: <FaClock />, label: 'Pending', value: stats.pending, color: '#f59e0b' },
+                        { icon: <FaCheckCircle />, label: 'Approved', value: stats.approved, color: '#1B2042' },
+                        { icon: <FaTimesCircle />, label: 'Rejected', value: stats.rejected, color: '#ef4444' },
+                        { icon: <FaCheckDouble />, label: 'Delivered', value: stats.delivered, color: '#22c55e' },
+                    ].map(s => (
+                        <div key={s.label} style={{
+                            display: 'flex', alignItems: 'center', gap: '0.65rem',
+                            background: 'var(--bg-white, #fff)',
+                            border: '1px solid var(--border-color, #e5e7eb)',
+                            borderRadius: 10, padding: '0.65rem 1rem',
+                        }}>
+                            <div style={{
+                                width: 34, height: 34, borderRadius: 9,
+                                background: `${s.color}18`, color: s.color,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                flexShrink: 0, fontSize: '0.85rem',
+                            }}>{s.icon}</div>
+                            <div>
+                                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted, #6b7280)' }}>{s.label}</div>
+                                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main, #111)' }}>{s.value}</div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
 

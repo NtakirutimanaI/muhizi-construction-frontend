@@ -5,6 +5,7 @@ import {
     FaChevronLeft, FaChevronRight, FaSearch, FaExclamationTriangle,
     FaArrowDown, FaArrowUp, FaBoxes, FaChartBar, FaListUl, FaTag,
     FaCheckCircle, FaExclamationCircle, FaChartPie, FaChartLine, FaCamera, FaUpload,
+    FaClock,
 } from 'react-icons/fa';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { stockService } from '../../services/stockService';
@@ -355,49 +356,48 @@ const StockPage = () => {
         <div className="admin-page">
 
             {/* HEADER + STATS ROW */}
-            <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', marginRight: '0.5rem' }}>
                     <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0, fontSize: '1rem' }}>
                         <FaWarehouse style={{ color: 'var(--primary)' }} /> Inventory
                     </h2>
                     <span style={{ fontSize: '0.7rem', color: '#999' }}>{stats.itemCount} items · {entries.length} txns</span>
                 </div>
-                <div className="admin-card" style={{ padding: '0.35rem 1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff' }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {Number(stats.totalIn).toLocaleString()}</div>
-                    <div style={{ fontSize: '0.6rem', opacity: 0.85 }}>Stock In</div>
-                </div>
-                <div className="admin-card" style={{ padding: '0.35rem 1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff' }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {Number(stats.totalOut).toLocaleString()}</div>
-                    <div style={{ fontSize: '0.6rem', opacity: 0.85 }}>Stock Out</div>
-                </div>
-                <div className="admin-card" style={{
-                    padding: '0.35rem 1.5rem', textAlign: 'center',
-                    background: stats.netStock >= 0 ? 'linear-gradient(135deg, var(--primary), #2d3a6e)' : 'linear-gradient(135deg, #ef4444, #dc2626)',
-                    color: '#fff',
-                }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>RWF {Math.abs(Number(stats.netStock)).toLocaleString()}</div>
-                    <div style={{ fontSize: '0.6rem', opacity: 0.85 }}>Net Stock {stats.netStock >= 0 ? '(Surplus)' : '(Deficit)'}</div>
-                </div>
-                <div className="admin-card" style={{ padding: '0.35rem 1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #6b7280, #4b5563)', color: '#fff' }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stats.itemCount}</div>
-                    <div style={{ fontSize: '0.6rem', opacity: 0.85 }}>Items</div>
-                </div>
-                {(() => {
-                    const today = new Date().toISOString().split('T')[0];
-                    const todayEntries = entries.filter(e => e.date === today);
-                    const todayIn = todayEntries.filter(e => e.type === 'in').reduce((s, e) => s + Number(e.totalCost), 0);
-                    const todayOut = todayEntries.filter(e => e.type === 'out').reduce((s, e) => s + Number(e.totalCost), 0);
-                    return (
-                        <div className="admin-card" style={{ padding: '0.35rem 1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #0891b2, #0e7490)', color: '#fff' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 800, display: 'flex', gap: 6, justifyContent: 'center' }}>
-                                <span>+RWF {todayIn.toLocaleString()}</span>
-                                <span style={{ opacity: 0.6 }}>/</span>
-                                <span>-RWF {todayOut.toLocaleString()}</span>
-                            </div>
-                            <div style={{ fontSize: '0.6rem', opacity: 0.85 }}>Today</div>
+                {[
+                    { icon: <FaArrowDown />, label: 'Stock In', value: `RWF ${Number(stats.totalIn).toLocaleString()}`, color: '#22c55e' },
+                    { icon: <FaArrowUp />, label: 'Stock Out', value: `RWF ${Number(stats.totalOut).toLocaleString()}`, color: '#ef4444' },
+                    { icon: <FaWarehouse />, label: `Net Stock ${stats.netStock >= 0 ? '(Surplus)' : '(Deficit)'}`, value: `RWF ${Math.abs(Number(stats.netStock)).toLocaleString()}`, color: stats.netStock >= 0 ? '#1B2042' : '#ef4444' },
+                    { icon: <FaBoxes />, label: 'Items', value: String(stats.itemCount), color: '#6b7280' },
+                    ...(() => {
+                        const today = new Date().toISOString().split('T')[0];
+                        const todayEntries = entries.filter(e => e.date === today);
+                        const todayIn = todayEntries.filter(e => e.type === 'in').reduce((s, e) => s + Number(e.totalCost), 0);
+                        const todayOut = todayEntries.filter(e => e.type === 'out').reduce((s, e) => s + Number(e.totalCost), 0);
+                        return [{
+                            icon: <FaClock />, label: 'Today',
+                            value: `+RWF ${todayIn.toLocaleString()} / -RWF ${todayOut.toLocaleString()}`,
+                            color: '#0891b2',
+                        }];
+                    })(),
+                ].map(s => (
+                    <div key={s.label} style={{
+                        display: 'flex', alignItems: 'center', gap: '0.6rem',
+                        background: 'var(--bg-white, #fff)',
+                        border: '1px solid var(--border-color, #e5e7eb)',
+                        borderRadius: 10, padding: '0.5rem 0.85rem',
+                    }}>
+                        <div style={{
+                            width: 32, height: 32, borderRadius: 8,
+                            background: `${s.color}18`, color: s.color,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0, fontSize: '0.8rem',
+                        }}>{s.icon}</div>
+                        <div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted, #6b7280)' }}>{s.label}</div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main, #111)', whiteSpace: 'nowrap' }}>{s.value}</div>
                         </div>
-                    );
-                })()}
+                    </div>
+                ))}
             </div>
 
             {/* TOGGLE + ADD STOCK */}
