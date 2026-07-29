@@ -210,7 +210,7 @@ const ClientReports = () => {
     };
 
     const statCard = (icon: React.ReactNode, label: string, value: string | number, color: string) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 10, padding: '0.8rem 1rem', flex: '1 1 180px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 10, padding: '0.8rem 1rem', flex: '0 1 180px' }}>
             <div style={{ width: 36, height: 36, borderRadius: 9, background: `${color}18`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</div>
             <div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>

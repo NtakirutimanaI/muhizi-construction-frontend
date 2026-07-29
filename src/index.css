@@ -729,16 +729,15 @@ img {
 /* Summary cards grid for dashboard counting section */
 .summary-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 180px));
   gap: 0.6rem;
   margin-bottom: 1.25rem;
-  overflow-x: auto;
-  justify-items: center;
+  justify-content: start;
 }
 
 @media (max-width: 600px) {
   .summary-cards-grid {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(100px, 140px));
   }
 }
 
