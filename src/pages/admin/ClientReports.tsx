@@ -210,11 +210,11 @@ const ClientReports = () => {
     };
 
     const statCard = (icon: React.ReactNode, label: string, value: string | number, color: string) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 10, padding: '0.8rem 1rem', flex: '0 1 180px' }}>
-            <div style={{ width: 36, height: 36, borderRadius: 9, background: `${color}18`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 10, padding: '0.7rem 0.5rem', width: 100, height: 80, textAlign: 'center' }}>
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: `${color}18`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.85rem' }}>{icon}</div>
             <div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>{value}</div>
+                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.2 }}>{label}</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>{value}</div>
             </div>
         </div>
     );
@@ -241,13 +241,7 @@ const ClientReports = () => {
                 </div>
             )}
 
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.2rem' }}>
-                {statCard(<FaFileAlt />, 'Total Reports', stats.total, '#6c3096')}
-                {statCard(<FaCheckCircle />, 'Published', stats.published, '#22c55e')}
-                {statCard(<FaEyeSlash />, 'Drafts', stats.draft, '#f59e0b')}
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.25rem 0.4rem', flex: '1 1 200px' }}>
                     <FaSearch size={13} style={{ color: 'var(--text-muted)' }} />
                     <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search reports..." style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.75rem', width: '100%', color: 'var(--text-main)' }} />
@@ -267,6 +261,12 @@ const ClientReports = () => {
                         {clientProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                 </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                {statCard(<FaFileAlt />, 'Total Reports', stats.total, '#6c3096')}
+                {statCard(<FaCheckCircle />, 'Published', stats.published, '#22c55e')}
+                {statCard(<FaEyeSlash />, 'Drafts', stats.draft, '#f59e0b')}
             </div>
 
             {loading ? (
