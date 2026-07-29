@@ -210,11 +210,11 @@ const ClientReports = () => {
     };
 
     const statCard = (icon: React.ReactNode, label: string, value: string | number, color: string) => (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 10, padding: '0.7rem 0.5rem', width: 100, height: 80, textAlign: 'center' }}>
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: `${color}18`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.85rem' }}>{icon}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 10, padding: '0.8rem 1rem', flex: '0 1 180px' }}>
+            <div style={{ width: 36, height: 36, borderRadius: 9, background: `${color}18`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</div>
             <div>
-                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.2 }}>{label}</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>{value}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{label}</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>{value}</div>
             </div>
         </div>
     );
@@ -241,7 +241,13 @@ const ClientReports = () => {
                 </div>
             )}
 
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.2rem' }}>
+                {statCard(<FaFileAlt />, 'Total Reports', stats.total, '#6c3096')}
+                {statCard(<FaCheckCircle />, 'Published', stats.published, '#22c55e')}
+                {statCard(<FaEyeSlash />, 'Drafts', stats.draft, '#f59e0b')}
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.25rem 0.4rem', flex: '1 1 200px' }}>
                     <FaSearch size={13} style={{ color: 'var(--text-muted)' }} />
                     <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search reports..." style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.75rem', width: '100%', color: 'var(--text-main)' }} />
@@ -263,67 +269,61 @@ const ClientReports = () => {
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                {statCard(<FaFileAlt />, 'Total Reports', stats.total, '#6c3096')}
-                {statCard(<FaCheckCircle />, 'Published', stats.published, '#22c55e')}
-                {statCard(<FaEyeSlash />, 'Drafts', stats.draft, '#f59e0b')}
-            </div>
-
             {loading ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>
             ) : filtered.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}><FaFileAlt size={40} style={{ opacity: 0.3, marginBottom: 12 }} /><p>No client reports found.</p></div>
             ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
                     {filtered.map(r => (
-                        <div key={r.id} style={{ background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 10, padding: '0.9rem 1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                <div style={{ flex: '1 1 300px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                                        <span style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-main)' }}>{r.title}</span>
+                        <div key={r.id} style={{ background: 'var(--bg-white)', border: '1px solid var(--border-color)', borderRadius: 10, padding: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                                <div style={{ minWidth: 0, flex: 1 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
+                                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)' }}>{r.title}</span>
                                         <span style={{
-                                            fontSize: '0.68rem', fontWeight: 600, padding: '2px 8px', borderRadius: 12, textTransform: 'capitalize',
+                                            fontSize: '0.6rem', fontWeight: 600, padding: '1px 6px', borderRadius: 10, textTransform: 'capitalize',
                                             background: r.status === 'published' ? '#22c55e18' : '#f59e0b18',
                                             color: r.status === 'published' ? '#22c55e' : '#f59e0b',
                                         }}>{r.status}</span>
                                     </div>
-                                    <div style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 600, marginBottom: 2 }}>
-                                        <FaProjectDiagram size={10} style={{ marginRight: 4 }} />{r.project?.name || projects.find(p => p.id === r.projectId)?.name || 'Unknown project'}
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600, marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <FaProjectDiagram size={9} style={{ marginRight: 3 }} />{r.project?.name || projects.find(p => p.id === r.projectId)?.name || 'Unknown project'}
                                     </div>
-                                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: 4 }}>
-                                        <FaUser size={9} style={{ marginRight: 4 }} />Submitted to: {clientNameForProject(r.projectId) || 'Unknown client'}
+                                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <FaUser size={8} style={{ marginRight: 3 }} />{clientNameForProject(r.projectId) || 'Unknown client'}
                                     </div>
-                                    {r.description && <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 6px' }}>{r.description}</p>}
-                                    {r.media && r.media.length > 0 && (
-                                        <div style={{ display: 'flex', gap: 5, marginBottom: 6, flexWrap: 'wrap' }}>
-                                            {r.media.slice(0, 5).map((m, i) => (
-                                                <div key={i} onClick={() => setPreviewMedia(m)} style={{ width: 40, height: 40, borderRadius: 6, overflow: 'hidden', border: '1px solid var(--border-color)', cursor: 'pointer', position: 'relative', background: '#000' }}>
-                                                    {m.type === 'video' ? <video src={m.url} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <img src={m.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                                                </div>
-                                            ))}
-                                            {r.media.length > 5 && (
-                                                <div style={{ width: 40, height: 40, borderRadius: 6, background: 'var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                                                    +{r.media.length - 5}
-                                                </div>
-                                            )}
+                                </div>
+                                <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                                    <button onClick={() => toggleStatus(r)} disabled={actionLoading === r.id} title={r.status === 'published' ? 'Unpublish' : 'Publish'}
+                                        style={{ width: 26, height: 26, borderRadius: 6, border: `1px solid ${r.status === 'published' ? '#f59e0b' : '#22c55e'}`, background: r.status === 'published' ? '#f59e0b18' : '#22c55e18', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: r.status === 'published' ? '#f59e0b' : '#22c55e' }}>
+                                        {actionLoading === r.id ? <FaSpinner className="animate-spin" size={10} /> : r.status === 'published' ? <FaEyeSlash size={10} /> : <FaEye size={10} />}
+                                    </button>
+                                    <button onClick={() => openEdit(r)} title="Edit" style={{ width: 26, height: 26, borderRadius: 6, border: '1px solid var(--border-color)', background: 'var(--bg-white)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}><FaEdit size={10} /></button>
+                                    <button onClick={() => setConfirmDeleteId(r.id)} title="Delete" style={{ width: 26, height: 26, borderRadius: 6, border: '1px solid #ef4444', background: '#ef444418', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}><FaTrash size={10} /></button>
+                                </div>
+                            </div>
+                            {r.description && <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0 0 6px', lineHeight: 1.4 }}>{r.description}</p>}
+                            {r.media && r.media.length > 0 && (
+                                <div style={{ display: 'flex', gap: 4, marginBottom: 6, flexWrap: 'wrap' }}>
+                                    {r.media.slice(0, 4).map((m, i) => (
+                                        <div key={i} onClick={() => setPreviewMedia(m)} style={{ width: 32, height: 32, borderRadius: 5, overflow: 'hidden', border: '1px solid var(--border-color)', cursor: 'pointer', background: '#000' }}>
+                                            {m.type === 'video' ? <video src={m.url} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <img src={m.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                                        </div>
+                                    ))}
+                                    {r.media.length > 4 && (
+                                        <div style={{ width: 32, height: 32, borderRadius: 5, background: 'var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                                            +{r.media.length - 4}
                                         </div>
                                     )}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <div style={{ width: 100, height: 5, background: 'var(--border-color)', borderRadius: 3, overflow: 'hidden' }}>
-                                            <div style={{ width: `${r.progressPercentage || 0}%`, height: '100%', background: '#6c3096', borderRadius: 3 }} />
-                                        </div>
-                                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6c3096' }}>{r.progressPercentage || 0}%</span>
-                                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(r.createdAt).toLocaleDateString()}</span>
-                                    </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: 6, flexShrink: 0, flexWrap: 'wrap' }}>
-                                    <button onClick={() => toggleStatus(r)} disabled={actionLoading === r.id} title={r.status === 'published' ? 'Unpublish' : 'Publish to client'}
-                                        style={{ width: 30, height: 30, borderRadius: 7, border: `1px solid ${r.status === 'published' ? '#f59e0b' : '#22c55e'}`, background: r.status === 'published' ? '#f59e0b18' : '#22c55e18', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: r.status === 'published' ? '#f59e0b' : '#22c55e' }}>
-                                        {actionLoading === r.id ? <FaSpinner className="animate-spin" size={12} /> : r.status === 'published' ? <FaEyeSlash size={12} /> : <FaEye size={12} />}
-                                    </button>
-                                    <button onClick={() => openEdit(r)} title="Edit" style={{ width: 30, height: 30, borderRadius: 7, border: '1px solid var(--border-color)', background: 'var(--bg-white)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}><FaEdit size={12} /></button>
-                                    <button onClick={() => setConfirmDeleteId(r.id)} title="Delete" style={{ width: 30, height: 30, borderRadius: 7, border: '1px solid #ef4444', background: '#ef444418', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}><FaTrash size={12} /></button>
+                            )}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
+                                <div style={{ flex: 1, height: 4, background: 'var(--border-color)', borderRadius: 2, overflow: 'hidden' }}>
+                                    <div style={{ width: `${r.progressPercentage || 0}%`, height: '100%', background: '#6c3096', borderRadius: 2 }} />
                                 </div>
+                                <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#6c3096' }}>{r.progressPercentage || 0}%</span>
+                                <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{new Date(r.createdAt).toLocaleDateString()}</span>
                             </div>
                         </div>
                     ))}
