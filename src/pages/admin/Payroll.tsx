@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDollarSign, FaMoneyBillWave, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaCheckCircle, FaBan, FaHourglassHalf, FaClock, FaArrowUp, FaMinusCircle, FaHashtag, FaSpinner } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaTimes as FaTimesIcon, FaDollarSign, FaMoneyBillWave, FaFileExcel, FaFilePdf, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaCheckCircle, FaBan, FaHourglassHalf, FaClock, FaArrowUp, FaMinusCircle, FaHashtag, FaSpinner, FaArrowsAlt } from 'react-icons/fa';
 import { hrService } from '../../services/hrService';
 import { authService } from '../../services/authService';
 import { useToast } from '../../context/ToastContext';

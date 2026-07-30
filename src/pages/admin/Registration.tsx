@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback, Fragment } from 'react';
 import { FaUserPlus, FaUser, FaEnvelope, FaPhone, FaHome, FaIdCard, FaGraduationCap, FaVenusMars, FaRing, FaUsers, FaCalendarAlt, FaCheck, FaTimes, FaPlus, FaTimes as FaTimesIcon, FaShieldAlt, FaChevronLeft, FaChevronRight, FaEye, FaEyeSlash, FaEdit, FaTrash, FaSearch, FaCheckCircle, FaTimesCircle, FaUserTie, FaFilePdf, FaUpload, FaExternalLinkAlt, FaUniversity, FaBriefcase, FaInfoCircle, FaChevronDown, FaChevronUp, FaMoneyBillWave, FaSpinner, FaArrowsAlt } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
 import { insuranceService } from '../../services/insuranceService';
 import { authService } from '../../services/authService';
 import api from '../../services/api';
@@ -131,6 +132,14 @@ const InfoItem = ({ label, value, mono }: { label: string; value?: string; mono?
 
 const Registration = () => {
     const { showToast } = useToast();
+    const { user } = useAuth();
+    const role = user?.role || '';
+
+    const allowedTabs = useMemo(() => {
+        if (role === 'finance_director') return ['employees'] as const;
+        return ['users', 'employees', 'subscribers'] as const;
+    }, [role]);
+
     const [users, setUsers] = useState<UserData[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState<'add' | 'edit' | null>(null);
@@ -151,7 +160,7 @@ const Registration = () => {
     const [pdfViewerUrl, setPdfViewerUrl] = useState<string | null>(null);
     const contractInputRef = useRef<HTMLInputElement>(null);
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'users' | 'employees' | 'subscribers'>('users');
+    const [activeTab, setActiveTab] = useState<'users' | 'employees' | 'subscribers'>(allowedTabs[0] || 'employees');
     const [insuranceDeduction, setInsuranceDeduction] = useState(0);
     const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
 
@@ -389,15 +398,21 @@ const Registration = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                <button style={tabStyle('users')} onClick={() => setActiveTab('users')}>
-                    <FaUsers size={11} style={{ marginRight: 6 }} />Users
-                </button>
-                <button style={tabStyle('employees')} onClick={() => setActiveTab('employees')}>
-                    <FaUserTie size={11} style={{ marginRight: 6 }} />Employees
-                </button>
-                <button style={tabStyle('subscribers')} onClick={() => setActiveTab('subscribers')}>
-                    <FaEnvelope size={11} style={{ marginRight: 6 }} />Subscribers
-                </button>
+                {allowedTabs.includes('users') && (
+                    <button style={tabStyle('users')} onClick={() => setActiveTab('users')}>
+                        <FaUsers size={11} style={{ marginRight: 6 }} />Users
+                    </button>
+                )}
+                {allowedTabs.includes('employees') && (
+                    <button style={tabStyle('employees')} onClick={() => setActiveTab('employees')}>
+                        <FaUserTie size={11} style={{ marginRight: 6 }} />Employees
+                    </button>
+                )}
+                {allowedTabs.includes('subscribers') && (
+                    <button style={tabStyle('subscribers')} onClick={() => setActiveTab('subscribers')}>
+                        <FaEnvelope size={11} style={{ marginRight: 6 }} />Subscribers
+                    </button>
+                )}
             </div>
 
             {activeTab === 'users' && (
