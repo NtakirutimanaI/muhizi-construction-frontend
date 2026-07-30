@@ -58,8 +58,9 @@ const AttendancePage = () => {
     const role = user?.role || '';
     const basePath = location.pathname.split('/').slice(0, 2).join('/') || '/admin';
     const isSiteEngineer = role === 'site_engineer';
+    const isAdmin = role === 'admin';
     const [searchParams, setSearchParams] = useSearchParams();
-const navigate = useNavigate();
+    const navigate = useNavigate();
     const urlSite = searchParams.get('site') || '';
 
     const [data, setData] = useState<Attendance[]>([]);
@@ -484,7 +485,7 @@ const navigate = useNavigate();
             );
             showToast('Attendance saved successfully', 'success');
             await fetch();
-            navigate(`${basePath}/attendance-reports`);
+            navigate(`${basePath}/reports`);
         } catch { showToast('Failed to save attendance', 'error'); }
     };
 
@@ -579,7 +580,7 @@ const navigate = useNavigate();
                         </div>
                     </div>
 
-                    <Link className="admin-btn" to={`${basePath}/attendance-reports`} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.2rem 0.7rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1, alignSelf: 'flex-start', width: '100%', maxWidth: '180px', minHeight: '28px', justifyContent: 'center', marginLeft: 0, textDecoration: 'none' }}>
+                    <Link className="admin-btn" to={`${basePath}/reports`} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 5, padding: '0.2rem 0.7rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, opacity: 1, alignSelf: 'flex-start', width: '100%', maxWidth: '180px', minHeight: '28px', justifyContent: 'center', marginLeft: 0, textDecoration: 'none' }}>
                         <FaClipboardList size={12} /> Attendance Report
                     </Link>
                 </div>
@@ -598,9 +599,11 @@ const navigate = useNavigate();
                             Employees on <strong>{selectedProject?.name}</strong> — {new Date(selectedDate).toLocaleDateString()}
                             <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}> ({batchData.length} people)</span>
                         </span>
-                        <button className="admin-btn" onClick={handleBatchSave} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem' }}>
-                            <FaSave style={{ marginRight: 6 }} /> Save All
-                        </button>
+                        {!isAdmin && (
+                            <button className="admin-btn" onClick={handleBatchSave} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem' }}>
+                                <FaSave style={{ marginRight: 6 }} /> Save All
+                            </button>
+                        )}
                     </div>
                     <div style={{ overflowX: 'auto' }}>
                         <table className="admin-table">
@@ -623,20 +626,20 @@ const navigate = useNavigate();
                                             {item.isSelf && <span style={{ marginLeft: 6, fontSize: '0.7rem', background: '#1B2042', color: '#fff', padding: '1px 6px', borderRadius: 8 }}>You</span>}
                                         </td>
                                         <td>
-                                            <input type="time" className="form-input" value={item.checkIn} onChange={e => { const a = [...batchData]; a[i] = { ...a[i], checkIn: e.target.value }; setBatchData(a); }} style={{ padding: '0.2rem 0.4rem', fontSize: '0.8rem', width: 90 }} />
+                                            <input type="time" className="form-input" value={item.checkIn} onChange={e => { const a = [...batchData]; a[i] = { ...a[i], checkIn: e.target.value }; setBatchData(a); }} disabled={isAdmin} style={{ padding: '0.2rem 0.4rem', fontSize: '0.8rem', width: 90 }} />
                                         </td>
                                         <td>
-                                            <input type="time" className="form-input" value={item.checkOut} onChange={e => { const a = [...batchData]; a[i] = { ...a[i], checkOut: e.target.value }; setBatchData(a); }} style={{ padding: '0.2rem 0.4rem', fontSize: '0.8rem', width: 90 }} />
+                                            <input type="time" className="form-input" value={item.checkOut} onChange={e => { const a = [...batchData]; a[i] = { ...a[i], checkOut: e.target.value }; setBatchData(a); }} disabled={isAdmin} style={{ padding: '0.2rem 0.4rem', fontSize: '0.8rem', width: 90 }} />
                                         </td>
                                         <td>
-                                            <select className="form-select" value={item.status} onChange={e => handleStatusChange(i, e.target.value as AttendanceStatus)} style={{ padding: '0.2rem 0.4rem', fontSize: '0.8rem', width: 130 }}>
+                                            <select className="form-select" value={item.status} onChange={e => handleStatusChange(i, e.target.value as AttendanceStatus)} disabled={isAdmin} style={{ padding: '0.2rem 0.4rem', fontSize: '0.8rem', width: 130 }}>
                                                 {STATUS_OPTIONS.map(s => (
                                                     <option key={s.value} value={s.value}>{s.label}</option>
                                                 ))}
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="text" className="form-input" value={item.notes || ''} onChange={e => handleNotesChange(i, e.target.value)} onBlur={() => handleNotesBlur(i)} placeholder="Optional reason..." style={{ padding: '0.2rem 0.4rem', fontSize: '0.8rem', width: '100%', minWidth: 120 }} />
+                                            <input type="text" className="form-input" value={item.notes || ''} onChange={e => handleNotesChange(i, e.target.value)} onBlur={() => handleNotesBlur(i)} disabled={isAdmin} placeholder="Optional reason..." style={{ padding: '0.2rem 0.4rem', fontSize: '0.8rem', width: '100%', minWidth: 120 }} />
                                         </td>
                                     </tr>
                                 ))}
@@ -678,8 +681,12 @@ const navigate = useNavigate();
                                         </td>
                                         <td>
                                             <div style={{ display: 'flex', gap: 4 }}>
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => openEdit(item)}><FaEdit /></button>
-                                                <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)}><FaTrash /></button>
+                                                {!isAdmin && (
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem' }} onClick={() => openEdit(item)}><FaEdit /></button>
+                                                )}
+                                                {!isAdmin && (
+                                                    <button className="admin-btn admin-btn--secondary" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', color: 'var(--primary-red)' }} onClick={() => handleDelete(item.id)}><FaTrash /></button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -723,7 +730,7 @@ const navigate = useNavigate();
                 <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="admin-modal" onClick={e => e.stopPropagation()}>
                         <div className="admin-modal-header">
-                            <h3>Edit Attendance</h3>
+                            <h3>{isAdmin ? 'View Attendance' : 'Edit Attendance'}</h3>
                             <button onClick={() => setShowModal(false)}><FaTimesIcon /></button>
                         </div>
                         <div className="admin-modal-body">
@@ -734,19 +741,19 @@ const navigate = useNavigate();
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Date</label>
-                                    <input type="date" className="form-input" value={editing.date} onChange={e => setEditing({ ...editing, date: e.target.value })} />
+                                    <input type="date" className="form-input" value={editing.date} onChange={e => setEditing({ ...editing, date: e.target.value })} disabled={isAdmin} />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Check In</label>
-                                    <input type="time" className="form-input" value={editing.checkIn || ''} onChange={e => setEditing({ ...editing, checkIn: e.target.value })} />
+                                    <input type="time" className="form-input" value={editing.checkIn || ''} onChange={e => setEditing({ ...editing, checkIn: e.target.value })} disabled={isAdmin} />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Check Out</label>
-                                    <input type="time" className="form-input" value={editing.checkOut || ''} onChange={e => setEditing({ ...editing, checkOut: e.target.value })} />
+                                    <input type="time" className="form-input" value={editing.checkOut || ''} onChange={e => setEditing({ ...editing, checkOut: e.target.value })} disabled={isAdmin} />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Status</label>
-                                    <select className="form-select" value={editing.status} onChange={e => setEditing({ ...editing, status: e.target.value as AttendanceStatus })}>
+                                    <select className="form-select" value={editing.status} onChange={e => setEditing({ ...editing, status: e.target.value as AttendanceStatus })} disabled={isAdmin}>
                                         {STATUS_OPTIONS.map(s => (
                                             <option key={s.value} value={s.value}>{s.label}</option>
                                         ))}
@@ -755,8 +762,10 @@ const navigate = useNavigate();
                             </div>
                         </div>
                         <div className="admin-modal-footer">
-                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button className="admin-btn" onClick={handleEditModalSave}>Update</button>
+                            <button className="admin-btn admin-btn--secondary" onClick={() => setShowModal(false)}>Close</button>
+                            {!isAdmin && (
+                                <button className="admin-btn" onClick={handleEditModalSave}>Update</button>
+                            )}
                         </div>
                     </div>
                 </div>

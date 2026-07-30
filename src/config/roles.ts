@@ -35,15 +35,11 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
         label: 'Operations',
         items: [
             { path: '/admin/sites', icon: 'FaProjectDiagram', label: 'Sites', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.SITE_ENGINEER, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requests & Approvals', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER, ROLES.STOREKEEPER] },
-            { path: '/admin/material-requests', icon: 'FaTruck', label: 'Material Requests', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.STOREKEEPER, ROLES.SITE_ENGINEER] },
-            { path: '/admin/site-activities', icon: 'FaClipboardList', label: 'Site Activities', roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER] },
-            { path: '/admin/project-evidence', icon: 'FaCamera', label: 'Project Evidence', roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER, ROLES.CLIENT] },
+            { path: '/admin/requests', icon: 'FaClipboardList', label: 'Requisitions', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.SITE_ENGINEER, ROLES.STOREKEEPER] },
+            { path: '/admin/site-activities', icon: 'FaHardHat', label: 'Site Activities', roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER, ROLES.CLIENT] },
             { path: '/admin/daily-tasks', icon: 'FaClipboardList', label: 'Daily Tasks', roles: [ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/engineering-submissions', icon: 'FaDraftingCompass', label: 'Engineering Submissions', roles: [ROLES.ENGINEERING_STUDIO] },
-            { path: '/admin/designs', icon: 'FaDraftingCompass', label: 'Designs', roles: [ROLES.ADMIN, ROLES.ENGINEERING_STUDIO] },
-            { path: '/admin/engineering-studio', icon: 'FaDraftingCompass', label: 'Engineering Studio', roles: [ROLES.ADMIN] },
-            { path: '/admin/daily-reports', icon: 'FaClipboardCheck', label: 'Daily Reports', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/engineering-studio', icon: 'FaDraftingCompass', label: 'Engineering Studio', roles: [ROLES.ADMIN, ROLES.ENGINEERING_STUDIO] },
             { path: '/admin/partnerships', icon: 'FaHandshake', label: 'Partnerships', roles: [ROLES.ADMIN] },
             // Site safety/operating rules apply to everyone on the platform, not just operations roles.
             { path: '/admin/site-rules', icon: 'FaGavel', label: 'Site Rules', roles: [ROLES.ADMIN, ROLES.STOREKEEPER, ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR, ROLES.CLIENT, ROLES.PARTNER] },
@@ -52,38 +48,34 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     {
         label: 'HR',
         items: [
-            { path: '/admin/employees', icon: 'FaUserTie', label: 'Employees', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/recruitment', icon: 'FaUserPlus', label: 'Recruitment', roles: [ROLES.SITE_ENGINEER] },
             { path: '/admin/create-contract', icon: 'FaFileContract', label: 'Create Contract', roles: [ROLES.FINANCE_DIRECTOR] },
-            { path: '/admin/attendance', icon: 'FaClipboardList', label: 'Attendance', roles: [ROLES.SITE_ENGINEER, ROLES.ENGINEERING_STUDIO] },
-            { path: '/admin/attendance-reports', icon: 'FaCalendarAlt', label: 'Attendance Reports', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/payroll', icon: 'FaMoneyBillWave', label: 'Payroll', roles: [ROLES.FINANCE_DIRECTOR] },
         ],
     },
     {
         label: 'Finance',
         items: [
-            { path: '/admin/incomes', icon: 'FaArrowUp', label: 'Incomes', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
-            { path: '/admin/expenses', icon: 'FaArrowDown', label: 'Expenses', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
+            { path: '/admin/finance', icon: 'FaBalanceScale', label: 'Finance', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
             { path: '/admin/stock/in', icon: 'FaBoxes', label: 'Stock', roles: [ROLES.MANAGING_DIRECTOR, ROLES.STOREKEEPER] },
-            { path: '/admin/money-requisition', icon: 'FaMoneyBillWave', label: 'Money Requisition', roles: [ROLES.FINANCE_DIRECTOR, ROLES.ADMIN] },
-            { path: '/admin/petty-cash-voucher', icon: 'FaReceipt', label: 'Petty Cash Voucher', roles: [ROLES.FINANCE_DIRECTOR, ROLES.ADMIN] },
-            { path: '/admin/petty-cash', icon: 'FaWallet', label: 'Petty Cash', roles: [ROLES.FINANCE_DIRECTOR, ROLES.ADMIN] },
-            { path: '/admin/reports', icon: 'FaChartPie', label: 'Reports', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR, ROLES.MANAGING_DIRECTOR] },
+
         ],
     },
     {
         label: 'Admin',
         items: [
             { path: '/admin/messages', icon: 'FaEnvelope', label: 'Messages', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.ENGINEERING_STUDIO] },
-            { path: '/admin/users', icon: 'FaUsers', label: 'Users', roles: [ROLES.ADMIN] },
-            { path: '/admin/registration', icon: 'FaUserPlus', label: 'Registration', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
+            { path: '/admin/registration', icon: 'FaUserPlus', label: 'People', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
             { path: '/admin/resources', icon: 'FaDatabase', label: 'CMS', roles: [ROLES.ADMIN] },
-            { path: '/admin/subscribers', icon: 'FaEnvelope', label: 'Subscribers', roles: [ROLES.ADMIN] },
             { path: '/admin/admin-updates', icon: 'FaNewspaper', label: 'Updates', roles: [ROLES.ADMIN] },
             { path: '/admin/settings', icon: 'FaCog', label: 'Settings', roles: [ROLES.ADMIN] },
             { path: '/admin/insurance', icon: 'FaShieldAlt', label: 'Insurance', roles: [ROLES.ADMIN, ROLES.FINANCE_DIRECTOR] },
-            { path: '/admin/client-reports', icon: 'FaFileAlt', label: 'Client Reports', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR] },
+        ],
+    },
+    {
+        label: 'Reports',
+        items: [
+            { path: '/admin/reports', icon: 'FaChartPie', label: 'Reports', roles: [ROLES.ADMIN, ROLES.MANAGING_DIRECTOR, ROLES.FINANCE_DIRECTOR] },
         ],
     },
     {
