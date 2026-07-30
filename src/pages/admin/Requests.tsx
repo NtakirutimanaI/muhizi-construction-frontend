@@ -10,7 +10,6 @@ import { materialRequestsService } from '../../services/materialRequestsService'
 import { approvalsService } from '../../services/approvalsService';
 import { constructionService } from '../../services/constructionService';
 import { stockService } from '../../services/stockService';
-import { sitesService } from '../../services/sitesService';
 import type { MaterialRequest } from '../../services/materialRequestsService';
 import type { Approval } from '../../services/approvalsService';
 import type { StockBalance } from '../../services/stockService';
@@ -19,7 +18,6 @@ import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
 import { assignmentService } from '../../services/assignmentService';
-import MoneyRequisitions from './MoneyRequisitions';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -57,7 +55,6 @@ const safeBadge = (status: string) => {
     return map[status] || { color: '#6b7280', bg: '#6b728018' };
 };
 
-const emptyFundForm = () => ({ title: '', description: '', amount: undefined as number | undefined, requestedAt: new Date().toISOString().split('T')[0] });
 const emptyMatForm = { project: '', site: '', material: '', quantity: '' as any, unit: 'pieces', unitPrice: '' as any, date: new Date().toISOString().split('T')[0], notes: '' };
 
 const statusColors: Record<string, string> = { pending: '#f59e0b', approved: '#1B2042', rejected: '#ef4444', delivered: '#22c55e' };
@@ -68,25 +65,20 @@ const Requests = () => {
     const role = user?.role || '';
     const isSiteEngineer = role === 'site_engineer';
     const isStorekeeper = role === 'storekeeper';
-    const canSubmitFundRequest = role === 'managing_director' || role === 'site_engineer';
-    const canReviewFundRequest = role === 'admin';
     const canReviewMaterialRequest = role === 'managing_director' || isStorekeeper;
 
-    const [activeTab, setActiveTab] = useState<'review' | 'material' | 'fund'>('review');
+    const [activeTab, setActiveTab] = useState<'review' | 'material'>('review');
 
     // Review tab state
     const [requests, setRequests] = useState<UnifiedRequest[]>([]);
     const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<UnifiedStatus | 'all'>('pending');
     const [search, setSearch] = useState('');
-    const [typeFilter, setTypeFilter] = useState<'all' | 'material' | 'money'>('all');
+    const [typeFilter, setTypeFilter] = useState<'all' | 'material'>('all');
     const [viewItem, setViewItem] = useState<UnifiedRequest | null>(null);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
-    const [showCreate, setShowCreate] = useState(false);
-    const [fundForm, setFundForm] = useState(emptyFundForm());
-    const [saving, setSaving] = useState(false);
 
     // My Requests tab state
     const [matRequests, setMatRequests] = useState<MaterialRequest[]>([]);
@@ -224,16 +216,6 @@ const Requests = () => {
             showToast('Request rejected', 'success');
         } catch { showToast('Failed to reject', 'error'); }
         setActionLoading(null);
-    };
-
-    const createFundRequest = () => {
-        if (!fundForm.title.trim() || !fundForm.description.trim() || !fundForm.requestedAt) { showToast('Fill in title, description and date', 'error'); return; }
-        if (!fundForm.amount || fundForm.amount <= 0) { showToast('Enter a valid amount', 'error'); return; }
-        setSaving(true);
-        approvalsService.create({ type: 'money', title: fundForm.title, description: fundForm.description, amount: fundForm.amount, status: 'pending', requestedAt: fundForm.requestedAt } as Partial<Approval>)
-            .then(async () => { showToast('Fund request submitted', 'success'); setShowCreate(false); setFundForm(emptyFundForm()); await loadReview(); })
-            .catch(() => showToast('Failed to submit request', 'error'))
-            .finally(() => setSaving(false));
     };
 
     // --- My Requests tab ---
@@ -411,9 +393,6 @@ const Requests = () => {
                 <button style={tabStyle('material')} onClick={() => setActiveTab('material')}>
                     <FaTruck size={11} style={{ marginRight: 6 }} />Material
                 </button>
-                <button style={tabStyle('fund')} onClick={() => setActiveTab('fund')}>
-                    <FaMoneyBillWave size={11} style={{ marginRight: 6 }} />Fund
-                </button>
             </div>
 
             {/* ===== REVIEW TAB ===== */}
@@ -442,7 +421,6 @@ const Requests = () => {
                                         {([
                                             { key: 'all' as const, label: 'All', icon: null },
                                             { key: 'material' as const, label: 'Material', icon: <FaTruck size={10} /> },
-                                            { key: 'money' as const, label: 'Fund', icon: <FaMoneyBillWave size={10} /> },
                                         ]).map(t => (
                                             <button key={t.key} onClick={() => { setTypeFilter(t.key); setPage(1); }}
                                                 style={{ padding: '0.15rem 0.4rem', borderRadius: 6, border: 'none', background: typeFilter === t.key ? 'var(--primary)' : 'transparent', color: typeFilter === t.key ? '#fff' : '#555', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -459,12 +437,6 @@ const Requests = () => {
                                         ))}
                                     </div>
                                 </div>
-                                {canSubmitFundRequest && (
-                                    <button onClick={() => { setFundForm(emptyFundForm()); setShowCreate(true); }}
-                                        style={{ padding: '0.15rem 0.4rem', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                        <FaPlus size={10} /> New Fund Request
-                                    </button>
-                                )}
                             </div>
                             <div className="admin-card">
                                 <div style={{ overflowX: 'auto' }}>
@@ -479,7 +451,7 @@ const Requests = () => {
                                         <tbody>
                                             {paginatedReview.map(req => {
                                                 const badge = safeBadge(req.status);
-                                                const canAct = req.type === 'material' ? canReviewMaterialRequest : canReviewFundRequest;
+                                                const canAct = canReviewMaterialRequest && req.type === 'material';
                                                 return (
                                                     <tr key={req.id} style={{ opacity: req.status !== 'pending' ? 0.7 : 1 }}>
                                                         <td><span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: 6, background: req.type === 'material' ? '#1B204218' : '#22c55e18', color: req.type === 'material' ? 'var(--primary)' : '#22c55e', fontSize: '0.65rem' }}>{req.type === 'material' ? <FaTruck /> : <FaDollarSign />}</span></td>
@@ -505,7 +477,7 @@ const Requests = () => {
                                                 );
                                             })}
                                             {!paginatedReview.length && (
-                                                <tr><td colSpan={9} style={{ padding: '3rem', textAlign: 'center', color: '#999' }}><FaClipboardList size={36} style={{ opacity: 0.25, marginBottom: 10 }} /><div style={{ fontSize: '0.95rem' }}>No {filter !== 'all' ? filter : ''} requests found</div><span style={{ fontSize: '0.8rem' }}>Material and fund requests will appear here</span></td></tr>
+                                                <tr><td colSpan={9} style={{ padding: '3rem', textAlign: 'center', color: '#999' }}><FaClipboardList size={36} style={{ opacity: 0.25, marginBottom: 10 }} /><div style={{ fontSize: '0.95rem' }}>No {filter !== 'all' ? filter : ''} requests found</div><span style={{ fontSize: '0.8rem' }}>Material requests will appear here</span></td></tr>
                                             )}
                                         </tbody>
                                     </table>
@@ -682,32 +654,6 @@ const Requests = () => {
                 </>
             )}
 
-            {/* ===== FUND TAB ===== */}
-            {activeTab === 'fund' && (
-                <MoneyRequisitions />
-            )}
-
-            {/* ===== FUND REQUEST MODAL ===== */}
-            {showCreate && (
-                <div className="admin-modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => !saving && setShowCreate(false)}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }} />
-                    <div onClick={e => e.stopPropagation()} className="admin-modal" style={{ position: 'relative', padding: '1.5rem', maxWidth: '500px', width: '100%', maxHeight: '85vh', overflowY: 'auto', borderRadius: 12 }}>
-                        <h3 style={{ marginTop: 0, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 8 }}><FaMoneyBillWave style={{ color: 'var(--primary)' }} size={14} /> New Fund Request</h3>
-                        <p style={{ fontSize: '0.8rem', color: '#999', marginTop: '-0.5rem', marginBottom: '1rem' }}>For material requisitions use the My Requests tab.</p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                            <div><label style={{ fontWeight: 600, fontSize: '0.75rem' }}>Title</label><input type="text" className="form-input" value={fundForm.title} onChange={e => setFundForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Worker Transport Advance" style={{ width: '100%', padding: '0.35rem', fontSize: '0.75rem' }} /></div>
-                            <div><label style={{ fontWeight: 600, fontSize: '0.75rem' }}>Description</label><textarea className="form-input" value={fundForm.description} onChange={e => setFundForm(p => ({ ...p, description: e.target.value }))} rows={3} style={{ width: '100%', padding: '0.35rem', resize: 'vertical', fontSize: '0.75rem' }} /></div>
-                            <div><label style={{ fontWeight: 600, fontSize: '0.75rem' }}>Amount (RWF)</label><input type="number" className="form-input" value={fundForm.amount || ''} onChange={e => setFundForm(p => ({ ...p, amount: e.target.value === '' ? undefined : Number(e.target.value) }))} style={{ width: '100%', padding: '0.35rem', fontSize: '0.75rem' }} /></div>
-                            <div><label style={{ fontWeight: 600, fontSize: '0.75rem' }}>Date Needed</label><input type="date" className="form-input" value={fundForm.requestedAt} onChange={e => setFundForm(p => ({ ...p, requestedAt: e.target.value }))} style={{ width: '100%', padding: '0.35rem', fontSize: '0.75rem' }} /></div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #eee' }}>
-                            <button onClick={() => setShowCreate(false)} disabled={saving} style={{ padding: '0.15rem 0.8rem', borderRadius: '6px', border: '1px solid #ddd', background: 'transparent', cursor: 'pointer', fontSize: '0.75rem' }}>Cancel</button>
-                            <button onClick={createFundRequest} disabled={saving} style={{ padding: '0.15rem 0.8rem', borderRadius: '6px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem' }}>{saving ? <><FaSpinner className="spin" /> Submitting...</> : 'Submit'}</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {/* ===== VIEW DETAILS MODAL ===== */}
             {viewItem && (
                 <div className="admin-modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => setViewItem(null)}>
@@ -769,7 +715,7 @@ const Requests = () => {
                         })()}
                         <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end', marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid #eee' }}>
                             <button onClick={() => setViewItem(null)} style={{ padding: '0.15rem 0.8rem', borderRadius: 7, border: '1px solid #ddd', background: 'transparent', cursor: 'pointer', fontSize: '0.75rem' }}>Close</button>
-                            {viewItem.status === 'pending' && (viewItem.type === 'material' ? canReviewMaterialRequest : canReviewFundRequest) && (
+                            {viewItem.status === 'pending' && viewItem.type === 'material' && canReviewMaterialRequest && (
                                 <>
                                     <button onClick={() => { handleApprove(viewItem); setViewItem(null); }} style={{ padding: '0.15rem 0.8rem', borderRadius: 7, border: 'none', background: '#22c55e', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 5 }}><FaCheck size={10} /> Approve</button>
                                     <button onClick={() => { handleReject(viewItem); setViewItem(null); }} style={{ padding: '0.15rem 0.8rem', borderRadius: 7, border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 5 }}><FaTimesCircle size={10} /> Reject</button>
