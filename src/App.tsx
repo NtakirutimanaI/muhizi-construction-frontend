@@ -25,40 +25,29 @@ const GoogleCallback = lazy(() => import('./pages/auth/GoogleCallback'));
 // Admin Pages — lazy loaded
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 const ProfileManagement = lazy(() => import('./pages/admin/ProfileManagement'));
-const Subscribers = lazy(() => import('./pages/admin/Subscribers'));
 const MessagesInbox = lazy(() => import('./pages/admin/MessagesInbox'));
 const MessagesSent = lazy(() => import('./pages/admin/MessagesSent'));
 const MessagesTrash = lazy(() => import('./pages/admin/MessagesTrash'));
 const Resources = lazy(() => import('./pages/admin/Resources'));
-const Users = lazy(() => import('./pages/admin/Users'));
 const Registration = lazy(() => import('./pages/admin/Registration'));
 const Settings = lazy(() => import('./pages/admin/Settings'));
 const Projects = lazy(() => import('./pages/admin/Projects'));
 const Designs = lazy(() => import('./pages/admin/Designs'));
 const Partnerships = lazy(() => import('./pages/admin/Partnerships'));
-const Employees = lazy(() => import('./pages/admin/Employees'));
 const Recruitment = lazy(() => import('./pages/admin/Recruitment'));
 const Attendance = lazy(() => import('./pages/admin/Attendance'));
-const AttendanceReports = lazy(() => import('./pages/admin/AttendanceReports'));
 const Payroll = lazy(() => import('./pages/admin/Payroll'));
-const Incomes = lazy(() => import('./pages/admin/Incomes'));
-const Expenses = lazy(() => import('./pages/admin/Expenses'));
-const Reports = lazy(() => import('./pages/admin/Reports'));
+const Finance = lazy(() => import('./pages/admin/Finance'));
+const Reports = lazy(() => import('./pages/admin/ReportsHub'));
 const SalaryHistory = lazy(() => import('./pages/admin/SalaryHistory'));
 const SiteActivities = lazy(() => import('./pages/admin/SiteActivities'));
-const MaterialRequests = lazy(() => import('./pages/admin/MaterialRequests'));
-const ProjectEvidence = lazy(() => import('./pages/admin/ProjectEvidence'));
 const SiteRules = lazy(() => import('./pages/admin/SiteRules'));
 const EmployeeAssignments = lazy(() => import('./pages/admin/EmployeeAssignments'));
 const Requests = lazy(() => import('./pages/admin/Requests'));
 const EngineeringSubmissions = lazy(() => import('./pages/admin/EngineeringSubmissions'));
-const DailyReports = lazy(() => import('./pages/admin/DailyReports'));
 const CreateContract = lazy(() => import('./pages/admin/CreateContract'));
 const InsuranceSettings = lazy(() => import('./pages/admin/InsuranceSettings'));
-const MoneyRequisitions = lazy(() => import('./pages/admin/MoneyRequisitions'));
-const ClientReports = lazy(() => import('./pages/admin/ClientReports'));
-const PettyCash = lazy(() => import('./pages/admin/PettyCash'));
-const PettyCashVoucher = lazy(() => import('./pages/admin/PettyCashVoucher'));
+
 const AdminUpdates = lazy(() => import('./pages/admin/AdminUpdates'));
 const Stock = lazy(() => import('./pages/admin/Stock'));
 const StockCategories = lazy(() => import('./pages/admin/StockCategories'));
@@ -163,42 +152,36 @@ function App() {
                       <Route key={base} path={b} element={<AdminLayout basePath={b} />}>
                         <Route index element={<AdminDashboard />} />
                         <Route path="profile" element={<ProfileManagement />} />
-                        <Route path="subscribers" element={<Subscribers />} />
+                        <Route path="subscribers" element={<Navigate to="../registration" replace />} />
                         <Route path="messages" element={<Navigate to={`${b}/messages/inbox`} replace />} />
                         <Route path="messages/inbox" element={<MessagesInbox />} />
                         <Route path="messages/sent" element={<MessagesSent />} />
                         <Route path="messages/trash" element={<MessagesTrash />} />
                         <Route path="resources" element={<Resources />} />
-                        <Route path="users" element={<Users />} />
                         <Route path="registration" element={<Registration />} />
                         <Route path="settings" element={<Settings />} />
                         <Route path="sites" element={<Projects />} />
                         <Route path="projects" element={<Navigate to="../sites" replace />} />
                         <Route path="designs" element={<Designs />} />
                         <Route path="partnerships" element={<Partnerships />} />
-                        <Route path="employees" element={<Employees />} />
+                        <Route path="employees" element={<Navigate to="../registration" replace />} />
                         <Route path="recruitment" element={<Recruitment />} />
                         <Route path="attendance" element={<Attendance />} />
-                        <Route path="attendance-reports" element={<AttendanceReports />} />
                         <Route path="employee-assignments" element={<EmployeeAssignments />} />
                         <Route path="payroll" element={<Payroll />} />
-                        <Route path="incomes" element={<Incomes />} />
-                        <Route path="expenses" element={<Expenses />} />
+                        <Route path="finance" element={<Finance />} />
                         <Route path="reports" element={<Reports />} />
                         <Route path="salary-history" element={<SalaryHistory />} />
                         <Route path="site-activities" element={<SiteActivities />} />
-                        <Route path="material-requests" element={<MaterialRequests />} />
+                        <Route path="material-requests" element={<Navigate to="../requests" replace />} />
                         <Route path="requests" element={<Requests />} />
                         <Route path="engineering-submissions" element={<EngineeringSubmissions />} />
-                        <Route path="daily-reports" element={<DailyReports />} />
                         <Route path="insurance" element={<InsuranceSettings />} />
-                        <Route path="money-requisition" element={<MoneyRequisitions />} />
-                        <Route path="client-reports" element={<ClientReports />} />
-                        <Route path="petty-cash" element={<PettyCash />} />
-                        <Route path="petty-cash-voucher" element={<PettyCashVoucher />} />
+                        <Route path="money-requisition" element={<Navigate to="../requests" replace />} />
+
                         <Route path="admin-updates" element={<AdminUpdates />} />
                         <Route path="create-contract" element={<CreateContract />} />
-                        <Route path="project-evidence" element={<ProjectEvidence />} />
+                        <Route path="project-evidence" element={<Navigate to="../site-activities" replace />} />
                     <Route path="site-rules" element={<SiteRules />} />
                         <Route path="approvals" element={<Navigate to="../requests" replace />} />
                         <Route path="contracts" element={<CreateContract />} />

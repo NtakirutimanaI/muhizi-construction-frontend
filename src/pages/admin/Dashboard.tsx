@@ -234,15 +234,15 @@ const AdminDashboard = () => {
             { to: '/admin/site-activities', icon: <FaHardHat />, bg: '#f59e0b', label: 'Site Activities', sub: `${sites.length} sites` },
             { to: '/admin/project-evidence', icon: <FaCamera />, bg: '#8b5cf6', label: 'Project Evidence', sub: `${sitesWithMedia} sites with media` },
             { to: '/admin/requests', icon: <FaClipboardList />, bg: '#1B2042', label: 'Requests & Approvals', sub: `${kpi?.pendingApprovals ?? 0} pending` },
-            { to: '/admin/attendance-reports', icon: <FaCalendarCheck />, bg: '#22c55e', label: 'Attendance', sub: `${(kpi as any)?.todayPresent ?? 0} present today` },
+            { to: '/admin/reports', icon: <FaCalendarCheck />, bg: '#22c55e', label: 'Attendance', sub: `${(kpi as any)?.todayPresent ?? 0} present today` },
             { to: '/admin/messages', icon: <FaEnvelope />, bg: '#7BC043', label: 'Messages', sub: `${messageStats.unread} unread` },
         ];
     } else if (role === 'finance_director') {
         quickActions = [
             { to: '/admin/payroll', icon: <FaMoneyBillWave />, bg: '#1B2042', label: 'Payroll', sub: `${kpi?.pendingPayments ?? 0} pending payments` },
-            { to: '/admin/incomes', icon: <FaArrowUp />, bg: '#22c55e', label: 'Incomes', sub: `${moneyShort(kpi?.mtdIncomes ?? 0)} this month` },
-            { to: '/admin/expenses', icon: <FaArrowDown />, bg: '#8b5cf6', label: 'Expenses', sub: `${moneyShort(kpi?.mtdExpenses ?? 0)} this month` },
-            { to: '/admin/attendance-reports', icon: <FaCalendarCheck />, bg: '#22c55e', label: 'Attendance', sub: `${(kpi as any)?.todayPresent ?? 0} present today` },
+            { to: '/admin/finance', icon: <FaArrowUp />, bg: '#22c55e', label: 'Incomes', sub: `${moneyShort(kpi?.mtdIncomes ?? 0)} this month` },
+            { to: '/admin/finance', icon: <FaArrowDown />, bg: '#8b5cf6', label: 'Expenses', sub: `${moneyShort(kpi?.mtdExpenses ?? 0)} this month` },
+            { to: '/admin/reports', icon: <FaCalendarCheck />, bg: '#22c55e', label: 'Attendance', sub: `${(kpi as any)?.todayPresent ?? 0} present today` },
             { to: '/admin/reports', icon: <FaChartPie />, bg: '#f59e0b', label: 'Reports', sub: `${moneyShort(kpi?.cashFlow ?? 0)} cash flow` },
         ];
     } else if (role === 'managing_director') {
@@ -745,7 +745,7 @@ const AdminDashboard = () => {
                                 </table>
                             </div>
                             <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
-                                <Link to={`/${role === 'finance_director' ? 'directorfinance' : 'admin'}/attendance-reports`} style={{ fontSize: '0.78rem', color: 'var(--primary, #1B2042)', fontWeight: 600, textDecoration: 'none' }}>
+                                <Link to={`/${role === 'finance_director' ? 'directorfinance' : 'admin'}/reports`} style={{ fontSize: '0.78rem', color: 'var(--primary, #1B2042)', fontWeight: 600, textDecoration: 'none' }}>
                                     View Full Attendance Reports →
                                 </Link>
                             </div>

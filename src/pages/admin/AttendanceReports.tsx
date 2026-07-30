@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaCalendarAlt, FaChevronDown, FaChevronRight, FaClock, FaFileExcel, FaFilePdf, FaProjectDiagram, FaSpinner, FaTimes, FaUsers } from 'react-icons/fa';
+import { FaCalendarAlt, FaChevronDown, FaChevronRight, FaClock, FaFileExcel, FaFilePdf, FaProjectDiagram, FaSpinner, FaTimes, FaUsers } from 'react-icons/fa';
 import { hrService, type Attendance, type Employee } from '../../services/hrService';
 import { constructionService, type Project } from '../../services/constructionService';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
@@ -27,9 +26,6 @@ type HierarchyYear = {
 };
 
 const AttendanceReportsPage = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const basePath = location.pathname.split('/').slice(0, 2).join('/') || '/admin';
 
     const [data, setData] = useState<Attendance[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
@@ -212,9 +208,6 @@ const AttendanceReportsPage = () => {
                         Browse yearly, monthly and daily attendance records for all employees.
                     </p>
                 </div>
-                <button className="admin-btn" onClick={() => navigate(`${basePath}/attendance`)} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <FaArrowLeft /> Back to attendance
-                </button>
             </div>
 
             {loading ? (

@@ -5,6 +5,8 @@ import { authService } from '../../services/authService';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { loadPageCache, savePageCache } from '../../utils/pageCache';
+import Employees from './Employees';
+import Subscribers from './Subscribers';
 
 const ROLES_LIST = ['admin', 'managing_director', 'finance_director', 'site_engineer', 'engineering_studio', 'storekeeper', 'partner', 'client'];
 const GENDERS = ['Male', 'Female', 'Other'];
@@ -133,6 +135,7 @@ const Registration = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState<'add' | 'edit' | null>(null);
     const [editingUser, setEditingUser] = useState<UserData | null>(null);
+    const [viewUser, setViewUser] = useState<UserData | null>(null);
     const [form, setForm] = useState<FormState>(emptyForm);
     const [showPassword, setShowPassword] = useState(false);
     const [passwordError, setPasswordError] = useState('');
@@ -148,7 +151,7 @@ const Registration = () => {
     const [pdfViewerUrl, setPdfViewerUrl] = useState<string | null>(null);
     const contractInputRef = useRef<HTMLInputElement>(null);
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
-    const [viewUser, setViewUser] = useState<UserData | null>(null);
+    const [activeTab, setActiveTab] = useState<'users' | 'employees' | 'subscribers'>('users');
     const [insuranceDeduction, setInsuranceDeduction] = useState(0);
     const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
 
@@ -364,19 +367,41 @@ const Registration = () => {
         }
     };
 
+    const tabStyle = (tab: string): React.CSSProperties => ({
+        padding: '0.35rem 0.9rem', borderRadius: 6, border: 'none', cursor: 'pointer',
+        fontSize: '0.78rem', fontWeight: 600, background: activeTab === tab ? '#1B2042' : 'transparent',
+        color: activeTab === tab ? '#fff' : 'var(--text-muted)', transition: 'all 0.15s',
+    });
+
     if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '40vh', color: 'var(--text-muted)', fontSize: '0.9rem' }}><FaSpinner className="spin" size={24} style={{ color: 'var(--primary)' }} /> Loading data...</div>;
 
     return (
         <div className="admin-page">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', margin: 0, fontSize: '1rem', flexShrink: 0 }}>
-                    <FaUserPlus style={{ color: 'var(--primary)' }} /> User Registration
+                    <FaUserPlus style={{ color: 'var(--primary)' }} /> People
                 </h2>
-                <button className="admin-btn" onClick={openAdd} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <FaPlus size={11} /> Register New User
+                {activeTab === 'users' && (
+                    <button className="admin-btn" onClick={openAdd} style={{ background: '#1B2042', borderColor: '#1B2042', color: '#fff', borderRadius: 4, padding: '0.35rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <FaPlus size={11} /> Register New User
+                    </button>
+                )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                <button style={tabStyle('users')} onClick={() => setActiveTab('users')}>
+                    <FaUsers size={11} style={{ marginRight: 6 }} />Users
+                </button>
+                <button style={tabStyle('employees')} onClick={() => setActiveTab('employees')}>
+                    <FaUserTie size={11} style={{ marginRight: 6 }} />Employees
+                </button>
+                <button style={tabStyle('subscribers')} onClick={() => setActiveTab('subscribers')}>
+                    <FaEnvelope size={11} style={{ marginRight: 6 }} />Subscribers
                 </button>
             </div>
 
+            {activeTab === 'users' && (
+            <>
             {loading ? (
                 <div className="admin-card" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
                     <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: '#1B2042', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
@@ -816,6 +841,11 @@ const Registration = () => {
             )}
             </>
             )}
+            </>
+            )}
+
+            {activeTab === 'employees' && <Employees />}
+            {activeTab === 'subscribers' && <Subscribers />}
         </div>
     );
 };

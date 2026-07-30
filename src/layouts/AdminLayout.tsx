@@ -10,7 +10,7 @@ import {
     FaInbox, FaPaperPlane, FaArchive, FaLock, FaHardHat, FaTruck, FaCamera, FaGavel,
     FaCheckDouble, FaFileAlt, FaImage, FaHome, FaInfoCircle, FaTag,
     FaBoxes, FaSpinner, FaClock, FaCertificate, FaNewspaper, FaFileContract, FaShieldAlt, FaUserPlus, FaShareSquare,
-    FaCogs,
+    FaCogs, FaBalanceScale,
 } from 'react-icons/fa';
 import { useNotification } from '../context/NotificationContext';
 import { profileService, type Profile, type ContactMessage } from '../services/profileService';
@@ -281,6 +281,7 @@ const AdminLayout = ({ basePath = '/admin' }: { basePath?: string }) => {
         FaNewspaper: <FaNewspaper />,
         FaUserPlus: <FaUserPlus />,
         FaCogs: <FaCogs />,
+        FaBalanceScale: <FaBalanceScale />,
     };
 
     const sections = SIDEBAR_SECTIONS
