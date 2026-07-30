@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaHardHat, FaSpinner, FaChevronLeft, FaChevronRight, FaUserTie, FaCheckCircle, FaCalendarAlt, FaImage, FaVideo, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaHardHat, FaSpinner, FaChevronLeft, FaChevronRight, FaUserTie, FaCheckCircle, FaCalendarAlt, FaImage, FaVideo, FaExpand } from 'react-icons/fa';
 import { constructionService } from '../../services/constructionService';
 import { siteActivitiesService } from '../../services/siteActivitiesService';
 import { projectEvidenceService } from '../../services/projectEvidenceService';
@@ -14,6 +14,11 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 
 const PAGE_SIZES = [5, 10, 15, 20];
 const FIELD_ROLES = ['site_engineer'];
+
+const mediaTypeFromUrl = (url: string): 'image' | 'video' => {
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
+    return ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'wmv', 'flv'].includes(ext) ? 'video' : 'image';
+};
 
 const StatTile = ({ icon, label, value, accent, emphasis }: {
     icon: React.ReactNode; label: string; value: string; accent: string; emphasis?: boolean
@@ -82,6 +87,7 @@ const SiteActivities = () => {
     const [showEvidenceModal, setShowEvidenceModal] = useState(false);
     const [editingEvidence, setEditingEvidence] = useState<ProjectEvidence | null>(null);
     const [evidenceForm, setEvidenceForm] = useState(emptyEvidenceForm);
+    const [mediaFiles, setMediaFiles] = useState<{ url: string; type: 'image' | 'video' }[]>([]);
     const [savingEvidence, setSavingEvidence] = useState(false);
     const [previewItem, setPreviewItem] = useState<ProjectEvidence | null>(null);
     const [uploading, setUploading] = useState(false);
@@ -229,46 +235,69 @@ const SiteActivities = () => {
 
     useEffect(() => { if (evidencePage > totalEvidencePages) setEvidencePage(totalEvidencePages || 1); }, [totalEvidencePages, evidencePage]);
 
-    const openNewEvidence = () => { setEditingEvidence(null); setEvidenceForm(emptyEvidenceForm); setShowEvidenceModal(true); };
+    const openNewEvidence = () => { setEditingEvidence(null); setEvidenceForm(emptyEvidenceForm); setMediaFiles([]); setShowEvidenceModal(true); };
     const openEditEvidence = (e: ProjectEvidence) => {
         setEditingEvidence(e);
         setEvidenceForm({ project: e.project, siteId: e.siteId || '', type: e.type, title: e.title, url: e.url, date: e.date, notes: e.notes || '' });
+        setMediaFiles(e.url ? [{ url: e.url, type: e.type as 'image' | 'video' }] : []);
         setShowEvidenceModal(true);
     };
-    const closeEvidenceModal = () => { setShowEvidenceModal(false); setEditingEvidence(null); };
+    const closeEvidenceModal = () => { setShowEvidenceModal(false); setEditingEvidence(null); setMediaFiles([]); };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
         setUploading(true);
         setUploadProgress(0);
-        try {
-            const result = await uploadService.uploadFile(file, (pct) => setUploadProgress(pct));
-            setEvidenceForm(p => ({ ...p, url: result.secureUrl, type: result.resourceType === 'video' ? 'video' : 'image' }));
-        } catch (err: any) {
-            showToast(err?.response?.data?.message || err?.message || 'File upload failed', 'error');
-        } finally {
-            setUploading(false);
+        let completed = 0;
+        const results: { url: string; type: 'image' | 'video' }[] = [];
+        for (const file of Array.from(files)) {
+            try {
+                const detectedType = file.type.startsWith('video/') ? 'video' : 'image';
+                const result = await uploadService.uploadFile(file, (pct) => setUploadProgress(pct));
+                results.push({ url: result.secureUrl, type: detectedType });
+            } catch (err: any) {
+                showToast(`Failed to upload ${file.name}: ${err?.response?.data?.message || err?.message || 'Upload error'}`, 'error');
+            }
+            completed++;
+            setUploadProgress(Math.round((completed / files.length) * 100));
         }
+        if (results.length > 0) {
+            setMediaFiles(prev => [...prev, ...results]);
+        }
+        setUploading(false);
+        e.target.value = '';
     };
 
     const saveEvidence = async () => {
-        if (!evidenceForm.project || !evidenceForm.title || !evidenceForm.url || !evidenceForm.siteId) {
-            showToast('Project, site, title, and media are required.', 'error');
+        if (!evidenceForm.project || !evidenceForm.title || !evidenceForm.siteId) {
+            showToast('Project, site, and title are required.', 'error');
+            return;
+        }
+        if (mediaFiles.length === 0 && !evidenceForm.url) {
+            showToast('At least one media file is required.', 'error');
             return;
         }
         setSavingEvidence(true);
         try {
             if (editingEvidence) {
-                const res = await projectEvidenceService.update(editingEvidence.id, evidenceForm as any);
+                const payload = { ...evidenceForm, url: mediaFiles[0]?.url || evidenceForm.url, type: mediaFiles[0]?.type || evidenceForm.type };
+                const res = await projectEvidenceService.update(editingEvidence.id, payload as any);
                 setEvidences(prev => prev.map(e => e.id === editingEvidence.id ? res.data : e));
                 showToast('Evidence updated successfully', 'success');
+                closeEvidenceModal();
             } else {
-                const res = await projectEvidenceService.create(evidenceForm as any);
-                setEvidences(prev => [res.data, ...prev]);
-                showToast('Evidence added successfully', 'success');
+                const base = { project: evidenceForm.project, siteId: evidenceForm.siteId, date: evidenceForm.date, title: evidenceForm.title, notes: evidenceForm.notes };
+                const created: ProjectEvidence[] = [];
+                for (const file of mediaFiles) {
+                    const payload = { ...base, url: file.url, type: file.type };
+                    const res = await projectEvidenceService.create(payload as any);
+                    created.push(res.data);
+                }
+                setEvidences(prev => [...created, ...prev]);
+                showToast(`${created.length} evidence file(s) added successfully`, 'success');
+                closeEvidenceModal();
             }
-            closeEvidenceModal();
         } catch (e: any) {
             showToast(e?.response?.data?.message || e?.message || 'Failed to save evidence', 'error');
         } finally {
@@ -283,15 +312,6 @@ const SiteActivities = () => {
             showToast('Evidence deleted', 'success');
         } catch (e: any) {
             showToast(e?.response?.data?.message || e?.message || 'Failed to delete evidence', 'error');
-        }
-    };
-
-    const toggleClientVisible = async (e: ProjectEvidence) => {
-        try {
-            const res = await projectEvidenceService.update(e.id, { approvedForClient: !e.approvedForClient } as any);
-            setEvidences(prev => prev.map(item => item.id === e.id ? res.data : item));
-        } catch (err: any) {
-            showToast(err?.response?.data?.message || err?.message || 'Failed to update visibility', 'error');
         }
     };
 
@@ -421,10 +441,9 @@ const SiteActivities = () => {
             {activeTab === 'evidence' && (
                 <>
                     <div className="admin-cards-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-                        <StatTile icon={<FaImage />} label="Total" value={evidences.length.toString()} accent="#1B2042" />
-                        <StatTile icon={<FaImage />} label="Images" value={evidences.filter(e => e.type === 'image').length.toString()} accent="#1B2042" />
-                        <StatTile icon={<FaVideo />} label="Videos" value={evidences.filter(e => e.type === 'video').length.toString()} accent="#1B2042" />
-                        <StatTile icon={<FaEye />} label="Client Visible" value={evidences.filter(e => e.approvedForClient).length.toString()} accent="#1B2042" />
+                        <StatTile icon={<FaImage />} label="Total" value={evidences.length.toString()} accent="#1B2042" emphasis />
+                        <StatTile icon={<FaImage />} label="Images" value={evidences.filter(e => e.type === 'image').length.toString()} accent="#22c55e" />
+                        <StatTile icon={<FaVideo />} label="Videos" value={evidences.filter(e => e.type === 'video').length.toString()} accent="#f59e0b" />
                     </div>
 
                     <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -439,32 +458,60 @@ const SiteActivities = () => {
                         )}
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
                         {paginatedEvidence.map(e => {
                             const site = e.siteId ? siteById.get(e.siteId) : undefined;
+                            const displayType = mediaTypeFromUrl(e.url);
                             return (
-                                <div key={e.id} className="content-card" style={{ padding: 0, overflow: 'hidden' }}>
-                                    <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setPreviewItem(e)}>
-                                        {e.type === 'video' ? (
-                                            <video src={e.url} style={{ width: '100%', height: '160px', objectFit: 'cover', display: 'block', background: '#000' }} muted />
+                                <div key={e.id} className="content-card" style={{
+                                    padding: 0, overflow: 'hidden', borderRadius: 12,
+                                    background: '#fff', border: '1px solid var(--border-color)',
+                                    transition: 'box-shadow 0.2s, transform 0.2s',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                                }}
+                                    onMouseEnter={el => { el.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'; el.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                    onMouseLeave={el => { el.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'; el.currentTarget.style.transform = 'translateY(0)'; }}
+                                >
+                                    <div
+                                        onClick={() => setPreviewItem(e)}
+                                        style={{ position: 'relative', cursor: 'pointer', overflow: 'hidden', background: '#f0f0f0', aspectRatio: '16/10' }}
+                                    >
+                                        {displayType === 'video' ? (
+                                            <>
+                                                <video src={e.url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#000' }} muted />
+                                                <div style={{
+                                                    position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    background: 'rgba(0,0,0,0.25)', transition: 'background 0.2s',
+                                                }}>
+                                                    <div style={{
+                                                        width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.9)',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem',
+                                                        color: '#1B2042',
+                                                    }}>
+                                                        <FaVideo />
+                                                    </div>
+                                                </div>
+                                            </>
                                         ) : (
-                                            <img src={e.url} alt={e.title} style={{ width: '100%', height: '160px', objectFit: 'cover', display: 'block' }} />
+                                            <img src={e.url} alt={e.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                                         )}
-                                        <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.75rem' }}>
-                                            {e.type === 'video' ? <FaVideo /> : <FaImage />}
+                                        <div style={{
+                                            position: 'absolute', top: 8, right: 8,
+                                            background: 'rgba(0,0,0,0.55)', borderRadius: 6,
+                                            padding: '2px 8px', fontSize: '0.65rem', fontWeight: 700,
+                                            color: '#fff', textTransform: 'uppercase', letterSpacing: '0.5px',
+                                        }}>
+                                            {displayType}
                                         </div>
                                     </div>
-                                    <div style={{ padding: '0.75rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{e.title}</div>
-                                            <button onClick={() => toggleClientVisible(e)}
-                                                title={e.approvedForClient ? 'Visible to clients' : 'Hidden from clients'}
-                                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: e.approvedForClient ? '#22c55e' : 'var(--text-muted)', fontSize: '0.95rem', padding: '2px' }}>
-                                                {e.approvedForClient ? <FaEye /> : <FaEyeSlash />}
-                                            </button>
+                                    <div style={{ padding: '0.75rem 0.85rem' }}>
+                                        <div style={{ fontWeight: 700, fontSize: '0.88rem', marginBottom: '0.15rem', color: 'var(--text-main)' }}>
+                                            {e.title}
                                         </div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{e.project} &middot; {e.date}</div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+                                            {e.project} &middot; {e.date}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
                                             <FaUserTie size={9} />
                                             {site ? (
                                                 <span>{site.name} &middot; {site.assignedEngineerName || 'Unassigned engineer'}</span>
@@ -472,12 +519,10 @@ const SiteActivities = () => {
                                                 <span>No site linked</span>
                                             )}
                                         </div>
-                                        {e.approvedForClient && (
-                                            <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: '#22c55e', color: '#fff', fontWeight: 700, display: 'inline-block', marginTop: '0.25rem' }}>CLIENT VISIBLE</span>
-                                        )}
-                                        <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
-                                            {canLog && <button onClick={() => openEditEvidence(e)} className="admin-icon-btn" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}><FaImage size={11} /> Edit</button>}
-                                            <button onClick={() => setConfirmDeleteEvidenceId(e.id)} className="admin-icon-btn" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', color: 'var(--primary-red)' }}><FaTrash size={11} /></button>
+                                        <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.35rem', justifyContent: 'flex-end', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
+                                            <button onClick={() => setPreviewItem(e)} className="admin-icon-btn" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }} title="View"><FaExpand size={11} /> View</button>
+                                            {canLog && <button onClick={() => openEditEvidence(e)} className="admin-icon-btn" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }} title="Edit"><FaEdit size={11} /> Edit</button>}
+                                            <button onClick={() => setConfirmDeleteEvidenceId(e.id)} className="admin-icon-btn" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', color: 'var(--primary-red)' }} title="Delete"><FaTrash size={11} /></button>
                                         </div>
                                     </div>
                                 </div>
@@ -611,46 +656,38 @@ const SiteActivities = () => {
                                 </select>
                             </div>
                             <div>
-                                <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Type</label>
-                                <div style={{ display: 'flex', gap: '6px' }}>
-                                    <button onClick={() => setEvidenceForm(p => ({ ...p, type: 'image' }))}
-                                        style={{ flex: 1, padding: '0.3rem', borderRadius: '6px', border: evidenceForm.type === 'image' ? '2px solid #1B2042' : '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-                                        <FaImage /> Image
-                                    </button>
-                                    <button onClick={() => setEvidenceForm(p => ({ ...p, type: 'video' }))}
-                                        style={{ flex: 1, padding: '0.3rem', borderRadius: '6px', border: evidenceForm.type === 'video' ? '2px solid #1B2042' : '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-                                        <FaVideo /> Video
-                                    </button>
-                                </div>
-                            </div>
-                            <div>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Title</label>
                                 <input value={evidenceForm.title} onChange={e => setEvidenceForm(p => ({ ...p, title: e.target.value }))} className="form-input" placeholder="e.g. Foundation pour" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: '100%', maxWidth: '250px' }} />
                             </div>
                             <div>
-                                <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>{evidenceForm.type === 'video' ? 'Video' : 'Image'}</label>
-                                {evidenceForm.url ? (
-                                    <div>
-                                        {evidenceForm.type === 'video' ? (
-                                            <video src={evidenceForm.url} controls style={{ maxWidth: '100%', maxHeight: 140, borderRadius: 6, display: 'block', marginBottom: 4 }} />
-                                        ) : (
-                                            <img src={evidenceForm.url} alt="" style={{ maxWidth: '100%', maxHeight: 140, borderRadius: 6, display: 'block', marginBottom: 4, objectFit: 'cover' }} />
-                                        )}
-                                        <button className="admin-btn admin-btn--secondary" style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem' }} onClick={() => setEvidenceForm(p => ({ ...p, url: '' }))}>
-                                            Remove
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        <input type="file" accept={evidenceForm.type === 'video' ? 'video/*' : 'image/*'} onChange={handleFileUpload} disabled={uploading} style={{ fontSize: '0.78rem', maxWidth: '100%' }} />
-                                        {uploading && (
-                                            <div style={{ marginTop: 6 }}>
-                                                <div style={{ width: '100%', maxWidth: 260, height: 6, background: '#eee', borderRadius: 3, overflow: 'hidden' }}>
-                                                    <div style={{ width: `${uploadProgress}%`, height: 6, background: 'var(--primary-teal)', borderRadius: 3, transition: 'width 0.3s' }} />
+                                <label style={{ fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>Media Files</label>
+                                {mediaFiles.length > 0 && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                                        {mediaFiles.map((f, i) => (
+                                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.3rem 0.5rem', background: 'var(--bg-body)', borderRadius: 6, border: '1px solid var(--border-color)' }}>
+                                                <div style={{ width: 48, height: 36, borderRadius: 4, overflow: 'hidden', flexShrink: 0, background: '#000' }}>
+                                                    {f.type === 'video' ? (
+                                                        <video src={f.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
+                                                    ) : (
+                                                        <img src={f.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    )}
                                                 </div>
-                                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Uploading... {uploadProgress}%</span>
+                                                <span style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)', flexShrink: 0 }}>{f.type}</span>
+                                                <span style={{ flex: 1, fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.url.split('/').pop()}</span>
+                                                <button onClick={() => setMediaFiles(prev => prev.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', color: 'var(--primary-red)', cursor: 'pointer', fontSize: '0.75rem', padding: 2 }}><FaTrash size={10} /></button>
                                             </div>
-                                        )}
+                                        ))}
+                                    </div>
+                                )}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <input type="file" accept="image/*,video/*" multiple onChange={handleFileUpload} disabled={uploading} style={{ fontSize: '0.78rem', flex: 1 }} />
+                                </div>
+                                {uploading && (
+                                    <div style={{ marginTop: 6 }}>
+                                        <div style={{ width: '100%', maxWidth: 260, height: 6, background: '#eee', borderRadius: 3, overflow: 'hidden' }}>
+                                            <div style={{ width: `${uploadProgress}%`, height: 6, background: 'var(--primary-teal)', borderRadius: 3, transition: 'width 0.3s' }} />
+                                        </div>
+                                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Uploading... {uploadProgress}%</span>
                                     </div>
                                 )}
                             </div>
@@ -669,11 +706,15 @@ const SiteActivities = () => {
 
             {/* Preview overlay */}
             {previewItem && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={() => setPreviewItem(null)}>
-                    {previewItem.type === 'video' ? (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setPreviewItem(null)}>
+                    <button onClick={() => setPreviewItem(null)}
+                        style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.1rem', cursor: 'pointer', zIndex: 1 }}>
+                        <FaTimes />
+                    </button>
+                    {mediaTypeFromUrl(previewItem.url) === 'video' ? (
                         <video src={previewItem.url} controls autoPlay style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '12px' }} onClick={ev => ev.stopPropagation()} />
                     ) : (
-                        <img src={previewItem.url} alt="Preview" style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '12px' }} />
+                        <img src={previewItem.url} alt="Preview" style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '12px', objectFit: 'contain' }} onClick={ev => ev.stopPropagation()} />
                     )}
                 </div>
             )}
